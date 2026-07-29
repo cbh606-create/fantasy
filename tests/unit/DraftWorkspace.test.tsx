@@ -155,4 +155,87 @@ describe("DraftWorkspace", () => {
       "Unable to load this league",
     )
   })
+
+  it("switches to live mode and continues manually after sync fails", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: "league-1",
+          name: "Test League",
+          stateJson: JSON.stringify({ ...state, source: "espn" }),
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ message: "ESPN is unavailable" }),
+      } as Response)
+
+    render(<DraftWorkspace leagueId="league-1" />)
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
+    expect(screen.getByText("ESPN synced")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Sync ESPN board" }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "ESPN is unavailable",
+    )
+    fireEvent.click(screen.getByRole("button", { name: "Continue manually" }))
+
+    expect(screen.getByText("Manual mode")).toBeInTheDocument()
+  })
+
+  it("persists a manual pick then refreshes recommendations after 400ms", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: "league-1",
+          name: "Test League",
+          stateJson: JSON.stringify(state),
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: "league-1" }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => simulationResult,
+      } as Response)
+
+    render(<DraftWorkspace leagueId="league-1" />)
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search players" }), {
+      target: { value: "First" },
+    })
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mark First Player picked" }),
+    )
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      "/api/leagues/league-1",
+      expect.objectContaining({
+        method: "PATCH",
+        body: expect.stringContaining('"playerId":"player-1"'),
+      }),
+    )
+
+    await waitFor(
+      () => expect(fetch).toHaveBeenCalledTimes(3),
+      { timeout: 1_000 },
+    )
+    expect(fetch).toHaveBeenNthCalledWith(
+      3,
+      "/api/draft/simulate",
+      expect.objectContaining({
+        method: "POST",
+        signal: expect.any(AbortSignal),
+      }),
+    )
+  })
 })
