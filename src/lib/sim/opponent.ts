@@ -122,9 +122,9 @@ const positionNeedBonus = (player: Player, roster: Player[]): number => {
 }
 
 const categoryNeedBonus = (
-  player: Player,
   roster: Player[],
   weights: CategoryWeights,
+  leagueAvg: Record<CategoryId, number>,
 ): number => {
   return ALL_CATEGORY_IDS.reduce((bonus, categoryId) => {
     const rosterAverage =
@@ -134,8 +134,8 @@ const categoryNeedBonus = (
       ) / (roster.length || 1)
     const difference =
       categoryId === "TO"
-        ? rosterAverage - player.projections[categoryId]
-        : player.projections[categoryId] - rosterAverage
+        ? rosterAverage - leagueAvg[categoryId]
+        : leagueAvg[categoryId] - rosterAverage
 
     return bonus + weights[categoryId] * Math.max(0, difference)
   }, 0)
@@ -156,15 +156,17 @@ export const scoreOpponentNeed = (
   player: Player,
   roster: Player[],
   weights: CategoryWeights,
+  leagueAvg: Record<CategoryId, number>,
 ): number =>
   (1 / player.adp) * 100 +
   positionNeedBonus(player, roster) +
-  categoryNeedBonus(player, roster, weights)
+  categoryNeedBonus(roster, weights, leagueAvg)
 
 export const pickOpponentPlayer = (
   remaining: Player[],
   roster: Player[],
   weights: CategoryWeights,
+  leagueAvg: Record<CategoryId, number>,
   rng: () => number,
 ): Player => {
   if (remaining.length === 0) {
@@ -172,7 +174,7 @@ export const pickOpponentPlayer = (
   }
 
   const scores = remaining.map((player) =>
-    scoreOpponentNeed(player, roster, weights),
+    scoreOpponentNeed(player, roster, weights, leagueAvg),
   )
   const totalScore = scores.reduce((total, score) => total + score, 0)
   const threshold = rng() * totalScore

@@ -65,10 +65,16 @@ describe("scoreOpponentNeed", () => {
       player("center", ["C"], 20, { PTS: 10, TO: 4 }),
     ]
     const candidate = player("guard", ["PG"], 10, { PTS: 15, TO: 2 })
+    const leagueAverage = projections({ PTS: 12, TO: 3 })
 
     expect(
-      scoreOpponentNeed(candidate, roster, weights({ PTS: 1, TO: 1 })),
-    ).toBe(67)
+      scoreOpponentNeed(
+        candidate,
+        roster,
+        weights({ PTS: 1, TO: 1 }),
+        leagueAverage,
+      ),
+    ).toBe(63)
   })
 
   it("prefers a missing PG after all center starter fits are occupied", () => {
@@ -81,8 +87,33 @@ describe("scoreOpponentNeed", () => {
     const center = player("center-4", ["C"], 10)
 
     expect(
-      scoreOpponentNeed(pointGuard, roster, weights()),
-    ).toBeGreaterThan(scoreOpponentNeed(center, roster, weights()))
+      scoreOpponentNeed(pointGuard, roster, weights(), projections()),
+    ).toBeGreaterThan(
+      scoreOpponentNeed(center, roster, weights(), projections()),
+    )
+  })
+
+  it("adds 25 when the player improves a flexible starter fit", () => {
+    const roster = [player("point-guard", ["PG"], 1)]
+    const candidate = player("combo-guard", ["PG", "SG"], 10)
+
+    expect(
+      scoreOpponentNeed(candidate, roster, weights(), projections()),
+    ).toBe(35)
+  })
+
+  it("adds no position bonus when the player cannot improve starter fits", () => {
+    const roster = [
+      player("point-guard-1", ["PG"], 1),
+      player("point-guard-2", ["PG"], 2),
+      player("point-guard-3", ["PG"], 3),
+      player("point-guard-4", ["PG"], 4),
+    ]
+    const candidate = player("point-guard-5", ["PG"], 10)
+
+    expect(
+      scoreOpponentNeed(candidate, roster, weights(), projections()),
+    ).toBe(10)
   })
 })
 
@@ -94,7 +125,13 @@ describe("pickOpponentPlayer", () => {
       player("third", ["SF"], 3),
     ]
 
-    const picked = pickOpponentPlayer(remaining, [], weights(), () => 0.6)
+    const picked = pickOpponentPlayer(
+      remaining,
+      [],
+      weights(),
+      projections(),
+      () => 0.6,
+    )
 
     expect(picked.id).toBe("second")
   })
