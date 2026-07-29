@@ -13,7 +13,10 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.2",
+    "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "better-sqlite3": "^13.0.2",
+    "dotenv": "^17.4.2",
     "next": "15.5.22",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -25,6 +28,7 @@
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
