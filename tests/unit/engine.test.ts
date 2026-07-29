@@ -111,6 +111,44 @@ describe("runDraftSimulation", () => {
     expect(focusResult.nextPicks[0].playerId).toBe(craftedPlayers[0].id)
   })
 
+  it("returns no next-pick recommendations when it is not the user turn", () => {
+    const state = createState()
+    state.board.currentOverall = 2
+
+    const result = runDraftSimulation({
+      state,
+      simCount: 2,
+      seed: 23,
+    })
+
+    expect(result.nextPicks).toEqual([])
+    expect(Object.values(result.categoryOutlook).some((value) => value > 0)).toBe(
+      true,
+    )
+  })
+
+  it("keeps unconstrained aggregates isolated from force-pick input", () => {
+    const state = createState()
+    const input = {
+      state,
+      simCount: 4,
+      seed: 31,
+    }
+
+    const unconstrained = runDraftSimulation(input)
+    const withUnrelatedForcePick = runDraftSimulation({
+      ...input,
+      forcePickPlayerId: state.players[11].id,
+    })
+
+    expect(withUnrelatedForcePick.topCombinations).toEqual(
+      unconstrained.topCombinations,
+    )
+    expect(withUnrelatedForcePick.categoryOutlook).toEqual(
+      unconstrained.categoryOutlook,
+    )
+  })
+
   it("returns empty aggregates when no players remain", () => {
     const state = createState()
     state.board.picks.forEach((pick, index) => {
@@ -133,6 +171,9 @@ describe("runDraftSimulation", () => {
 
     expect(result.nextPicks).toEqual([])
     expect(result.topCombinations).toEqual([])
+    expect(Object.values(result.categoryOutlook).some((value) => value > 0)).toBe(
+      true,
+    )
     expect(result.meta.simCount).toBe(1)
   })
 })

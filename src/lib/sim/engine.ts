@@ -274,23 +274,8 @@ export const runDraftSimulation = (
     currentPick?.teamIndex === input.state.perspectiveTeamIndex &&
     currentPick.playerId === null
 
-  if (remaining.length === 0) {
-    return {
-      nextPicks: [],
-      topCombinations: [],
-      categoryOutlook: emptyCategoryValues(),
-      meta: {
-        simCount,
-        seed: input.seed,
-        generatedAt: new Date().toISOString(),
-        latencyMs: Date.now() - startedAt,
-        source: input.state.source,
-      },
-    }
-  }
-
   const outcomes = Array.from({ length: simCount }, (_, index) =>
-    simulateDraft(input.state, input.seed + index, input.forcePickPlayerId),
+    simulateDraft(input.state, input.seed + index),
   )
   let nextPicks: NextPickRec[] = []
 
