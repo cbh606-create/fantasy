@@ -25,4 +25,16 @@ describe("effectiveWeights", () => {
     const w = effectiveWeights(cats, [], [])
     expect(w.FG_PCT).toBe(0)
   })
+
+  it("defaults missing category weights to 0", () => {
+    const w = effectiveWeights(
+      [{ id: "AST", enabled: true, weight: 1 }],
+      [],
+      [],
+    )
+
+    expect(w.AST).toBe(1)
+    expect(w.PTS).toBe(0)
+    expect(Object.values(w).every(Number.isFinite)).toBe(true)
+  })
 })

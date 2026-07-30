@@ -112,6 +112,8 @@ export const POST = async (request: Request): Promise<Response> => {
       `ESPN League ${body.leagueId.trim()}`
     const data = {
       name,
+      espnLeagueId: body.leagueId.trim(),
+      season: body.season,
       settingsJson: JSON.stringify(state.settings),
       stateJson: JSON.stringify(state),
     }

@@ -22,7 +22,10 @@ export const effectiveWeights = (
 ): Record<CategoryId, number> => {
   const punt = new Set(puntCategoryIds)
   const focus = new Set(focusCategoryIds)
-  const out = {} as Record<CategoryId, number>
+  const out = Object.fromEntries(
+    ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
+  ) as Record<CategoryId, number>
+
   for (const cat of categories) {
     if (!cat.enabled || punt.has(cat.id)) {
       out[cat.id] = 0

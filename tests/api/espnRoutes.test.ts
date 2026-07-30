@@ -73,6 +73,8 @@ describe("POST /api/espn/import", () => {
 
     expect(response.status).toBe(201)
     expect(league.name).toBe("Imported league")
+    expect(league.espnLeagueId).toBe(espnParams.leagueId)
+    expect(league.season).toBe(espnParams.season)
     expect(state.source).toBe("espn")
     expect(state.board.currentOverall).toBe(3)
   })
@@ -91,6 +93,8 @@ describe("POST /api/espn/import", () => {
 
     expect(response.status).toBe(200)
     expect(league.name).toBe("Re-imported league")
+    expect(league.espnLeagueId).toBe(espnParams.leagueId)
+    expect(league.season).toBe(espnParams.season)
     expect(JSON.parse(league.stateJson).source).toBe("espn")
   })
 

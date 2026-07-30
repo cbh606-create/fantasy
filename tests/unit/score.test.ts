@@ -60,21 +60,22 @@ describe("rosterTotals", () => {
 })
 
 describe("leagueMeanTotals", () => {
-  it("averages each category across roster totals", () => {
-    const means = leagueMeanTotals([
+  it("returns category means and standard deviations", () => {
+    const leagueTotals = leagueMeanTotals([
       [player("first", { FG_PCT: 0.4, REB: 4, PTS: 10 })],
       [player("second", { FG_PCT: 0.6, REB: 8, PTS: 30 })],
     ])
 
-    expect(means.FG_PCT).toBeCloseTo(0.5)
-    expect(means.REB).toBe(6)
-    expect(means.PTS).toBe(20)
+    expect(leagueTotals.means.FG_PCT).toBeCloseTo(0.5)
+    expect(leagueTotals.means.REB).toBe(6)
+    expect(leagueTotals.means.PTS).toBe(20)
+    expect(leagueTotals.standardDeviations.PTS).toBe(10)
   })
 })
 
 describe("categoryWinExpectancies", () => {
   it("scores fewer turnovers higher when TO is weighted", () => {
-    const means = leagueMeanTotals([
+    const leagueTotals = leagueMeanTotals([
       [player("low-turnovers", { TO: 2 })],
       [player("high-turnovers", { TO: 6 })],
     ])
@@ -82,12 +83,12 @@ describe("categoryWinExpectancies", () => {
 
     const lowTurnoverScore = categoryWinExpectancies(
       projections({ TO: 2 }),
-      means,
+      leagueTotals,
       toWeights,
     )
     const highTurnoverScore = categoryWinExpectancies(
       projections({ TO: 6 }),
-      means,
+      leagueTotals,
       toWeights,
     )
 
@@ -95,31 +96,55 @@ describe("categoryWinExpectancies", () => {
   })
 
   it("ignores turnover differences when TO is punted", () => {
-    const means = leagueMeanTotals([
+    const leagueTotals = leagueMeanTotals([
       [player("low-turnovers", { TO: 2 })],
       [player("high-turnovers", { TO: 6 })],
     ])
     const puntToWeights = weights({ TO: 0 })
 
     expect(
-      categoryWinExpectancies(projections({ TO: 2 }), means, puntToWeights),
+      categoryWinExpectancies(
+        projections({ TO: 2 }),
+        leagueTotals,
+        puntToWeights,
+      ),
     ).toBe(
-      categoryWinExpectancies(projections({ TO: 6 }), means, puntToWeights),
+      categoryWinExpectancies(
+        projections({ TO: 6 }),
+        leagueTotals,
+        puntToWeights,
+      ),
     )
   })
 
   it("uses population standard deviation from league roster totals", () => {
-    const means = leagueMeanTotals([
+    const leagueTotals = leagueMeanTotals([
       [player("zero-points", { PTS: 0 })],
       [player("four-points", { PTS: 4 })],
     ])
 
     const score = categoryWinExpectancies(
       projections({ PTS: 4 }),
-      means,
+      leagueTotals,
       weights({ PTS: 1 }),
     )
 
     expect(score).toBeCloseTo(1 / (1 + Math.exp(-1)))
+  })
+
+  it("treats missing category weights as 0", () => {
+    const leagueTotals = leagueMeanTotals([
+      [player("first", { AST: 2 })],
+      [player("second", { AST: 6 })],
+    ])
+
+    const score = categoryWinExpectancies(
+      projections({ AST: 6 }),
+      leagueTotals,
+      { AST: 1 } as Record<CategoryId, number>,
+    )
+
+    expect(score).toBeCloseTo(1 / (1 + Math.exp(-1)))
+    expect(Number.isNaN(score)).toBe(false)
   })
 })

@@ -10,6 +10,8 @@ model League {
   id           String   @id @default(cuid())
   clerkUserId  String
   name         String
+  espnLeagueId String?
+  season       Int?
   settingsJson String
   stateJson    String
   createdAt    DateTime @default(now())

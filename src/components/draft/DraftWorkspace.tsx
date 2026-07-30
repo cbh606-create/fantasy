@@ -16,6 +16,8 @@ type DraftWorkspaceProps = {
 type LeagueResponse = {
   id: string
   name: string
+  espnLeagueId: string | null
+  season: number | null
   stateJson: string
 }
 
@@ -23,6 +25,8 @@ type WorkspaceMode = "prep" | "live"
 
 export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const [leagueName, setLeagueName] = useState("")
+  const [espnLeagueId, setEspnLeagueId] = useState<string | null>(null)
+  const [season, setSeason] = useState<number | null>(null)
   const [state, setState] = useState<LeagueState | null>(null)
   const [result, setResult] = useState<SimulationResult | null>(null)
   const [mode, setMode] = useState<WorkspaceMode>("prep")
@@ -52,6 +56,8 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
 
         const league = (await response.json()) as LeagueResponse
         setLeagueName(league.name)
+        setEspnLeagueId(league.espnLeagueId)
+        setSeason(league.season)
         const leagueState = JSON.parse(league.stateJson) as LeagueState
         setState(leagueState)
         setIsManualMode(leagueState.source === "manual")
@@ -141,7 +147,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   }
 
   const handleSync = async () => {
-    if (!state) return
+    if (!state || !espnLeagueId || season === null) return
 
     setSyncError("")
     setIsSyncing(true)
@@ -152,8 +158,8 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           id: leagueId,
-          leagueId,
-          season: new Date().getFullYear(),
+          leagueId: espnLeagueId,
+          season,
         }),
       })
       const syncResult = (await response.json()) as {

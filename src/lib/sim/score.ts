@@ -3,8 +3,12 @@ import type { CategoryId, Player } from "@/lib/domain/types"
 
 type CategoryTotals = Record<CategoryId, number>
 
+export type LeagueTotals = {
+  means: CategoryTotals
+  standardDeviations: CategoryTotals
+}
+
 const RATE_CATEGORY_IDS = new Set<CategoryId>(["FG_PCT", "FT_PCT"])
-const leagueStandardDeviations = new WeakMap<CategoryTotals, CategoryTotals>()
 
 const emptyTotals = (): CategoryTotals =>
   Object.fromEntries(
@@ -31,14 +35,13 @@ export const rosterTotals = (players: Player[]): CategoryTotals => {
   return totals
 }
 
-export const leagueMeanTotals = (rosters: Player[][]): CategoryTotals => {
+export const leagueMeanTotals = (rosters: Player[][]): LeagueTotals => {
   const rosterCategoryTotals = rosters.map(rosterTotals)
   const means = emptyTotals()
   const standardDeviations = emptyTotals()
 
   if (rosterCategoryTotals.length === 0) {
-    leagueStandardDeviations.set(means, standardDeviations)
-    return means
+    return { means, standardDeviations }
   }
 
   for (const categoryId of ALL_CATEGORY_IDS) {
@@ -57,26 +60,25 @@ export const leagueMeanTotals = (rosters: Player[][]): CategoryTotals => {
     standardDeviations[categoryId] = Math.sqrt(variance)
   }
 
-  leagueStandardDeviations.set(means, standardDeviations)
-  return means
+  return { means, standardDeviations }
 }
 
 export const categoryWinExpectancies = (
   teamTotals: CategoryTotals,
-  leagueMeans: CategoryTotals,
+  leagueTotals: LeagueTotals,
   weights: CategoryTotals,
 ): number => {
-  const standardDeviations = leagueStandardDeviations.get(leagueMeans)
+  const { means, standardDeviations } = leagueTotals
 
   return ALL_CATEGORY_IDS.reduce((score, categoryId) => {
-    const standardDeviation = standardDeviations?.[categoryId] || 1
+    const standardDeviation = standardDeviations[categoryId] || 1
     const difference =
       categoryId === "TO"
-        ? leagueMeans[categoryId] - teamTotals[categoryId]
-        : teamTotals[categoryId] - leagueMeans[categoryId]
+        ? means[categoryId] - teamTotals[categoryId]
+        : teamTotals[categoryId] - means[categoryId]
     const zScore = difference / standardDeviation
     const winExpectancy = 1 / (1 + Math.exp(-zScore))
 
-    return score + weights[categoryId] * winExpectancy
+    return score + (weights[categoryId] ?? 0) * winExpectancy
   }, 0)
 }

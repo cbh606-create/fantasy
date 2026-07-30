@@ -163,6 +163,8 @@ describe("DraftWorkspace", () => {
         json: async () => ({
           id: "league-1",
           name: "Test League",
+          espnLeagueId: "fixture-league",
+          season: 2026,
           stateJson: JSON.stringify({ ...state, source: "espn" }),
         }),
       } as Response)
@@ -184,6 +186,43 @@ describe("DraftWorkspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue manually" }))
 
     expect(screen.getByText("Manual mode")).toBeInTheDocument()
+  })
+
+  it("syncs with the persisted ESPN league id and season", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: "league-1",
+          name: "Test League",
+          espnLeagueId: "espn-12345",
+          season: 2025,
+          stateJson: JSON.stringify({ ...state, source: "espn" }),
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ message: "ESPN is unavailable" }),
+      } as Response)
+
+    render(<DraftWorkspace leagueId="league-1" />)
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
+    fireEvent.click(screen.getByRole("button", { name: "Sync ESPN board" }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      "/api/espn/sync-board",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          id: "league-1",
+          leagueId: "espn-12345",
+          season: 2025,
+        }),
+      }),
+    )
   })
 
   it("persists a manual pick then refreshes recommendations after 400ms", async () => {
