@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
+test.describe.configure({ mode: "serial" })
+
 const projections = {
   FG_PCT: 0.5,
   FT_PCT: 0.8,
@@ -103,6 +105,11 @@ test("manual setup reaches prep and shows simulated next picks", async ({
   page,
 }) => {
   await page.route("**/api/leagues", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue()
+      return
+    }
+
     const requestBody = route.request().postDataJSON()
 
     expect(requestBody.name).toBe("Smoke League")
@@ -115,11 +122,17 @@ test("manual setup reaches prep and shows simulated next picks", async ({
   })
 
   await page.goto("/leagues/new")
-  await page.getByLabel("League name").fill("Smoke League")
+  const leagueNameField = page.getByLabel("League name")
+  await leagueNameField.click()
+  await leagueNameField.fill("")
+  await leagueNameField.pressSequentially("Smoke League")
   await page.getByRole("button", { name: "Pick slot 4" }).click()
   await page.getByRole("button", { name: "Punt TO" }).click()
   await page.getByRole("button", { name: "Focus AST" }).click()
-  await page.getByRole("button", { name: "Enter manually" }).click()
+  await Promise.all([
+    page.waitForURL(/\/leagues\/e2e-manual\/draft$/),
+    page.getByRole("button", { name: "Enter manually" }).click(),
+  ])
 
   await expect(page).toHaveURL(/\/leagues\/e2e-manual\/draft$/)
   await expect(page.getByRole("heading", { name: "Smoke League" })).toBeVisible()
