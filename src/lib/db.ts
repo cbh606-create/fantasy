@@ -1,13 +1,24 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import { PrismaLibSql } from "@prisma/adapter-libsql"
 import { PrismaClient } from "@prisma/client"
+import path from "node:path"
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+const resolveSqliteUrl = () => {
+  const configured = process.env.DATABASE_URL ?? "file:./dev.db"
+  if (!configured.startsWith("file:")) return configured
+
+  const relativePath = configured.slice("file:".length)
+  if (path.isAbsolute(relativePath)) return configured
+
+  return `file:${path.resolve(process.cwd(), relativePath)}`
+}
+
 const createPrismaClient = () => {
-  const adapter = new PrismaBetterSqlite3({
-    url: process.env.DATABASE_URL ?? "file:./dev.db",
+  const adapter = new PrismaLibSql({
+    url: resolveSqliteUrl(),
   })
   return new PrismaClient({ adapter })
 }

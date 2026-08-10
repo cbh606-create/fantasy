@@ -6,7 +6,7 @@ ESPN Fantasy Basketball draft analysis app — snake 12-team H2H categories, sim
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 20+ (Node 22/24 also fine; this app uses libSQL so Visual Studio C++ build tools are not required)
 - npm
 - [Clerk](https://clerk.com/) application (publishable + secret keys)
 
