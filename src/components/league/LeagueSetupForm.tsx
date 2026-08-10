@@ -107,10 +107,30 @@ export const LeagueSetupForm = () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     })
-    const result = (await response.json()) as LeagueResponse
+    const rawText = await response.text()
+    let result: LeagueResponse & {
+      error?: string
+      errorCode?: string
+      message?: string
+    } = {}
+
+    if (rawText) {
+      try {
+        result = JSON.parse(rawText) as typeof result
+      } catch {
+        throw new Error(
+          `Server returned a non-JSON response (${response.status}). Try again or use Enter manually.`,
+        )
+      }
+    }
 
     if (!response.ok || !result.id) {
-      throw new Error(result.message || "Unable to create your league")
+      const detail =
+        result.message ||
+        result.errorCode ||
+        result.error ||
+        (response.status ? `HTTP ${response.status}` : "")
+      throw new Error(detail || "Unable to create your league")
     }
 
     router.push(`/leagues/${result.id}/draft`)

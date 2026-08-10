@@ -51,7 +51,8 @@ describe("LeagueSetupForm", () => {
   it("creates a manual league with sample players and redirects", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
-      json: async () => ({ id: "league-manual" }),
+      status: 201,
+      text: async () => JSON.stringify({ id: "league-manual" }),
     } as Response)
     render(<LeagueSetupForm />)
 
@@ -75,7 +76,8 @@ describe("LeagueSetupForm", () => {
   it("imports an ESPN league and redirects", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
-      json: async () => ({ id: "league-espn" }),
+      status: 201,
+      text: async () => JSON.stringify({ id: "league-espn" }),
     } as Response)
     render(<LeagueSetupForm />)
 
@@ -108,7 +110,9 @@ describe("LeagueSetupForm", () => {
   it("shows an error when a request fails", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: false,
-      json: async () => ({ message: "Could not import league" }),
+      status: 502,
+      text: async () =>
+        JSON.stringify({ message: "Could not import league" }),
     } as Response)
     render(<LeagueSetupForm />)
 
@@ -120,5 +124,23 @@ describe("LeagueSetupForm", () => {
     expect(
       await screen.findByRole("alert", { name: "Setup error" }),
     ).toHaveTextContent("Could not import league")
+  })
+
+  it("shows a helpful error when the server returns an empty body", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => "",
+    } as Response)
+    render(<LeagueSetupForm />)
+
+    fireEvent.change(screen.getByLabelText("ESPN league ID"), {
+      target: { value: "12345" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Import from ESPN" }))
+
+    expect(
+      await screen.findByRole("alert", { name: "Setup error" }),
+    ).toHaveTextContent("HTTP 500")
   })
 })

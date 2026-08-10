@@ -140,6 +140,16 @@ export const POST = async (request: Request): Promise<Response> => {
       return adapterErrorResponse(error)
     }
 
-    throw error
+    console.error("ESPN import failed", error)
+    return NextResponse.json(
+      {
+        error: "server_error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to import ESPN league",
+      },
+      { status: 500 },
+    )
   }
 }

@@ -120,6 +120,14 @@ export const POST = async (request: Request): Promise<Response> => {
       )
     }
 
-    throw error
+    console.error("ESPN sync failed", error)
+    return NextResponse.json(
+      {
+        error: "server_error",
+        message:
+          error instanceof Error ? error.message : "Unable to sync ESPN board",
+      },
+      { status: 500 },
+    )
   }
 }
