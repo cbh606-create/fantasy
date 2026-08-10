@@ -76,7 +76,25 @@ describe("POST /api/leagues", () => {
     const manualInput = {
       userPickSlot: 1,
       rounds: 1,
-      players: [],
+      players: [
+        {
+          id: "p01",
+          name: "Test Player",
+          positions: ["PG" as const],
+          projections: {
+            FG_PCT: 0.45,
+            FT_PCT: 0.8,
+            TPM: 2,
+            REB: 4,
+            AST: 5,
+            STL: 1,
+            BLK: 0.5,
+            TO: 2,
+            PTS: 20,
+          },
+          adp: 1,
+        },
+      ],
     }
     const expectedState = manualToLeagueState(manualInput)
     const response = await POST(
@@ -97,6 +115,27 @@ describe("POST /api/leagues", () => {
       settingsJson: JSON.stringify(expectedState.settings),
       stateJson: JSON.stringify(expectedState),
     })
+  })
+
+  it("fills players from the cached pool when manualInput omits players", async () => {
+    const response = await POST(
+      createRequest("http://localhost/api/leagues", "POST", {
+        name: "Pool league",
+        manualInput: {
+          userPickSlot: 2,
+          rounds: 1,
+          playerPoolSource: "stats_2025_26",
+        },
+      }),
+    )
+    const league = await response.json()
+    const state = JSON.parse(league.stateJson) as LeagueState
+
+    expect(response.status).toBe(201)
+    expect(state.players.length).toBeGreaterThan(100)
+    expect(state.players.some((player) => /Jokic|Giannis|Curry/i.test(player.name))).toBe(
+      true,
+    )
   })
 
   it("creates a league from an imported state", async () => {

@@ -36,7 +36,10 @@ export const manualLeagueInputSchema = z.object({
   puntCategoryIds: z.array(categoryIdSchema).optional(),
   focusCategoryIds: z.array(categoryIdSchema).optional(),
   rounds: z.number().int().min(1).default(13),
-  players: z.array(playerSchema),
+  players: z.array(playerSchema).optional(),
+  playerPoolSource: z
+    .enum(["stats_2025_26", "proj_2026_27", "sample"])
+    .optional(),
   picks: z
     .array(
       z.object({

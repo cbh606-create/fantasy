@@ -4,6 +4,7 @@ import { manualLeagueInputSchema } from "@/lib/adapters/types"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
 import type { LeagueState } from "@/lib/domain/types"
+import { getPlayerPool } from "@/lib/players/provider"
 
 type CreateLeagueBody = {
   name?: unknown
@@ -76,7 +77,19 @@ export const POST = async (request: Request): Promise<Response> => {
       return NextResponse.json({ error: "validation" }, { status: 400 })
     }
 
-    state = manualToLeagueState(manualInput.data)
+    const players =
+      manualInput.data.players && manualInput.data.players.length > 0
+        ? manualInput.data.players
+        : (
+            await getPlayerPool(
+              manualInput.data.playerPoolSource ?? "stats_2025_26",
+            )
+          ).players
+
+    state = manualToLeagueState({
+      ...manualInput.data,
+      players,
+    })
   }
 
   const league = await db.league.create({

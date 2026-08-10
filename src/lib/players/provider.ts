@@ -1,0 +1,80 @@
+import { readFile } from "node:fs/promises"
+import path from "node:path"
+import samplePlayers from "../../../data/fixtures/players-sample.json"
+import type { Player } from "@/lib/domain/types"
+
+export type PlayerPoolSource = "stats_2025_26" | "proj_2026_27" | "sample"
+
+type PlayerPoolFile = {
+  meta?: {
+    source?: string
+    fantasySeason?: number
+    nbaSeasonLabel?: string
+    generatedAt?: string
+    count?: number
+  }
+  players: Player[]
+}
+
+const DEFAULT_SOURCE: PlayerPoolSource =
+  (process.env.PLAYER_POOL_SOURCE as PlayerPoolSource | undefined) ||
+  "stats_2025_26"
+
+const poolPath = (source: Exclude<PlayerPoolSource, "sample">) =>
+  path.join(process.cwd(), "data", "players", `${source}.json`)
+
+const loadPoolFile = async (
+  source: PlayerPoolSource,
+): Promise<PlayerPoolFile | null> => {
+  if (source === "sample") {
+    return {
+      meta: { source: "sample", count: samplePlayers.length },
+      players: samplePlayers as Player[],
+    }
+  }
+
+  try {
+    const raw = await readFile(poolPath(source), "utf8")
+    return JSON.parse(raw) as PlayerPoolFile
+  } catch {
+    return null
+  }
+}
+
+export const getPlayerPool = async (
+  source: PlayerPoolSource = DEFAULT_SOURCE,
+): Promise<{
+  source: PlayerPoolSource
+  players: Player[]
+  fallbackUsed: boolean
+  meta?: PlayerPoolFile["meta"]
+}> => {
+  const primary = await loadPoolFile(source)
+  if (primary?.players?.length) {
+    return {
+      source,
+      players: primary.players,
+      fallbackUsed: false,
+      meta: primary.meta,
+    }
+  }
+
+  if (source !== "stats_2025_26") {
+    const statsPool = await loadPoolFile("stats_2025_26")
+    if (statsPool?.players?.length) {
+      return {
+        source: "stats_2025_26",
+        players: statsPool.players,
+        fallbackUsed: true,
+        meta: statsPool.meta,
+      }
+    }
+  }
+
+  return {
+    source: "sample",
+    players: samplePlayers as Player[],
+    fallbackUsed: true,
+    meta: { source: "sample", count: samplePlayers.length },
+  }
+}

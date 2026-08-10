@@ -19,7 +19,9 @@ const DEFAULT_ROSTER_SLOTS: RosterSlot[] = [
   "BE",
 ]
 
-export const manualToLeagueState = (input: ManualLeagueInput): LeagueState => {
+export const manualToLeagueState = (
+  input: ManualLeagueInput & { players: NonNullable<ManualLeagueInput["players"]> },
+): LeagueState => {
   const rounds = input.rounds
   const teams = 12 as const
 

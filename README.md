@@ -47,6 +47,16 @@ ESPN Fantasy Basketball draft analysis app — snake 12-team H2H categories, sim
 
    Open [http://localhost:3000](http://localhost:3000).
 
+## Player pool (Manual draft)
+
+Manual leagues load real NBA players from a cached JSON pool (default: 2025-26 ESPN Fantasy stats / % owned ranking).
+
+```bash
+npm run players:refresh   # rewrite data/players/stats_2025_26.json (~250 players)
+```
+
+Optional env: `PLAYER_POOL_SOURCE=stats_2025_26` (default). Later: `proj_2026_27` when that cache exists.
+
 ## ESPN integration
 
 `ESPN_LIVE` defaults to `false`. The MVP uses **fixture-first** ESPN data (`data/fixtures/espn-league.json`) for import and sync flows. Manual league setup works without ESPN.

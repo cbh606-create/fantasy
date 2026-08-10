@@ -48,7 +48,7 @@ describe("LeagueSetupForm", () => {
     )
   })
 
-  it("creates a manual league with sample players and redirects", async () => {
+  it("creates a manual league with player pool source and redirects", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       status: 201,
@@ -69,7 +69,8 @@ describe("LeagueSetupForm", () => {
     expect(url).toBe("/api/leagues")
     expect(body.name).toBe("My League")
     expect(body.manualInput.userPickSlot).toBe(4)
-    expect(body.manualInput.players.length).toBeGreaterThan(0)
+    expect(body.manualInput.playerPoolSource).toBe("stats_2025_26")
+    expect(body.manualInput.players).toBeUndefined()
     expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft")
   })
 

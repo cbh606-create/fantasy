@@ -2,11 +2,10 @@
 
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
-import samplePlayers from "../../../data/fixtures/players-sample.json"
 import { Button } from "@/components/ui/Button"
 import { Chip } from "@/components/ui/Chip"
 import { defaultCategorySettings } from "@/lib/domain/categories"
-import type { CategoryId, CategorySetting, Player } from "@/lib/domain/types"
+import type { CategoryId, CategorySetting } from "@/lib/domain/types"
 
 const PICK_SLOTS = Array.from({ length: 12 }, (_, index) => index + 1)
 const MIN_WEIGHT = 0.5
@@ -171,7 +170,7 @@ export const LeagueSetupForm = () => {
           puntCategoryIds,
           focusCategoryIds,
           rounds: 13,
-          players: samplePlayers as Player[],
+          playerPoolSource: "stats_2025_26",
         },
       })
     } catch (requestError) {

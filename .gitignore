@@ -45,3 +45,10 @@ next-env.d.ts
 *.db
 .worktrees/
 .superpowers/
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# playwright
+/test-results/
+/playwright-report/
