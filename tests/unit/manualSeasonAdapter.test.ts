@@ -20,7 +20,9 @@ describe("manualToSeasonLeagueState", () => {
     expect(state.teams).toHaveLength(12)
     expect(state.teams.every((team) => team.entries.length === 14)).toBe(true)
     expect(state.teams[2].entries.map((entry) => entry.slot)).toEqual(SEASON_ROSTER_SLOTS)
-    expect(state.players).toHaveLength(12 * 14)
+    expect(state.players).toHaveLength(12 * 14 + 24)
+    expect(state.availablePlayerIds).toHaveLength(24)
+    expect(state.waiverOrder.indexOf(state.perspectiveTeamIndex)).toBe(2)
     expect(state.players[0].shooting).toEqual({
       FGM: expect.any(Number),
       FGA: expect.any(Number),

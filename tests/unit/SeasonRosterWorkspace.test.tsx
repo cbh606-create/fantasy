@@ -70,6 +70,8 @@ const state: SeasonLeagueState = {
       entries: slots.map((slot) => ({ slot, playerId: "third-team-only" })),
     },
   ],
+  availablePlayerIds: [],
+  waiverOrder: [0, 1, 2],
   source: "manual",
 }
 

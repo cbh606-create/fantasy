@@ -52,6 +52,8 @@ const state = (
     entries: entries(...playerIds),
   })),
   players,
+  availablePlayerIds: [],
+  waiverOrder: teamPlayerIds.map((_, teamIndex) => teamIndex),
   source: "manual",
 })
 

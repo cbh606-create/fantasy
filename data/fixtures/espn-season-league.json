@@ -4444,6 +4444,598 @@
                 "FTA": 1.4
             },
             "teamAbbr": "MIN"
+        },
+        {
+            "id": "fa1",
+            "name": "Free Agent 1",
+            "teamAbbr": "ATL",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.429,
+                "FT_PCT": 0.697,
+                "TPM": 1.12,
+                "REB": 3.21,
+                "AST": 1.93,
+                "STL": 0.58,
+                "BLK": 0.32,
+                "TO": 0.98,
+                "PTS": 6.87
+            },
+            "shooting": {
+                "FGM": 2.57,
+                "FGA": 5.99,
+                "FTM": 1.31,
+                "FTA": 1.88
+            }
+        },
+        {
+            "id": "fa2",
+            "name": "Free Agent 2",
+            "teamAbbr": "BOS",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.436,
+                "FT_PCT": 0.688,
+                "TPM": 1.54,
+                "REB": 3.82,
+                "AST": 2.46,
+                "STL": 0.71,
+                "BLK": 0.44,
+                "TO": 1.16,
+                "PTS": 7.84
+            },
+            "shooting": {
+                "FGM": 2.74,
+                "FGA": 6.28,
+                "FTM": 1.52,
+                "FTA": 2.21
+            }
+        },
+        {
+            "id": "fa3",
+            "name": "Free Agent 3",
+            "teamAbbr": "BKN",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.443,
+                "FT_PCT": 0.794,
+                "TPM": 1.96,
+                "REB": 4.43,
+                "AST": 2.99,
+                "STL": 0.84,
+                "BLK": 0.56,
+                "TO": 1.34,
+                "PTS": 8.81
+            },
+            "shooting": {
+                "FGM": 2.91,
+                "FGA": 6.57,
+                "FTM": 1.73,
+                "FTA": 2.18
+            }
+        },
+        {
+            "id": "fa4",
+            "name": "Free Agent 4",
+            "teamAbbr": "CHA",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.449,
+                "FT_PCT": 0.773,
+                "TPM": 2.38,
+                "REB": 5.04,
+                "AST": 3.52,
+                "STL": 0.97,
+                "BLK": 0.68,
+                "TO": 1.52,
+                "PTS": 9.78
+            },
+            "shooting": {
+                "FGM": 3.08,
+                "FGA": 6.86,
+                "FTM": 1.94,
+                "FTA": 2.51
+            }
+        },
+        {
+            "id": "fa5",
+            "name": "Free Agent 5",
+            "teamAbbr": "CHI",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.455,
+                "FT_PCT": 0.757,
+                "TPM": 2.8,
+                "REB": 5.65,
+                "AST": 4.05,
+                "STL": 0.45,
+                "BLK": 0.8,
+                "TO": 1.7,
+                "PTS": 10.75
+            },
+            "shooting": {
+                "FGM": 3.25,
+                "FGA": 7.15,
+                "FTM": 2.15,
+                "FTA": 2.84
+            }
+        },
+        {
+            "id": "fa6",
+            "name": "Free Agent 6",
+            "teamAbbr": "CLE",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.46,
+                "FT_PCT": 0.84,
+                "TPM": 0.7,
+                "REB": 6.26,
+                "AST": 4.58,
+                "STL": 0.58,
+                "BLK": 0.92,
+                "TO": 0.8,
+                "PTS": 9.2
+            },
+            "shooting": {
+                "FGM": 3.42,
+                "FGA": 7.44,
+                "FTM": 2.36,
+                "FTA": 2.81
+            }
+        },
+        {
+            "id": "fa7",
+            "name": "Free Agent 7",
+            "teamAbbr": "DAL",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.464,
+                "FT_PCT": 0.659,
+                "TPM": 1.12,
+                "REB": 6.87,
+                "AST": 5.11,
+                "STL": 0.71,
+                "BLK": 0.2,
+                "TO": 0.98,
+                "PTS": 8.7
+            },
+            "shooting": {
+                "FGM": 3.59,
+                "FGA": 7.73,
+                "FTM": 1.1,
+                "FTA": 1.67
+            }
+        },
+        {
+            "id": "fa8",
+            "name": "Free Agent 8",
+            "teamAbbr": "DEN",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.469,
+                "FT_PCT": 0.655,
+                "TPM": 1.54,
+                "REB": 2.6,
+                "AST": 5.64,
+                "STL": 0.84,
+                "BLK": 0.32,
+                "TO": 1.16,
+                "PTS": 9.67
+            },
+            "shooting": {
+                "FGM": 3.76,
+                "FGA": 8.02,
+                "FTM": 1.31,
+                "FTA": 2
+            }
+        },
+        {
+            "id": "fa9",
+            "name": "Free Agent 9",
+            "teamAbbr": "DET",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.473,
+                "FT_PCT": 0.772,
+                "TPM": 1.96,
+                "REB": 3.21,
+                "AST": 1.4,
+                "STL": 0.97,
+                "BLK": 0.44,
+                "TO": 1.34,
+                "PTS": 10.64
+            },
+            "shooting": {
+                "FGM": 3.93,
+                "FGA": 8.31,
+                "FTM": 1.52,
+                "FTA": 1.97
+            }
+        },
+        {
+            "id": "fa10",
+            "name": "Free Agent 10",
+            "teamAbbr": "GSW",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.477,
+                "FT_PCT": 0.752,
+                "TPM": 2.38,
+                "REB": 3.82,
+                "AST": 1.93,
+                "STL": 0.45,
+                "BLK": 0.56,
+                "TO": 1.52,
+                "PTS": 11.61
+            },
+            "shooting": {
+                "FGM": 4.1,
+                "FGA": 8.6,
+                "FTM": 1.73,
+                "FTA": 2.3
+            }
+        },
+        {
+            "id": "fa11",
+            "name": "Free Agent 11",
+            "teamAbbr": "HOU",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.48,
+                "FT_PCT": 0.738,
+                "TPM": 2.8,
+                "REB": 4.43,
+                "AST": 2.46,
+                "STL": 0.58,
+                "BLK": 0.68,
+                "TO": 1.7,
+                "PTS": 12.58
+            },
+            "shooting": {
+                "FGM": 4.27,
+                "FGA": 8.89,
+                "FTM": 1.94,
+                "FTA": 2.63
+            }
+        },
+        {
+            "id": "fa12",
+            "name": "Free Agent 12",
+            "teamAbbr": "IND",
+            "availability": "fa",
+            "projections": {
+                "FG_PCT": 0.484,
+                "FT_PCT": 0.827,
+                "TPM": 0.7,
+                "REB": 5.04,
+                "AST": 2.99,
+                "STL": 0.71,
+                "BLK": 0.8,
+                "TO": 0.8,
+                "PTS": 11.03
+            },
+            "shooting": {
+                "FGM": 4.44,
+                "FGA": 9.18,
+                "FTM": 2.15,
+                "FTA": 2.6
+            }
+        },
+        {
+            "id": "fa13",
+            "name": "Free Agent 13",
+            "teamAbbr": "LAC",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.487,
+                "FT_PCT": 0.805,
+                "TPM": 1.12,
+                "REB": 5.65,
+                "AST": 3.52,
+                "STL": 0.84,
+                "BLK": 0.92,
+                "TO": 0.98,
+                "PTS": 12
+            },
+            "shooting": {
+                "FGM": 4.61,
+                "FGA": 9.47,
+                "FTM": 2.36,
+                "FTA": 2.93
+            }
+        },
+        {
+            "id": "fa14",
+            "name": "Free Agent 14",
+            "teamAbbr": "LAL",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.49,
+                "FT_PCT": 0.615,
+                "TPM": 1.54,
+                "REB": 6.26,
+                "AST": 4.05,
+                "STL": 0.97,
+                "BLK": 0.2,
+                "TO": 1.16,
+                "PTS": 11.5
+            },
+            "shooting": {
+                "FGM": 4.78,
+                "FGA": 9.76,
+                "FTM": 1.1,
+                "FTA": 1.79
+            }
+        },
+        {
+            "id": "fa15",
+            "name": "Free Agent 15",
+            "teamAbbr": "MEM",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.493,
+                "FT_PCT": 0.744,
+                "TPM": 1.96,
+                "REB": 6.87,
+                "AST": 4.58,
+                "STL": 0.45,
+                "BLK": 0.32,
+                "TO": 1.34,
+                "PTS": 12.47
+            },
+            "shooting": {
+                "FGM": 4.95,
+                "FGA": 10.05,
+                "FTM": 1.31,
+                "FTA": 1.76
+            }
+        },
+        {
+            "id": "fa16",
+            "name": "Free Agent 16",
+            "teamAbbr": "MIA",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.495,
+                "FT_PCT": 0.727,
+                "TPM": 2.38,
+                "REB": 2.6,
+                "AST": 5.11,
+                "STL": 0.58,
+                "BLK": 0.44,
+                "TO": 1.52,
+                "PTS": 13.44
+            },
+            "shooting": {
+                "FGM": 5.12,
+                "FGA": 10.34,
+                "FTM": 1.52,
+                "FTA": 2.09
+            }
+        },
+        {
+            "id": "fa17",
+            "name": "Free Agent 17",
+            "teamAbbr": "MIL",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.498,
+                "FT_PCT": 0.715,
+                "TPM": 2.8,
+                "REB": 3.21,
+                "AST": 5.64,
+                "STL": 0.71,
+                "BLK": 0.56,
+                "TO": 1.7,
+                "PTS": 14.41
+            },
+            "shooting": {
+                "FGM": 5.29,
+                "FGA": 10.63,
+                "FTM": 1.73,
+                "FTA": 2.42
+            }
+        },
+        {
+            "id": "fa18",
+            "name": "Free Agent 18",
+            "teamAbbr": "MIN",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.5,
+                "FT_PCT": 0.812,
+                "TPM": 0.7,
+                "REB": 3.82,
+                "AST": 1.4,
+                "STL": 0.84,
+                "BLK": 0.68,
+                "TO": 0.8,
+                "PTS": 12.86
+            },
+            "shooting": {
+                "FGM": 5.46,
+                "FGA": 10.92,
+                "FTM": 1.94,
+                "FTA": 2.39
+            }
+        },
+        {
+            "id": "fa19",
+            "name": "Free Agent 19",
+            "teamAbbr": "NOP",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.502,
+                "FT_PCT": 0.79,
+                "TPM": 1.12,
+                "REB": 4.43,
+                "AST": 1.93,
+                "STL": 0.97,
+                "BLK": 0.8,
+                "TO": 0.98,
+                "PTS": 13.83
+            },
+            "shooting": {
+                "FGM": 5.63,
+                "FGA": 11.21,
+                "FTM": 2.15,
+                "FTA": 2.72
+            }
+        },
+        {
+            "id": "fa20",
+            "name": "Free Agent 20",
+            "teamAbbr": "NYK",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.504,
+                "FT_PCT": 0.774,
+                "TPM": 1.54,
+                "REB": 5.04,
+                "AST": 2.46,
+                "STL": 0.45,
+                "BLK": 0.92,
+                "TO": 1.16,
+                "PTS": 14.8
+            },
+            "shooting": {
+                "FGM": 5.8,
+                "FGA": 11.5,
+                "FTM": 2.36,
+                "FTA": 3.05
+            }
+        },
+        {
+            "id": "fa21",
+            "name": "Free Agent 21",
+            "teamAbbr": "OKC",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.506,
+                "FT_PCT": 0.71,
+                "TPM": 1.96,
+                "REB": 5.65,
+                "AST": 2.99,
+                "STL": 0.58,
+                "BLK": 0.2,
+                "TO": 1.34,
+                "PTS": 14.3
+            },
+            "shooting": {
+                "FGM": 5.97,
+                "FGA": 11.79,
+                "FTM": 1.1,
+                "FTA": 1.55
+            }
+        },
+        {
+            "id": "fa22",
+            "name": "Free Agent 22",
+            "teamAbbr": "ORL",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.508,
+                "FT_PCT": 0.697,
+                "TPM": 2.38,
+                "REB": 6.26,
+                "AST": 3.52,
+                "STL": 0.71,
+                "BLK": 0.32,
+                "TO": 1.52,
+                "PTS": 15.27
+            },
+            "shooting": {
+                "FGM": 6.14,
+                "FGA": 12.08,
+                "FTM": 1.31,
+                "FTA": 1.88
+            }
+        },
+        {
+            "id": "fa23",
+            "name": "Free Agent 23",
+            "teamAbbr": "PHI",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.51,
+                "FT_PCT": 0.688,
+                "TPM": 2.8,
+                "REB": 6.87,
+                "AST": 4.05,
+                "STL": 0.84,
+                "BLK": 0.44,
+                "TO": 1.7,
+                "PTS": 16.24
+            },
+            "shooting": {
+                "FGM": 6.31,
+                "FGA": 12.37,
+                "FTM": 1.52,
+                "FTA": 2.21
+            }
+        },
+        {
+            "id": "fa24",
+            "name": "Free Agent 24",
+            "teamAbbr": "PHX",
+            "availability": "waiver",
+            "projections": {
+                "FG_PCT": 0.512,
+                "FT_PCT": 0.794,
+                "TPM": 0.7,
+                "REB": 2.6,
+                "AST": 4.58,
+                "STL": 0.97,
+                "BLK": 0.56,
+                "TO": 0.8,
+                "PTS": 14.69
+            },
+            "shooting": {
+                "FGM": 6.48,
+                "FGA": 12.66,
+                "FTM": 1.73,
+                "FTA": 2.18
+            }
         }
+    ],
+    "availablePlayerIds": [
+        "fa1",
+        "fa2",
+        "fa3",
+        "fa4",
+        "fa5",
+        "fa6",
+        "fa7",
+        "fa8",
+        "fa9",
+        "fa10",
+        "fa11",
+        "fa12",
+        "fa13",
+        "fa14",
+        "fa15",
+        "fa16",
+        "fa17",
+        "fa18",
+        "fa19",
+        "fa20",
+        "fa21",
+        "fa22",
+        "fa23",
+        "fa24"
+    ],
+    "waiverOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
     ]
 }

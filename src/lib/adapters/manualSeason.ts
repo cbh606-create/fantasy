@@ -1,4 +1,5 @@
 import { defaultCategorySettings } from "@/lib/domain/categories"
+import { normalizeSeasonAvailability } from "@/lib/season/availability"
 import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import type {
   SeasonLeagueState,
@@ -10,7 +11,8 @@ import type {
 export type ManualSeasonLeagueInput = Pick<
   SeasonLeagueState,
   "name" | "season" | "perspectiveTeamIndex" | "teams" | "players"
->
+> &
+  Partial<Pick<SeasonLeagueState, "availablePlayerIds" | "waiverOrder">>
 
 const normalizeEntries = (
   entries: SeasonRosterEntry[],
@@ -28,18 +30,22 @@ const normalizeTeam = (team: SeasonTeamRoster): SeasonTeamRoster => ({
 const normalizePlayer = (player: SeasonPlayer): SeasonPlayer => ({
   ...player,
   teamAbbr: player.teamAbbr?.toUpperCase(),
+  availability: player.availability,
   projections: { ...player.projections },
   shooting: { ...player.shooting },
 })
 
 export const manualToSeasonLeagueState = (
   input: ManualSeasonLeagueInput,
-): SeasonLeagueState => ({
-  name: input.name,
-  season: input.season,
-  categories: defaultCategorySettings(),
-  perspectiveTeamIndex: input.perspectiveTeamIndex,
-  teams: input.teams.map(normalizeTeam),
-  players: input.players.map(normalizePlayer),
-  source: "manual",
-})
+): SeasonLeagueState =>
+  normalizeSeasonAvailability({
+    name: input.name,
+    season: input.season,
+    categories: defaultCategorySettings(),
+    perspectiveTeamIndex: input.perspectiveTeamIndex,
+    teams: input.teams.map(normalizeTeam),
+    players: input.players.map(normalizePlayer),
+    availablePlayerIds: input.availablePlayerIds,
+    waiverOrder: input.waiverOrder,
+    source: "manual",
+  })
