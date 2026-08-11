@@ -23,13 +23,8 @@ const categoryStats = (leaguePlayers: SeasonPlayer[]): CategoryStats =>
     }),
   ) as CategoryStats
 
-export const playerValue = (
-  player: SeasonPlayer,
-  leaguePlayers: SeasonPlayer[],
-): number => {
-  const stats = categoryStats(leaguePlayers)
-
-  return ALL_CATEGORY_IDS.reduce((total, categoryId) => {
+const valueFromStats = (player: SeasonPlayer, stats: CategoryStats): number =>
+  ALL_CATEGORY_IDS.reduce((total, categoryId) => {
     const { mean, deviation } = stats[categoryId]
 
     if (deviation === 0) {
@@ -39,14 +34,18 @@ export const playerValue = (
     const z = (player.projections[categoryId] - mean) / deviation
     return total + (categoryId === "TO" ? -z : z)
   }, 0)
-}
+
+export const playerValue = (
+  player: SeasonPlayer,
+  leaguePlayers: SeasonPlayer[],
+): number => valueFromStats(player, categoryStats(leaguePlayers))
 
 export const buildPlayerValueMap = (
   state: SeasonLeagueState,
-): Map<string, number> =>
-  new Map(
-    state.players.map((player) => [
-      player.id,
-      playerValue(player, state.players),
-    ]),
+): Map<string, number> => {
+  const stats = categoryStats(state.players)
+
+  return new Map(
+    state.players.map((player) => [player.id, valueFromStats(player, stats)]),
   )
+}

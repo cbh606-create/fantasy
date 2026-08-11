@@ -1,6 +1,10 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import type { SeasonLeagueState, SeasonPlayer } from "./types"
+import type {
+  SeasonLeagueState,
+  SeasonPlayer,
+  SeasonTeamRoster,
+} from "./types"
 
 type CategoryTotals = Record<CategoryId, number>
 
@@ -10,6 +14,11 @@ export type CategoryLevel = {
   z: number
   intensity: number
   kind: "positive" | "negative" | "neutral"
+}
+
+export type TeamCategoryTotals = {
+  teamIndex: number
+  totals: CategoryTotals
 }
 
 export type SeasonAnalysis = {
@@ -76,7 +85,7 @@ const percentageTotal = (
   return makes / attempts
 }
 
-const teamTotals = (players: SeasonPlayer[]): CategoryTotals => {
+export const teamTotals = (players: SeasonPlayer[]): CategoryTotals => {
   const totals = emptyTotals()
 
   for (const player of players) {
@@ -96,20 +105,29 @@ const standardDeviation = (values: number[], mean: number) =>
     values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length,
   )
 
-export const analyzeSeasonLeague = (
-  state: SeasonLeagueState,
-): SeasonAnalysis => {
-  const playersById = new Map(state.players.map((player) => [player.id, player]))
-  const totalsByTeam = state.teams.map((team) => ({
-    teamIndex: team.teamIndex,
-    totals: teamTotals(
-      team.entries.flatMap((entry) => {
-        const player = entry.playerId ? playersById.get(entry.playerId) : undefined
-        return player ? [player] : []
-      }),
-    ),
-  }))
+export const rosterPlayers = (
+  team: SeasonTeamRoster,
+  playersById: Map<string, SeasonPlayer>,
+): SeasonPlayer[] =>
+  team.entries.flatMap((entry) => {
+    const player = entry.playerId ? playersById.get(entry.playerId) : undefined
+    return player ? [player] : []
+  })
 
+export const seasonTeamTotals = (
+  state: SeasonLeagueState,
+): TeamCategoryTotals[] => {
+  const playersById = new Map(state.players.map((player) => [player.id, player]))
+
+  return state.teams.map((team) => ({
+    teamIndex: team.teamIndex,
+    totals: teamTotals(rosterPlayers(team, playersById)),
+  }))
+}
+
+export const analyzeTeamTotals = (
+  totalsByTeam: TeamCategoryTotals[],
+): SeasonAnalysis => {
   const levelsByTeam = new Map<number, CategoryLevel[]>()
   const byCategory = ALL_CATEGORY_IDS.map((categoryId) => {
     const values = totalsByTeam.map(({ totals }) => totals[categoryId])
@@ -148,10 +166,14 @@ export const analyzeSeasonLeague = (
   })
 
   return {
-    byTeam: state.teams.map((team) => ({
-      teamIndex: team.teamIndex,
-      levels: levelsByTeam.get(team.teamIndex) ?? [],
+    byTeam: totalsByTeam.map(({ teamIndex }) => ({
+      teamIndex,
+      levels: levelsByTeam.get(teamIndex) ?? [],
     })),
     byCategory,
   }
 }
+
+export const analyzeSeasonLeague = (
+  state: SeasonLeagueState,
+): SeasonAnalysis => analyzeTeamTotals(seasonTeamTotals(state))

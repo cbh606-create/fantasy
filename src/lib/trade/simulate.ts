@@ -1,7 +1,15 @@
 import type { CategoryId } from "@/lib/domain/types"
-import { analyzeSeasonLeague, type SeasonAnalysis } from "@/lib/season/analysis"
+import {
+  analyzeTeamTotals,
+  rosterPlayers,
+  seasonTeamTotals,
+  teamTotals,
+  type SeasonAnalysis,
+  type TeamCategoryTotals,
+} from "@/lib/season/analysis"
 import type {
   SeasonLeagueState,
+  SeasonPlayer,
   SeasonRosterEntry,
   SeasonTeamRoster,
 } from "@/lib/season/types"
@@ -140,10 +148,62 @@ const buildSideImpact = (
   })),
 })
 
+/**
+ * Prepared once per league so a batch of candidate packages does not re-total
+ * the ten teams a trade cannot touch. Reusing it across packages is exact: only
+ * the two trading teams change rosters, and ranks are still derived from all
+ * twelve totals.
+ */
+export type TradeAnalysisContext = {
+  before: SeasonAnalysis
+  totalsByTeam: TeamCategoryTotals[]
+  playersById: Map<string, SeasonPlayer>
+}
+
+export const createTradeAnalysisContext = (
+  state: SeasonLeagueState,
+): TradeAnalysisContext => {
+  const totalsByTeam = seasonTeamTotals(state)
+
+  return {
+    before: analyzeTeamTotals(totalsByTeam),
+    totalsByTeam,
+    playersById: new Map(state.players.map((player) => [player.id, player])),
+  }
+}
+
+const analyzeAfterTrade = (
+  afterState: SeasonLeagueState,
+  tradePackage: TradePackage,
+  context: TradeAnalysisContext,
+): SeasonAnalysis => {
+  const tradedTeamIndexes = [
+    afterState.perspectiveTeamIndex,
+    tradePackage.counterpartyTeamIndex,
+  ]
+
+  return analyzeTeamTotals(
+    context.totalsByTeam.map((entry) => {
+      if (!tradedTeamIndexes.includes(entry.teamIndex)) {
+        return entry
+      }
+
+      const team = afterState.teams.find(
+        ({ teamIndex }) => teamIndex === entry.teamIndex,
+      )!
+
+      return {
+        teamIndex: entry.teamIndex,
+        totals: teamTotals(rosterPlayers(team, context.playersById)),
+      }
+    }),
+  )
+}
+
 export const evaluateTrade = (
   state: SeasonLeagueState,
   tradePackage: TradePackage,
-  precomputedBefore?: SeasonAnalysis,
+  precomputedContext?: TradeAnalysisContext,
 ): { you: TradeSideImpact; them: TradeSideImpact } | null => {
   const yourTeam = state.teams.find(
     ({ teamIndex }) => teamIndex === state.perspectiveTeamIndex,
@@ -161,8 +221,13 @@ export const evaluateTrade = (
     return null
   }
 
-  const before = precomputedBefore ?? analyzeSeasonLeague(state)
-  const after = analyzeSeasonLeague(applyTradePackage(state, tradePackage))
+  const context = precomputedContext ?? createTradeAnalysisContext(state)
+  const before = context.before
+  const after = analyzeAfterTrade(
+    applyTradePackage(state, tradePackage),
+    tradePackage,
+    context,
+  )
   const yourNeeds = teamNeedsAndSurplus(
     before,
     state.perspectiveTeamIndex,

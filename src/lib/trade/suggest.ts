@@ -1,11 +1,10 @@
 import type { CategoryId } from "@/lib/domain/types"
-import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import { MAX_SUGGESTIONS } from "./constants"
 import { enumeratePackages } from "./enumerate"
 import { teamNeedsAndSurplus } from "./needs"
 import { mutualScore, passesShapeRules, replacementScaledValues } from "./score"
-import { evaluateTrade } from "./simulate"
+import { createTradeAnalysisContext, evaluateTrade } from "./simulate"
 import type { TradePackage, TradeSuggestion } from "./types"
 import { buildPlayerValueMap } from "./value"
 
@@ -49,7 +48,8 @@ export const suggestTrades = (
   youNeeds: CategoryId[]
   youSurplus: CategoryId[]
 } => {
-  const analysis = analyzeSeasonLeague(state)
+  const context = createTradeAnalysisContext(state)
+  const analysis = context.before
   const yourProfile = teamNeedsAndSurplus(analysis, state.perspectiveTeamIndex)
   const values = replacementScaledValues(buildPlayerValueMap(state))
   const profileByTeamIndex = new Map<number, TeamProfile>()
@@ -76,7 +76,7 @@ export const suggestTrades = (
         return []
       }
 
-      const impact = evaluateTrade(state, tradePackage, analysis)
+      const impact = evaluateTrade(state, tradePackage, context)
 
       if (!impact) {
         return []
