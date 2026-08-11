@@ -161,19 +161,32 @@ describe("SeasonRosterWorkspace", () => {
       expect(screen.getByRole("heading", { name: /test roster/i })).toBeInTheDocument()
     })
     expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole("tab", { name: /stats/i })).toHaveAttribute(
+      "aria-controls",
+      "stats-panel",
+    )
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", "stats-panel")
+    fireEvent.click(screen.getByRole("button", { name: /sort by ast, best first/i }))
+    fireEvent.click(screen.getByRole("button", { name: /sort by ast, best first/i }))
 
     fireEvent.click(screen.getByRole("tab", { name: /schedule/i }))
 
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: /player schedule/i })).toBeInTheDocument()
     })
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", "schedule-panel")
     expect(screen.getByText("Games")).toBeInTheDocument()
     expect(screen.getByText("vs LAL")).toBeInTheDocument()
+    expect(screen.getAllByRole("rowheader")).toHaveLength(14)
+    expect(screen.getByRole("rowheader", { name: "PG · Player 1" })).toBeInTheDocument()
     expect(screen.queryByRole("heading", { name: /league rank matrix/i })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("tab", { name: /stats/i }))
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: /league rank matrix/i })).toBeInTheDocument()
     })
+    expect(
+      screen.getByRole("button", { name: /sort by ast, worst first/i }),
+    ).toBeInTheDocument()
   })
 })

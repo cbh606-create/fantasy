@@ -375,12 +375,14 @@ export const SeasonRosterWorkspace = ({
         >
           {(["stats", "schedule"] as const).map((workspaceTab) => (
             <button
+              aria-controls={`${workspaceTab}-panel`}
               aria-selected={tab === workspaceTab}
               className={`rounded-full px-6 py-2.5 font-medium capitalize ${
                 tab === workspaceTab
                   ? "bg-[var(--color-ink)] text-white"
                   : "text-[var(--color-mute)]"
               }`}
+              id={`${workspaceTab}-tab`}
               key={workspaceTab}
               onClick={() => setTab(workspaceTab)}
               role="tab"
@@ -395,41 +397,50 @@ export const SeasonRosterWorkspace = ({
             {error}
           </p>
         ) : null}
-        {tab === "stats" ? (
-          <div className="space-y-10">
-            <PlayerRosterTable
-              entries={effectiveEntries}
-              isEditing={isEditing}
-              onPlayerChange={handlePlayerChange}
-              players={rosteredPlayers}
+        <div
+          aria-labelledby="stats-tab"
+          className={tab === "stats" ? "space-y-10" : "hidden"}
+          hidden={tab !== "stats"}
+          id="stats-panel"
+          role="tabpanel"
+        >
+          <PlayerRosterTable
+            entries={effectiveEntries}
+            isEditing={isEditing}
+            onPlayerChange={handlePlayerChange}
+            players={rosteredPlayers}
+          />
+          <CompactCategoryProfile levels={userLevels} />
+          <LeagueRankMatrix
+            analysis={effectiveAnalysis!}
+            perspectiveTeamIndex={data.state.perspectiveTeamIndex}
+            teams={effectiveState!.teams}
+          />
+        </div>
+        <div
+          aria-labelledby="schedule-tab"
+          className={tab === "schedule" ? "" : "hidden"}
+          hidden={tab !== "schedule"}
+          id="schedule-panel"
+          role="tabpanel"
+        >
+          {isScheduleLoading ? (
+            <p className="text-[var(--color-mute)]" role="status">
+              Loading schedule…
+            </p>
+          ) : null}
+          {scheduleError ? (
+            <p className="rounded-2xl bg-red-50 px-5 py-4 text-sm text-[var(--color-sale)]" role="alert">
+              {scheduleError}
+            </p>
+          ) : null}
+          {schedule ? (
+            <PlayerSchedulePanel
+              matchup={schedule.matchup}
+              rows={scheduleRows}
             />
-            <CompactCategoryProfile levels={userLevels} />
-            <LeagueRankMatrix
-              analysis={effectiveAnalysis!}
-              perspectiveTeamIndex={data.state.perspectiveTeamIndex}
-              teams={effectiveState!.teams}
-            />
-          </div>
-        ) : (
-          <div>
-            {isScheduleLoading ? (
-              <p className="text-[var(--color-mute)]" role="status">
-                Loading schedule…
-              </p>
-            ) : null}
-            {scheduleError ? (
-              <p className="rounded-2xl bg-red-50 px-5 py-4 text-sm text-[var(--color-sale)]" role="alert">
-                {scheduleError}
-              </p>
-            ) : null}
-            {schedule ? (
-              <PlayerSchedulePanel
-                matchup={schedule.matchup}
-                rows={scheduleRows}
-              />
-            ) : null}
-          </div>
-        )}
+          ) : null}
+        </div>
       </div>
       {incomingState ? (
         <ConflictModal
