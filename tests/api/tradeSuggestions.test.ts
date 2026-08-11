@@ -87,5 +87,6 @@ describe("GET /api/trade/suggestions", () => {
       youSurplus: expect.any(Array),
       analysisPerspectiveTeamIndex: league.perspectiveTeamIndex,
     })
+    expect(payload.suggestions.length).toBeGreaterThan(0)
   })
 })
