@@ -15,6 +15,7 @@ export type SeasonSlot =
 export type SeasonPlayer = {
   id: string
   name: string
+  teamAbbr?: string
   projections: Record<CategoryId, number>
   shooting: {
     FGM: number
@@ -22,6 +23,25 @@ export type SeasonPlayer = {
     FTM: number
     FTA: number
   }
+}
+
+export type ScheduleGame = {
+  date: string
+  homeAbbr: string
+  awayAbbr: string
+}
+
+export type ScheduleMatchup = {
+  scoringPeriodId: number
+  startDate: string
+  endDate: string
+  days: string[]
+}
+
+export type ScheduleResponse = {
+  source: "fixture"
+  matchup: ScheduleMatchup
+  games: ScheduleGame[]
 }
 
 export type SeasonRosterEntry = {
