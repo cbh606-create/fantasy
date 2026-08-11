@@ -1,6 +1,9 @@
 import type { SeasonLeagueState } from "@/lib/season/types"
 import type { TradeSuggestion } from "@/lib/trade/types"
 
+export const NO_SUGGESTIONS_COPY =
+  "No mutually beneficial deals found under current rules."
+
 type SuggestionListProps = {
   suggestions: TradeSuggestion[]
   state: SeasonLeagueState
@@ -22,7 +25,7 @@ export const SuggestionList = ({
   if (!suggestions.length) {
     return (
       <p className="border-y border-[var(--color-hairline)] py-6 text-sm text-[var(--color-mute)]">
-        No positive trade suggestions found for this roster.
+        {NO_SUGGESTIONS_COPY}
       </p>
     )
   }

@@ -3,7 +3,10 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { DealDetail } from "@/components/trade/DealDetail"
-import { SuggestionList } from "@/components/trade/SuggestionList"
+import {
+  NO_SUGGESTIONS_COPY,
+  SuggestionList,
+} from "@/components/trade/SuggestionList"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonLeagueState } from "@/lib/season/types"
@@ -97,7 +100,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             className="font-medium text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
             href="/trade"
           >
-            ← All rosters
+            ← All trade leagues
           </Link>
           <Link
             className="text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
@@ -132,7 +135,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             <DealDetail state={state} suggestion={selectedSuggestion} />
           ) : (
             <p className="text-sm text-[var(--color-mute)]">
-              No positive trade packages are available.
+              {NO_SUGGESTIONS_COPY}
             </p>
           )}
         </div>
