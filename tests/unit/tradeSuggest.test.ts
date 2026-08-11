@@ -161,6 +161,22 @@ const shapeCheckFor = (state: SeasonLeagueState, tradePackage: TradePackage) =>
     replacementScaledValues(buildPlayerValueMap(state)),
   )
 
+describe("replacementScaledValues", () => {
+  it("keeps every scaled value and ratio independent of the worst player", () => {
+    const values = new Map([["good", 2], ["average", 0]])
+    const scaled = replacementScaledValues(values)
+    const scaledWithScrub = replacementScaledValues(
+      new Map([...values, ["scrub", -8]]),
+    )
+    const ratio = (pool: Map<string, number>) =>
+      pool.get("good")! / pool.get("average")!
+
+    expect(scaledWithScrub.get("good")).toBe(scaled.get("good"))
+    expect(scaledWithScrub.get("scrub")).toBeGreaterThan(0)
+    expect(ratio(scaledWithScrub)).toBe(ratio(scaled))
+  })
+})
+
 describe("suggestTrades", () => {
   it("returns a 1:1 win-win when needs complement", () => {
     const { suggestions, youNeeds, youSurplus } = suggestTrades(mirrorState)

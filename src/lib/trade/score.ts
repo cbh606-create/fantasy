@@ -2,26 +2,23 @@ import { FAIRNESS_BAND, OVERPAY_RATIO } from "./constants"
 import type { TradePackage } from "./types"
 
 const EPSILON = 1e-6
-const REPLACEMENT_VALUE = 1
 
 /**
  * Raw player values are z-sums and can be negative, which makes value ratios
- * meaningless. Shifting the whole pool so the least valuable rostered player is
- * worth 1 keeps the ordering intact and lets fairness/overpay use ratios.
+ * meaningless. Softplus maps each z-sum to a positive number using only that
+ * player's own score, so ordering survives and no single scrub can rescale the
+ * pool — a min-based shift would let the worst player in the league decide how
+ * generous every fairness and overpay ratio looks.
  */
 export const replacementScaledValues = (
   values: Map<string, number>,
-): Map<string, number> => {
-  if (values.size === 0) {
-    return new Map()
-  }
-
-  const shift = REPLACEMENT_VALUE - Math.min(...values.values())
-
-  return new Map(
-    [...values].map(([playerId, value]) => [playerId, value + shift]),
+): Map<string, number> =>
+  new Map(
+    [...values].map(([playerId, value]) => [
+      playerId,
+      Math.log1p(Math.exp(value)),
+    ]),
   )
-}
 
 const totalValue = (playerIds: string[], values: Map<string, number>) =>
   playerIds.reduce((sum, playerId) => sum + (values.get(playerId) ?? 0), 0)
