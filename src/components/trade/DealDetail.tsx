@@ -52,6 +52,12 @@ export const DealDetail = ({ suggestion, state }: DealDetailProps) => {
       <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]">
         Send {giveNames} to {counterparty}
       </p>
+      {suggestion.droppedPlayerId ? (
+        <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]">
+          Drops {playerNames([suggestion.droppedPlayerId], state)} to open a
+          roster spot
+        </p>
+      ) : null}
       <div className="mt-6 grid gap-6 sm:grid-cols-2">
         <ImpactColumn impact={suggestion.you} title="Your rank changes" />
         <ImpactColumn impact={suggestion.them} title={`${counterparty} rank changes`} />

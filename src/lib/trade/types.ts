@@ -23,6 +23,7 @@ export type TradeSuggestion = {
   reasons: string[]
   mutualScore: number
   overpayRatio?: number
+  droppedPlayerId?: string
   you: TradeSideImpact
   them: TradeSideImpact
 }

@@ -105,6 +105,9 @@ export const suggestTrades = (
         ),
         mutualScore: score,
         ...(overpayRatio === undefined ? {} : { overpayRatio }),
+        ...(impact.droppedPlayerId
+          ? { droppedPlayerId: impact.droppedPlayerId }
+          : {}),
         you: impact.you,
         them: impact.them,
       }]

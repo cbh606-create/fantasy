@@ -1,3 +1,4 @@
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import {
   analyzeTeamTotals,
@@ -15,6 +16,7 @@ import type {
 } from "@/lib/season/types"
 import { needsScore, teamNeedsAndSurplus } from "./needs"
 import type { TradePackage, TradeSideImpact } from "./types"
+import { buildPlayerValueMap } from "./value"
 
 const findPlayerIndexes = (
   team: SeasonTeamRoster,
@@ -27,46 +29,91 @@ const findPlayerIndexes = (
   return indexes.includes(-1) ? null : indexes
 }
 
-const findOverflowIndex = (
+const findOpenIndex = (
   entries: SeasonRosterEntry[],
   excludedIndexes: number[],
-): number => {
-  const nullIndex = entries.findIndex(
+): number =>
+  entries.findIndex(
     (entry, index) =>
       !excludedIndexes.includes(index) && entry.playerId === null,
   )
 
-  if (nullIndex >= 0) {
-    return nullIndex
-  }
+/**
+ * Every rostered slot counts toward category totals, so any player the trade
+ * does not touch is a legal cut. The lowest projected value is the one a
+ * manager would realistically drop to open the extra spot.
+ */
+const findLowestValueIndex = (
+  entries: SeasonRosterEntry[],
+  excludedIndexes: number[],
+  values: Map<string, number>,
+): number => {
+  let lowestIndex = -1
+  let lowestValue = Number.POSITIVE_INFINITY
 
-  return entries.findIndex(
-    (entry, index) => !excludedIndexes.includes(index) && entry.slot === "BE",
-  )
+  entries.forEach((entry, index) => {
+    if (excludedIndexes.includes(index) || !entry.playerId) {
+      return
+    }
+
+    const value = values.get(entry.playerId) ?? 0
+
+    if (value < lowestValue) {
+      lowestValue = value
+      lowestIndex = index
+    }
+  })
+
+  return lowestIndex
 }
 
 const assignAsymmetricPlayers = (
   receivingEntries: SeasonRosterEntry[],
   receivingIndexes: number[],
   incomingPlayerIds: string[],
-) => {
+  values: Map<string, number>,
+): string | undefined => {
   receivingEntries[receivingIndexes[0]].playerId = incomingPlayerIds[0]
 
   if (incomingPlayerIds.length === 1) {
-    return
+    return undefined
   }
 
-  const overflowIndex = findOverflowIndex(receivingEntries, receivingIndexes)
+  const openIndex = findOpenIndex(receivingEntries, receivingIndexes)
 
-  if (overflowIndex >= 0) {
-    receivingEntries[overflowIndex].playerId = incomingPlayerIds[1]
+  if (openIndex >= 0) {
+    receivingEntries[openIndex].playerId = incomingPlayerIds[1]
+    return undefined
   }
+
+  const dropIndex = findLowestValueIndex(
+    receivingEntries,
+    receivingIndexes,
+    values,
+  )
+
+  // Nothing left to cut only happens on a roster whose sole entries are the
+  // traded slots, so the extra incoming player is the one that cannot fit.
+  if (dropIndex < 0) {
+    return incomingPlayerIds[1]
+  }
+
+  const droppedPlayerId = receivingEntries[dropIndex].playerId ?? undefined
+  receivingEntries[dropIndex].playerId = incomingPlayerIds[1]
+
+  return droppedPlayerId
+}
+
+export type TradeApplication = {
+  state: SeasonLeagueState
+  droppedPlayerId?: string
 }
 
 export const applyTradePackage = (
   state: SeasonLeagueState,
   tradePackage: TradePackage,
-): SeasonLeagueState => {
+  precomputedValues?: Map<string, number>,
+): TradeApplication => {
   const teams = state.teams.map((team) => ({
     ...team,
     entries: team.entries.map((entry) => ({ ...entry })),
@@ -79,18 +126,19 @@ export const applyTradePackage = (
   )
 
   if (!yourTeam || !theirTeam) {
-    return { ...state, teams }
+    return { state: { ...state, teams } }
   }
 
   const yourIndexes = findPlayerIndexes(yourTeam, tradePackage.youPlayerIds)
   const theirIndexes = findPlayerIndexes(theirTeam, tradePackage.themPlayerIds)
 
   if (!yourIndexes || !theirIndexes) {
-    return { ...state, teams }
+    return { state: { ...state, teams } }
   }
 
   // MVP strategy: equal packages swap pairwise. Asymmetric packages use the
-  // first cleared slot, then a null or bench slot for the extra incoming player.
+  // first cleared slot, then an open slot for the extra incoming player, and
+  // drop the receiver's lowest-value untouched player when the roster is full.
   if (yourIndexes.length === theirIndexes.length) {
     yourIndexes.forEach((entryIndex, index) => {
       yourTeam.entries[entryIndex].playerId = tradePackage.themPlayerIds[index]
@@ -98,7 +146,7 @@ export const applyTradePackage = (
         tradePackage.youPlayerIds[index]
     })
 
-    return { ...state, teams }
+    return { state: { ...state, teams } }
   }
 
   yourIndexes.forEach((entryIndex) => {
@@ -108,18 +156,25 @@ export const applyTradePackage = (
     theirTeam.entries[entryIndex].playerId = null
   })
 
-  assignAsymmetricPlayers(
+  const values = precomputedValues ?? buildPlayerValueMap(state)
+  const yourDrop = assignAsymmetricPlayers(
     yourTeam.entries,
     yourIndexes,
     tradePackage.themPlayerIds,
+    values,
   )
-  assignAsymmetricPlayers(
+  const theirDrop = assignAsymmetricPlayers(
     theirTeam.entries,
     theirIndexes,
     tradePackage.youPlayerIds,
+    values,
   )
+  const droppedPlayerId = yourDrop ?? theirDrop
 
-  return { ...state, teams }
+  return {
+    state: { ...state, teams },
+    ...(droppedPlayerId ? { droppedPlayerId } : {}),
+  }
 }
 
 const categoryRank = (
@@ -137,11 +192,10 @@ const buildSideImpact = (
   after: SeasonAnalysis,
   teamIndex: number,
   needCategories: CategoryId[],
-  deltaCategories: CategoryId[],
 ): TradeSideImpact => ({
   needsScoreBefore: needsScore(before, teamIndex, needCategories),
   needsScoreAfter: needsScore(after, teamIndex, needCategories),
-  categoryDeltas: deltaCategories.map((categoryId) => ({
+  categoryDeltas: ALL_CATEGORY_IDS.map((categoryId) => ({
     categoryId,
     rankBefore: categoryRank(before, teamIndex, categoryId),
     rankAfter: categoryRank(after, teamIndex, categoryId),
@@ -158,6 +212,7 @@ export type TradeAnalysisContext = {
   before: SeasonAnalysis
   totalsByTeam: TeamCategoryTotals[]
   playersById: Map<string, SeasonPlayer>
+  values: Map<string, number>
 }
 
 export const createTradeAnalysisContext = (
@@ -169,6 +224,7 @@ export const createTradeAnalysisContext = (
     before: analyzeTeamTotals(totalsByTeam),
     totalsByTeam,
     playersById: new Map(state.players.map((player) => [player.id, player])),
+    values: buildPlayerValueMap(state),
   }
 }
 
@@ -200,11 +256,17 @@ const analyzeAfterTrade = (
   )
 }
 
+export type TradeEvaluation = {
+  you: TradeSideImpact
+  them: TradeSideImpact
+  droppedPlayerId?: string
+}
+
 export const evaluateTrade = (
   state: SeasonLeagueState,
   tradePackage: TradePackage,
   precomputedContext?: TradeAnalysisContext,
-): { you: TradeSideImpact; them: TradeSideImpact } | null => {
+): TradeEvaluation | null => {
   const yourTeam = state.teams.find(
     ({ teamIndex }) => teamIndex === state.perspectiveTeamIndex,
   )
@@ -223,11 +285,8 @@ export const evaluateTrade = (
 
   const context = precomputedContext ?? createTradeAnalysisContext(state)
   const before = context.before
-  const after = analyzeAfterTrade(
-    applyTradePackage(state, tradePackage),
-    tradePackage,
-    context,
-  )
+  const application = applyTradePackage(state, tradePackage, context.values)
+  const after = analyzeAfterTrade(application.state, tradePackage, context)
   const yourNeeds = teamNeedsAndSurplus(
     before,
     state.perspectiveTeamIndex,
@@ -236,7 +295,6 @@ export const evaluateTrade = (
     before,
     tradePackage.counterpartyTeamIndex,
   ).need
-  const deltaCategories = [...new Set([...yourNeeds, ...theirNeeds])]
 
   return {
     you: buildSideImpact(
@@ -244,14 +302,15 @@ export const evaluateTrade = (
       after,
       state.perspectiveTeamIndex,
       yourNeeds,
-      deltaCategories,
     ),
     them: buildSideImpact(
       before,
       after,
       tradePackage.counterpartyTeamIndex,
       theirNeeds,
-      deltaCategories,
     ),
+    ...(application.droppedPlayerId
+      ? { droppedPlayerId: application.droppedPlayerId }
+      : {}),
   }
 }
