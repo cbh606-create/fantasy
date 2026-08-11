@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs"
 import type { Metadata } from "next"
 import { Bebas_Neue, Inter } from "next/font/google"
+import { SiteNav } from "@/components/SiteNav"
 import "./globals.css"
 
 const inter = Inter({
@@ -14,8 +15,8 @@ const bebasNeue = Bebas_Neue({
 })
 
 export const metadata: Metadata = {
-  title: "Fantasy Draft",
-  description: "Prepare a smarter ESPN fantasy basketball draft",
+  title: "Fantasy",
+  description: "ESPN fantasy basketball draft prep and season roster tools",
 }
 
 export default function RootLayout({
@@ -26,7 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
-        <ClerkProvider>{children}</ClerkProvider>
+        <ClerkProvider>
+          <div className="min-h-screen">
+            <SiteNav />
+            {children}
+          </div>
+        </ClerkProvider>
       </body>
     </html>
   )
