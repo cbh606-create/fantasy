@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest"
 import fixture from "../../data/fixtures/espn-season-league.json"
-import { manualToSeasonLeagueState } from "@/lib/adapters/manualSeason"
+import {
+  manualToSeasonLeagueState,
+  type ManualSeasonLeagueInput,
+} from "@/lib/adapters/manualSeason"
 import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 
 describe("manualToSeasonLeagueState", () => {
   it("creates a manual 12-team league with full slot rosters and shooting data", () => {
-    const state = manualToSeasonLeagueState(fixture)
+    const state = manualToSeasonLeagueState(fixture as ManualSeasonLeagueInput)
 
     expect(state).toMatchObject({
       name: fixture.name,
