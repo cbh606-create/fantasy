@@ -74,16 +74,21 @@ Let a category-league manager open a dedicated **Roster** surface (not Draft) to
 - Season league identity, “You” team label, source badge (`espn` / `manual` / `mixed`), last synced time.
 - Actions: `Refresh ESPN`, `Edit lineup`.
 
-**B. Category profile**
-
-- Vertical list of all 9 categories with center-diverging bars (strength right / weakness left).
-- Based on league-relative z-scores of **full-roster** fantasy metrics (TO inverted).
-
-**C. All players table**
+**B. All players table (first major block)**
 
 - Sections: Starters (10) · Bench (3) · IL (1).
 - Every player visible at once (no “+N more”).
-- Columns: slot, player, and all 9 cats (per-game projections or season rates as available).
+- Columns: slot, player, then shooting + counting stats:
+  - `FG%`, **`FGM/FGA`** (paired beside FG% for volume/impact)
+  - `FT%`, **`FTM/FTA`** (paired beside FT%)
+  - `3PM`, `REB`, `AST`, `STL`, `BLK`, `TO`, `PTS`
+- Makes/attempts are per-game (or season-normalized per-game) display fields; they inform judgment of % impact but are **not** separate matrix categories.
+
+**C. Category profile (compact, below roster)**
+
+- Compact 3-column grid of all 9 category diverging bars (thinner than a full vertical stack).
+- Based on league-relative z-scores of **full-roster** fantasy metrics (TO inverted).
+- Volume columns (`FGM/FGA`, `FTM/FTA`) do not appear here — profile stays 9-cat only.
 
 **D. League category rank matrix (bottom)**
 
@@ -241,6 +246,8 @@ Rate-limit refresh similarly to existing ESPN sync limits.
 | Analysis set | All 14 players |
 | Rank UI | Sortable 12×9 matrix (not ladder-only) |
 | Column sort | Toggle best-first / worst-first + Reset |
+| Section order | Players → compact category profile → matrix |
+| Shooting volume | Show FGM/FGA beside FG%, FTM/FTA beside FT% on roster table |
 | Local edits | Yes; no ESPN writeback |
 | Refresh conflict | Prompt user |
 
