@@ -18,6 +18,7 @@ export const SiteNav = () => {
     pathname.startsWith("/leagues") || pathname.includes("/draft")
   const isRoster = pathname.startsWith("/roster")
   const isTrade = pathname.startsWith("/trade")
+  const isWaivers = pathname.startsWith("/waivers")
 
   return (
     <header className="border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]">
@@ -53,6 +54,13 @@ export const SiteNav = () => {
             href="/trade"
           >
             Trade
+          </Link>
+          <Link
+            aria-current={isWaivers ? "page" : undefined}
+            className={linkClass(isWaivers)}
+            href="/waivers"
+          >
+            Waivers
           </Link>
         </nav>
       </div>
