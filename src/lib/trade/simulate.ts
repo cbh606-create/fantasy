@@ -143,6 +143,7 @@ const buildSideImpact = (
 export const evaluateTrade = (
   state: SeasonLeagueState,
   tradePackage: TradePackage,
+  precomputedBefore?: SeasonAnalysis,
 ): { you: TradeSideImpact; them: TradeSideImpact } | null => {
   const yourTeam = state.teams.find(
     ({ teamIndex }) => teamIndex === state.perspectiveTeamIndex,
@@ -160,7 +161,7 @@ export const evaluateTrade = (
     return null
   }
 
-  const before = analyzeSeasonLeague(state)
+  const before = precomputedBefore ?? analyzeSeasonLeague(state)
   const after = analyzeSeasonLeague(applyTradePackage(state, tradePackage))
   const yourNeeds = teamNeedsAndSurplus(
     before,
