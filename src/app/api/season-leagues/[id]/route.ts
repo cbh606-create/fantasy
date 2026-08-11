@@ -17,7 +17,7 @@ const unauthorizedResponse = () =>
 const notFoundResponse = () =>
   NextResponse.json({ error: "not_found" }, { status: 404 })
 
-const applyLocalLineup = (
+export const applyLocalLineup = (
   state: SeasonLeagueState,
   localLineup: SeasonRosterEntry[] | null,
 ): SeasonLeagueState => {

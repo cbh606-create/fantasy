@@ -6,6 +6,7 @@ import {
   POST,
 } from "@/app/api/season-leagues/route"
 import { GET as GET_SEASON_LEAGUE } from "@/app/api/season-leagues/[id]/route"
+import { PATCH as updateSeasonLeagueLineup } from "@/app/api/season-leagues/[id]/lineup/route"
 import { POST as refreshSeasonLeague } from "@/app/api/season-leagues/[id]/refresh/route"
 import { POST as resolveSeasonLeagueConflict } from "@/app/api/season-leagues/[id]/resolve-conflict/route"
 import {
@@ -29,9 +30,13 @@ const authenticateAs = (userId?: string) => {
   )
 }
 
-const createRequest = (path: string, body: unknown): Request =>
+const createRequest = (
+  path: string,
+  body: unknown,
+  method = "POST",
+): Request =>
   new Request(`http://localhost${path}`, {
-    method: "POST",
+    method,
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   })
@@ -125,6 +130,85 @@ describe("GET /api/season-leagues/:id", () => {
     expect(response.status).toBe(200)
     expect(payload.state.teams[2].entries[0].playerId).toBe("t3p2")
     expect(payload.analysis.byTeam).toHaveLength(12)
+  })
+})
+
+describe("PATCH /api/season-leagues/:id/lineup", () => {
+  it("persists a valid local lineup and returns its effective analysis", async () => {
+    const state = manualToSeasonLeagueState(
+      fixture as ManualSeasonLeagueInput,
+    )
+    const entries = state.teams[2].entries.map((entry, index) => ({
+      ...entry,
+      playerId: index === 0 ? "t3p2" : entry.playerId,
+    }))
+    const league = await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: state.name,
+        espnLeagueId: "fixture-league",
+        season: state.season,
+        perspectiveTeamIndex: state.perspectiveTeamIndex,
+        source: "espn",
+        stateJson: JSON.stringify({ ...state, source: "espn" }),
+      },
+    })
+
+    const response = await updateSeasonLeagueLineup(
+      createRequest(
+        `/api/season-leagues/${league.id}/lineup`,
+        { entries },
+        "PATCH",
+      ),
+      routeContext(league.id),
+    )
+    const payload = await response.json()
+    const storedLeague = await db.seasonLeague.findUnique({
+      where: { id: league.id },
+    })
+
+    expect(response.status).toBe(200)
+    expect(payload.state.teams[2].entries).toEqual(entries)
+    expect(payload.analysis.byTeam).toHaveLength(12)
+    expect(storedLeague).toMatchObject({
+      localLineupJson: JSON.stringify(entries),
+      source: "mixed",
+    })
+  })
+
+  it("rejects a lineup with players outside the league state", async () => {
+    const state = manualToSeasonLeagueState(
+      fixture as ManualSeasonLeagueInput,
+    )
+    const entries = state.teams[2].entries.map((entry, index) => ({
+      ...entry,
+      playerId: index === 0 ? "not-in-state" : entry.playerId,
+    }))
+    const league = await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: state.name,
+        season: state.season,
+        perspectiveTeamIndex: state.perspectiveTeamIndex,
+        source: "manual",
+        stateJson: JSON.stringify(state),
+      },
+    })
+
+    const response = await updateSeasonLeagueLineup(
+      createRequest(
+        `/api/season-leagues/${league.id}/lineup`,
+        { entries },
+        "PATCH",
+      ),
+      routeContext(league.id),
+    )
+    const storedLeague = await db.seasonLeague.findUnique({
+      where: { id: league.id },
+    })
+
+    expect(response.status).toBe(400)
+    expect(storedLeague?.localLineupJson).toBeNull()
   })
 })
 
