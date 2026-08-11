@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import fixture from "../../data/fixtures/espn-season-league.json"
+import scheduleFixture from "../../data/fixtures/nba-matchup-schedule.json"
 import {
   manualToSeasonLeagueState,
   type ManualSeasonLeagueInput,
@@ -41,5 +42,25 @@ describe("manualToSeasonLeagueState", () => {
       ),
     ).toBe(true)
     expect(state.players[0]?.teamAbbr).toBeTruthy()
+  })
+
+  it("gives every player on the perspective roster a varied matchup schedule", () => {
+    const state = manualToSeasonLeagueState(fixture as ManualSeasonLeagueInput)
+    const perspectiveTeam = state.teams[state.perspectiveTeamIndex]
+    const gamesByTeam = scheduleFixture.games.reduce<Record<string, number>>(
+      (counts, game) => {
+        counts[game.homeAbbr] = (counts[game.homeAbbr] ?? 0) + 1
+        counts[game.awayAbbr] = (counts[game.awayAbbr] ?? 0) + 1
+        return counts
+      },
+      {},
+    )
+    const perspectiveGameCounts = perspectiveTeam.entries.map((entry) => {
+      const player = state.players.find(({ id }) => id === entry.playerId)
+      return gamesByTeam[player?.teamAbbr ?? ""] ?? 0
+    })
+
+    expect(perspectiveGameCounts.every((games) => games > 0)).toBe(true)
+    expect(new Set(perspectiveGameCounts).size).toBeGreaterThan(1)
   })
 })

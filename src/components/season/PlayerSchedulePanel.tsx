@@ -51,8 +51,8 @@ export const PlayerSchedulePanel = ({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr className="border-t border-[var(--color-hairline)]" key={`${row.slot}-${row.playerId ?? "empty"}`}>
+          {rows.map((row, index) => (
+            <tr className="border-t border-[var(--color-hairline)]" key={`${row.slot}-${index}`}>
               <th className="whitespace-nowrap px-4 py-3 text-left font-medium" scope="row">
                 <span className="text-[var(--color-mute)]">{row.slot}</span>
                 {" · "}
@@ -70,8 +70,8 @@ export const PlayerSchedulePanel = ({
                   <td className="px-2 py-3 text-center text-xs" key={day}>
                     {labels.length ? (
                       <span className="flex flex-col gap-0.5">
-                        {labels.map((label) => (
-                          <span key={label}>{label}</span>
+                        {labels.map((label, index) => (
+                          <span key={index}>{label}</span>
                         ))}
                       </span>
                     ) : (
