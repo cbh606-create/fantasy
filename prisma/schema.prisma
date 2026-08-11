@@ -19,3 +19,20 @@ model League {
 
   @@index([clerkUserId])
 }
+
+model SeasonLeague {
+  id                   String   @id @default(cuid())
+  clerkUserId          String
+  name                 String
+  espnLeagueId         String?
+  season               Int
+  perspectiveTeamIndex Int
+  source               String
+  stateJson            String
+  localLineupJson      String?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([clerkUserId])
+}

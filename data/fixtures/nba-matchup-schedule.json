@@ -1,0 +1,134 @@
+{
+  "source": "fixture",
+  "matchup": {
+    "scoringPeriodId": 18,
+    "startDate": "2026-03-09",
+    "endDate": "2026-03-15",
+    "days": [
+      "2026-03-09",
+      "2026-03-10",
+      "2026-03-11",
+      "2026-03-12",
+      "2026-03-13",
+      "2026-03-14",
+      "2026-03-15"
+    ]
+  },
+  "games": [
+    {
+      "date": "2026-03-09",
+      "homeAbbr": "BOS",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-03-09",
+      "homeAbbr": "NYK",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-03-09",
+      "homeAbbr": "BOS",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-03-10",
+      "homeAbbr": "MIL",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-03-10",
+      "homeAbbr": "OKC",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-03-10",
+      "homeAbbr": "GSW",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-03-11",
+      "homeAbbr": "MIA",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-03-11",
+      "homeAbbr": "DEN",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-03-11",
+      "homeAbbr": "LAL",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-03-12",
+      "homeAbbr": "NYK",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-03-12",
+      "homeAbbr": "BOS",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-03-12",
+      "homeAbbr": "DEN",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-03-13",
+      "homeAbbr": "OKC",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-03-13",
+      "homeAbbr": "GSW",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-03-13",
+      "homeAbbr": "MIA",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-03-14",
+      "homeAbbr": "LAL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-03-14",
+      "homeAbbr": "MIL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-03-14",
+      "homeAbbr": "DEN",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-03-14",
+      "homeAbbr": "OKC",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-03-15",
+      "homeAbbr": "BOS",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-03-15",
+      "homeAbbr": "GSW",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-03-15",
+      "homeAbbr": "NYK",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-03-15",
+      "homeAbbr": "LAL",
+      "awayAbbr": "MIL"
+    }
+  ]
+}
