@@ -27,6 +27,7 @@ const normalizeTeam = (team: SeasonTeamRoster): SeasonTeamRoster => ({
 
 const normalizePlayer = (player: SeasonPlayer): SeasonPlayer => ({
   ...player,
+  teamAbbr: player.teamAbbr?.toUpperCase(),
   projections: { ...player.projections },
   shooting: { ...player.shooting },
 })

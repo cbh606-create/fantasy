@@ -27,4 +27,19 @@ describe("manualToSeasonLeagueState", () => {
       FTA: expect.any(Number),
     })
   })
+
+  it("preserves team abbreviations on players", () => {
+    const state = manualToSeasonLeagueState({
+      ...(fixture as ManualSeasonLeagueInput),
+      name: "With teams",
+    })
+
+    expect(
+      state.players.every(
+        (player) =>
+          typeof player.teamAbbr === "string" && player.teamAbbr.length >= 2,
+      ),
+    ).toBe(true)
+    expect(state.players[0]?.teamAbbr).toBeTruthy()
+  })
 })
