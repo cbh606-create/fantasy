@@ -20,7 +20,7 @@ describe("espnImportToSeasonLeagueState", () => {
     })
     expect(state.teams).toHaveLength(12)
     expect(state.teams.every((team) => team.entries.length === 14)).toBe(true)
-    expect(state.players).toHaveLength(12 * 14)
+    expect(state.players).toHaveLength(12 * 14 + 24)
   })
 
   it("throws the requested ESPN adapter failure", async () => {
