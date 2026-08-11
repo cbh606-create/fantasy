@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest"
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { SeasonRosterWorkspace } from "@/components/season/SeasonRosterWorkspace"
 import { defaultCategorySettings } from "@/lib/domain/categories"
@@ -31,6 +31,7 @@ const state: SeasonLeagueState = {
   players: slots.map((_, index) => ({
     id: `player-${index}`,
     name: `Player ${index + 1}`,
+    teamAbbr: index === 0 ? "BOS" : undefined,
     projections: {
       ...categories,
       AST: index === 0 ? 100 : categories.AST + index,
@@ -40,12 +41,14 @@ const state: SeasonLeagueState = {
     {
       id: "opponent-only",
       name: "Opponent only",
+      teamAbbr: undefined,
       projections: { ...categories, AST: 40 },
       shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
     },
     {
       id: "third-team-only",
       name: "Third team only",
+      teamAbbr: undefined,
       projections: { ...categories, AST: 10 },
       shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
     },
@@ -76,6 +79,7 @@ describe("SeasonRosterWorkspace", () => {
   })
 
   afterEach(() => {
+    cleanup()
     vi.unstubAllGlobals()
   })
 
@@ -124,5 +128,52 @@ describe("SeasonRosterWorkspace", () => {
       "/api/season-leagues/season-1/lineup",
       expect.objectContaining({ method: "PATCH" }),
     )
+  })
+
+  it("switches to schedule tab and loads matchup games", async () => {
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input)
+      if (url.includes("/api/season-leagues/")) {
+        return new Response(JSON.stringify({ state }), { status: 200 })
+      }
+      if (url.includes("/api/schedule")) {
+        return new Response(
+          JSON.stringify({
+            source: "fixture",
+            matchup: {
+              scoringPeriodId: 18,
+              startDate: "2026-03-09",
+              endDate: "2026-03-11",
+              days: ["2026-03-09", "2026-03-10", "2026-03-11"],
+            },
+            games: [{ date: "2026-03-09", homeAbbr: "BOS", awayAbbr: "LAL" }],
+          }),
+          { status: 200 },
+        )
+      }
+      return new Response("missing", { status: 404 })
+    })
+
+    render(<SeasonRosterWorkspace leagueId="season-1" />)
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /test roster/i })).toBeInTheDocument()
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(screen.getByRole("tab", { name: /schedule/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /player schedule/i })).toBeInTheDocument()
+    })
+    expect(screen.getByText("Games")).toBeInTheDocument()
+    expect(screen.getByText("vs LAL")).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: /league rank matrix/i })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("tab", { name: /stats/i }))
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /league rank matrix/i })).toBeInTheDocument()
+    })
   })
 })

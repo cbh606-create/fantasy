@@ -1,13 +1,20 @@
 "use client"
 
+import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { CompactCategoryProfile } from "@/components/season/CompactCategoryProfile"
 import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
+import { PlayerSchedulePanel } from "@/components/season/PlayerSchedulePanel"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import { applyLocalLineup } from "@/lib/season/lineup"
-import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
+import { buildPlayerMatchupSchedule } from "@/lib/season/schedule"
+import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonRosterEntry,
+} from "@/lib/season/types"
 
 type SeasonRosterWorkspaceProps = {
   leagueId: string
@@ -16,6 +23,8 @@ type SeasonRosterWorkspaceProps = {
 type SeasonLeagueResponse = {
   state: SeasonLeagueState
 }
+
+type WorkspaceTab = "stats" | "schedule"
 
 type RefreshResponse = {
   conflict?: boolean
@@ -40,6 +49,10 @@ export const SeasonRosterWorkspace = ({
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [incomingState, setIncomingState] = useState<SeasonLeagueState | null>(null)
+  const [tab, setTab] = useState<WorkspaceTab>("stats")
+  const [schedule, setSchedule] = useState<ScheduleResponse | null>(null)
+  const [scheduleError, setScheduleError] = useState("")
+  const [isScheduleLoading, setIsScheduleLoading] = useState(false)
 
   const loadLeague = useCallback(async (signal?: AbortSignal) => {
     const response = await fetch(`/api/season-leagues/${leagueId}`, { signal })
@@ -79,6 +92,42 @@ export const SeasonRosterWorkspace = ({
     return () => controller.abort()
   }, [loadLeague])
 
+  useEffect(() => {
+    if (tab !== "schedule" || schedule || !data) return
+
+    const controller = new AbortController()
+
+    const loadSchedule = async () => {
+      setScheduleError("")
+      setIsScheduleLoading(true)
+
+      try {
+        const response = await fetch(
+          `/api/schedule?seasonLeagueId=${leagueId}`,
+          { signal: controller.signal },
+        )
+
+        if (!response.ok) throw new Error("Unable to load schedule")
+
+        setSchedule((await response.json()) as ScheduleResponse)
+      } catch (requestError) {
+        if (requestError instanceof DOMException && requestError.name === "AbortError") return
+
+        setScheduleError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unable to load schedule",
+        )
+      } finally {
+        if (!controller.signal.aborted) setIsScheduleLoading(false)
+      }
+    }
+
+    void loadSchedule()
+
+    return () => controller.abort()
+  }, [data, leagueId, schedule, tab])
+
   const userEntries = data?.state.teams.find(
     (team) => team.teamIndex === data.state.perspectiveTeamIndex,
   )?.entries ?? []
@@ -98,6 +147,13 @@ export const SeasonRosterWorkspace = ({
   const userLevels = effectiveAnalysis?.byTeam.find(
     (team) => team.teamIndex === effectiveState!.perspectiveTeamIndex,
   )?.levels ?? []
+  const scheduleRows = schedule
+    ? buildPlayerMatchupSchedule({
+        entries: effectiveEntries,
+        players: data?.state.players ?? [],
+        schedule,
+      })
+    : []
 
   const handleStartEditing = () => {
     setDraftEntries(userEntries)
@@ -239,6 +295,27 @@ export const SeasonRosterWorkspace = ({
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-[96rem]">
+        <div className="mb-6 flex flex-wrap items-center gap-4 text-sm">
+          <Link
+            aria-label="Back to home"
+            className="font-medium text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+            href="/"
+          >
+            ← Home
+          </Link>
+          <Link
+            className="text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+            href="/roster"
+          >
+            All rosters
+          </Link>
+          <Link
+            className="text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+            href="/leagues/new"
+          >
+            Draft
+          </Link>
+        </div>
         <header className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-sm text-[var(--color-mute)]">
@@ -291,25 +368,68 @@ export const SeasonRosterWorkspace = ({
             )}
           </div>
         </header>
+        <div
+          aria-label="Roster workspace view"
+          className="mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"
+          role="tablist"
+        >
+          {(["stats", "schedule"] as const).map((workspaceTab) => (
+            <button
+              aria-selected={tab === workspaceTab}
+              className={`rounded-full px-6 py-2.5 font-medium capitalize ${
+                tab === workspaceTab
+                  ? "bg-[var(--color-ink)] text-white"
+                  : "text-[var(--color-mute)]"
+              }`}
+              key={workspaceTab}
+              onClick={() => setTab(workspaceTab)}
+              role="tab"
+              type="button"
+            >
+              {workspaceTab === "stats" ? "Stats" : "Schedule"}
+            </button>
+          ))}
+        </div>
         {error ? (
           <p className="mb-6 rounded-2xl bg-red-50 px-5 py-4 text-sm text-[var(--color-sale)]" role="alert">
             {error}
           </p>
         ) : null}
-        <div className="space-y-10">
-          <PlayerRosterTable
-            entries={effectiveEntries}
-            isEditing={isEditing}
-            onPlayerChange={handlePlayerChange}
-            players={rosteredPlayers}
-          />
-          <CompactCategoryProfile levels={userLevels} />
-          <LeagueRankMatrix
-            analysis={effectiveAnalysis!}
-            perspectiveTeamIndex={data.state.perspectiveTeamIndex}
-            teams={effectiveState!.teams}
-          />
-        </div>
+        {tab === "stats" ? (
+          <div className="space-y-10">
+            <PlayerRosterTable
+              entries={effectiveEntries}
+              isEditing={isEditing}
+              onPlayerChange={handlePlayerChange}
+              players={rosteredPlayers}
+            />
+            <CompactCategoryProfile levels={userLevels} />
+            <LeagueRankMatrix
+              analysis={effectiveAnalysis!}
+              perspectiveTeamIndex={data.state.perspectiveTeamIndex}
+              teams={effectiveState!.teams}
+            />
+          </div>
+        ) : (
+          <div>
+            {isScheduleLoading ? (
+              <p className="text-[var(--color-mute)]" role="status">
+                Loading schedule…
+              </p>
+            ) : null}
+            {scheduleError ? (
+              <p className="rounded-2xl bg-red-50 px-5 py-4 text-sm text-[var(--color-sale)]" role="alert">
+                {scheduleError}
+              </p>
+            ) : null}
+            {schedule ? (
+              <PlayerSchedulePanel
+                matchup={schedule.matchup}
+                rows={scheduleRows}
+              />
+            ) : null}
+          </div>
+        )}
       </div>
       {incomingState ? (
         <ConflictModal
