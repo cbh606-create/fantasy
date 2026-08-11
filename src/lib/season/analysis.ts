@@ -61,7 +61,10 @@ const percentageTotal = (
     ) / players.length
   }
 
-  const [makesKey, attemptsKey] = categoryId === "FG_PCT"
+  const [makesKey, attemptsKey]: [
+    "FGM" | "FTM",
+    "FGA" | "FTA",
+  ] = categoryId === "FG_PCT"
     ? ["FGM", "FGA"]
     : ["FTM", "FTA"]
   const makes = players.reduce((sum, player) => sum + player.shooting[makesKey], 0)

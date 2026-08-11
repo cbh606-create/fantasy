@@ -210,6 +210,43 @@ describe("PATCH /api/season-leagues/:id/lineup", () => {
     expect(response.status).toBe(400)
     expect(storedLeague?.localLineupJson).toBeNull()
   })
+
+  it("rejects a lineup containing another team's player", async () => {
+    const state = manualToSeasonLeagueState(
+      fixture as ManualSeasonLeagueInput,
+    )
+    const perspectiveTeam = state.teams.find(
+      (team) => team.teamIndex === state.perspectiveTeamIndex,
+    )!
+    const otherTeamPlayerId = state.teams
+      .find((team) => team.teamIndex !== state.perspectiveTeamIndex)!
+      .entries[0].playerId!
+    const entries = perspectiveTeam.entries.map((entry, index) => ({
+      ...entry,
+      playerId: index === 0 ? otherTeamPlayerId : entry.playerId,
+    }))
+    const league = await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: state.name,
+        season: state.season,
+        perspectiveTeamIndex: state.perspectiveTeamIndex,
+        source: "manual",
+        stateJson: JSON.stringify(state),
+      },
+    })
+
+    const response = await updateSeasonLeagueLineup(
+      createRequest(
+        `/api/season-leagues/${league.id}/lineup`,
+        { entries },
+        "PATCH",
+      ),
+      routeContext(league.id),
+    )
+
+    expect(response.status).toBe(400)
+  })
 })
 
 describe("POST /api/espn/season-import", () => {

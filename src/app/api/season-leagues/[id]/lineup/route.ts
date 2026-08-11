@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import { applyLocalLineup } from "@/app/api/season-leagues/[id]/route"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import { applyLocalLineup } from "@/lib/season/lineup"
 import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
 
@@ -71,17 +71,29 @@ export const PATCH = async (
   if (!league) return notFoundResponse()
 
   let state: SeasonLeagueState
+  let localLineup: SeasonRosterEntry[] | null
 
   try {
     state = JSON.parse(league.stateJson) as SeasonLeagueState
+    localLineup = league.localLineupJson
+      ? (JSON.parse(league.localLineupJson) as SeasonRosterEntry[])
+      : null
   } catch {
     return NextResponse.json({ error: "invalid_state" }, { status: 500 })
   }
 
   const playerIds = new Set(state.players.map((player) => player.id))
+  const currentState = applyLocalLineup(state, localLineup)
+  const perspectivePlayerIds = new Set(
+    currentState.teams
+      .find((team) => team.teamIndex === currentState.perspectiveTeamIndex)
+      ?.entries.flatMap((entry) => entry.playerId ? [entry.playerId] : []) ?? [],
+  )
   if (
     body.entries.some(
-      (entry) => entry.playerId !== null && !playerIds.has(entry.playerId),
+      (entry) =>
+        entry.playerId !== null &&
+        (!playerIds.has(entry.playerId) || !perspectivePlayerIds.has(entry.playerId)),
     )
   ) {
     return NextResponse.json({ error: "validation" }, { status: 400 })

@@ -2,10 +2,8 @@ import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
-import type {
-  SeasonLeagueState,
-  SeasonRosterEntry,
-} from "@/lib/season/types"
+import { applyLocalLineup } from "@/lib/season/lineup"
+import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
 
 type SeasonLeagueRouteContext = {
   params: Promise<{ id: string }>
@@ -16,23 +14,6 @@ const unauthorizedResponse = () =>
 
 const notFoundResponse = () =>
   NextResponse.json({ error: "not_found" }, { status: 404 })
-
-export const applyLocalLineup = (
-  state: SeasonLeagueState,
-  localLineup: SeasonRosterEntry[] | null,
-): SeasonLeagueState => {
-  if (!localLineup) return state
-
-  return {
-    ...state,
-    localLineup,
-    teams: state.teams.map((team) =>
-      team.teamIndex === state.perspectiveTeamIndex
-        ? { ...team, entries: localLineup }
-        : team,
-    ),
-  }
-}
 
 export const GET = async (
   _request: Request,

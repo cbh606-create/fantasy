@@ -31,9 +31,25 @@ const state: SeasonLeagueState = {
   players: slots.map((_, index) => ({
     id: `player-${index}`,
     name: `Player ${index + 1}`,
-    projections: { ...categories, AST: categories.AST + index },
+    projections: {
+      ...categories,
+      AST: index === 0 ? 100 : categories.AST + index,
+    },
     shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
-  })),
+  })).concat(
+    {
+      id: "opponent-only",
+      name: "Opponent only",
+      projections: { ...categories, AST: 40 },
+      shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
+    },
+    {
+      id: "third-team-only",
+      name: "Third team only",
+      projections: { ...categories, AST: 10 },
+      shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
+    },
+  ),
   teams: [
     {
       teamIndex: 0,
@@ -43,7 +59,12 @@ const state: SeasonLeagueState = {
     {
       teamIndex: 1,
       name: "Opponent",
-      entries: slots.map((slot, index) => ({ slot, playerId: `player-${index}` })),
+      entries: slots.map((slot) => ({ slot, playerId: "opponent-only" })),
+    },
+    {
+      teamIndex: 2,
+      name: "Third team",
+      entries: slots.map((slot) => ({ slot, playerId: "third-team-only" })),
     },
   ],
   source: "manual",
@@ -77,6 +98,25 @@ describe("SeasonRosterWorkspace", () => {
     expect(screen.getByRole("button", { name: "Reset matrix order" })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Edit lineup" }))
+    const playerSelect = screen.getByRole("combobox", { name: "PG player" })
+    const expectedAstLevel = analyzeSeasonLeague({
+      ...state,
+      teams: state.teams.map((team) =>
+        team.teamIndex === state.perspectiveTeamIndex
+          ? {
+              ...team,
+              entries: team.entries.map((entry, index) =>
+                index === 0 ? { ...entry, playerId: null } : entry,
+              ),
+            }
+          : team,
+      ),
+    }).byTeam[0].levels.find((level) => level.categoryId === "AST")!
+
+    expect(screen.queryAllByRole("option", { name: "Opponent only" })).toHaveLength(0)
+    fireEvent.change(playerSelect, { target: { value: "" } })
+    expect(screen.getByText(expectedAstLevel.z.toFixed(2))).toBeInTheDocument()
+
     fireEvent.click(screen.getByRole("button", { name: "Save lineup" }))
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))

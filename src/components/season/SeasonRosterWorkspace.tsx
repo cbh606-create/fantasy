@@ -5,7 +5,8 @@ import { CompactCategoryProfile } from "@/components/season/CompactCategoryProfi
 import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
-import type { SeasonAnalysis } from "@/lib/season/analysis"
+import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import { applyLocalLineup } from "@/lib/season/lineup"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
 
 type SeasonRosterWorkspaceProps = {
@@ -14,7 +15,6 @@ type SeasonRosterWorkspaceProps = {
 
 type SeasonLeagueResponse = {
   state: SeasonLeagueState
-  analysis: SeasonAnalysis
 }
 
 type RefreshResponse = {
@@ -83,8 +83,20 @@ export const SeasonRosterWorkspace = ({
     (team) => team.teamIndex === data.state.perspectiveTeamIndex,
   )?.entries ?? []
   const effectiveEntries = draftEntries ?? userEntries
-  const userLevels = data?.analysis.byTeam.find(
-    (team) => team.teamIndex === data.state.perspectiveTeamIndex,
+  const rosteredPlayerIds = new Set(
+    userEntries.flatMap((entry) => entry.playerId ? [entry.playerId] : []),
+  )
+  const rosteredPlayers = data?.state.players.filter(
+    (player) => rosteredPlayerIds.has(player.id),
+  ) ?? []
+  const effectiveState = data
+    ? applyLocalLineup(data.state, effectiveEntries)
+    : null
+  const effectiveAnalysis = effectiveState
+    ? analyzeSeasonLeague(effectiveState)
+    : null
+  const userLevels = effectiveAnalysis?.byTeam.find(
+    (team) => team.teamIndex === effectiveState!.perspectiveTeamIndex,
   )?.levels ?? []
 
   const handleStartEditing = () => {
@@ -289,13 +301,13 @@ export const SeasonRosterWorkspace = ({
             entries={effectiveEntries}
             isEditing={isEditing}
             onPlayerChange={handlePlayerChange}
-            players={data.state.players}
+            players={rosteredPlayers}
           />
           <CompactCategoryProfile levels={userLevels} />
           <LeagueRankMatrix
-            analysis={data.analysis}
+            analysis={effectiveAnalysis!}
             perspectiveTeamIndex={data.state.perspectiveTeamIndex}
-            teams={data.state.teams}
+            teams={effectiveState!.teams}
           />
         </div>
       </div>
