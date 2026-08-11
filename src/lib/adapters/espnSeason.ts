@@ -1,5 +1,8 @@
 import espnSeasonLeagueFixture from "../../../data/fixtures/espn-season-league.json"
-import { manualToSeasonLeagueState } from "./manualSeason"
+import {
+  manualToSeasonLeagueState,
+  type ManualSeasonLeagueInput,
+} from "./manualSeason"
 import { EspnAdapterError, type EspnErrorCode } from "./errors"
 import type {
   SeasonLeagueState,
@@ -65,7 +68,9 @@ export const espnImportToSeasonLeagueState = async (
   }
 
   return {
-    ...manualToSeasonLeagueState(espnSeasonLeagueFixture),
+    ...manualToSeasonLeagueState(
+      espnSeasonLeagueFixture as ManualSeasonLeagueInput,
+    ),
     id: params.leagueId,
     source: "espn",
   }
