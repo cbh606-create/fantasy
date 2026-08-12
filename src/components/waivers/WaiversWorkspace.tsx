@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
+import { SeasonModuleNav } from "@/components/SeasonModuleNav"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { Banner } from "@/components/ui/Banner"
 import { AddDropBuilder } from "@/components/waivers/AddDropBuilder"
@@ -235,19 +236,14 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-wrap items-center gap-4 text-sm">
+        <div className="mb-6 flex flex-col gap-3">
           <Link
-            className="font-medium text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+            className="w-fit font-medium text-sm text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
             href="/waivers"
           >
             ← All waiver leagues
           </Link>
-          <Link
-            className="text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
-            href={`/roster/${leagueId}`}
-          >
-            Open roster
-          </Link>
+          <SeasonModuleNav current="waivers" leagueId={leagueId} />
         </div>
         <header className="mb-8">
           <p className="text-sm text-[var(--color-mute)]">
