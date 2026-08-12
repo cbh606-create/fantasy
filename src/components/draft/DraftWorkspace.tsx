@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from "react"
 import { LiveView } from "@/components/draft/LiveView"
-import { MockDraftView } from "@/components/draft/MockDraftView"
+import {
+  MockDraftView,
+  type MockLatestPick,
+} from "@/components/draft/MockDraftView"
 import { PrepView } from "@/components/draft/PrepView"
 import { buildEmptyBoard, teamIndexForOverall } from "@/lib/domain/snake"
 import type {
   DraftBoard,
   LeagueState,
+  Player,
   SimulationResult,
 } from "@/lib/domain/types"
 import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
@@ -87,6 +91,10 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const [season, setSeason] = useState<number | null>(null)
   const [state, setState] = useState<LeagueState | null>(null)
   const [mockBoard, setMockBoard] = useState<DraftBoard | null>(null)
+  const [mockPlayers, setMockPlayers] = useState<Player[] | null>(null)
+  const [latestMockPick, setLatestMockPick] = useState<MockLatestPick | null>(
+    null,
+  )
   const [result, setResult] = useState<SimulationResult | null>(null)
   const [mode, setMode] = useState<WorkspaceMode>("prep")
   const [simCount, setSimCount] = useState(40)
@@ -250,6 +258,30 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     }
   }
 
+  const resolveLatestPick = (
+    previous: LeagueState,
+    next: LeagueState,
+  ): MockLatestPick | null => {
+    const filled = next.board.picks.find((pick) => {
+      if (!pick.playerId) return false
+      const before = previous.board.picks.find(
+        (candidate) => candidate.overall === pick.overall,
+      )
+      return before?.playerId !== pick.playerId
+    })
+
+    if (!filled?.playerId) return null
+
+    const player = next.players.find((entry) => entry.id === filled.playerId)
+    if (!player) return null
+
+    return {
+      overall: filled.overall,
+      teamIndex: filled.teamIndex,
+      player,
+    }
+  }
+
   const runMockCpuUntilUserTurn = async (baseState: LeagueState) => {
     mockAdvanceControllerRef.current?.abort()
     const controller = new AbortController()
@@ -268,6 +300,8 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
         )
         if (!next) break
 
+        const latest = resolveLatestPick(current, next)
+        if (latest) setLatestMockPick(latest)
         current = next
         setMockBoard(current.board)
         step += 1
@@ -291,13 +325,30 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     }
   }
 
-  const startMockDraft = (baseState: LeagueState) => {
+  const loadFreshMockPlayers = async (fallback: Player[]) => {
+    try {
+      const response = await fetch("/api/players")
+      if (!response.ok) return fallback
+
+      const payload = (await response.json()) as { players?: Player[] }
+      return payload.players?.length ? payload.players : fallback
+    } catch {
+      return fallback
+    }
+  }
+
+  const startMockDraft = async (baseState: LeagueState) => {
+    setLatestMockPick(null)
+    const players = await loadFreshMockPlayers(baseState.players)
+    setMockPlayers(players)
+
     const empty = buildEmptyBoard(
       baseState.settings.teams,
       baseState.settings.rounds,
     )
     void runMockCpuUntilUserTurn({
       ...baseState,
+      players,
       board: empty,
       source: "manual",
     })
@@ -306,16 +357,25 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const handleEnterMock = () => {
     setMode("mock")
     if (!state) return
-    if (!mockBoard && !isMockAdvancing) startMockDraft(state)
+    if (!mockBoard && !isMockAdvancing) void startMockDraft(state)
   }
 
   const handleResetMock = () => {
     if (!state) return
-    startMockDraft(state)
+    void startMockDraft(state)
   }
 
   const handleMockMarkPicked = (playerId: string) => {
-    if (!state || !mockBoard || isSavingPick || isMockAdvancing) return
+    if (!state || !mockBoard || !mockPlayers || isSavingPick || isMockAdvancing) {
+      return
+    }
+
+    const overall = mockBoard.currentOverall
+    const teamIndex = teamIndexForOverall(overall, state.settings.teams)
+    const player = mockPlayers.find((entry) => entry.id === playerId)
+    if (player) {
+      setLatestMockPick({ overall, teamIndex, player })
+    }
 
     const afterHuman = applyPickToBoard(
       mockBoard,
@@ -324,6 +384,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     )
     void runMockCpuUntilUserTurn({
       ...state,
+      players: mockPlayers,
       board: afterHuman,
       source: "manual",
     })
@@ -445,13 +506,15 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
               state={state}
             />
           ) : null}
-          {mode === "mock" && mockBoard ? (
+          {mode === "mock" && mockBoard && mockPlayers ? (
             <MockDraftView
               isAdvancing={isMockAdvancing}
               isSavingPick={isSavingPick}
+              latestPick={latestMockPick}
               mockBoard={mockBoard}
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
+              players={mockPlayers}
               state={state}
             />
           ) : null}

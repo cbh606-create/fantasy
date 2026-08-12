@@ -328,14 +328,23 @@ describe("DraftWorkspace", () => {
       ],
     }
 
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        id: "league-1",
-        name: "Test League",
-        stateJson: JSON.stringify(mockState),
-      }),
-    } as Response)
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === "/api/players") {
+        return new Response(JSON.stringify({ players: mockState.players }), {
+          status: 200,
+        })
+      }
+
+      return new Response(
+        JSON.stringify({
+          id: "league-1",
+          name: "Test League",
+          stateJson: JSON.stringify(mockState),
+        }),
+        { status: 200 },
+      )
+    })
 
     render(<DraftWorkspace leagueId="league-1" />)
 
@@ -349,6 +358,6 @@ describe("DraftWorkspace", () => {
       },
       { timeout: 3_000 },
     )
-    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/latest pick/i)).toBeInTheDocument()
   })
 })

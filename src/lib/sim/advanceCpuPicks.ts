@@ -1,6 +1,6 @@
 import { teamIndexForOverall } from "@/lib/domain/snake"
-import type { DraftPick, LeagueState, Player } from "@/lib/domain/types"
-import { createRng, pickSimOpponent } from "@/lib/sim/opponent"
+import type { DraftPick, LeagueState } from "@/lib/domain/types"
+import { createRng, pickLiveCpuByAdp } from "@/lib/sim/opponent"
 
 const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   const { teams, rounds } = state.settings
@@ -25,29 +25,12 @@ const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   )
 }
 
-const buildRostersAndRemaining = (state: LeagueState, picks: DraftPick[]) => {
-  const playerById = new Map(state.players.map((player) => [player.id, player]))
-  const rosters = Array.from(
-    { length: state.settings.teams },
-    () => [] as Player[],
-  )
-  const draftedPlayerIds = new Set<string>()
-
-  for (const pick of picks) {
-    if (!pick.playerId) continue
-
-    const player = playerById.get(pick.playerId)
-    if (!player) continue
-
-    rosters[pick.teamIndex].push(player)
-    draftedPlayerIds.add(player.id)
-  }
-
-  const remaining = state.players.filter(
-    (player) => !draftedPlayerIds.has(player.id),
+const remainingPlayers = (state: LeagueState, picks: DraftPick[]) => {
+  const draftedPlayerIds = new Set(
+    picks.flatMap((pick) => (pick.playerId ? [pick.playerId] : [])),
   )
 
-  return { rosters, remaining }
+  return state.players.filter((player) => !draftedPlayerIds.has(player.id))
 }
 
 /** Apply a single opponent CPU pick. Returns null when it is the user turn or done. */
@@ -72,16 +55,13 @@ export const advanceOneCpuPick = (
     return null
   }
 
-  const { rosters, remaining } = buildRostersAndRemaining(state, picks)
+  const remaining = remainingPlayers(state, picks)
   if (remaining.length === 0) {
     return null
   }
 
-  const selectedPlayer = pickSimOpponent(
-    remaining,
-    rosters[pick.teamIndex],
-    createRng(seed),
-  )
+  // Mock boards follow best remaining ADP so stars are not left on the board.
+  const selectedPlayer = pickLiveCpuByAdp(remaining, createRng(seed))
 
   pick.playerId = selectedPlayer.id
 

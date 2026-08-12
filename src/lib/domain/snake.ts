@@ -8,6 +8,20 @@ export const teamIndexForOverall = (overall: number, teams: number): number => {
   return teams - 1 - posInRound
 }
 
+/** Overall pick number for a fixed team column in a snake board row. */
+export const overallForTeamRound = (
+  round: number,
+  teamIndex: number,
+  teams: number,
+): number => {
+  const roundIndex = round - 1
+  if (roundIndex % 2 === 0) {
+    return roundIndex * teams + teamIndex + 1
+  }
+
+  return roundIndex * teams + (teams - teamIndex)
+}
+
 export const buildEmptyBoard = (teams: number, rounds: number): DraftBoard => {
   const picks: DraftPick[] = []
   const total = teams * rounds
