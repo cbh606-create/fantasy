@@ -71,6 +71,24 @@ export const MockDraftView = ({
     onSlotChange(slot)
   }
 
+  const handleRandomSlot = () => {
+    if (slotOptions.length === 0) return
+
+    const currentSlot = perspectiveTeamIndex + 1
+    if (slotOptions.length === 1) {
+      onSlotChange(slotOptions[0])
+      return
+    }
+
+    let nextSlot =
+      slotOptions[Math.floor(Math.random() * slotOptions.length)] ?? currentSlot
+    for (let attempt = 0; attempt < 8 && nextSlot === currentSlot; attempt += 1) {
+      nextSlot =
+        slotOptions[Math.floor(Math.random() * slotOptions.length)] ?? currentSlot
+    }
+    onSlotChange(nextSlot)
+  }
+
   return (
     <div>
       {latestPick ? (
@@ -127,6 +145,16 @@ export const MockDraftView = ({
               ))}
             </select>
           </label>
+          <Button
+            aria-label="Random pick slot"
+            className="h-9 px-4 text-sm"
+            disabled={busy || slotOptions.length < 2}
+            onClick={handleRandomSlot}
+            type="button"
+            variant="secondary"
+          >
+            Random slot
+          </Button>
           <Button
             aria-label="Reset mock draft"
             className="h-9 px-4 text-sm"

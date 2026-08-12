@@ -352,6 +352,7 @@ describe("DraftWorkspace", () => {
 
     expect(await screen.findByText(/practice only/i)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Reset mock draft" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Random pick slot" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
       "2",
     )
