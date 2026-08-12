@@ -355,7 +355,10 @@ describe("DraftWorkspace", () => {
     expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
       "2",
     )
-    expect(screen.getByRole("columnheader", { name: "ADP" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("columnheader", { name: /ADP/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Sort by ADP" })).toBeInTheDocument()
     await waitFor(
       () => {
         expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()

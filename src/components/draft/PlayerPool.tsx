@@ -14,6 +14,9 @@ type PlayerPoolProps = {
   players: Player[]
 }
 
+type SortKey = "name" | "pos" | "adp"
+type SortDirection = "asc" | "desc"
+
 const CATEGORY_LABELS: Record<CategoryId, string> = {
   FG_PCT: "FG%",
   FT_PCT: "FT%",
@@ -37,6 +40,82 @@ const formatProjection = (categoryId: CategoryId, value: number) => {
 const formatAdp = (adp: number) =>
   Number.isInteger(adp) ? String(adp) : adp.toFixed(1)
 
+const comparePlayers = (
+  left: Player,
+  right: Player,
+  sortKey: SortKey,
+  sortDirection: SortDirection,
+) => {
+  const direction = sortDirection === "asc" ? 1 : -1
+
+  if (sortKey === "adp") {
+    return (left.adp - right.adp) * direction
+  }
+
+  if (sortKey === "pos") {
+    return (
+      left.positions.join("/").localeCompare(right.positions.join("/")) *
+      direction
+    )
+  }
+
+  return left.name.localeCompare(right.name) * direction
+}
+
+const sortIndicator = (
+  activeKey: SortKey,
+  columnKey: SortKey,
+  direction: SortDirection,
+) => {
+  if (activeKey !== columnKey) return ""
+  return direction === "asc" ? " ↑" : " ↓"
+}
+
+type SortHeaderProps = {
+  columnKey: SortKey
+  label: string
+  onSort: (key: SortKey) => void
+  sortDirection: SortDirection
+  sortKey: SortKey
+  className?: string
+}
+
+const SortHeader = ({
+  columnKey,
+  label,
+  onSort,
+  sortDirection,
+  sortKey,
+  className = "",
+}: SortHeaderProps) => {
+  const active = sortKey === columnKey
+  const ariaSort = active
+    ? sortDirection === "asc"
+      ? "ascending"
+      : "descending"
+    : "none"
+
+  return (
+    <th
+      aria-sort={ariaSort}
+      className={`sticky top-0 z-10 bg-[var(--color-soft-cloud)] py-1 font-medium ${className}`}
+      scope="col"
+    >
+      <button
+        aria-label={`Sort by ${label}`}
+        className={`inline-flex items-center gap-0.5 text-left uppercase tracking-wide ${
+          active ? "text-[var(--color-ink)]" : "text-[var(--color-mute)]"
+        }`}
+        onClick={() => onSort(columnKey)}
+        type="button"
+      >
+        {label}
+        <span aria-hidden="true">{sortIndicator(sortKey, columnKey, sortDirection)}</span>
+      </button>
+    </th>
+  )
+}
+
 export const PlayerPool = ({
   compact = false,
   disabled = false,
@@ -45,7 +124,21 @@ export const PlayerPool = ({
   players,
 }: PlayerPoolProps) => {
   const [query, setQuery] = useState("")
+  const [sortKey, setSortKey] = useState<SortKey>("adp")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const normalizedQuery = query.trim().toLowerCase()
+  const limit = compact ? 48 : 20
+
+  const handleSort = (nextKey: SortKey) => {
+    if (nextKey === sortKey) {
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
+      return
+    }
+
+    setSortKey(nextKey)
+    setSortDirection("asc")
+  }
+
   const availablePlayers = players
     .filter((player) => !pickedPlayerIds.includes(player.id))
     .filter((player) =>
@@ -53,7 +146,9 @@ export const PlayerPool = ({
         ? player.name.toLowerCase().includes(normalizedQuery)
         : true,
     )
-    .slice(0, compact ? 48 : 20)
+    .slice()
+    .sort((left, right) => comparePlayers(left, right, sortKey, sortDirection))
+    .slice(0, limit)
 
   return (
     <aside
@@ -81,18 +176,33 @@ export const PlayerPool = ({
           }`}
         >
           {compact ? (
-            <table className="w-full border-collapse text-left">
+            <table className="w-full border-collapse text-left text-[0.6rem]">
               <thead>
-                <tr className="text-[0.6rem] tracking-wide text-[var(--color-mute)] uppercase">
-                  <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] py-1 pr-1 font-medium">
-                    Player
-                  </th>
-                  <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] px-1 py-1 font-medium">
-                    Pos
-                  </th>
-                  <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] px-1 py-1 text-right font-medium">
-                    ADP
-                  </th>
+                <tr>
+                  <SortHeader
+                    className="pr-1"
+                    columnKey="name"
+                    label="Player"
+                    onSort={handleSort}
+                    sortDirection={sortDirection}
+                    sortKey={sortKey}
+                  />
+                  <SortHeader
+                    className="px-1"
+                    columnKey="pos"
+                    label="Pos"
+                    onSort={handleSort}
+                    sortDirection={sortDirection}
+                    sortKey={sortKey}
+                  />
+                  <SortHeader
+                    className="px-1 text-right"
+                    columnKey="adp"
+                    label="ADP"
+                    onSort={handleSort}
+                    sortDirection={sortDirection}
+                    sortKey={sortKey}
+                  />
                   <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] py-1 pl-1 font-medium">
                     <span className="sr-only">Pick</span>
                   </th>
