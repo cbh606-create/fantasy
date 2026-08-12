@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
-import { SeasonModuleNav } from "@/components/SeasonModuleNav"
 import { CompactCategoryProfile } from "@/components/season/CompactCategoryProfile"
 import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
@@ -296,23 +295,20 @@ export const SeasonRosterWorkspace = ({
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-[96rem]">
-        <div className="mb-6 flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <Link
-              aria-label="Back to home"
-              className="font-medium text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
-              href="/"
-            >
-              ← Home
-            </Link>
-            <Link
-              className="text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
-              href="/roster"
-            >
-              All rosters
-            </Link>
-          </div>
-          <SeasonModuleNav current="roster" leagueId={leagueId} />
+        <div className="mb-6 flex flex-wrap items-center gap-4 text-sm">
+          <Link
+            aria-label="Back to home"
+            className="font-medium text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+            href="/"
+          >
+            ← Home
+          </Link>
+          <Link
+            className="text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+            href="/roster"
+          >
+            All rosters
+          </Link>
         </div>
         <header className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>

@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { SeasonModuleNav } from "@/components/SeasonModuleNav"
 import { DealDetail } from "@/components/trade/DealDetail"
 import {
   NO_SUGGESTIONS_COPY,
@@ -96,14 +95,13 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-3">
+        <div className="mb-6">
           <Link
             className="w-fit font-medium text-sm text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
             href="/trade"
           >
             ← All trade leagues
           </Link>
-          <SeasonModuleNav current="trade" leagueId={leagueId} />
         </div>
         <header className="mb-8">
           <p className="text-sm text-[var(--color-mute)]">

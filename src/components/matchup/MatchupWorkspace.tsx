@@ -7,7 +7,6 @@ import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
 import { StreamersPanel } from "@/components/matchup/StreamersPanel"
-import { SeasonModuleNav } from "@/components/SeasonModuleNav"
 import { Banner } from "@/components/ui/Banner"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
@@ -389,14 +388,13 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-6 flex flex-col gap-3">
+        <div className="mb-6">
           <Link
             className="w-fit font-medium text-sm text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
             href="/matchup"
           >
             ← All matchup leagues
           </Link>
-          <SeasonModuleNav current="matchup" leagueId={leagueId} />
         </div>
 
         <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
