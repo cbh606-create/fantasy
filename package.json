@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "players:refresh": "node scripts/refresh-players.mjs"
+    "players:refresh": "node scripts/refresh-players.mjs",
+    "players:yahoo-adp": "node scripts/refresh-yahoo-adp.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.2",
