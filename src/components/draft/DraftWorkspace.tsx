@@ -8,6 +8,7 @@ import type {
   LeagueState,
   SimulationResult,
 } from "@/lib/domain/types"
+import { advanceCpuPicksUntilUserTurn } from "@/lib/sim/advanceCpuPicks"
 
 type DraftWorkspaceProps = {
   leagueId: string
@@ -188,6 +189,81 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     }
   }
 
+  const persistLeagueState = async (
+    nextState: LeagueState,
+    failureMessage: string,
+  ) => {
+    const response = await fetch(`/api/leagues/${leagueId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ state: nextState }),
+    })
+
+    if (!response.ok) {
+      throw new Error(failureMessage)
+    }
+  }
+
+  const withCpuAdvanced = (baseState: LeagueState): LeagueState => {
+    if (!isManualMode && baseState.source !== "manual") {
+      return baseState
+    }
+
+    return advanceCpuPicksUntilUserTurn(baseState, Date.now() >>> 0)
+  }
+
+  const applyCpuAdvance = async (baseState: LeagueState) => {
+    const advanced = advanceCpuPicksUntilUserTurn(baseState, Date.now() >>> 0)
+    const assignedIdsBefore = new Set(
+      baseState.board.picks.flatMap((pick) =>
+        pick.playerId ? [pick.playerId] : [],
+      ),
+    )
+    const assignedNewPick = advanced.board.picks.some(
+      (pick) => pick.playerId && !assignedIdsBefore.has(pick.playerId),
+    )
+
+    if (
+      !assignedNewPick &&
+      advanced.board.currentOverall === baseState.board.currentOverall
+    ) {
+      return
+    }
+
+    setError("")
+    setIsSavingPick(true)
+
+    try {
+      await persistLeagueState(advanced, "Unable to advance CPU picks")
+      setState(advanced)
+      scheduleSimulation(advanced)
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to advance CPU picks",
+      )
+    } finally {
+      setIsSavingPick(false)
+    }
+  }
+
+  const handleEnterLive = () => {
+    setMode("live")
+    if (!state) return
+    if (!isManualMode && state.source !== "manual") return
+
+    void applyCpuAdvance(state)
+  }
+
+  const handleContinueManually = () => {
+    setIsManualMode(true)
+    setSyncError("")
+    if (!state) return
+
+    void applyCpuAdvance(state)
+  }
+
   const handleMarkPicked = async (playerId: string) => {
     if (!state || isSavingPick) return
 
@@ -212,7 +288,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     const nextOpenPick = updatedPicks.find(
       (pick) => pick.overall > currentOverall && !pick.playerId,
     )
-    const nextState: LeagueState = {
+    const afterHumanPick: LeagueState = {
       ...state,
       board: {
         picks: updatedPicks,
@@ -220,19 +296,13 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
       },
       source: state.source === "espn" ? "mixed" : state.source,
     }
+    const nextState = withCpuAdvanced(afterHumanPick)
 
     setError("")
     setIsSavingPick(true)
 
     try {
-      const response = await fetch(`/api/leagues/${leagueId}`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ state: nextState }),
-      })
-
-      if (!response.ok) throw new Error("Unable to mark this player picked")
-
+      await persistLeagueState(nextState, "Unable to mark this player picked")
       setState(nextState)
       scheduleSimulation(nextState)
     } catch (requestError) {
@@ -289,7 +359,14 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
                   : "text-[var(--color-mute)]"
               }`}
               key={workspaceMode}
-              onClick={() => setMode(workspaceMode)}
+              onClick={() => {
+                if (workspaceMode === "live") {
+                  void handleEnterLive()
+                  return
+                }
+
+                setMode(workspaceMode)
+              }}
               role="tab"
               type="button"
             >
@@ -321,8 +398,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
               isSavingPick={isSavingPick}
               isSyncing={isSyncing}
               onContinueManually={() => {
-                setIsManualMode(true)
-                setSyncError("")
+                void handleContinueManually()
               }}
               onMarkPicked={handleMarkPicked}
               onSync={handleSync}

@@ -225,14 +225,42 @@ describe("DraftWorkspace", () => {
     )
   })
 
-  it("persists a manual pick then refreshes recommendations after 400ms", async () => {
+  it("persists a manual pick, advances CPU picks, then refreshes recommendations", async () => {
+    const userFirstState: LeagueState = {
+      ...state,
+      perspectiveTeamIndex: 0,
+      settings: {
+        ...state.settings,
+        teams: 2,
+        rounds: 2,
+        userPickSlot: 1,
+      },
+      players: [
+        ...state.players,
+        {
+          id: "player-3",
+          name: "Third Player",
+          positions: ["PG"],
+          projections,
+          adp: 3,
+        },
+        {
+          id: "player-4",
+          name: "Fourth Player",
+          positions: ["SG"],
+          projections,
+          adp: 4,
+        },
+      ],
+    }
+
     vi.mocked(fetch)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           id: "league-1",
           name: "Test League",
-          stateJson: JSON.stringify(state),
+          stateJson: JSON.stringify(userFirstState),
         }),
       } as Response)
       .mockResolvedValueOnce({
@@ -255,14 +283,25 @@ describe("DraftWorkspace", () => {
     )
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
-    expect(fetch).toHaveBeenNthCalledWith(
-      2,
-      "/api/leagues/league-1",
+    const patchCall = vi.mocked(fetch).mock.calls[1]
+    expect(patchCall?.[0]).toBe("/api/leagues/league-1")
+    expect(patchCall?.[1]).toEqual(
       expect.objectContaining({
         method: "PATCH",
-        body: expect.stringContaining('"playerId":"player-1"'),
       }),
     )
+    const patchBody = JSON.parse(String(patchCall?.[1]?.body)) as {
+      state: LeagueState
+    }
+    expect(patchBody.state.board.picks.find((pick) => pick.overall === 1)?.playerId)
+      .toBe("player-1")
+    expect(patchBody.state.board.picks.find((pick) => pick.overall === 2)?.playerId)
+      .toBeTruthy()
+    expect(patchBody.state.board.picks.find((pick) => pick.overall === 3)?.playerId)
+      .toBeTruthy()
+    expect(patchBody.state.board.picks.find((pick) => pick.overall === 4)?.playerId)
+      .toBeNull()
+    expect(patchBody.state.board.currentOverall).toBe(4)
 
     await waitFor(
       () => expect(fetch).toHaveBeenCalledTimes(3),
