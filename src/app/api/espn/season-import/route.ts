@@ -54,6 +54,20 @@ export const POST = async (request: Request): Promise<Response> => {
     return NextResponse.json({ error: "validation" }, { status: 400 })
   }
 
+  const allowFixtureImport =
+    process.env.NODE_ENV === "test" || process.env.ESPN_ALLOW_FIXTURE === "true"
+
+  if (process.env.ESPN_LIVE !== "true" && !allowFixtureImport) {
+    return NextResponse.json(
+      {
+        errorCode: "ESPN_UNAVAILABLE",
+        message:
+          "Live ESPN import is off. Set ESPN_LIVE=true, ESPN_S2, and ESPN_SWID in .env, then restart the server.",
+      },
+      { status: 503 },
+    )
+  }
+
   try {
     const state = await espnImportToSeasonLeagueState({
       leagueId: body.leagueId.trim(),

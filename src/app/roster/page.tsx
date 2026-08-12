@@ -123,8 +123,11 @@ export default function RosterListPage() {
       if (!response.ok) {
         if (payload.errorCode === "ESPN_AUTH") {
           throw new Error(
-            "ESPN auth failed — set ESPN_LIVE=true and ESPN_S2 / ESPN_SWID in .env",
+            "ESPN auth failed — check ESPN_S2 / ESPN_SWID cookies in .env, then restart",
           )
+        }
+        if (payload.errorCode === "ESPN_UNAVAILABLE" && payload.message) {
+          throw new Error(payload.message)
         }
         if (payload.errorCode) {
           throw new Error(payload.message ?? payload.errorCode)
