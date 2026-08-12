@@ -1,5 +1,9 @@
 import { overallForTeamRound } from "@/lib/domain/snake"
 import type { LeagueState } from "@/lib/domain/types"
+import {
+  teamPastelCellClass,
+  teamPastelHeaderClass,
+} from "@/lib/draft/teamColors"
 
 type BoardGridProps = {
   label?: string
@@ -44,14 +48,15 @@ export const BoardGrid = ({
               </th>
               {teamIndexes.map((teamIndex) => (
                 <th
-                  className={`px-1.5 py-1.5 text-[0.65rem] font-medium ${
+                  className={`px-1.5 py-1.5 text-[0.65rem] font-medium ${teamPastelHeaderClass(teamIndex)} ${
                     teamIndex === state.perspectiveTeamIndex
-                      ? "text-[var(--color-ink)]"
-                      : "text-[var(--color-mute)]"
+                      ? "underline decoration-from-font underline-offset-2"
+                      : ""
                   }`}
                   key={teamIndex}
                 >
                   T{teamIndex + 1}
+                  {teamIndex === state.perspectiveTeamIndex ? " · You" : ""}
                 </th>
               ))}
             </tr>
@@ -74,18 +79,18 @@ export const BoardGrid = ({
                   return (
                     <td className="p-0.5" key={`${round}-${teamIndex}`}>
                       <div
-                        className={`min-h-[3.25rem] min-w-[5.5rem] rounded-lg border px-1.5 py-1 ${
+                        className={`min-h-[3.25rem] w-[5.75rem] rounded-lg border px-1.5 py-1 ${teamPastelCellClass(teamIndex)} ${
                           isCurrent
-                            ? "border-[var(--color-ink)] bg-[var(--color-soft-cloud)]"
+                            ? "ring-2 ring-[var(--color-ink)] ring-offset-1"
                             : isYou
-                              ? "border-[var(--color-ink)]/30"
-                              : "border-[var(--color-hairline)]"
+                              ? "border-[var(--color-ink)]/40"
+                              : ""
                         }`}
                       >
                         <p className="text-[0.6rem] tabular-nums text-[var(--color-mute)]">
                           #{overall}
                         </p>
-                        <p className="mt-0.5 line-clamp-2 text-[0.7rem] font-medium leading-tight">
+                        <p className="mt-0.5 break-words text-[0.7rem] font-medium leading-tight">
                           {playerName}
                         </p>
                       </div>

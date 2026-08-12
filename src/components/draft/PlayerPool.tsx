@@ -34,6 +34,9 @@ const formatProjection = (categoryId: CategoryId, value: number) => {
   return Number.isInteger(value) ? String(value) : value.toFixed(1)
 }
 
+const formatAdp = (adp: number) =>
+  Number.isInteger(adp) ? String(adp) : adp.toFixed(1)
+
 export const PlayerPool = ({
   compact = false,
   disabled = false,
@@ -72,67 +75,113 @@ export const PlayerPool = ({
         value={query}
       />
       {availablePlayers.length ? (
-        <ul
+        <div
           className={`overflow-y-auto ${
-            compact ? "mt-2 max-h-[40rem] space-y-1" : "mt-4 max-h-[32rem] space-y-2"
+            compact ? "mt-2 max-h-[40rem]" : "mt-4 max-h-[32rem]"
           }`}
         >
-          {availablePlayers.map((player) => (
-            <li
-              className={`group relative bg-white ${
-                compact ? "rounded-xl px-2 py-1.5" : "rounded-2xl p-3"
-              }`}
-              key={player.id}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className={`truncate font-medium ${compact ? "text-xs" : ""}`}>
-                    {player.name}
-                  </p>
-                  <p
-                    className={`text-[var(--color-mute)] ${
-                      compact ? "text-[0.65rem]" : "mt-1 text-xs"
-                    }`}
+          {compact ? (
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="text-[0.6rem] tracking-wide text-[var(--color-mute)] uppercase">
+                  <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] py-1 pr-1 font-medium">
+                    Player
+                  </th>
+                  <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] px-1 py-1 font-medium">
+                    Pos
+                  </th>
+                  <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] px-1 py-1 text-right font-medium">
+                    ADP
+                  </th>
+                  <th className="sticky top-0 z-10 bg-[var(--color-soft-cloud)] py-1 pl-1 font-medium">
+                    <span className="sr-only">Pick</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {availablePlayers.map((player) => (
+                  <tr
+                    className="group relative border-t border-[var(--color-hairline)]/60"
+                    key={player.id}
                   >
-                    {player.positions.join("/")} · ADP {player.adp}
-                  </p>
-                </div>
-                <Button
-                  aria-label={`Mark ${player.name} picked`}
-                  className={
-                    compact ? "h-7 shrink-0 px-2.5 text-[0.7rem]" : "h-9 shrink-0 px-4 text-sm"
-                  }
-                  disabled={disabled}
-                  onClick={() => onMarkPicked(player.id)}
-                  variant="secondary"
-                >
-                  Pick
-                </Button>
-              </div>
-              <div
-                className="pointer-events-none absolute left-full top-0 z-20 ml-2 hidden w-52 rounded-xl border border-[var(--color-hairline)] bg-white p-3 shadow-lg group-hover:block group-focus-within:block"
-                role="tooltip"
-              >
-                <p className="text-xs font-semibold">{player.name}</p>
-                <dl className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[0.65rem]">
-                  {ALL_CATEGORY_IDS.map((categoryId) => (
-                    <div className="flex justify-between gap-2" key={categoryId}>
-                      <dt className="text-[var(--color-mute)]">
-                        {CATEGORY_LABELS[categoryId]}
-                      </dt>
-                      <dd className="tabular-nums font-medium">
-                        {formatProjection(
-                          categoryId,
-                          player.projections[categoryId],
-                        )}
-                      </dd>
+                    <td className="max-w-[7.5rem] py-1.5 pr-1 align-top">
+                      <p className="break-words text-xs font-medium leading-tight">
+                        {player.name}
+                      </p>
+                      <div
+                        className="pointer-events-none absolute left-full top-0 z-20 ml-2 hidden w-52 rounded-xl border border-[var(--color-hairline)] bg-white p-3 shadow-lg group-hover:block group-focus-within:block"
+                        role="tooltip"
+                      >
+                        <p className="text-xs font-semibold">{player.name}</p>
+                        <dl className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[0.65rem]">
+                          {ALL_CATEGORY_IDS.map((categoryId) => (
+                            <div
+                              className="flex justify-between gap-2"
+                              key={categoryId}
+                            >
+                              <dt className="text-[var(--color-mute)]">
+                                {CATEGORY_LABELS[categoryId]}
+                              </dt>
+                              <dd className="tabular-nums font-medium">
+                                {formatProjection(
+                                  categoryId,
+                                  player.projections[categoryId],
+                                )}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </td>
+                    <td className="px-1 py-1.5 align-top text-[0.65rem] text-[var(--color-mute)]">
+                      {player.positions.join("/")}
+                    </td>
+                    <td className="px-1 py-1.5 text-right align-top text-[0.65rem] tabular-nums font-medium">
+                      {formatAdp(player.adp)}
+                    </td>
+                    <td className="py-1.5 pl-1 align-top">
+                      <Button
+                        aria-label={`Mark ${player.name} picked`}
+                        className="h-7 shrink-0 px-2 text-[0.7rem]"
+                        disabled={disabled}
+                        onClick={() => onMarkPicked(player.id)}
+                        variant="secondary"
+                      >
+                        Pick
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <ul className="space-y-2">
+              {availablePlayers.map((player) => (
+                <li className="rounded-2xl bg-white p-3" key={player.id}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="break-words font-medium leading-tight">
+                        {player.name}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--color-mute)]">
+                        {player.positions.join("/")} · ADP {formatAdp(player.adp)}
+                      </p>
                     </div>
-                  ))}
-                </dl>
-              </div>
-            </li>
-          ))}
-        </ul>
+                    <Button
+                      aria-label={`Mark ${player.name} picked`}
+                      className="h-9 shrink-0 px-4 text-sm"
+                      disabled={disabled}
+                      onClick={() => onMarkPicked(player.id)}
+                      variant="secondary"
+                    >
+                      Pick
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       ) : (
         <p className={`text-[var(--color-mute)] ${compact ? "mt-3 text-xs" : "mt-5 text-sm"}`}>
           No available players match your search.

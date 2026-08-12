@@ -352,6 +352,10 @@ describe("DraftWorkspace", () => {
 
     expect(await screen.findByText(/practice only/i)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Reset mock draft" })).toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
+      "2",
+    )
+    expect(screen.getByRole("columnheader", { name: "ADP" })).toBeInTheDocument()
     await waitFor(
       () => {
         expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
@@ -359,5 +363,20 @@ describe("DraftWorkspace", () => {
       { timeout: 3_000 },
     )
     expect(screen.getByText(/latest pick/i)).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Your pick slot" }), {
+      target: { value: "1" },
+    })
+    await waitFor(() => {
+      expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
+        "1",
+      )
+    })
+    await waitFor(
+      () => {
+        expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+      },
+      { timeout: 3_000 },
+    )
   })
 })

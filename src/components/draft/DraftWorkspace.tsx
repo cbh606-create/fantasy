@@ -92,6 +92,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const [state, setState] = useState<LeagueState | null>(null)
   const [mockBoard, setMockBoard] = useState<DraftBoard | null>(null)
   const [mockPlayers, setMockPlayers] = useState<Player[] | null>(null)
+  const [mockPerspectiveTeamIndex, setMockPerspectiveTeamIndex] = useState(0)
   const [latestMockPick, setLatestMockPick] = useState<MockLatestPick | null>(
     null,
   )
@@ -337,8 +338,12 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     }
   }
 
-  const startMockDraft = async (baseState: LeagueState) => {
+  const startMockDraft = async (
+    baseState: LeagueState,
+    perspectiveTeamIndex = baseState.perspectiveTeamIndex,
+  ) => {
     setLatestMockPick(null)
+    setMockPerspectiveTeamIndex(perspectiveTeamIndex)
     const players = await loadFreshMockPlayers(baseState.players)
     setMockPlayers(players)
 
@@ -348,6 +353,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     )
     void runMockCpuUntilUserTurn({
       ...baseState,
+      perspectiveTeamIndex,
       players,
       board: empty,
       source: "manual",
@@ -357,12 +363,27 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const handleEnterMock = () => {
     setMode("mock")
     if (!state) return
-    if (!mockBoard && !isMockAdvancing) void startMockDraft(state)
+    if (!mockBoard && !isMockAdvancing) {
+      void startMockDraft(state, state.perspectiveTeamIndex)
+    }
   }
 
   const handleResetMock = () => {
     if (!state) return
-    void startMockDraft(state)
+    void startMockDraft(state, mockPerspectiveTeamIndex)
+  }
+
+  const handleMockSlotChange = (slot: number) => {
+    if (!state) return
+    const nextIndex = slot - 1
+    if (
+      nextIndex < 0 ||
+      nextIndex >= state.settings.teams ||
+      nextIndex === mockPerspectiveTeamIndex
+    ) {
+      return
+    }
+    void startMockDraft(state, nextIndex)
   }
 
   const handleMockMarkPicked = (playerId: string) => {
@@ -384,6 +405,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     )
     void runMockCpuUntilUserTurn({
       ...state,
+      perspectiveTeamIndex: mockPerspectiveTeamIndex,
       players: mockPlayers,
       board: afterHuman,
       source: "manual",
@@ -514,6 +536,8 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
               mockBoard={mockBoard}
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
+              onSlotChange={handleMockSlotChange}
+              perspectiveTeamIndex={mockPerspectiveTeamIndex}
               players={mockPlayers}
               state={state}
             />
