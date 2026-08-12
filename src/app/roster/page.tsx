@@ -140,11 +140,15 @@ export default function RosterListPage() {
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as {
           error?: string
+          message?: string
         } | null
+        if (payload?.error === "validation") {
+          throw new Error(
+            "쿠키 형식이 올바르지 않습니다. Value만 다시 복사해 붙여넣으세요.",
+          )
+        }
         throw new Error(
-          payload?.error === "validation"
-            ? "쿠키 형식이 올바르지 않습니다. Value만 다시 복사해 붙여넣으세요."
-            : `쿠키 저장 실패 (HTTP ${response.status})`,
+          payload?.message ?? `쿠키 저장 실패 (HTTP ${response.status})`,
         )
       }
 

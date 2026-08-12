@@ -7,6 +7,20 @@ import {
   upsertUserEspnCredentials,
 } from "@/lib/espn/credentials"
 
+const toSafeErrorMessage = (error: unknown): string => {
+  if (!(error instanceof Error)) return "Unable to save ESPN credentials"
+
+  const message = error.message
+  if (message.includes("EspnCredential") || message.includes("prisma generate")) {
+    return message
+  }
+  if (message.includes("no such table") || message.includes("SqliteError")) {
+    return "Database is missing EspnCredential table. Run `npx prisma migrate dev` in the worktree, then restart."
+  }
+
+  return `Unable to save ESPN credentials: ${message}`
+}
+
 export const GET = async (): Promise<Response> => {
   let userId: string
 
@@ -16,8 +30,16 @@ export const GET = async (): Promise<Response> => {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
 
-  const connected = await hasUserEspnCredentials(userId)
-  return NextResponse.json({ connected })
+  try {
+    const connected = await hasUserEspnCredentials(userId)
+    return NextResponse.json({ connected })
+  } catch (error) {
+    console.error("ESPN credentials GET failed", error)
+    return NextResponse.json(
+      { error: "server_error", message: toSafeErrorMessage(error) },
+      { status: 500 },
+    )
+  }
 }
 
 export const PUT = async (request: Request): Promise<Response> => {
@@ -50,8 +72,16 @@ export const PUT = async (request: Request): Promise<Response> => {
     return NextResponse.json({ error: "validation" }, { status: 400 })
   }
 
-  await upsertUserEspnCredentials(userId, cookies)
-  return NextResponse.json({ connected: true })
+  try {
+    await upsertUserEspnCredentials(userId, cookies)
+    return NextResponse.json({ connected: true })
+  } catch (error) {
+    console.error("ESPN credentials PUT failed", error)
+    return NextResponse.json(
+      { error: "server_error", message: toSafeErrorMessage(error) },
+      { status: 500 },
+    )
+  }
 }
 
 export const DELETE = async (): Promise<Response> => {
@@ -63,6 +93,14 @@ export const DELETE = async (): Promise<Response> => {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
 
-  await deleteUserEspnCredentials(userId)
-  return NextResponse.json({ connected: false })
+  try {
+    await deleteUserEspnCredentials(userId)
+    return NextResponse.json({ connected: false })
+  } catch (error) {
+    console.error("ESPN credentials DELETE failed", error)
+    return NextResponse.json(
+      { error: "server_error", message: toSafeErrorMessage(error) },
+      { status: 500 },
+    )
+  }
 }
