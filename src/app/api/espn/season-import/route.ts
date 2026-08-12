@@ -18,6 +18,7 @@ type ImportSeasonLeagueBody = {
   name?: unknown
   leagueId?: unknown
   season?: unknown
+  teamId?: unknown
   forceFail?: unknown
 }
 
@@ -46,7 +47,9 @@ export const POST = async (request: Request): Promise<Response> => {
     typeof body.leagueId !== "string" ||
     !body.leagueId.trim() ||
     typeof body.season !== "number" ||
-    !Number.isInteger(body.season)
+    !Number.isInteger(body.season) ||
+    typeof body.teamId !== "number" ||
+    !Number.isInteger(body.teamId)
   ) {
     return NextResponse.json({ error: "validation" }, { status: 400 })
   }
@@ -55,6 +58,7 @@ export const POST = async (request: Request): Promise<Response> => {
     const state = await espnImportToSeasonLeagueState({
       leagueId: body.leagueId.trim(),
       season: body.season,
+      teamId: body.teamId,
       forceFail:
         process.env.NODE_ENV === "test" && isErrorCode(body.forceFail)
           ? body.forceFail

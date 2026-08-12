@@ -62,6 +62,7 @@ export type SeasonLeagueState = {
   season: number
   categories: CategorySetting[]
   perspectiveTeamIndex: number
+  espnTeamId?: number
   teams: SeasonTeamRoster[]
   players: SeasonPlayer[]
   availablePlayerIds: string[]

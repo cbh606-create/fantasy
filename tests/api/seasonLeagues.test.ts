@@ -256,6 +256,7 @@ describe("POST /api/espn/season-import", () => {
         name: "Imported season league",
         leagueId: "fixture-league",
         season: fixture.season,
+        teamId: 2,
       }),
     )
     const league = await response.json()

@@ -4,6 +4,7 @@ import {
   type ManualSeasonLeagueInput,
 } from "./manualSeason"
 import { EspnAdapterError, type EspnErrorCode } from "./errors"
+import { fetchEspnSeasonLeague } from "./espnSeasonLive"
 import type {
   SeasonLeagueState,
   SeasonRosterEntry,
@@ -13,6 +14,7 @@ import type {
 type EspnSeasonParams = {
   leagueId: string
   season: number
+  teamId?: number
   forceFail?: EspnErrorCode
 }
 
@@ -64,7 +66,18 @@ export const espnImportToSeasonLeagueState = async (
   }
 
   if (process.env.ESPN_LIVE === "true") {
-    throw new EspnAdapterError("ESPN_UNAVAILABLE")
+    if (
+      typeof params.teamId !== "number" ||
+      !Number.isInteger(params.teamId)
+    ) {
+      throw new EspnAdapterError("ESPN_PARTIAL")
+    }
+
+    return fetchEspnSeasonLeague({
+      leagueId: params.leagueId,
+      season: params.season,
+      teamId: params.teamId,
+    })
   }
 
   return {
@@ -73,5 +86,6 @@ export const espnImportToSeasonLeagueState = async (
     ),
     id: params.leagueId,
     source: "espn",
+    espnTeamId: params.teamId,
   }
 }

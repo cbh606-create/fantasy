@@ -60,13 +60,22 @@ export const POST = async (
   }
 
   try {
+    let storedState: SeasonLeagueState | null = null
+    try {
+      storedState = JSON.parse(league.stateJson) as SeasonLeagueState
+    } catch {
+      storedState = null
+    }
+
     const importedState = await espnImportToSeasonLeagueState({
       leagueId: league.espnLeagueId,
       season: league.season,
+      teamId: storedState?.espnTeamId,
     })
     const incomingState: SeasonLeagueState = {
       ...importedState,
       name: league.name,
+      espnTeamId: storedState?.espnTeamId ?? importedState.espnTeamId,
     }
     const incomingEntries = incomingState.teams.find(
       (team) => team.teamIndex === incomingState.perspectiveTeamIndex,
