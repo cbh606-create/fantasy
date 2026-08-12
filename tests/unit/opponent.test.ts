@@ -203,8 +203,8 @@ describe("pickMockCpu", () => {
     const picked = pickMockCpu(remaining, [], () => 0.999999)
 
     expect(picked.adp).toBeLessThanOrEqual(MOCK_ADP_WINDOW)
-    expect(picked.id).not.toBe("p6")
-    expect(picked.id).not.toBe("p7")
+    expect(picked.id).not.toBe("p11")
+    expect(picked.id).not.toBe("p12")
   })
 
   it("can prefer a category fit inside the window over pure ADP", () => {

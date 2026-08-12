@@ -163,7 +163,7 @@ export const scoreOpponentNeed = (
   categoryNeedBonus(roster, weights, leagueAvg)
 
 export const SIM_ADP_WINDOW = 8
-export const MOCK_ADP_WINDOW = 5
+export const MOCK_ADP_WINDOW = 10
 /** Scales category-fill vs ADP so needs can beat a small ADP edge inside the window. */
 const MOCK_CATEGORY_FILL_WEIGHT = 4
 
