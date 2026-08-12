@@ -83,6 +83,8 @@ const buildLeague = (
     perspectiveTeamIndex: 0,
     teams,
     players: rosters.flat(),
+    availablePlayerIds: [],
+    waiverOrder: teams.map(({ teamIndex }) => teamIndex),
     source: "manual",
   }
 }

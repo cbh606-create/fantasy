@@ -16,6 +16,7 @@ export type SeasonPlayer = {
   id: string
   name: string
   teamAbbr?: string
+  availability?: "fa" | "waiver"
   projections: Record<CategoryId, number>
   shooting: {
     FGM: number
@@ -63,6 +64,8 @@ export type SeasonLeagueState = {
   perspectiveTeamIndex: number
   teams: SeasonTeamRoster[]
   players: SeasonPlayer[]
+  availablePlayerIds: string[]
+  waiverOrder: number[]
   source: "espn" | "manual" | "mixed"
   lastSyncedAt?: string
   localLineup?: SeasonRosterEntry[] | null

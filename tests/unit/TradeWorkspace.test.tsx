@@ -60,6 +60,8 @@ const state: SeasonLeagueState = {
       ],
     },
   ],
+  availablePlayerIds: [],
+  waiverOrder: [0, 1],
   source: "manual",
 }
 

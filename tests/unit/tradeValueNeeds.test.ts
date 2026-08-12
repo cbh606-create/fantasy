@@ -73,6 +73,8 @@ const state: SeasonLeagueState = {
     entries: [{ slot: "UTIL", playerId: player.id }],
   })),
   players,
+  availablePlayerIds: [],
+  waiverOrder: players.map((_, teamIndex) => teamIndex),
   source: "manual",
 }
 
