@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId, Player } from "@/lib/domain/types"
 import {
+  categoryFillBonus,
   createRng,
+  MOCK_ADP_WINDOW,
   pickLiveCpuByAdp,
+  pickMockCpu,
   pickSimOpponent,
   scoreOpponentNeed,
   scoreSimOpponent,
@@ -176,5 +179,44 @@ describe("pickSimOpponent", () => {
     ]
 
     expect(pickSimOpponent(remaining, roster, () => 0.75).id).toBe("fit-pg")
+  })
+})
+
+describe("categoryFillBonus", () => {
+  it("rewards candidates that cover lagging categories", () => {
+    const roster = [player("scorer", ["SG"], 20, { PTS: 30, REB: 2 })]
+    const baseline = projections({ PTS: 15, REB: 8 })
+    const rebounder = player("board-man", ["PF"], 10, { PTS: 8, REB: 14 })
+    const moreScoring = player("scorer-2", ["SG"], 10, { PTS: 28, REB: 2 })
+
+    expect(categoryFillBonus(rebounder, roster, baseline)).toBeGreaterThan(
+      categoryFillBonus(moreScoring, roster, baseline),
+    )
+  })
+})
+
+describe("pickMockCpu", () => {
+  it("never selects outside the mock ADP top window", () => {
+    const remaining = Array.from({ length: MOCK_ADP_WINDOW + 3 }, (_, index) =>
+      player(`p${index + 1}`, ["PG"], index + 1),
+    )
+    const picked = pickMockCpu(remaining, [], () => 0.999999)
+
+    expect(picked.adp).toBeLessThanOrEqual(MOCK_ADP_WINDOW)
+    expect(picked.id).not.toBe("p6")
+    expect(picked.id).not.toBe("p7")
+  })
+
+  it("can prefer a category fit inside the window over pure ADP", () => {
+    const remaining = [
+      player("adp1", ["C"], 1, { REB: 2, PTS: 20 }),
+      player("adp2", ["C"], 2, { REB: 2, PTS: 19 }),
+      player("adp3", ["PF"], 3, { REB: 14, PTS: 12 }),
+      player("adp4", ["C"], 4, { REB: 2, PTS: 18 }),
+      player("adp5", ["C"], 5, { REB: 2, PTS: 17 }),
+    ]
+    const roster = [player("guard", ["PG"], 40, { REB: 1, PTS: 22 })]
+
+    expect(pickMockCpu(remaining, roster, () => 0.55).id).toBe("adp3")
   })
 })

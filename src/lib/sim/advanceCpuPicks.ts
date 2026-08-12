@@ -1,6 +1,6 @@
 import { teamIndexForOverall } from "@/lib/domain/snake"
-import type { DraftPick, LeagueState } from "@/lib/domain/types"
-import { createRng, pickLiveCpuByAdp } from "@/lib/sim/opponent"
+import type { DraftPick, LeagueState, Player } from "@/lib/domain/types"
+import { createRng, pickMockCpu } from "@/lib/sim/opponent"
 
 const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   const { teams, rounds } = state.settings
@@ -33,6 +33,20 @@ const remainingPlayers = (state: LeagueState, picks: DraftPick[]) => {
   return state.players.filter((player) => !draftedPlayerIds.has(player.id))
 }
 
+const rosterForTeam = (
+  picks: DraftPick[],
+  players: Player[],
+  teamIndex: number,
+): Player[] => {
+  const byId = new Map(players.map((player) => [player.id, player]))
+
+  return picks.flatMap((pick) => {
+    if (pick.teamIndex !== teamIndex || !pick.playerId) return []
+    const player = byId.get(pick.playerId)
+    return player ? [player] : []
+  })
+}
+
 /** Apply a single opponent CPU pick. Returns null when it is the user turn or done. */
 export const advanceOneCpuPick = (
   state: LeagueState,
@@ -60,8 +74,8 @@ export const advanceOneCpuPick = (
     return null
   }
 
-  // Mock boards follow best remaining ADP so stars are not left on the board.
-  const selectedPlayer = pickLiveCpuByAdp(remaining, createRng(seed))
+  const roster = rosterForTeam(picks, state.players, pick.teamIndex)
+  const selectedPlayer = pickMockCpu(remaining, roster, createRng(seed))
 
   pick.playerId = selectedPlayer.id
 

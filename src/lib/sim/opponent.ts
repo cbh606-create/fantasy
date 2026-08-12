@@ -163,11 +163,70 @@ export const scoreOpponentNeed = (
   categoryNeedBonus(roster, weights, leagueAvg)
 
 export const SIM_ADP_WINDOW = 8
+export const MOCK_ADP_WINDOW = 5
+/** Scales category-fill vs ADP so needs can beat a small ADP edge inside the window. */
+const MOCK_CATEGORY_FILL_WEIGHT = 4
+
+const averageProjections = (
+  players: Player[],
+): Record<CategoryId, number> => {
+  const averages = Object.fromEntries(
+    ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
+  ) as Record<CategoryId, number>
+
+  if (players.length === 0) return averages
+
+  for (const player of players) {
+    for (const categoryId of ALL_CATEGORY_IDS) {
+      averages[categoryId] += player.projections[categoryId]
+    }
+  }
+
+  for (const categoryId of ALL_CATEGORY_IDS) {
+    averages[categoryId] /= players.length
+  }
+
+  return averages
+}
+
+/** How much this player fills categories where the roster lags the pool baseline. */
+export const categoryFillBonus = (
+  player: Player,
+  roster: Player[],
+  baseline: Record<CategoryId, number>,
+): number => {
+  const rosterAverage = averageProjections(roster)
+
+  return ALL_CATEGORY_IDS.reduce((bonus, categoryId) => {
+    const gap =
+      categoryId === "TO"
+        ? Math.max(0, rosterAverage[categoryId] - baseline[categoryId])
+        : Math.max(0, baseline[categoryId] - rosterAverage[categoryId])
+
+    if (gap <= 0) return bonus
+
+    const contribution =
+      categoryId === "TO"
+        ? Math.max(0, baseline[categoryId] - player.projections[categoryId])
+        : Math.max(0, player.projections[categoryId])
+
+    return bonus + gap * contribution
+  }, 0)
+}
 
 export const scoreSimOpponent = (
   player: Player,
   roster: Player[],
 ): number => (1 / player.adp) * 100 + positionNeedBonus(player, roster)
+
+export const scoreMockOpponent = (
+  player: Player,
+  roster: Player[],
+  baseline: Record<CategoryId, number>,
+): number =>
+  (1 / player.adp) * 100 +
+  positionNeedBonus(player, roster) +
+  categoryFillBonus(player, roster, baseline) * MOCK_CATEGORY_FILL_WEIGHT
 
 export const pickLiveCpuByAdp = (
   remaining: Player[],
@@ -191,22 +250,24 @@ export const pickLiveCpuByAdp = (
   return tied[index]
 }
 
-export const pickSimOpponent = (
+const pickWeightedFromWindow = (
   remaining: Player[],
-  roster: Player[],
+  windowSize: number,
+  scoreFor: (player: Player) => number,
   rng: () => number,
+  emptyMessage: string,
 ): Player => {
   if (remaining.length === 0) {
-    throw new RangeError("Cannot pick a sim opponent from an empty pool")
+    throw new RangeError(emptyMessage)
   }
 
   const candidates = [...remaining]
     .sort(
       (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
     )
-    .slice(0, SIM_ADP_WINDOW)
+    .slice(0, windowSize)
 
-  const scores = candidates.map((player) => scoreSimOpponent(player, roster))
+  const scores = candidates.map((player) => Math.max(0.01, scoreFor(player)))
   const totalScore = scores.reduce((total, score) => total + score, 0)
   const threshold = rng() * totalScore
   let cumulativeScore = 0
@@ -219,4 +280,34 @@ export const pickSimOpponent = (
   }
 
   return candidates[candidates.length - 1]
+}
+
+export const pickSimOpponent = (
+  remaining: Player[],
+  roster: Player[],
+  rng: () => number,
+): Player =>
+  pickWeightedFromWindow(
+    remaining,
+    SIM_ADP_WINDOW,
+    (player) => scoreSimOpponent(player, roster),
+    rng,
+    "Cannot pick a sim opponent from an empty pool",
+  )
+
+/** Mock CPU: ADP top-5 window, then need-weighted random (position + category fill). */
+export const pickMockCpu = (
+  remaining: Player[],
+  roster: Player[],
+  rng: () => number,
+): Player => {
+  const baseline = averageProjections(remaining)
+
+  return pickWeightedFromWindow(
+    remaining,
+    MOCK_ADP_WINDOW,
+    (player) => scoreMockOpponent(player, roster, baseline),
+    rng,
+    "Cannot pick a mock CPU player from an empty pool",
+  )
 }
