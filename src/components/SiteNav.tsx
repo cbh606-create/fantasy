@@ -14,6 +14,7 @@ const linkClass = (active: boolean) =>
 export const SiteNav = () => {
   const pathname = usePathname()
   const isHome = pathname === "/"
+  const isMatchup = pathname.startsWith("/matchup")
   const isDraft =
     pathname.startsWith("/leagues") || pathname.includes("/draft")
   const isRoster = pathname.startsWith("/roster")
@@ -33,6 +34,13 @@ export const SiteNav = () => {
         <nav aria-label="Primary" className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <Link aria-current={isHome ? "page" : undefined} className={linkClass(isHome)} href="/">
             Home
+          </Link>
+          <Link
+            aria-current={isMatchup ? "page" : undefined}
+            className={linkClass(isMatchup)}
+            href="/matchup"
+          >
+            Matchup
           </Link>
           <Link
             aria-current={isDraft ? "page" : undefined}
