@@ -25,13 +25,7 @@ const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   )
 }
 
-/** Fill opponent picks until the next perspective-team turn (Mock / sim helpers). */
-export const advanceCpuPicksUntilUserTurn = (
-  state: LeagueState,
-  seed = 1,
-): LeagueState => {
-  const picks = ensurePickSlots(state)
-  const totalPicks = picks.length
+const buildRostersAndRemaining = (state: LeagueState, picks: DraftPick[]) => {
   const playerById = new Map(state.players.map((player) => [player.id, player]))
   const rosters = Array.from(
     { length: state.settings.teams },
@@ -49,45 +43,87 @@ export const advanceCpuPicksUntilUserTurn = (
     draftedPlayerIds.add(player.id)
   }
 
-  let remaining = state.players.filter(
+  const remaining = state.players.filter(
     (player) => !draftedPlayerIds.has(player.id),
   )
-  const rng = createRng(seed)
+
+  return { rosters, remaining }
+}
+
+/** Apply a single opponent CPU pick. Returns null when it is the user turn or done. */
+export const advanceOneCpuPick = (
+  state: LeagueState,
+  seed = 1,
+): LeagueState | null => {
+  const picks = ensurePickSlots(state)
+  const totalPicks = picks.length
   let currentOverall = Math.max(1, state.board.currentOverall)
 
-  while (currentOverall <= totalPicks) {
-    const pick = picks[currentOverall - 1]
-
-    if (pick.playerId) {
-      currentOverall += 1
-      continue
-    }
-
-    if (pick.teamIndex === state.perspectiveTeamIndex) {
-      break
-    }
-
-    if (remaining.length === 0) {
-      break
-    }
-
-    const selectedPlayer = pickSimOpponent(
-      remaining,
-      rosters[pick.teamIndex],
-      rng,
-    )
-
-    pick.playerId = selectedPlayer.id
-    rosters[pick.teamIndex].push(selectedPlayer)
-    remaining = remaining.filter((player) => player.id !== selectedPlayer.id)
+  while (currentOverall <= totalPicks && picks[currentOverall - 1]?.playerId) {
     currentOverall += 1
   }
+
+  if (currentOverall > totalPicks) {
+    return null
+  }
+
+  const pick = picks[currentOverall - 1]
+  if (pick.teamIndex === state.perspectiveTeamIndex) {
+    return null
+  }
+
+  const { rosters, remaining } = buildRostersAndRemaining(state, picks)
+  if (remaining.length === 0) {
+    return null
+  }
+
+  const selectedPlayer = pickSimOpponent(
+    remaining,
+    rosters[pick.teamIndex],
+    createRng(seed),
+  )
+
+  pick.playerId = selectedPlayer.id
 
   return {
     ...state,
     board: {
       picks,
-      currentOverall,
+      currentOverall: currentOverall + 1,
     },
+  }
+}
+
+/** Fill opponent picks until the next perspective-team turn (sync helper / tests). */
+export const advanceCpuPicksUntilUserTurn = (
+  state: LeagueState,
+  seed = 1,
+): LeagueState => {
+  let current = state
+  let step = 0
+
+  while (true) {
+    const next = advanceOneCpuPick(current, seed + step)
+    if (!next) {
+      const picks = ensurePickSlots(current)
+      let currentOverall = Math.max(1, current.board.currentOverall)
+      while (
+        currentOverall <= picks.length &&
+        picks[currentOverall - 1]?.playerId
+      ) {
+        currentOverall += 1
+      }
+
+      return {
+        ...current,
+        board: {
+          picks,
+          currentOverall,
+        },
+      }
+    }
+
+    current = next
+    step += 1
   }
 }

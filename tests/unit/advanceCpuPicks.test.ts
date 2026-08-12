@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { LeagueState, Player } from "@/lib/domain/types"
-import { advanceCpuPicksUntilUserTurn } from "@/lib/sim/advanceCpuPicks"
+import {
+  advanceCpuPicksUntilUserTurn,
+  advanceOneCpuPick,
+} from "@/lib/sim/advanceCpuPicks"
 
 const projections = {
   FG_PCT: 0.5,
@@ -111,5 +114,17 @@ describe("advanceCpuPicksUntilUserTurn", () => {
 
     expect(advanced.board.currentOverall).toBe(2)
     expect(advanced.board.picks.find((pick) => pick.overall === 2)?.playerId).toBeNull()
+  })
+})
+
+describe("advanceOneCpuPick", () => {
+  it("applies a single opponent pick and returns null on the user turn", () => {
+    const afterOne = advanceOneCpuPick(createState(), 11)
+
+    expect(afterOne).not.toBeNull()
+    expect(afterOne!.board.picks.find((pick) => pick.overall === 1)?.playerId)
+      .toBeTruthy()
+    expect(afterOne!.board.currentOverall).toBe(2)
+    expect(advanceOneCpuPick(afterOne!, 12)).toBeNull()
   })
 })

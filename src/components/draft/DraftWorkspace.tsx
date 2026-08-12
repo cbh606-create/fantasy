@@ -10,7 +10,25 @@ import type {
   LeagueState,
   SimulationResult,
 } from "@/lib/domain/types"
-import { advanceCpuPicksUntilUserTurn } from "@/lib/sim/advanceCpuPicks"
+import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
+
+const MOCK_PICK_DELAY_MS = 550
+
+const wait = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"))
+      return
+    }
+
+    const timer = window.setTimeout(() => resolve(), ms)
+    const handleAbort = () => {
+      window.clearTimeout(timer)
+      reject(new DOMException("Aborted", "AbortError"))
+    }
+
+    signal.addEventListener("abort", handleAbort, { once: true })
+  })
 
 type DraftWorkspaceProps = {
   leagueId: string
@@ -76,11 +94,13 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const [isSimulating, setIsSimulating] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [isSavingPick, setIsSavingPick] = useState(false)
+  const [isMockAdvancing, setIsMockAdvancing] = useState(false)
   const [isManualMode, setIsManualMode] = useState(false)
   const [syncError, setSyncError] = useState("")
   const [error, setError] = useState("")
   const simulationControllerRef = useRef<AbortController | null>(null)
   const simulationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mockAdvanceControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -128,6 +148,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
         clearTimeout(simulationTimerRef.current)
       }
       simulationControllerRef.current?.abort()
+      mockAdvanceControllerRef.current?.abort()
     },
     [],
   )
@@ -229,26 +250,63 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     }
   }
 
+  const runMockCpuUntilUserTurn = async (baseState: LeagueState) => {
+    mockAdvanceControllerRef.current?.abort()
+    const controller = new AbortController()
+    mockAdvanceControllerRef.current = controller
+    setIsMockAdvancing(true)
+
+    let current = baseState
+    setMockBoard(current.board)
+    let step = 0
+
+    try {
+      while (!controller.signal.aborted) {
+        const next = advanceOneCpuPick(
+          current,
+          ((Date.now() >>> 0) + current.board.currentOverall + step) >>> 0,
+        )
+        if (!next) break
+
+        current = next
+        setMockBoard(current.board)
+        step += 1
+        await wait(MOCK_PICK_DELAY_MS, controller.signal)
+      }
+    } catch (requestError) {
+      if (
+        !(requestError instanceof DOMException) ||
+        requestError.name !== "AbortError"
+      ) {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unable to advance mock draft",
+        )
+      }
+    } finally {
+      if (mockAdvanceControllerRef.current === controller) {
+        setIsMockAdvancing(false)
+      }
+    }
+  }
+
   const startMockDraft = (baseState: LeagueState) => {
     const empty = buildEmptyBoard(
       baseState.settings.teams,
       baseState.settings.rounds,
     )
-    const advanced = advanceCpuPicksUntilUserTurn(
-      {
-        ...baseState,
-        board: empty,
-        source: "manual",
-      },
-      Date.now() >>> 0,
-    )
-    setMockBoard(advanced.board)
+    void runMockCpuUntilUserTurn({
+      ...baseState,
+      board: empty,
+      source: "manual",
+    })
   }
 
   const handleEnterMock = () => {
     setMode("mock")
     if (!state) return
-    if (!mockBoard) startMockDraft(state)
+    if (!mockBoard && !isMockAdvancing) startMockDraft(state)
   }
 
   const handleResetMock = () => {
@@ -257,22 +315,18 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   }
 
   const handleMockMarkPicked = (playerId: string) => {
-    if (!state || !mockBoard || isSavingPick) return
+    if (!state || !mockBoard || isSavingPick || isMockAdvancing) return
 
     const afterHuman = applyPickToBoard(
       mockBoard,
       state.settings.teams,
       playerId,
     )
-    const advanced = advanceCpuPicksUntilUserTurn(
-      {
-        ...state,
-        board: afterHuman,
-        source: "manual",
-      },
-      Date.now() >>> 0,
-    )
-    setMockBoard(advanced.board)
+    void runMockCpuUntilUserTurn({
+      ...state,
+      board: afterHuman,
+      source: "manual",
+    })
   }
 
   const handleLiveMarkPicked = async (playerId: string) => {
@@ -393,6 +447,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
           ) : null}
           {mode === "mock" && mockBoard ? (
             <MockDraftView
+              isAdvancing={isMockAdvancing}
               isSavingPick={isSavingPick}
               mockBoard={mockBoard}
               onMarkPicked={handleMockMarkPicked}

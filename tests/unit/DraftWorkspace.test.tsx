@@ -343,7 +343,12 @@ describe("DraftWorkspace", () => {
 
     expect(await screen.findByText(/practice only/i)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Reset mock draft" })).toBeInTheDocument()
-    expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+    await waitFor(
+      () => {
+        expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+      },
+      { timeout: 3_000 },
+    )
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 })
