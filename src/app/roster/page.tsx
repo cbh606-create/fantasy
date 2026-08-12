@@ -24,6 +24,8 @@ export default function RosterListPage() {
   const [espnConnected, setEspnConnected] = useState(false)
   const [error, setError] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
+  const [connectMessage, setConnectMessage] = useState("")
+  const [connectTone, setConnectTone] = useState<"mute" | "ok" | "bad">("mute")
   const [isCreating, setIsCreating] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [isSavingEspn, setIsSavingEspn] = useState(false)
@@ -38,6 +40,14 @@ export default function RosterListPage() {
           fetch("/api/season-leagues", { signal: controller.signal }),
           fetch("/api/espn/credentials", { signal: controller.signal }),
         ])
+
+        if (leaguesResponse.status === 401 || credentialsResponse.status === 401) {
+          setConnectTone("bad")
+          setConnectMessage(
+            "앱 로그인이 필요합니다. 상단에서 Sign in 한 뒤 ESPN 쿠키를 저장하세요.",
+          )
+          return
+        }
 
         if (!leaguesResponse.ok) throw new Error("Unable to load season leagues")
         setLeagues((await leaguesResponse.json()) as SeasonLeagueListItem[])
@@ -103,7 +113,18 @@ export default function RosterListPage() {
     event.preventDefault()
     setError("")
     setSuccessMessage("")
+    setConnectMessage("")
+    setConnectTone("mute")
+
+    if (!espnS2.trim() || !swid.trim()) {
+      setConnectTone("bad")
+      setConnectMessage("espn_s2와 SWID를 둘 다 붙여넣은 뒤 다시 Save를 눌러주세요.")
+      return
+    }
+
     setIsSavingEspn(true)
+    setConnectTone("mute")
+    setConnectMessage("Saving cookies…")
 
     try {
       const response = await fetch("/api/espn/credentials", {
@@ -112,13 +133,25 @@ export default function RosterListPage() {
         body: JSON.stringify({ espnS2, swid }),
       })
 
+      if (response.status === 401) {
+        throw new Error("로그인이 필요합니다. 먼저 앱에 로그인한 뒤 다시 시도하세요.")
+      }
+
       if (!response.ok) {
-        throw new Error("Unable to save ESPN cookies — check both values")
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string
+        } | null
+        throw new Error(
+          payload?.error === "validation"
+            ? "쿠키 형식이 올바르지 않습니다. Value만 다시 복사해 붙여넣으세요."
+            : `쿠키 저장 실패 (HTTP ${response.status})`,
+        )
       }
 
       setEspnConnected(true)
       setEspnS2("")
       setSwid("")
+      setConnectMessage("Cookies saved. Checking league access…")
 
       const parsedTeamId = Number.parseInt(teamId, 10)
       const parsedSeason = Number.parseInt(season, 10)
@@ -145,22 +178,28 @@ export default function RosterListPage() {
         }
 
         if (!verifyResponse.ok || !verifyPayload.ok) {
-          throw new Error(
+          setConnectTone("bad")
+          setConnectMessage(
             verifyPayload.message ??
               "Cookies saved, but ESPN rejected them for this league. Re-copy fresh cookies while logged into that league.",
           )
+          return
         }
 
-        setSuccessMessage(
+        setConnectTone("ok")
+        setConnectMessage(
           `ESPN OK — ${verifyPayload.teamName ?? "team"} · ${verifyPayload.playerCount ?? 0} players (${verifyPayload.leagueName ?? "league"})`,
         )
+        setSuccessMessage("")
       } else {
-        setSuccessMessage(
+        setConnectTone("ok")
+        setConnectMessage(
           "ESPN cookies saved. Fill league/team/season below, then Import.",
         )
       }
     } catch (requestError) {
-      setError(
+      setConnectTone("bad")
+      setConnectMessage(
         requestError instanceof Error
           ? requestError.message
           : "Unable to save ESPN cookies",
@@ -371,11 +410,13 @@ export default function RosterListPage() {
                 id="espn-s2"
                 onChange={(event) => setEspnS2(event.target.value)}
                 placeholder="Paste espn_s2 cookie"
-                required={!espnConnected}
                 spellCheck={false}
-                type="password"
+                type="text"
                 value={espnS2}
               />
+              <p className="text-[0.7rem] text-[var(--color-mute)]">
+                pasted length: {espnS2.trim().length}
+              </p>
               <div className="flex items-center gap-1.5">
                 <label className="text-sm font-medium" htmlFor="espn-swid">
                   SWID
@@ -401,11 +442,13 @@ export default function RosterListPage() {
                 id="espn-swid"
                 onChange={(event) => setSwid(event.target.value)}
                 placeholder="{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}"
-                required={!espnConnected}
                 spellCheck={false}
-                type="password"
+                type="text"
                 value={swid}
               />
+              <p className="text-[0.7rem] text-[var(--color-mute)]">
+                pasted length: {swid.trim().length}
+              </p>
               <button
                 className="w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isSavingEspn}
@@ -417,6 +460,24 @@ export default function RosterListPage() {
                     ? "Update ESPN cookies"
                     : "Save ESPN cookies"}
               </button>
+              {connectMessage ? (
+                <p
+                  className={`text-sm ${
+                    connectTone === "ok"
+                      ? "text-[var(--color-info)]"
+                      : connectTone === "bad"
+                        ? "text-[var(--color-sale)]"
+                        : "text-[var(--color-mute)]"
+                  }`}
+                  role="status"
+                >
+                  {connectMessage}
+                </p>
+              ) : (
+                <p className="text-[0.75rem] text-[var(--color-mute)]">
+                  Save를 누르면 바로 아래에 결과가 표시됩니다.
+                </p>
+              )}
             </form>
             {espnConnected ? (
               <button
