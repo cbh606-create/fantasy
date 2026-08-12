@@ -20,10 +20,10 @@ type TradeSuggestionsResponse = {
   suggestions: TradeSuggestion[]
   youNeeds: CategoryId[]
   youSurplus: CategoryId[]
+  state: SeasonLeagueState
 }
 
 export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
-  const [state, setState] = useState<SeasonLeagueState | null>(null)
   const [tradeData, setTradeData] = useState<TradeSuggestionsResponse | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -34,20 +34,17 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
 
     const loadWorkspace = async () => {
       try {
-        const [leagueResponse, suggestionsResponse] = await Promise.all([
-          fetch(`/api/season-leagues/${leagueId}`, { signal: controller.signal }),
-          fetch(`/api/trade/suggestions?seasonLeagueId=${leagueId}`, {
-            signal: controller.signal,
-          }),
-        ])
+        const suggestionsResponse = await fetch(
+          `/api/trade/suggestions?seasonLeagueId=${leagueId}`,
+          { signal: controller.signal },
+        )
 
-        if (!leagueResponse.ok || !suggestionsResponse.ok) {
+        if (!suggestionsResponse.ok) {
           throw new Error("Unable to load trade suggestions")
         }
 
-        const league = (await leagueResponse.json()) as { state: SeasonLeagueState }
-        const suggestions = (await suggestionsResponse.json()) as TradeSuggestionsResponse
-        setState(league.state)
+        const suggestions =
+          (await suggestionsResponse.json()) as TradeSuggestionsResponse
         setTradeData(suggestions)
         setSelectedId(suggestions.suggestions[0]?.id ?? null)
       } catch (requestError) {
@@ -78,7 +75,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
     )
   }
 
-  if (!state || !tradeData) {
+  if (!tradeData) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
         <p className="text-[var(--color-sale)]" role="alert">
@@ -88,6 +85,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
     )
   }
 
+  const { state } = tradeData
   const selectedSuggestion = tradeData.suggestions.find(
     (suggestion) => suggestion.id === selectedId,
   ) ?? null

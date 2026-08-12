@@ -1,13 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { CompactCategoryProfile } from "@/components/season/CompactCategoryProfile"
 import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { PlayerSchedulePanel } from "@/components/season/PlayerSchedulePanel"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
-import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import {
+  analyzeSeasonLeague,
+  type SeasonAnalysis,
+} from "@/lib/season/analysis"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import { buildPlayerMatchupSchedule } from "@/lib/season/schedule"
 import type {
@@ -22,6 +25,7 @@ type SeasonRosterWorkspaceProps = {
 
 type SeasonLeagueResponse = {
   state: SeasonLeagueState
+  analysis: SeasonAnalysis
 }
 
 type WorkspaceTab = "stats" | "schedule"
@@ -138,14 +142,20 @@ export const SeasonRosterWorkspace = ({
   const rosteredPlayers = data?.state.players.filter(
     (player) => rosteredPlayerIds.has(player.id),
   ) ?? []
-  const effectiveState = data
-    ? applyLocalLineup(data.state, effectiveEntries)
+  const draftFingerprint = draftEntries
+    ? draftEntries.map((entry) => `${entry.slot}:${entry.playerId ?? ""}`).join("|")
     : null
-  const effectiveAnalysis = effectiveState
-    ? analyzeSeasonLeague(effectiveState)
-    : null
+  const effectiveAnalysis = useMemo(() => {
+    if (!data) return null
+    if (!draftFingerprint || !draftEntries) {
+      return data.analysis ?? analyzeSeasonLeague(data.state)
+    }
+
+    return analyzeSeasonLeague(applyLocalLineup(data.state, draftEntries))
+  }, [data, draftEntries, draftFingerprint])
+  const perspectiveTeamIndex = data?.state.perspectiveTeamIndex
   const userLevels = effectiveAnalysis?.byTeam.find(
-    (team) => team.teamIndex === effectiveState!.perspectiveTeamIndex,
+    (team) => team.teamIndex === perspectiveTeamIndex,
   )?.levels ?? []
   const scheduleRows = schedule
     ? buildPlayerMatchupSchedule({
@@ -408,7 +418,7 @@ export const SeasonRosterWorkspace = ({
           <LeagueRankMatrix
             analysis={effectiveAnalysis!}
             perspectiveTeamIndex={data.state.perspectiveTeamIndex}
-            teams={effectiveState!.teams}
+            teams={data.state.teams}
           />
         </div>
         <div

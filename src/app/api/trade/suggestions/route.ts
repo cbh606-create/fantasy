@@ -60,5 +60,6 @@ export const GET = async (request: Request): Promise<Response> => {
   return NextResponse.json({
     ...result,
     analysisPerspectiveTeamIndex: effectiveState.perspectiveTeamIndex,
+    state: effectiveState,
   })
 }

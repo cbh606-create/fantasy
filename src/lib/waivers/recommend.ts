@@ -1,5 +1,8 @@
 import type { CategoryId } from "@/lib/domain/types"
-import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import {
+  analyzeSeasonLeague,
+  type SeasonAnalysis,
+} from "@/lib/season/analysis"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { teamNeedsAndSurplus } from "@/lib/trade/needs"
 import { MAX_RECOMMENDATIONS } from "./constants"
@@ -62,8 +65,8 @@ const buildReasons = (helpedCategories: CategoryId[]): string[] => {
 
 export const recommendPickups = (
   state: SeasonLeagueState,
+  analysis: SeasonAnalysis = analyzeSeasonLeague(state),
 ): PickupRecommendation[] => {
-  const analysis = analyzeSeasonLeague(state)
   const needCategories = teamNeedsAndSurplus(
     analysis,
     state.perspectiveTeamIndex,

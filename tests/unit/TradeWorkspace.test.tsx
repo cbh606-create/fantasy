@@ -111,16 +111,13 @@ describe("TradeWorkspace", () => {
     vi.stubGlobal("fetch", vi.fn(async (input) => {
       const url = String(input)
 
-      if (url === "/api/season-leagues/season-1") {
-        return new Response(JSON.stringify({ state }), { status: 200 })
-      }
-
       if (url === "/api/trade/suggestions?seasonLeagueId=season-1") {
         return new Response(JSON.stringify({
           suggestions,
           youNeeds: ["AST", "STL"],
           youSurplus: ["PTS"],
           analysisPerspectiveTeamIndex: 0,
+          state,
         }), { status: 200 })
       }
 

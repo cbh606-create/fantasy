@@ -86,6 +86,10 @@ describe("GET /api/trade/suggestions", () => {
       youNeeds: expect.any(Array),
       youSurplus: expect.any(Array),
       analysisPerspectiveTeamIndex: league.perspectiveTeamIndex,
+      state: expect.objectContaining({
+        name: expect.any(String),
+        teams: expect.any(Array),
+      }),
     })
     expect(payload.suggestions.length).toBeGreaterThan(0)
   })

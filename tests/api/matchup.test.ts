@@ -142,6 +142,28 @@ describe("GET /api/matchup", () => {
     expect(payload.teams.some((team: { teamIndex: number }) => team.teamIndex === opponentTeamIndex)).toBe(
       true,
     )
+    expect(payload.state).toBeUndefined()
+  })
+
+  it("resolves auto opponent and includes state when requested", async () => {
+    const league = await createManualLeague()
+    const expectedOpponent =
+      league.perspectiveTeamIndex === 0 ? 1 : 0
+
+    const response = await getMatchup(
+      new Request(
+        `http://localhost/api/matchup?seasonLeagueId=${league.id}&opponentTeamIndex=auto&includeState=1`,
+      ),
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.opponentTeamIndex).toBe(expectedOpponent)
+    expect(payload.state).toMatchObject({
+      name: expect.any(String),
+      perspectiveTeamIndex: league.perspectiveTeamIndex,
+      teams: expect.any(Array),
+    })
   })
 })
 

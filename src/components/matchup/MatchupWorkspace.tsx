@@ -37,6 +37,7 @@ type MatchupResponse = MatchupAdvice & {
   schedule: ScheduleResponse
   playersById: Record<string, SeasonPlayer>
   teams: { teamIndex: number; name: string }[]
+  state?: SeasonLeagueState
 }
 
 const enabledCategoryIds = (state: SeasonLeagueState): CategoryId[] => {
@@ -86,13 +87,6 @@ const readStoredOpponent = (leagueId: string): number | null => {
   return Number.isInteger(parsed) ? parsed : null
 }
 
-const defaultOpponentIndex = (state: SeasonLeagueState): number | null => {
-  const opponent = state.teams.find(
-    (team) => team.teamIndex !== state.perspectiveTeamIndex,
-  )
-  return opponent?.teamIndex ?? null
-}
-
 const hasIncompleteActiveLineup = (state: SeasonLeagueState): boolean => {
   const youTeam = state.teams.find(
     (team) => team.teamIndex === state.perspectiveTeamIndex,
@@ -139,47 +133,53 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     [leagueId],
   )
 
-  const loadMatchup = useCallback(
+  const fetchMatchup = useCallback(
     async (
-      opponentIndex: number,
-      signal?: AbortSignal,
-      nextState?: SeasonLeagueState,
-      resetDaily = false,
+      opponentParam: number | "auto",
+      options: {
+        signal?: AbortSignal
+        includeState?: boolean
+        resetDaily?: boolean
+        applyState?: boolean
+      } = {},
     ) => {
-      const response = await fetch(
-        `/api/matchup?seasonLeagueId=${leagueId}&opponentTeamIndex=${opponentIndex}`,
-        { signal },
-      )
+      const { signal, includeState = false, resetDaily = false, applyState = false } =
+        options
+      const params = new URLSearchParams({
+        seasonLeagueId: leagueId,
+        opponentTeamIndex: String(opponentParam),
+      })
+      if (includeState) params.set("includeState", "1")
+
+      const response = await fetch(`/api/matchup?${params}`, { signal })
 
       if (!response.ok) {
-        throw new Error("Unable to load matchup advice")
+        const payload = (await response.json().catch(() => ({}))) as {
+          error?: string
+        }
+        throw new Error(payload.error ?? "Unable to load matchup advice")
       }
 
       const payload = (await response.json()) as MatchupResponse
       setMatchupData(payload)
+      setOpponentTeamIndex(payload.opponentTeamIndex)
 
-      if (nextState) {
-        syncDailyFromState(nextState, payload.schedule.matchup.days, resetDaily)
+      if (applyState || includeState) {
+        if (!payload.state) {
+          throw new Error("Unable to load matchup workspace")
+        }
+
+        setState(payload.state)
+        syncDailyFromState(
+          payload.state,
+          payload.schedule.matchup.days,
+          resetDaily,
+        )
       }
+
+      return payload
     },
     [leagueId, syncDailyFromState],
-  )
-
-  const refreshWorkspace = useCallback(
-    async (opponentIndex: number, signal?: AbortSignal, resetDaily = false) => {
-      const leagueResponse = await fetch(`/api/season-leagues/${leagueId}`, {
-        signal,
-      })
-
-      if (!leagueResponse.ok) {
-        throw new Error("Unable to load matchup workspace")
-      }
-
-      const league = (await leagueResponse.json()) as { state: SeasonLeagueState }
-      setState(league.state)
-      await loadMatchup(opponentIndex, signal, league.state, resetDaily)
-    },
-    [leagueId, loadMatchup],
   )
 
   useEffect(() => {
@@ -187,47 +187,50 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
     const bootstrap = async () => {
       try {
-        const leagueResponse = await fetch(`/api/season-leagues/${leagueId}`, {
-          signal: controller.signal,
-        })
-
-        if (!leagueResponse.ok) {
-          throw new Error("Unable to load matchup workspace")
-        }
-
-        const league = (await leagueResponse.json()) as { state: SeasonLeagueState }
-        setState(league.state)
-
         const storedOpponent = readStoredOpponent(leagueId)
-        const validStored =
-          storedOpponent !== null &&
-          league.state.teams.some(
-            (team) =>
-              team.teamIndex === storedOpponent &&
-              storedOpponent !== league.state.perspectiveTeamIndex,
-          )
-        const initialOpponent = validStored
-          ? storedOpponent
-          : defaultOpponentIndex(league.state)
+        let payload: MatchupResponse
 
-        if (initialOpponent === null) {
-          throw new Error("No opponent teams available")
+        try {
+          payload = await fetchMatchup(storedOpponent ?? "auto", {
+            signal: controller.signal,
+            includeState: true,
+            applyState: true,
+          })
+        } catch (firstError) {
+          if (controller.signal.aborted) return
+
+          const message =
+            firstError instanceof Error ? firstError.message : ""
+          if (storedOpponent === null || message !== "invalid_opponent") {
+            throw firstError
+          }
+
+          payload = await fetchMatchup("auto", {
+            signal: controller.signal,
+            includeState: true,
+            applyState: true,
+          })
         }
 
-        setOpponentTeamIndex(initialOpponent)
-        await loadMatchup(
-          initialOpponent,
-          controller.signal,
-          league.state,
-          false,
+        if (controller.signal.aborted) return
+
+        window.localStorage.setItem(
+          opponentStorageKey(leagueId),
+          String(payload.opponentTeamIndex),
         )
       } catch (requestError) {
         if (requestError instanceof DOMException && requestError.name === "AbortError") return
 
-        setError(
+        const message =
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load matchup workspace",
+            : "Unable to load matchup workspace"
+        setError(
+          message === "no_opponent"
+            ? "No opponent teams available"
+            : message === "invalid_opponent"
+              ? "Unable to load matchup advice"
+              : message,
         )
       } finally {
         if (!controller.signal.aborted) setIsLoading(false)
@@ -240,7 +243,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       controller.abort()
       opponentFetchRef.current?.abort()
     }
-  }, [leagueId, loadMatchup])
+  }, [fetchMatchup, leagueId])
 
   const handleOpponentChange = async (teamIndex: number) => {
     opponentFetchRef.current?.abort()
@@ -254,10 +257,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     setIsRefreshing(true)
 
     try {
-      await loadMatchup(teamIndex, controller.signal, state ?? undefined, false)
+      await fetchMatchup(teamIndex, { signal: controller.signal })
       if (controller.signal.aborted) return
 
-      setOpponentTeamIndex(teamIndex)
       window.localStorage.setItem(opponentStorageKey(leagueId), String(teamIndex))
     } catch (requestError) {
       if (requestError instanceof DOMException && requestError.name === "AbortError") {
@@ -333,7 +335,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       if (opponentTeamIndex === null) return
 
       setSuccessMessage("Lineup updated locally")
-      await refreshWorkspace(opponentTeamIndex, undefined, true)
+      await fetchMatchup(opponentTeamIndex, {
+        includeState: true,
+        applyState: true,
+        resetDaily: true,
+      })
     } catch (requestError) {
       setApplyError(
         requestError instanceof Error

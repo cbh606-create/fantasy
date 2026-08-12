@@ -90,6 +90,7 @@ const poolResponse = {
   playersById: {
     "fa-1": state.players[1],
   },
+  state,
 }
 
 const previewResponse = {
@@ -106,10 +107,6 @@ describe("WaiversWorkspace", () => {
     vi.stubGlobal("fetch", vi.fn(async (input, init) => {
       const url = String(input)
       const method = init?.method ?? "GET"
-
-      if (url === "/api/season-leagues/season-1") {
-        return new Response(JSON.stringify({ state }), { status: 200 })
-      }
 
       if (url === "/api/waivers/pool?seasonLeagueId=season-1") {
         return new Response(JSON.stringify(poolResponse), { status: 200 })

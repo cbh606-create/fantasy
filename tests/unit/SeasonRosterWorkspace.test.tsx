@@ -137,7 +137,10 @@ describe("SeasonRosterWorkspace", () => {
     fetchMock.mockImplementation(async (input) => {
       const url = String(input)
       if (url.includes("/api/season-leagues/")) {
-        return new Response(JSON.stringify({ state }), { status: 200 })
+        return new Response(
+          JSON.stringify({ state, analysis: analyzeSeasonLeague(state) }),
+          { status: 200 },
+        )
       }
       if (url.includes("/api/schedule")) {
         return new Response(

@@ -48,7 +48,7 @@ export const GET = async (request: Request): Promise<Response> => {
   const { state } = loaded
   const analysis = analyzeSeasonLeague(state)
   const { need } = teamNeedsAndSurplus(analysis, state.perspectiveTeamIndex)
-  const recommendations = recommendPickups(state)
+  const recommendations = recommendPickups(state, analysis)
   const playersById = Object.fromEntries(
     state.availablePlayerIds.flatMap((playerId) => {
       const player = state.players.find((candidate) => candidate.id === playerId)
@@ -67,5 +67,6 @@ export const GET = async (request: Request): Promise<Response> => {
     youNeeds: need,
     recommendations,
     playersById,
+    state,
   })
 }

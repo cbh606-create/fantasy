@@ -15,6 +15,13 @@ const parseOpponentTeamIndex = (value: string | null): number | null => {
   return parsed
 }
 
+const defaultOpponentIndex = (state: SeasonLeagueState): number | null => {
+  const opponent = state.teams.find(
+    (team) => team.teamIndex !== state.perspectiveTeamIndex,
+  )
+  return opponent?.teamIndex ?? null
+}
+
 const collectReferencedPlayerIds = (
   state: SeasonLeagueState,
   advice: MatchupAdvice,
@@ -61,11 +68,10 @@ export const GET = async (request: Request): Promise<Response> => {
 
   const params = new URL(request.url).searchParams
   const seasonLeagueId = params.get("seasonLeagueId")
-  const opponentTeamIndex = parseOpponentTeamIndex(
-    params.get("opponentTeamIndex"),
-  )
+  const opponentRaw = params.get("opponentTeamIndex")
+  const includeState = params.get("includeState") === "1"
 
-  if (!seasonLeagueId || opponentTeamIndex === null) {
+  if (!seasonLeagueId || opponentRaw === null) {
     return NextResponse.json({ error: "validation" }, { status: 400 })
   }
 
@@ -75,6 +81,20 @@ export const GET = async (request: Request): Promise<Response> => {
   }
   if (loaded === "invalid_state") {
     return NextResponse.json({ error: "invalid_state" }, { status: 500 })
+  }
+
+  let opponentTeamIndex: number | null
+
+  if (opponentRaw === "auto") {
+    opponentTeamIndex = defaultOpponentIndex(loaded.state)
+    if (opponentTeamIndex === null) {
+      return NextResponse.json({ error: "no_opponent" }, { status: 400 })
+    }
+  } else {
+    opponentTeamIndex = parseOpponentTeamIndex(opponentRaw)
+    if (opponentTeamIndex === null) {
+      return NextResponse.json({ error: "validation" }, { status: 400 })
+    }
   }
 
   const schedule = scheduleFixture as ScheduleResponse
@@ -100,5 +120,6 @@ export const GET = async (request: Request): Promise<Response> => {
     schedule,
     playersById,
     teams,
+    ...(includeState ? { state: loaded.state } : {}),
   })
 }

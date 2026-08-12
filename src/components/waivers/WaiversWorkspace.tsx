@@ -31,6 +31,7 @@ type WaiversPoolResponse = {
   youNeeds: CategoryId[]
   recommendations: PickupRecommendation[]
   playersById: Record<string, SeasonPlayer>
+  state: SeasonLeagueState
 }
 
 export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
@@ -50,19 +51,18 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
   const [isClaiming, setIsClaiming] = useState(false)
 
   const loadWorkspace = useCallback(async (signal?: AbortSignal) => {
-    const [leagueResponse, poolResponse] = await Promise.all([
-      fetch(`/api/season-leagues/${leagueId}`, { signal }),
-      fetch(`/api/waivers/pool?seasonLeagueId=${leagueId}`, { signal }),
-    ])
+    const poolResponse = await fetch(
+      `/api/waivers/pool?seasonLeagueId=${leagueId}`,
+      { signal },
+    )
 
-    if (!leagueResponse.ok || !poolResponse.ok) {
+    if (!poolResponse.ok) {
       throw new Error("Unable to load waivers workspace")
     }
 
-    const league = (await leagueResponse.json()) as { state: SeasonLeagueState }
     const pool = (await poolResponse.json()) as WaiversPoolResponse
 
-    setState(league.state)
+    setState(pool.state)
     setPoolData(pool)
   }, [leagueId])
 
