@@ -131,7 +131,14 @@ describe("GET /api/matchup", () => {
       streamers: expect.any(Array),
       playersById: expect.any(Object),
       teams: expect.any(Array),
+      schedule: expect.objectContaining({
+        matchup: expect.objectContaining({
+          days: expect.any(Array),
+        }),
+      }),
     })
+    expect(Array.isArray(payload.schedule.matchup.days)).toBe(true)
+    expect(payload.schedule.matchup.days.length).toBeGreaterThan(0)
     expect(payload.teams.some((team: { teamIndex: number }) => team.teamIndex === opponentTeamIndex)).toBe(
       true,
     )

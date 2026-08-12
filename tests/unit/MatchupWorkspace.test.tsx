@@ -63,7 +63,19 @@ const state: SeasonLeagueState = {
   source: "manual",
 }
 
+const scoringDays = ["2025-11-03", "2025-11-05"] as const
+
 const matchupAdvice: MatchupAdvice & {
+  schedule: {
+    source: "fixture"
+    matchup: {
+      scoringPeriodId: number
+      startDate: string
+      endDate: string
+      days: string[]
+    }
+    games: { date: string; homeAbbr: string; awayAbbr: string }[]
+  }
   playersById: Record<string, (typeof state.players)[number]>
   teams: { teamIndex: number; name: string }[]
 } = {
@@ -72,18 +84,39 @@ const matchupAdvice: MatchupAdvice & {
     scoringPeriodId: 1,
     startDate: "2025-11-03",
     endDate: "2025-11-09",
-    days: ["2025-11-03", "2025-11-05"],
+    days: [...scoringDays],
+  },
+  schedule: {
+    source: "fixture",
+    matchup: {
+      scoringPeriodId: 1,
+      startDate: "2025-11-03",
+      endDate: "2025-11-09",
+      days: [...scoringDays],
+    },
+    games: [
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "BOS" },
+      { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "MIA" },
+    ],
   },
   board: {
     categories: [
-      {
-        categoryId: "PTS",
-        you: 120,
-        opp: 100,
-        outcome: "W",
-        winProb: 0.72,
-      },
-    ],
+      "FG_PCT",
+      "FT_PCT",
+      "TPM",
+      "REB",
+      "AST",
+      "STL",
+      "BLK",
+      "TO",
+      "PTS",
+    ].map((categoryId) => ({
+      categoryId: categoryId as MatchupAdvice["board"]["categories"][number]["categoryId"],
+      you: 10,
+      opp: 8,
+      outcome: "W" as const,
+      winProb: 0.6,
+    })),
     wins: 5,
     losses: 3,
     ties: 1,
@@ -140,14 +173,18 @@ describe("MatchupWorkspace", () => {
     window.localStorage.clear()
   })
 
-  it("renders board summary and sit/start recommendations", async () => {
+  it("renders live board, daily lineup, and sit/start recommendations", async () => {
     render(<MatchupWorkspace leagueId="season-1" />)
 
     expect(
       await screen.findByRole("heading", { name: "Test league" }),
     ).toBeInTheDocument()
 
-    expect(screen.getByText("YOU 5 — Opp 3 — Tie 1")).toBeInTheDocument()
+    expect(screen.getByText("Using your day-by-day lineups")).toBeInTheDocument()
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/YOU \d+/)
+    expect(screen.getByRole("heading", { name: "Daily lineup" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Scoring period days")).toBeInTheDocument()
+    expect(screen.getByLabelText("PG for 2025-11-03")).toBeInTheDocument()
     expect(
       screen.getByText(
         "Incomplete lineup — fill active slots for a fair projection",
@@ -166,6 +203,25 @@ describe("MatchupWorkspace", () => {
       expect(fetch).toHaveBeenCalledWith(
         "/api/matchup/apply-lineup",
         expect.objectContaining({ method: "POST" }),
+      )
+    })
+  })
+
+  it("updates the live board when a daily slot changes", async () => {
+    render(<MatchupWorkspace leagueId="season-1" />)
+
+    expect(
+      await screen.findByRole("heading", { name: "Daily lineup" }),
+    ).toBeInTheDocument()
+
+    const boardBefore = screen.getByLabelText("Matchup board").textContent
+    const pgSelect = screen.getByLabelText("PG for 2025-11-03")
+
+    fireEvent.change(pgSelect, { target: { value: "" } })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Matchup board").textContent).not.toEqual(
+        boardBefore,
       )
     })
   })

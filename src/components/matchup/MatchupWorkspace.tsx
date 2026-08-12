@@ -2,23 +2,76 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { DailyLineupPanel } from "@/components/matchup/DailyLineupPanel"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
 import { StreamersPanel } from "@/components/matchup/StreamersPanel"
 import { SeasonModuleNav } from "@/components/SeasonModuleNav"
 import { Banner } from "@/components/ui/Banner"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import type { CategoryId } from "@/lib/domain/types"
+import { buildMatchupBoard } from "@/lib/matchup/board"
 import { isActiveSlot } from "@/lib/matchup/constants"
-import type { MatchupAdvice, SitStartSuggestion } from "@/lib/matchup/types"
-import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
+import {
+  dailyLineupsMatchDays,
+  initDailyLineups,
+  readDailyLineups,
+  setSlotPlayer,
+  writeDailyLineups,
+  youTotalsFromDaily,
+  type DailyLineups,
+} from "@/lib/matchup/dailyLineups"
+import type { MatchupAdvice, MatchupBoard as MatchupBoardData, SitStartSuggestion } from "@/lib/matchup/types"
+import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonPlayer,
+} from "@/lib/season/types"
 
 type MatchupWorkspaceProps = {
   leagueId: string
 }
 
 type MatchupResponse = MatchupAdvice & {
+  schedule: ScheduleResponse
   playersById: Record<string, SeasonPlayer>
   teams: { teamIndex: number; name: string }[]
+}
+
+const enabledCategoryIds = (state: SeasonLeagueState): CategoryId[] => {
+  const enabled = state.categories
+    .filter((category) => category.enabled)
+    .map((category) => category.id)
+
+  return enabled.length > 0 ? enabled : ALL_CATEGORY_IDS
+}
+
+const oppTotalsFromBoard = (
+  board: MatchupBoardData,
+): Record<CategoryId, number> =>
+  Object.fromEntries(
+    board.categories.map((row) => [row.categoryId, row.opp]),
+  ) as Record<CategoryId, number>
+
+const resolveDailyLineups = (
+  leagueId: string,
+  days: string[],
+  state: SeasonLeagueState,
+): DailyLineups => {
+  const youTeam = state.teams.find(
+    (team) => team.teamIndex === state.perspectiveTeamIndex,
+  )
+  const activeEntries = youTeam?.entries ?? []
+  const stored = readDailyLineups(leagueId)
+
+  if (stored && dailyLineupsMatchDays(stored, days)) {
+    return stored
+  }
+
+  const fresh = initDailyLineups(days, activeEntries)
+  writeDailyLineups(leagueId, fresh)
+  return fresh
 }
 
 const opponentStorageKey = (leagueId: string) => `matchup-opponent:${leagueId}`
@@ -58,6 +111,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [state, setState] = useState<SeasonLeagueState | null>(null)
   const [matchupData, setMatchupData] = useState<MatchupResponse | null>(null)
   const [opponentTeamIndex, setOpponentTeamIndex] = useState<number | null>(null)
+  const [daily, setDaily] = useState<DailyLineups | null>(null)
+  const [selectedDay, setSelectedDay] = useState<string>("")
   const [error, setError] = useState("")
   const [opponentError, setOpponentError] = useState("")
   const [applyError, setApplyError] = useState("")
@@ -67,8 +122,37 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [applyingSwapKey, setApplyingSwapKey] = useState<string | null>(null)
   const opponentFetchRef = useRef<AbortController | null>(null)
 
+  const syncDailyFromState = useCallback(
+    (nextState: SeasonLeagueState, days: string[], reset = false) => {
+      if (reset) {
+        const youTeam = nextState.teams.find(
+          (team) => team.teamIndex === nextState.perspectiveTeamIndex,
+        )
+        const fresh = initDailyLineups(days, youTeam?.entries ?? [])
+        writeDailyLineups(leagueId, fresh)
+        setDaily(fresh)
+        setSelectedDay((current) =>
+          days.includes(current) ? current : (days[0] ?? ""),
+        )
+        return
+      }
+
+      const resolved = resolveDailyLineups(leagueId, days, nextState)
+      setDaily(resolved)
+      setSelectedDay((current) =>
+        days.includes(current) ? current : (days[0] ?? ""),
+      )
+    },
+    [leagueId],
+  )
+
   const loadMatchup = useCallback(
-    async (opponentIndex: number, signal?: AbortSignal) => {
+    async (
+      opponentIndex: number,
+      signal?: AbortSignal,
+      nextState?: SeasonLeagueState,
+      resetDaily = false,
+    ) => {
       const response = await fetch(
         `/api/matchup?seasonLeagueId=${leagueId}&opponentTeamIndex=${opponentIndex}`,
         { signal },
@@ -80,16 +164,19 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
       const payload = (await response.json()) as MatchupResponse
       setMatchupData(payload)
+
+      if (nextState) {
+        syncDailyFromState(nextState, payload.schedule.matchup.days, resetDaily)
+      }
     },
-    [leagueId],
+    [leagueId, syncDailyFromState],
   )
 
   const refreshWorkspace = useCallback(
-    async (opponentIndex: number, signal?: AbortSignal) => {
-      const [leagueResponse] = await Promise.all([
-        fetch(`/api/season-leagues/${leagueId}`, { signal }),
-        loadMatchup(opponentIndex, signal),
-      ])
+    async (opponentIndex: number, signal?: AbortSignal, resetDaily = false) => {
+      const leagueResponse = await fetch(`/api/season-leagues/${leagueId}`, {
+        signal,
+      })
 
       if (!leagueResponse.ok) {
         throw new Error("Unable to load matchup workspace")
@@ -97,6 +184,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
       const league = (await leagueResponse.json()) as { state: SeasonLeagueState }
       setState(league.state)
+      await loadMatchup(opponentIndex, signal, league.state, resetDaily)
     },
     [leagueId, loadMatchup],
   )
@@ -134,7 +222,12 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         }
 
         setOpponentTeamIndex(initialOpponent)
-        await loadMatchup(initialOpponent, controller.signal)
+        await loadMatchup(
+          initialOpponent,
+          controller.signal,
+          league.state,
+          false,
+        )
       } catch (requestError) {
         if (requestError instanceof DOMException && requestError.name === "AbortError") return
 
@@ -168,7 +261,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     setIsRefreshing(true)
 
     try {
-      await loadMatchup(teamIndex, controller.signal)
+      await loadMatchup(teamIndex, controller.signal, state ?? undefined, false)
       if (controller.signal.aborted) return
 
       setOpponentTeamIndex(teamIndex)
@@ -188,6 +281,30 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         setIsRefreshing(false)
       }
     }
+  }
+
+  const handleSelectDay = (day: string) => {
+    setSelectedDay(day)
+  }
+
+  const handleChangeSlot = (
+    day: string,
+    slotIndex: number,
+    playerId: string | null,
+  ) => {
+    setDaily((current) => {
+      if (!current) return current
+
+      const next = setSlotPlayer(current, day, slotIndex, playerId)
+      writeDailyLineups(leagueId, next)
+      return next
+    })
+  }
+
+  const handleResetDaily = () => {
+    if (!state || !matchupData) return
+
+    syncDailyFromState(state, matchupData.schedule.matchup.days, true)
   }
 
   const handleApplySwap = async (suggestion: SitStartSuggestion) => {
@@ -215,7 +332,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       if (opponentTeamIndex === null) return
 
       setSuccessMessage("Lineup updated locally")
-      await refreshWorkspace(opponentTeamIndex)
+      await refreshWorkspace(opponentTeamIndex, undefined, true)
     } catch (requestError) {
       setApplyError(
         requestError instanceof Error
@@ -237,7 +354,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     )
   }
 
-  if (!state || !matchupData || opponentTeamIndex === null) {
+  if (!state || !matchupData || opponentTeamIndex === null || !daily || !selectedDay) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
         <p className="text-[var(--color-sale)]" role="alert">
@@ -248,6 +365,24 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   }
 
   const showIncompleteBanner = hasIncompleteActiveLineup(state)
+
+  const liveBoard = buildMatchupBoard(
+    youTotalsFromDaily(daily, state.players, matchupData.schedule),
+    oppTotalsFromBoard(matchupData.board),
+    enabledCategoryIds(state),
+  )
+
+  const youTeam = state.teams.find(
+    (team) => team.teamIndex === state.perspectiveTeamIndex,
+  )
+  const rosterPlayerIds = new Set(
+    youTeam?.entries.flatMap((entry) =>
+      entry.playerId ? [entry.playerId] : [],
+    ) ?? [],
+  )
+  const rosterPlayers = state.players.filter((player) =>
+    rosterPlayerIds.has(player.id),
+  )
 
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
@@ -312,7 +447,21 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           </p>
         ) : null}
 
-        <MatchupBoard board={matchupData.board} />
+        <p className="mb-2 text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
+          Using your day-by-day lineups
+        </p>
+        <MatchupBoard board={liveBoard} />
+
+        <DailyLineupPanel
+          daily={daily}
+          days={matchupData.schedule.matchup.days}
+          onChangeSlot={handleChangeSlot}
+          onReset={handleResetDaily}
+          onSelectDay={handleSelectDay}
+          rosterPlayers={rosterPlayers}
+          schedule={matchupData.schedule}
+          selectedDay={selectedDay}
+        />
 
         <div className="mt-8 space-y-8">
           <SitStartPanel

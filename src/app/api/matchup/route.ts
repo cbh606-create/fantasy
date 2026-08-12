@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import scheduleFixture from "../../../../data/fixtures/nba-matchup-schedule.json"
 import { requireUserId } from "@/lib/auth"
 import { adviseMatchup } from "@/lib/matchup/advise"
-import { isActiveSlot } from "@/lib/matchup/constants"
 import type { MatchupAdvice } from "@/lib/matchup/types"
 import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
 import { loadOwnedSeasonLeague } from "@/lib/waivers/loadSeasonLeague"
@@ -33,7 +32,7 @@ const collectReferencedPlayerIds = (
     if (!team) continue
 
     for (const entry of team.entries) {
-      if (entry.playerId && isActiveSlot(entry.slot)) {
+      if (entry.playerId) {
         ids.add(entry.playerId)
       }
     }
@@ -98,6 +97,7 @@ export const GET = async (request: Request): Promise<Response> => {
 
   return NextResponse.json({
     ...advice,
+    schedule,
     playersById,
     teams,
   })
