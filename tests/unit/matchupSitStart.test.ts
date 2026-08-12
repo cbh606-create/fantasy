@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+import * as board from "@/lib/matchup/board"
 import { applySitStartSwap, suggestSitStart } from "@/lib/matchup/sitStart"
 import type { SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
@@ -101,6 +102,30 @@ describe("suggestSitStart", () => {
     })
 
     expect(suggestions).toEqual([])
+  })
+
+  it("passes categoryIds through to buildMatchupBoard", () => {
+    const gamesMap = new Map<string, number>([
+      ["cold-starter", 0],
+      ["bench-star", 3],
+      ["opp-player", 2],
+    ])
+    const spy = vi.spyOn(board, "buildMatchupBoard")
+
+    suggestSitStart({
+      youEntries,
+      oppEntries,
+      players,
+      gamesMap,
+      categoryIds: ["PTS", "REB"],
+    })
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object),
+      ["PTS", "REB"],
+    )
+    spy.mockRestore()
   })
 })
 

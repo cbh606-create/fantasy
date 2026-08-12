@@ -1,3 +1,5 @@
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import type { CategoryId } from "@/lib/domain/types"
 import { buildMatchupBoard } from "./board"
 import { isActiveSlot, MAX_SIT_START } from "./constants"
 import type { SitStartSuggestion, SitStartSwap } from "./types"
@@ -9,6 +11,7 @@ type SuggestSitStartInput = {
   oppEntries: SeasonRosterEntry[]
   players: SeasonPlayer[]
   gamesMap: Map<string, number>
+  categoryIds?: CategoryId[]
 }
 
 const playersById = (players: SeasonPlayer[]): Map<string, SeasonPlayer> =>
@@ -46,10 +49,11 @@ const projectedCatWins = (
   oppEntries: SeasonRosterEntry[],
   playerMap: Map<string, SeasonPlayer>,
   gamesMap: Map<string, number>,
+  categoryIds: CategoryId[],
 ): number => {
   const youTotals = activeTeamWeeklyTotals(youEntries, playerMap, gamesMap)
   const oppTotals = activeTeamWeeklyTotals(oppEntries, playerMap, gamesMap)
-  return buildMatchupBoard(youTotals, oppTotals).projectedCatWins
+  return buildMatchupBoard(youTotals, oppTotals, categoryIds).projectedCatWins
 }
 
 const formatReason = (delta: number, benchGames: number): string => {
@@ -62,9 +66,16 @@ export const suggestSitStart = ({
   oppEntries,
   players,
   gamesMap,
+  categoryIds = ALL_CATEGORY_IDS,
 }: SuggestSitStartInput): SitStartSuggestion[] => {
   const playerMap = playersById(players)
-  const baseline = projectedCatWins(youEntries, oppEntries, playerMap, gamesMap)
+  const baseline = projectedCatWins(
+    youEntries,
+    oppEntries,
+    playerMap,
+    gamesMap,
+    categoryIds,
+  )
 
   const benchPlayerIds = youEntries
     .filter((entry) => entry.slot === "BE" && entry.playerId)
@@ -81,7 +92,13 @@ export const suggestSitStart = ({
       const swapped = swapFilledEntries(youEntries, benchPlayerId, activePlayerId)
       if (!swapped) continue
 
-      const nextProjected = projectedCatWins(swapped, oppEntries, playerMap, gamesMap)
+      const nextProjected = projectedCatWins(
+        swapped,
+        oppEntries,
+        playerMap,
+        gamesMap,
+        categoryIds,
+      )
       const deltaProjectedCatWins = nextProjected - baseline
       if (deltaProjectedCatWins <= 0) continue
 

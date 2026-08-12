@@ -7,6 +7,14 @@ import { WaiversWorkspace } from "@/components/waivers/WaiversWorkspace"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
+const mockSearchParams = vi.hoisted(() => ({
+  get: (_key: string) => null as string | null,
+}))
+
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => mockSearchParams,
+}))
+
 const projections = {
   FG_PCT: 0.5,
   FT_PCT: 0.8,
@@ -94,6 +102,7 @@ const previewResponse = {
 
 describe("WaiversWorkspace", () => {
   beforeEach(() => {
+    mockSearchParams.get = () => null
     vi.stubGlobal("fetch", vi.fn(async (input, init) => {
       const url = String(input)
       const method = init?.method ?? "GET"
@@ -143,5 +152,17 @@ describe("WaiversWorkspace", () => {
       within(screen.getByRole("heading", { name: "Category rank changes" }).closest("div")!)
         .getByText("AST"),
     ).toBeInTheDocument()
+  })
+
+  it("pre-selects add player from addPlayerId query param", async () => {
+    mockSearchParams.get = (key) => (key === "addPlayerId" ? "fa-1" : null)
+
+    render(<WaiversWorkspace leagueId="season-1" />)
+
+    await screen.findByRole("heading", { name: "Recommended pickups" })
+
+    expect(
+      screen.getByRole("button", { name: /add free agent guard/i }),
+    ).toHaveAttribute("aria-pressed", "true")
   })
 })

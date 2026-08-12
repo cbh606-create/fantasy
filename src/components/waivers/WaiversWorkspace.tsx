@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { Banner } from "@/components/ui/Banner"
@@ -33,6 +34,7 @@ type WaiversPoolResponse = {
 }
 
 export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
+  const searchParams = useSearchParams()
   const [state, setState] = useState<SeasonLeagueState | null>(null)
   const [poolData, setPoolData] = useState<WaiversPoolResponse | null>(null)
   const [selectedAddId, setSelectedAddId] = useState<string | null>(null)
@@ -87,6 +89,11 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
 
     return () => controller.abort()
   }, [loadWorkspace])
+
+  useEffect(() => {
+    const addPlayerId = searchParams.get("addPlayerId")
+    if (addPlayerId) setSelectedAddId(addPlayerId)
+  }, [searchParams])
 
   const handleSelectAdd = (playerId: string) => {
     setSelectedAddId(playerId)

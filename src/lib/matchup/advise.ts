@@ -44,6 +44,7 @@ export const adviseMatchup = (
     oppEntries: oppTeam.entries,
     players: state.players,
     gamesMap,
+    categoryIds,
   })
 
   const streamers = suggestStreamers({ state, board, gamesMap })
