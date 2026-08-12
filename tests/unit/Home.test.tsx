@@ -6,12 +6,15 @@ import { describe, expect, it } from "vitest"
 import Home from "@/app/page"
 
 describe("Home", () => {
-  it("renders the focused draft-prep hero", () => {
+  it("renders matchup-first hero with draft prep secondary", () => {
     render(<Home />)
 
     expect(
-      screen.getByRole("heading", { name: "FANTASY DRAFT" }),
+      screen.getByRole("heading", { name: "FANTASY" }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: "Open matchup advisor" }),
+    ).toHaveAttribute("href", "/matchup")
     expect(
       screen.getByRole("link", { name: "Start draft prep" }),
     ).toHaveAttribute("href", "/leagues/new")
