@@ -119,7 +119,46 @@ export default function RosterListPage() {
       setEspnConnected(true)
       setEspnS2("")
       setSwid("")
-      setSuccessMessage("ESPN connected for your account")
+
+      const parsedTeamId = Number.parseInt(teamId, 10)
+      const parsedSeason = Number.parseInt(season, 10)
+      if (
+        leagueId.trim() &&
+        Number.isInteger(parsedTeamId) &&
+        Number.isInteger(parsedSeason)
+      ) {
+        const verifyResponse = await fetch("/api/espn/verify", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            leagueId: leagueId.trim(),
+            teamId: parsedTeamId,
+            season: parsedSeason,
+          }),
+        })
+        const verifyPayload = (await verifyResponse.json()) as {
+          ok?: boolean
+          leagueName?: string
+          teamName?: string
+          playerCount?: number
+          message?: string
+        }
+
+        if (!verifyResponse.ok || !verifyPayload.ok) {
+          throw new Error(
+            verifyPayload.message ??
+              "Cookies saved, but ESPN rejected them for this league. Re-copy fresh cookies while logged into that league.",
+          )
+        }
+
+        setSuccessMessage(
+          `ESPN OK — ${verifyPayload.teamName ?? "team"} · ${verifyPayload.playerCount ?? 0} players (${verifyPayload.leagueName ?? "league"})`,
+        )
+      } else {
+        setSuccessMessage(
+          "ESPN cookies saved. Fill league/team/season below, then Import.",
+        )
+      }
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -193,16 +232,16 @@ export default function RosterListPage() {
       }
 
       if (!response.ok) {
+        if (payload.message) {
+          throw new Error(payload.message)
+        }
         if (payload.errorCode === "ESPN_AUTH") {
           throw new Error(
             "ESPN auth failed — reconnect with fresh espn_s2 / SWID cookies",
           )
         }
-        if (payload.errorCode === "ESPN_UNAVAILABLE" && payload.message) {
-          throw new Error(payload.message)
-        }
         if (payload.errorCode) {
-          throw new Error(payload.message ?? payload.errorCode)
+          throw new Error(payload.errorCode)
         }
         throw new Error(payload.error ?? "Unable to import ESPN league")
       }
