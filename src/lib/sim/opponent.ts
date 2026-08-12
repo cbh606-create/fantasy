@@ -164,29 +164,32 @@ export const scoreOpponentNeed = (
 
 export const pickOpponentPlayer = (
   remaining: Player[],
-  roster: Player[],
-  weights: CategoryWeights,
-  leagueAvg: Record<CategoryId, number>,
+  _roster: Player[],
+  _weights: CategoryWeights,
+  _leagueAvg: Record<CategoryId, number>,
   rng: () => number,
 ): Player => {
   if (remaining.length === 0) {
     throw new RangeError("Cannot pick an opponent player from an empty pool")
   }
 
-  const scores = remaining.map((player) =>
-    scoreOpponentNeed(player, roster, weights, leagueAvg),
+  // Live CPU and sim opponents draft by ADP rank (lower is better). Need-based
+  // scoring previously added a roster-wide constant that made late-ADP players
+  // nearly as likely as stars under weighted random.
+  const bestAdp = remaining.reduce(
+    (lowest, player) => Math.min(lowest, player.adp),
+    remaining[0].adp,
   )
-  const totalScore = scores.reduce((total, score) => total + score, 0)
-  const threshold = rng() * totalScore
-  let cumulativeScore = 0
+  const tied = remaining.filter((player) => player.adp === bestAdp)
 
-  for (let index = 0; index < remaining.length; index++) {
-    cumulativeScore += scores[index]
-
-    if (threshold < cumulativeScore) {
-      return remaining[index]
-    }
+  if (tied.length === 1) {
+    return tied[0]
   }
 
-  return remaining[remaining.length - 1]
+  const index = Math.min(
+    tied.length - 1,
+    Math.floor(rng() * tied.length),
+  )
+
+  return tied[index]
 }

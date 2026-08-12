@@ -118,11 +118,11 @@ describe("scoreOpponentNeed", () => {
 })
 
 describe("pickOpponentPlayer", () => {
-  it("uses the supplied RNG to make a deterministic weighted pick", () => {
+  it("always takes the best remaining ADP", () => {
     const remaining = [
-      player("first", ["PG"], 1),
-      player("second", ["SG"], 2),
-      player("third", ["SF"], 3),
+      player("first", ["PG"], 12),
+      player("second", ["SG"], 3),
+      player("third", ["SF"], 40),
     ]
 
     const picked = pickOpponentPlayer(
@@ -134,5 +134,20 @@ describe("pickOpponentPlayer", () => {
     )
 
     expect(picked.id).toBe("second")
+  })
+
+  it("breaks ADP ties with the supplied RNG", () => {
+    const remaining = [
+      player("alpha", ["PG"], 5),
+      player("beta", ["SG"], 5),
+      player("gamma", ["SF"], 20),
+    ]
+
+    expect(
+      pickOpponentPlayer(remaining, [], weights(), projections(), () => 0).id,
+    ).toBe("alpha")
+    expect(
+      pickOpponentPlayer(remaining, [], weights(), projections(), () => 0.99).id,
+    ).toBe("beta")
   })
 })
