@@ -3,8 +3,11 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId, Player } from "@/lib/domain/types"
 import {
   createRng,
-  pickOpponentPlayer,
+  pickLiveCpuByAdp,
+  pickSimOpponent,
   scoreOpponentNeed,
+  scoreSimOpponent,
+  SIM_ADP_WINDOW,
 } from "@/lib/sim/opponent"
 
 const projections = (
@@ -117,7 +120,7 @@ describe("scoreOpponentNeed", () => {
   })
 })
 
-describe("pickOpponentPlayer", () => {
+describe("pickLiveCpuByAdp", () => {
   it("always takes the best remaining ADP", () => {
     const remaining = [
       player("first", ["PG"], 12),
@@ -125,15 +128,7 @@ describe("pickOpponentPlayer", () => {
       player("third", ["SF"], 40),
     ]
 
-    const picked = pickOpponentPlayer(
-      remaining,
-      [],
-      weights(),
-      projections(),
-      () => 0.6,
-    )
-
-    expect(picked.id).toBe("second")
+    expect(pickLiveCpuByAdp(remaining, () => 0.6).id).toBe("second")
   })
 
   it("breaks ADP ties with the supplied RNG", () => {
@@ -143,11 +138,43 @@ describe("pickOpponentPlayer", () => {
       player("gamma", ["SF"], 20),
     ]
 
-    expect(
-      pickOpponentPlayer(remaining, [], weights(), projections(), () => 0).id,
-    ).toBe("alpha")
-    expect(
-      pickOpponentPlayer(remaining, [], weights(), projections(), () => 0.99).id,
-    ).toBe("beta")
+    expect(pickLiveCpuByAdp(remaining, () => 0).id).toBe("alpha")
+    expect(pickLiveCpuByAdp(remaining, () => 0.99).id).toBe("beta")
+  })
+})
+
+describe("scoreSimOpponent", () => {
+  it("combines ADP weight and position need without category bonus", () => {
+    const roster = [player("center", ["C"], 20)]
+    const guard = player("guard", ["PG"], 10)
+
+    expect(scoreSimOpponent(guard, roster)).toBe(60)
+  })
+})
+
+describe("pickSimOpponent", () => {
+  it("never selects outside the ADP top window", () => {
+    const remaining = Array.from({ length: SIM_ADP_WINDOW + 2 }, (_, index) =>
+      player(`p${index + 1}`, ["PG"], index + 1),
+    )
+    const picked = pickSimOpponent(remaining, [], () => 0.999999)
+
+    expect(picked.adp).toBeLessThanOrEqual(SIM_ADP_WINDOW)
+    expect(picked.id).not.toBe("p9")
+    expect(picked.id).not.toBe("p10")
+  })
+
+  it("can prefer a position fit inside the window over a slightly better ADP", () => {
+    const remaining = [
+      player("star-c", ["C"], 1),
+      player("fit-pg", ["PG"], 2),
+    ]
+    const roster = [
+      player("c1", ["C"], 40),
+      player("c2", ["C"], 41),
+      player("c3", ["C"], 42),
+    ]
+
+    expect(pickSimOpponent(remaining, roster, () => 0.75).id).toBe("fit-pg")
   })
 })

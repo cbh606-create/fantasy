@@ -8,7 +8,7 @@ export const teamIndexForOverall = (overall: number, teams: number): number => {
   return teams - 1 - posInRound
 }
 
-export const buildEmptyBoard = (teams: 12, rounds: number): DraftBoard => {
+export const buildEmptyBoard = (teams: number, rounds: number): DraftBoard => {
   const picks: DraftPick[] = []
   const total = teams * rounds
   for (let overall = 1; overall <= total; overall++) {
@@ -23,7 +23,9 @@ export const buildEmptyBoard = (teams: 12, rounds: number): DraftBoard => {
   return { picks, currentOverall: 1 }
 }
 
-export const isUserTurn = (board: DraftBoard, userPickSlot: number): boolean => {
-  const teamIndex = userPickSlot - 1
-  return teamIndexForOverall(board.currentOverall, 12) === teamIndex
-}
+export const isUserTurn = (
+  board: DraftBoard,
+  perspectiveTeamIndex: number,
+  teams: number,
+): boolean =>
+  teamIndexForOverall(board.currentOverall, teams) === perspectiveTeamIndex

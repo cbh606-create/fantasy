@@ -1,35 +1,6 @@
-import { ALL_CATEGORY_IDS, effectiveWeights } from "@/lib/domain/categories"
 import { teamIndexForOverall } from "@/lib/domain/snake"
-import type {
-  CategoryId,
-  DraftPick,
-  LeagueState,
-  Player,
-} from "@/lib/domain/types"
-import { createRng, pickOpponentPlayer } from "@/lib/sim/opponent"
-
-type CategoryValues = Record<CategoryId, number>
-
-const emptyCategoryValues = (): CategoryValues =>
-  Object.fromEntries(
-    ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
-  ) as CategoryValues
-
-const averagePlayerProjections = (players: Player[]): CategoryValues => {
-  const averages = emptyCategoryValues()
-
-  if (players.length === 0) {
-    return averages
-  }
-
-  for (const player of players) {
-    for (const categoryId of ALL_CATEGORY_IDS) {
-      averages[categoryId] += player.projections[categoryId] / players.length
-    }
-  }
-
-  return averages
-}
+import type { DraftPick, LeagueState, Player } from "@/lib/domain/types"
+import { createRng, pickSimOpponent } from "@/lib/sim/opponent"
 
 const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   const { teams, rounds } = state.settings
@@ -54,6 +25,7 @@ const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   )
 }
 
+/** Fill opponent picks until the next perspective-team turn (Mock / sim helpers). */
 export const advanceCpuPicksUntilUserTurn = (
   state: LeagueState,
   seed = 1,
@@ -80,12 +52,6 @@ export const advanceCpuPicksUntilUserTurn = (
   let remaining = state.players.filter(
     (player) => !draftedPlayerIds.has(player.id),
   )
-  const weights = effectiveWeights(
-    state.settings.categories,
-    state.settings.puntCategoryIds,
-    state.settings.focusCategoryIds,
-  )
-  const leagueAvg = averagePlayerProjections(state.players)
   const rng = createRng(seed)
   let currentOverall = Math.max(1, state.board.currentOverall)
 
@@ -105,11 +71,9 @@ export const advanceCpuPicksUntilUserTurn = (
       break
     }
 
-    const selectedPlayer = pickOpponentPlayer(
+    const selectedPlayer = pickSimOpponent(
       remaining,
       rosters[pick.teamIndex],
-      weights,
-      leagueAvg,
       rng,
     )
 

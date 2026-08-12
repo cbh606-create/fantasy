@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import { LiveView } from "@/components/draft/LiveView"
+import { MockDraftView } from "@/components/draft/MockDraftView"
 import { PrepView } from "@/components/draft/PrepView"
-import { teamIndexForOverall } from "@/lib/domain/snake"
+import { buildEmptyBoard, teamIndexForOverall } from "@/lib/domain/snake"
 import type {
+  DraftBoard,
   LeagueState,
   SimulationResult,
 } from "@/lib/domain/types"
@@ -22,13 +24,51 @@ type LeagueResponse = {
   stateJson: string
 }
 
-type WorkspaceMode = "prep" | "live"
+type WorkspaceMode = "prep" | "mock" | "live"
+
+const MODE_LABELS: Record<WorkspaceMode, string> = {
+  prep: "Prep",
+  mock: "Mock",
+  live: "Live",
+}
+
+const applyPickToBoard = (
+  board: DraftBoard,
+  teams: number,
+  playerId: string,
+): DraftBoard => {
+  const currentOverall = board.currentOverall
+  const existingPick = board.picks.find((pick) => pick.overall === currentOverall)
+  const currentPick = existingPick ?? {
+    overall: currentOverall,
+    round: Math.ceil(currentOverall / teams),
+    teamIndex: teamIndexForOverall(currentOverall, teams),
+    playerId: null,
+  }
+  const updatedPick = { ...currentPick, playerId }
+  const updatedPicks = existingPick
+    ? board.picks.map((pick) =>
+        pick.overall === currentOverall ? updatedPick : pick,
+      )
+    : [...board.picks, updatedPick].sort(
+        (firstPick, secondPick) => firstPick.overall - secondPick.overall,
+      )
+  const nextOpenPick = updatedPicks.find(
+    (pick) => pick.overall > currentOverall && !pick.playerId,
+  )
+
+  return {
+    picks: updatedPicks,
+    currentOverall: nextOpenPick?.overall ?? currentOverall + 1,
+  }
+}
 
 export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const [leagueName, setLeagueName] = useState("")
   const [espnLeagueId, setEspnLeagueId] = useState<string | null>(null)
   const [season, setSeason] = useState<number | null>(null)
   const [state, setState] = useState<LeagueState | null>(null)
+  const [mockBoard, setMockBoard] = useState<DraftBoard | null>(null)
   const [result, setResult] = useState<SimulationResult | null>(null)
   const [mode, setMode] = useState<WorkspaceMode>("prep")
   const [simCount, setSimCount] = useState(40)
@@ -189,120 +229,78 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     }
   }
 
-  const persistLeagueState = async (
-    nextState: LeagueState,
-    failureMessage: string,
-  ) => {
-    const response = await fetch(`/api/leagues/${leagueId}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ state: nextState }),
-    })
-
-    if (!response.ok) {
-      throw new Error(failureMessage)
-    }
-  }
-
-  const withCpuAdvanced = (baseState: LeagueState): LeagueState => {
-    if (!isManualMode && baseState.source !== "manual") {
-      return baseState
-    }
-
-    return advanceCpuPicksUntilUserTurn(baseState, Date.now() >>> 0)
-  }
-
-  const applyCpuAdvance = async (baseState: LeagueState) => {
-    const advanced = advanceCpuPicksUntilUserTurn(baseState, Date.now() >>> 0)
-    const assignedIdsBefore = new Set(
-      baseState.board.picks.flatMap((pick) =>
-        pick.playerId ? [pick.playerId] : [],
-      ),
+  const startMockDraft = (baseState: LeagueState) => {
+    const empty = buildEmptyBoard(
+      baseState.settings.teams,
+      baseState.settings.rounds,
     )
-    const assignedNewPick = advanced.board.picks.some(
-      (pick) => pick.playerId && !assignedIdsBefore.has(pick.playerId),
+    const advanced = advanceCpuPicksUntilUserTurn(
+      {
+        ...baseState,
+        board: empty,
+        source: "manual",
+      },
+      Date.now() >>> 0,
     )
-
-    if (
-      !assignedNewPick &&
-      advanced.board.currentOverall === baseState.board.currentOverall
-    ) {
-      return
-    }
-
-    setError("")
-    setIsSavingPick(true)
-
-    try {
-      await persistLeagueState(advanced, "Unable to advance CPU picks")
-      setState(advanced)
-      scheduleSimulation(advanced)
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to advance CPU picks",
-      )
-    } finally {
-      setIsSavingPick(false)
-    }
+    setMockBoard(advanced.board)
   }
 
-  const handleEnterLive = () => {
-    setMode("live")
+  const handleEnterMock = () => {
+    setMode("mock")
     if (!state) return
-    if (!isManualMode && state.source !== "manual") return
-
-    void applyCpuAdvance(state)
+    if (!mockBoard) startMockDraft(state)
   }
 
-  const handleContinueManually = () => {
-    setIsManualMode(true)
-    setSyncError("")
+  const handleResetMock = () => {
     if (!state) return
-
-    void applyCpuAdvance(state)
+    startMockDraft(state)
   }
 
-  const handleMarkPicked = async (playerId: string) => {
+  const handleMockMarkPicked = (playerId: string) => {
+    if (!state || !mockBoard || isSavingPick) return
+
+    const afterHuman = applyPickToBoard(
+      mockBoard,
+      state.settings.teams,
+      playerId,
+    )
+    const advanced = advanceCpuPicksUntilUserTurn(
+      {
+        ...state,
+        board: afterHuman,
+        source: "manual",
+      },
+      Date.now() >>> 0,
+    )
+    setMockBoard(advanced.board)
+  }
+
+  const handleLiveMarkPicked = async (playerId: string) => {
     if (!state || isSavingPick) return
 
-    const currentOverall = state.board.currentOverall
-    const existingPick = state.board.picks.find(
-      (pick) => pick.overall === currentOverall,
+    const nextBoard = applyPickToBoard(
+      state.board,
+      state.settings.teams,
+      playerId,
     )
-    const currentPick = existingPick ?? {
-      overall: currentOverall,
-      round: Math.ceil(currentOverall / state.settings.teams),
-      teamIndex: teamIndexForOverall(currentOverall, state.settings.teams),
-      playerId: null,
-    }
-    const updatedPick = { ...currentPick, playerId }
-    const updatedPicks = existingPick
-      ? state.board.picks.map((pick) =>
-          pick.overall === currentOverall ? updatedPick : pick,
-        )
-      : [...state.board.picks, updatedPick].sort(
-          (firstPick, secondPick) => firstPick.overall - secondPick.overall,
-        )
-    const nextOpenPick = updatedPicks.find(
-      (pick) => pick.overall > currentOverall && !pick.playerId,
-    )
-    const afterHumanPick: LeagueState = {
+    const nextState: LeagueState = {
       ...state,
-      board: {
-        picks: updatedPicks,
-        currentOverall: nextOpenPick?.overall ?? currentOverall + 1,
-      },
+      board: nextBoard,
       source: state.source === "espn" ? "mixed" : state.source,
     }
-    const nextState = withCpuAdvanced(afterHumanPick)
 
     setError("")
     setIsSavingPick(true)
 
     try {
-      await persistLeagueState(nextState, "Unable to mark this player picked")
+      const response = await fetch(`/api/leagues/${leagueId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ state: nextState }),
+      })
+
+      if (!response.ok) throw new Error("Unable to mark this player picked")
+
       setState(nextState)
       scheduleSimulation(nextState)
     } catch (requestError) {
@@ -350,7 +348,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
           role="tablist"
           aria-label="Draft workspace mode"
         >
-          {(["prep", "live"] as const).map((workspaceMode) => (
+          {(["prep", "mock", "live"] as const).map((workspaceMode) => (
             <button
               aria-selected={mode === workspaceMode}
               className={`rounded-full px-6 py-2.5 font-medium capitalize ${
@@ -360,8 +358,8 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
               }`}
               key={workspaceMode}
               onClick={() => {
-                if (workspaceMode === "live") {
-                  void handleEnterLive()
+                if (workspaceMode === "mock") {
+                  handleEnterMock()
                   return
                 }
 
@@ -370,7 +368,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
               role="tab"
               type="button"
             >
-              {workspaceMode === "prep" ? "Prep" : "Live"}
+              {MODE_LABELS[workspaceMode]}
             </button>
           ))}
         </div>
@@ -392,21 +390,32 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
               simCount={simCount}
               state={state}
             />
-          ) : (
+          ) : null}
+          {mode === "mock" && mockBoard ? (
+            <MockDraftView
+              isSavingPick={isSavingPick}
+              mockBoard={mockBoard}
+              onMarkPicked={handleMockMarkPicked}
+              onReset={handleResetMock}
+              state={state}
+            />
+          ) : null}
+          {mode === "live" ? (
             <LiveView
               isManualMode={isManualMode}
               isSavingPick={isSavingPick}
               isSyncing={isSyncing}
               onContinueManually={() => {
-                void handleContinueManually()
+                setIsManualMode(true)
+                setSyncError("")
               }}
-              onMarkPicked={handleMarkPicked}
+              onMarkPicked={handleLiveMarkPicked}
               onSync={handleSync}
               result={result}
               state={state}
               syncError={syncError}
             />
-          )}
+          ) : null}
         </div>
       </div>
     </main>

@@ -225,7 +225,7 @@ describe("DraftWorkspace", () => {
     )
   })
 
-  it("persists a manual pick, advances CPU picks, then refreshes recommendations", async () => {
+  it("persists a Live pick without CPU-filling later rounds", async () => {
     const userFirstState: LeagueState = {
       ...state,
       perspectiveTeamIndex: 0,
@@ -283,37 +283,67 @@ describe("DraftWorkspace", () => {
     )
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
-    const patchCall = vi.mocked(fetch).mock.calls[1]
-    expect(patchCall?.[0]).toBe("/api/leagues/league-1")
-    expect(patchCall?.[1]).toEqual(
-      expect.objectContaining({
-        method: "PATCH",
-      }),
-    )
-    const patchBody = JSON.parse(String(patchCall?.[1]?.body)) as {
-      state: LeagueState
-    }
+    const patchBody = JSON.parse(
+      String(vi.mocked(fetch).mock.calls[1]?.[1]?.body),
+    ) as { state: LeagueState }
+
     expect(patchBody.state.board.picks.find((pick) => pick.overall === 1)?.playerId)
       .toBe("player-1")
     expect(patchBody.state.board.picks.find((pick) => pick.overall === 2)?.playerId)
-      .toBeTruthy()
-    expect(patchBody.state.board.picks.find((pick) => pick.overall === 3)?.playerId)
-      .toBeTruthy()
-    expect(patchBody.state.board.picks.find((pick) => pick.overall === 4)?.playerId)
-      .toBeNull()
-    expect(patchBody.state.board.currentOverall).toBe(4)
+      .toBeFalsy()
+    expect(patchBody.state.board.currentOverall).toBe(2)
 
     await waitFor(
       () => expect(fetch).toHaveBeenCalledTimes(3),
       { timeout: 1_000 },
     )
-    expect(fetch).toHaveBeenNthCalledWith(
-      3,
-      "/api/draft/simulate",
-      expect.objectContaining({
-        method: "POST",
-        signal: expect.any(AbortSignal),
+  })
+
+  it("starts a Mock draft and advances CPU until the user turn", async () => {
+    const mockState: LeagueState = {
+      ...state,
+      perspectiveTeamIndex: 1,
+      settings: {
+        ...state.settings,
+        teams: 2,
+        rounds: 2,
+        userPickSlot: 2,
+      },
+      players: [
+        ...state.players,
+        {
+          id: "player-3",
+          name: "Third Player",
+          positions: ["PG"],
+          projections,
+          adp: 3,
+        },
+        {
+          id: "player-4",
+          name: "Fourth Player",
+          positions: ["SG"],
+          projections,
+          adp: 4,
+        },
+      ],
+    }
+
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: "league-1",
+        name: "Test League",
+        stateJson: JSON.stringify(mockState),
       }),
-    )
+    } as Response)
+
+    render(<DraftWorkspace leagueId="league-1" />)
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Mock" }))
+
+    expect(await screen.findByText(/practice only/i)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Reset mock draft" })).toBeInTheDocument()
+    expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 })

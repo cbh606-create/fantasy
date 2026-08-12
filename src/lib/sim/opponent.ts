@@ -162,20 +162,21 @@ export const scoreOpponentNeed = (
   positionNeedBonus(player, roster) +
   categoryNeedBonus(roster, weights, leagueAvg)
 
-export const pickOpponentPlayer = (
+export const SIM_ADP_WINDOW = 8
+
+export const scoreSimOpponent = (
+  player: Player,
+  roster: Player[],
+): number => (1 / player.adp) * 100 + positionNeedBonus(player, roster)
+
+export const pickLiveCpuByAdp = (
   remaining: Player[],
-  _roster: Player[],
-  _weights: CategoryWeights,
-  _leagueAvg: Record<CategoryId, number>,
   rng: () => number,
 ): Player => {
   if (remaining.length === 0) {
-    throw new RangeError("Cannot pick an opponent player from an empty pool")
+    throw new RangeError("Cannot pick a live CPU player from an empty pool")
   }
 
-  // Live CPU and sim opponents draft by ADP rank (lower is better). Need-based
-  // scoring previously added a roster-wide constant that made late-ADP players
-  // nearly as likely as stars under weighted random.
   const bestAdp = remaining.reduce(
     (lowest, player) => Math.min(lowest, player.adp),
     remaining[0].adp,
@@ -186,10 +187,36 @@ export const pickOpponentPlayer = (
     return tied[0]
   }
 
-  const index = Math.min(
-    tied.length - 1,
-    Math.floor(rng() * tied.length),
-  )
-
+  const index = Math.min(tied.length - 1, Math.floor(rng() * tied.length))
   return tied[index]
+}
+
+export const pickSimOpponent = (
+  remaining: Player[],
+  roster: Player[],
+  rng: () => number,
+): Player => {
+  if (remaining.length === 0) {
+    throw new RangeError("Cannot pick a sim opponent from an empty pool")
+  }
+
+  const candidates = [...remaining]
+    .sort(
+      (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
+    )
+    .slice(0, SIM_ADP_WINDOW)
+
+  const scores = candidates.map((player) => scoreSimOpponent(player, roster))
+  const totalScore = scores.reduce((total, score) => total + score, 0)
+  const threshold = rng() * totalScore
+  let cumulativeScore = 0
+
+  for (let index = 0; index < candidates.length; index++) {
+    cumulativeScore += scores[index]
+    if (threshold < cumulativeScore) {
+      return candidates[index]
+    }
+  }
+
+  return candidates[candidates.length - 1]
 }

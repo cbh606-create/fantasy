@@ -25,10 +25,10 @@ describe("buildEmptyBoard", () => {
 })
 
 describe("isUserTurn", () => {
-  it("is true when current overall maps to user slot", () => {
+  it("is true when current overall maps to the perspective team", () => {
     const board = buildEmptyBoard(12, 13)
-    expect(isUserTurn(board, 1)).toBe(true)
+    expect(isUserTurn(board, 0, 12)).toBe(true)
     board.currentOverall = 2
-    expect(isUserTurn(board, 1)).toBe(false)
+    expect(isUserTurn(board, 0, 12)).toBe(false)
   })
 })
