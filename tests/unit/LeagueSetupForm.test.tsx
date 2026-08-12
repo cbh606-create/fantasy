@@ -69,7 +69,7 @@ describe("LeagueSetupForm", () => {
     expect(url).toBe("/api/leagues")
     expect(body.name).toBe("My League")
     expect(body.manualInput.userPickSlot).toBe(4)
-    expect(body.manualInput.playerPoolSource).toBe("stats_2025_26")
+    expect(body.manualInput.playerPoolSource).toBe("proj_2026_27")
     expect(body.manualInput.players).toBeUndefined()
     expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft")
   })

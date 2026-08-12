@@ -82,7 +82,7 @@ export const POST = async (request: Request): Promise<Response> => {
         ? manualInput.data.players
         : (
             await getPlayerPool(
-              manualInput.data.playerPoolSource ?? "stats_2025_26",
+              manualInput.data.playerPoolSource ?? "proj_2026_27",
             )
           ).players
 

@@ -18,7 +18,7 @@ type PlayerPoolFile = {
 
 const DEFAULT_SOURCE: PlayerPoolSource =
   (process.env.PLAYER_POOL_SOURCE as PlayerPoolSource | undefined) ||
-  "stats_2025_26"
+  "proj_2026_27"
 
 const poolPath = (source: Exclude<PlayerPoolSource, "sample">) =>
   path.join(process.cwd(), "data", "players", `${source}.json`)
@@ -56,6 +56,18 @@ export const getPlayerPool = async (
       players: primary.players,
       fallbackUsed: false,
       meta: primary.meta,
+    }
+  }
+
+  if (source !== "proj_2026_27") {
+    const projPool = await loadPoolFile("proj_2026_27")
+    if (projPool?.players?.length) {
+      return {
+        source: "proj_2026_27",
+        players: projPool.players,
+        fallbackUsed: true,
+        meta: projPool.meta,
+      }
     }
   }
 

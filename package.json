@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "players:refresh": "node scripts/refresh-players.mjs",
+    "players:espn-rankings": "node scripts/refresh-espn-rankings.mjs",
     "players:yahoo-adp": "node scripts/refresh-yahoo-adp.mjs"
   },
   "dependencies": {

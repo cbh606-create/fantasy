@@ -170,7 +170,7 @@ export const LeagueSetupForm = () => {
           puntCategoryIds,
           focusCategoryIds,
           rounds: 13,
-          playerPoolSource: "stats_2025_26",
+          playerPoolSource: "proj_2026_27",
         },
       })
     } catch (requestError) {

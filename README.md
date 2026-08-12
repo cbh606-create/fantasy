@@ -49,13 +49,14 @@ ESPN Fantasy Basketball draft analysis app — snake 12-team H2H categories, sim
 
 ## Player pool (Manual draft)
 
-Manual leagues load real NBA players from a cached JSON pool (default: 2025-26 ESPN Fantasy stats / % owned ranking).
+Manual leagues load real NBA players from a cached JSON pool (default: 2026-27 ESPN Fantasy ADP + published rankings).
 
 ```bash
-npm run players:refresh   # rewrite data/players/stats_2025_26.json (~250 players)
+npm run players:refresh         # ESPN season 2027 → data/players/proj_2026_27.json
+npm run players:espn-rankings   # overlay ESPN H2H Points article ranks onto that pool
 ```
 
-Optional env: `PLAYER_POOL_SOURCE=stats_2025_26` (default). Later: `proj_2026_27` when that cache exists.
+Optional env: `PLAYER_POOL_SOURCE=proj_2026_27` (default). Prior season cache: `stats_2025_26`.
 
 ## ESPN integration
 
