@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { FormEvent, useEffect, useState } from "react"
+import { FieldHelpTip } from "@/components/ui/FieldHelpTip"
 
 type SeasonLeagueListItem = {
   id: string
@@ -269,6 +270,38 @@ export default function RosterListPage() {
               ESPN blocks password login for apps. Paste your browser cookies
               once; they stay on your account only (not shown again).
             </p>
+            <details className="mt-3 rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2 text-sm">
+              <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
+                How to copy espn_s2 and SWID
+              </summary>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-[0.8125rem] leading-5 text-[var(--color-mute)]">
+                <li>
+                  Chrome/Edge에서{" "}
+                  <a
+                    className="underline underline-offset-2 hover:text-[var(--color-ink)]"
+                    href="https://fantasy.espn.com"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    fantasy.espn.com
+                  </a>
+                  에 로그인합니다.
+                </li>
+                <li>본인 팀 페이지를 연 뒤 F12(또는 우클릭 → 검사)로 DevTools를 엽니다.</li>
+                <li>
+                  상단 <span className="text-[var(--color-ink)]">Application</span>
+                  (애플리케이션) 탭 → 왼쪽 Storage → Cookies →{" "}
+                  <span className="text-[var(--color-ink)]">https://fantasy.espn.com</span>
+                  을 선택합니다.
+                </li>
+                <li>
+                  목록에서 <span className="text-[var(--color-ink)]">espn_s2</span>,{" "}
+                  <span className="text-[var(--color-ink)]">SWID</span>를 찾아 Value를
+                  더블클릭 → 복사합니다.
+                </li>
+                <li>아래에 붙여넣고 Save합니다. 쿠키가 만료되면 같은 방법으로 다시 연결하세요.</li>
+              </ol>
+            </details>
             <p className="mt-2 text-sm font-medium">
               Status:{" "}
               <span className={espnConnected ? "text-[var(--color-info)]" : "text-[var(--color-mute)]"}>
@@ -276,9 +309,23 @@ export default function RosterListPage() {
               </span>
             </p>
             <form className="mt-5 space-y-3" onSubmit={handleConnectEspn}>
-              <label className="block text-sm font-medium" htmlFor="espn-s2">
-                espn_s2
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-sm font-medium" htmlFor="espn-s2">
+                  espn_s2
+                </label>
+                <FieldHelpTip label="espn_s2">
+                  <p className="font-medium">espn_s2 찾는 법</p>
+                  <ol className="mt-1.5 list-decimal space-y-1 pl-3.5 text-[var(--color-mute)]">
+                    <li>fantasy.espn.com 로그인</li>
+                    <li>F12 → Application → Cookies → fantasy.espn.com</li>
+                    <li>
+                      Name이 <span className="text-[var(--color-ink)]">espn_s2</span>인
+                      행의 Value 복사
+                    </li>
+                    <li>아주 긴 문자열(보통 AE로 시작). 앞뒤 따옴표/공백 없이 붙여넣기</li>
+                  </ol>
+                </FieldHelpTip>
+              </div>
               <input
                 autoComplete="off"
                 className="w-full rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2.5 font-mono text-xs"
@@ -290,9 +337,25 @@ export default function RosterListPage() {
                 type="password"
                 value={espnS2}
               />
-              <label className="block text-sm font-medium" htmlFor="espn-swid">
-                SWID
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-sm font-medium" htmlFor="espn-swid">
+                  SWID
+                </label>
+                <FieldHelpTip label="SWID">
+                  <p className="font-medium">SWID 찾는 법</p>
+                  <ol className="mt-1.5 list-decimal space-y-1 pl-3.5 text-[var(--color-mute)]">
+                    <li>같은 Cookies 목록에서 Name이 SWID인 행을 찾습니다</li>
+                    <li>
+                      Value는{" "}
+                      <span className="text-[var(--color-ink)]">
+                        {"{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}"}
+                      </span>{" "}
+                      형태입니다
+                    </li>
+                    <li>중괄호 {"{}"} 포함해서 복사해도 되고, 없이 복사해도 됩니다</li>
+                  </ol>
+                </FieldHelpTip>
+              </div>
               <input
                 autoComplete="off"
                 className="w-full rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2.5 font-mono text-xs"
