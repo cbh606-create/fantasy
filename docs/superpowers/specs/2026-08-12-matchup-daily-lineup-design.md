@@ -13,12 +13,12 @@ Let the manager set **who starts in each active slot for each day** of the scori
 
 ### Success criteria
 
-- Day tabs for `schedule.matchup.days`
-- Per day: dropdowns for active slots (`PG`…`UTIL`) choosing from YOUR roster
+- Player × day grid for `schedule.matchup.days` (no day tabs)
+- Click game cells to toggle Start/Sit; Start fills first empty active slot
 - Board recomputes client-side from effective games (days the player is in the active lineup and has an NBA game)
 - Opponent totals unchanged (weekly active-10 model)
 - Persist under `matchup-days:{leagueId}`; reset restores weekly active lineup clone
-- Unit tests for effective-games aggregation + a UI smoke for day select → board change
+- Unit tests for effective-games aggregation + a UI smoke for sit toggle → board change
 
 ### Non-goals (Phase 1)
 
@@ -74,17 +74,25 @@ Opp: existing `gamesThisWeekByPlayerId` × opp active entries (no daily override
 
 **Placement:** below `MatchupBoard`, above Sit/Start.
 
-**Components (planned):**
+**Layout:** rows = YOUR roster players (name + teamAbbr); columns = scoring-period days. Cells are small clickable boxes when the player has an NBA game that day (`@TEAM` / `v TEAM`); no-game cells show `—` and are not interactive.
+
+**Toggle:**
+- Started → Sit (clear that day’s slot)
+- Sitting + has game → Start into first empty active slot
+- Full lineup → no mutate; show short “No empty slot” hint
+- No game → no-op
+
+**Visual:** started = ink fill; sitting with game = outlined; no game = mute dash.
+
+**Components:**
 
 | Path | Role |
 |---|---|
-| `src/components/matchup/DailyLineupPanel.tsx` | Day tabs + slot selects + reset |
-| `src/lib/matchup/dailyLineups.ts` | init / persist / effectiveGames / youTotalsFromDaily |
+| `src/components/matchup/DailyLineupPanel.tsx` | Player × day grid + reset |
+| `src/lib/matchup/dailyLineups.ts` | init / persist / effectiveGames / togglePlayerDay / youTotalsFromDaily |
 | Extend `MatchupWorkspace.tsx` | Hold daily state; pass recomputed board to `MatchupBoard` |
 
-**Select options:** all YOU rostered players; option label includes name, teamAbbr, and day opponent label or `no game`. Empty option allowed.
-
-**Accessibility:** day tabs as `role="tablist"`; each select `aria-label="{slot} for {day}"`.
+**Accessibility:** each game cell `aria-label="Start|Sit {name} on {day}"` and `aria-pressed` when started.
 
 ---
 

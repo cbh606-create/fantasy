@@ -219,3 +219,53 @@ export const setSlotPlayer = (
     [day]: nextEntries,
   }
 }
+
+export type TogglePlayerDayResult = {
+  daily: DailyLineups
+  status: "started" | "sat" | "no_game" | "full" | "missing_day"
+}
+
+export const findPlayerSlotIndex = (
+  daily: DailyLineups,
+  day: string,
+  playerId: string,
+): number => {
+  const entries = daily[day]
+  if (!entries) return -1
+
+  return entries.findIndex((entry) => entry.playerId === playerId)
+}
+
+export const togglePlayerDay = (
+  daily: DailyLineups,
+  day: string,
+  playerId: string,
+  hasGame: boolean,
+): TogglePlayerDayResult => {
+  const entries = daily[day]
+  if (!entries) {
+    return { daily, status: "missing_day" }
+  }
+
+  if (!hasGame) {
+    return { daily, status: "no_game" }
+  }
+
+  const existingIndex = findPlayerSlotIndex(daily, day, playerId)
+  if (existingIndex >= 0) {
+    return {
+      daily: setSlotPlayer(daily, day, existingIndex, null),
+      status: "sat",
+    }
+  }
+
+  const emptyIndex = entries.findIndex((entry) => entry.playerId === null)
+  if (emptyIndex < 0) {
+    return { daily, status: "full" }
+  }
+
+  return {
+    daily: setSlotPlayer(daily, day, emptyIndex, playerId),
+    status: "started",
+  }
+}

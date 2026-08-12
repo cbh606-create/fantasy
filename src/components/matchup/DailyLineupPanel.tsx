@@ -1,18 +1,20 @@
 "use client"
 
-import type { ChangeEvent } from "react"
+import { useState } from "react"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
-import { dayOpponentLabel } from "@/lib/matchup/dailyLineups"
-import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
+import {
+  dayOpponentLabel,
+  findPlayerSlotIndex,
+  playerGameDays,
+} from "@/lib/matchup/dailyLineups"
+import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 
 type DailyLineupPanelProps = {
   days: string[]
-  selectedDay: string
   daily: DailyLineups
   rosterPlayers: SeasonPlayer[]
   schedule: ScheduleResponse
-  onSelectDay: (day: string) => void
-  onChangeSlot: (day: string, slotIndex: number, playerId: string | null) => void
+  onTogglePlayerDay: (playerId: string, day: string) => "started" | "sat" | "no_game" | "full" | "missing_day"
   onReset: () => void
 }
 
@@ -25,25 +27,31 @@ const formatDayLabel = (day: string) => {
   })
 }
 
+const shortOpponentLabel = (label: string) => {
+  if (label === "no game") return "—"
+  return label.replace(/^vs\s+/i, "v ").replace(/\s+/g, " ")
+}
+
 export const DailyLineupPanel = ({
   days,
-  selectedDay,
   daily,
   rosterPlayers,
   schedule,
-  onSelectDay,
-  onChangeSlot,
+  onTogglePlayerDay,
   onReset,
 }: DailyLineupPanelProps) => {
-  const entries = daily[selectedDay] ?? []
-  const playersById = new Map(rosterPlayers.map((player) => [player.id, player]))
+  const [hint, setHint] = useState("")
 
-  const handleSlotChange = (
-    slotIndex: number,
-    event: ChangeEvent<HTMLSelectElement>,
-  ) => {
-    const value = event.target.value
-    onChangeSlot(selectedDay, slotIndex, value === "" ? null : value)
+  const handleToggle = (player: SeasonPlayer, day: string, hasGame: boolean) => {
+    if (!hasGame) return
+
+    const status = onTogglePlayerDay(player.id, day)
+    if (status === "full") {
+      setHint("No empty slot that day — sit someone first")
+      return
+    }
+
+    setHint("")
   }
 
   return (
@@ -52,7 +60,8 @@ export const DailyLineupPanel = ({
         <div>
           <h2 className="text-lg font-semibold">Daily lineup</h2>
           <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
-            Set who starts each day. The board above updates from these lineups.
+            Click a game box to start or sit. The board above updates from these
+            lineups.
           </p>
         </div>
         <button
@@ -64,85 +73,93 @@ export const DailyLineupPanel = ({
         </button>
       </div>
 
-      <div
-        aria-label="Scoring period days"
-        className="mb-4 flex flex-wrap gap-1.5"
-        role="tablist"
-      >
-        {days.map((day) => {
-          const selected = day === selectedDay
+      {hint ? (
+        <p className="mb-3 text-[0.8125rem] text-[var(--color-sale)]" role="status">
+          {hint}
+        </p>
+      ) : null}
 
-          return (
-            <button
-              aria-controls={`daily-lineup-${day}`}
-              aria-selected={selected}
-              className={`rounded-full px-3 py-1.5 text-[0.8125rem] transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)] ${
-                selected
-                  ? "bg-[var(--color-ink)] font-medium text-white"
-                  : "text-[var(--color-mute)] hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)]"
-              }`}
-              id={`day-tab-${day}`}
-              key={day}
-              onClick={() => onSelectDay(day)}
-              role="tab"
-              type="button"
-            >
-              {formatDayLabel(day)}
-            </button>
-          )
-        })}
-      </div>
-
-      <div
-        aria-labelledby={`day-tab-${selectedDay}`}
-        className="overflow-x-auto rounded-2xl border border-[var(--color-hairline)]"
-        id={`daily-lineup-${selectedDay}`}
-        role="tabpanel"
-      >
-        <table className="w-full min-w-[28rem] border-collapse text-left text-[0.8125rem] leading-snug">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--color-hairline)]">
+        <table className="w-full min-w-[36rem] border-collapse text-left text-[0.8125rem] leading-snug">
           <thead className="bg-[var(--color-soft-cloud)] text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
             <tr>
-              <th className="px-2.5 py-1.5 font-medium" scope="col">
-                Slot
-              </th>
-              <th className="px-2.5 py-1.5 font-medium" scope="col">
+              <th className="sticky left-0 z-10 bg-[var(--color-soft-cloud)] px-2.5 py-1.5 font-medium" scope="col">
                 Player
               </th>
+              {days.map((day) => (
+                <th
+                  className="min-w-[4.5rem] px-1 py-1.5 text-center font-medium"
+                  key={day}
+                  scope="col"
+                >
+                  {formatDayLabel(day)}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {entries.map((entry: SeasonRosterEntry, slotIndex) => (
-              <tr className="border-t border-[var(--color-hairline)]" key={`${entry.slot}-${slotIndex}`}>
-                <th className="whitespace-nowrap px-2.5 py-1 font-medium" scope="row">
-                  {entry.slot}
-                </th>
-                <td className="px-2.5 py-1">
-                  <select
-                    aria-label={`${entry.slot} for ${selectedDay}`}
-                    className="w-full max-w-md rounded border border-[var(--color-hairline)] bg-white px-2 py-0.5 text-[0.8125rem]"
-                    onChange={(event) => handleSlotChange(slotIndex, event)}
-                    value={entry.playerId ?? ""}
-                  >
-                    <option value="">Empty</option>
-                    {rosterPlayers.map((player) => {
-                      const label = dayOpponentLabel(player, selectedDay, schedule)
+            {rosterPlayers.map((player) => {
+              const gameDays = playerGameDays(player, schedule)
 
+              return (
+                <tr
+                  className="border-t border-[var(--color-hairline)]"
+                  key={player.id}
+                >
+                  <th
+                    className="sticky left-0 z-10 whitespace-nowrap bg-[var(--color-canvas)] px-2.5 py-1.5 font-medium"
+                    scope="row"
+                  >
+                    <span>{player.name}</span>
+                    {player.teamAbbr ? (
+                      <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                        {player.teamAbbr}
+                      </span>
+                    ) : null}
+                  </th>
+                  {days.map((day) => {
+                    const hasGame = gameDays.has(day)
+                    const started =
+                      findPlayerSlotIndex(daily, day, player.id) >= 0
+                    const label = dayOpponentLabel(player, day, schedule)
+                    const shortLabel = shortOpponentLabel(label)
+                    const action = started ? "Sit" : "Start"
+                    const ariaLabel = `${action} ${player.name} on ${formatDayLabel(day)}`
+
+                    if (!hasGame) {
                       return (
-                        <option key={player.id} value={player.id}>
-                          {player.name}
-                          {player.teamAbbr ? ` (${player.teamAbbr})` : ""} · {label}
-                        </option>
+                        <td className="px-1 py-1 text-center" key={day}>
+                          <span
+                            aria-label={`${player.name} no game ${formatDayLabel(day)}`}
+                            className="inline-flex h-9 min-w-[3.75rem] items-center justify-center text-[var(--color-mute)]"
+                          >
+                            —
+                          </span>
+                        </td>
                       )
-                    })}
-                  </select>
-                  {entry.playerId ? (
-                    <p className="mt-0.5 text-[0.7rem] text-[var(--color-mute)]">
-                      {dayOpponentLabel(playersById.get(entry.playerId), selectedDay, schedule)}
-                    </p>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
+                    }
+
+                    return (
+                      <td className="px-1 py-1 text-center" key={day}>
+                        <button
+                          aria-label={ariaLabel}
+                          aria-pressed={started}
+                          className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                            started
+                              ? "bg-[var(--color-ink)] text-white hover:opacity-90"
+                              : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
+                          }`}
+                          onClick={() => handleToggle(player, day, hasGame)}
+                          type="button"
+                        >
+                          {shortLabel}
+                        </button>
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

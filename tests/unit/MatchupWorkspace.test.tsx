@@ -183,8 +183,12 @@ describe("MatchupWorkspace", () => {
     expect(screen.getByText("Using your day-by-day lineups")).toBeInTheDocument()
     expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/YOU \d+/)
     expect(screen.getByRole("heading", { name: "Daily lineup" })).toBeInTheDocument()
-    expect(screen.getByLabelText("Scoring period days")).toBeInTheDocument()
-    expect(screen.getByLabelText("PG for 2025-11-03")).toBeInTheDocument()
+    expect(
+      screen.getAllByRole("button", { name: /Sit Cold Starter on/i }).length,
+    ).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole("button", { name: /Start Bench Star on/i }).length,
+    ).toBeGreaterThan(0)
     expect(
       screen.getByText(
         "Incomplete lineup — fill active slots for a fair projection",
@@ -207,7 +211,7 @@ describe("MatchupWorkspace", () => {
     })
   })
 
-  it("updates the live board when a daily slot changes", async () => {
+  it("updates the live board when a player is sat on a game day", async () => {
     render(<MatchupWorkspace leagueId="season-1" />)
 
     expect(
@@ -215,9 +219,11 @@ describe("MatchupWorkspace", () => {
     ).toBeInTheDocument()
 
     const boardBefore = screen.getByLabelText("Matchup board").textContent
-    const pgSelect = screen.getByLabelText("PG for 2025-11-03")
+    const sitButtons = screen.getAllByRole("button", {
+      name: /Sit Cold Starter on/i,
+    })
 
-    fireEvent.change(pgSelect, { target: { value: "" } })
+    fireEvent.click(sitButtons[0])
 
     await waitFor(() => {
       expect(screen.getByLabelText("Matchup board").textContent).not.toEqual(

@@ -3,6 +3,7 @@ import {
   effectiveGamesByPlayerId,
   initDailyLineups,
   setSlotPlayer,
+  togglePlayerDay,
   youTotalsFromDaily,
 } from "@/lib/matchup/dailyLineups"
 import { ASSUMED_SEASON_GAMES } from "@/lib/matchup/constants"
@@ -116,5 +117,35 @@ describe("setSlotPlayer", () => {
 
     expect(next["2025-11-03"][0].playerId).toBeNull()
     expect(next["2025-11-03"][2].playerId).toBe("star")
+  })
+})
+
+describe("togglePlayerDay", () => {
+  it("sits a starter and starts into the first empty slot", () => {
+    const daily = initDailyLineups(schedule.matchup.days, activeEntries)
+
+    const sat = togglePlayerDay(daily, "2025-11-03", "star", true)
+    expect(sat.status).toBe("sat")
+    expect(sat.daily["2025-11-03"][0].playerId).toBeNull()
+
+    const started = togglePlayerDay(sat.daily, "2025-11-03", "star", true)
+    expect(started.status).toBe("started")
+    expect(started.daily["2025-11-03"][0].playerId).toBe("star")
+  })
+
+  it("returns no_game and full without mutating when blocked", () => {
+    const daily = initDailyLineups(schedule.matchup.days, activeEntries)
+    const noGame = togglePlayerDay(daily, "2025-11-04", "star", false)
+    expect(noGame.status).toBe("no_game")
+    expect(noGame.daily).toBe(daily)
+
+    const fullEntries = daily["2025-11-03"].map((entry, index) => ({
+      ...entry,
+      playerId: entry.playerId ?? `fill-${index}`,
+    }))
+    const fullDaily = { ...daily, "2025-11-03": fullEntries }
+    const blocked = togglePlayerDay(fullDaily, "2025-11-03", "extra", true)
+    expect(blocked.status).toBe("full")
+    expect(blocked.daily).toBe(fullDaily)
   })
 })

@@ -16,8 +16,9 @@ import { isActiveSlot } from "@/lib/matchup/constants"
 import {
   dailyLineupsMatchDays,
   initDailyLineups,
+  playerGameDays,
   readDailyLineups,
-  setSlotPlayer,
+  togglePlayerDay,
   writeDailyLineups,
   youTotalsFromDaily,
   type DailyLineups,
@@ -112,7 +113,6 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [matchupData, setMatchupData] = useState<MatchupResponse | null>(null)
   const [opponentTeamIndex, setOpponentTeamIndex] = useState<number | null>(null)
   const [daily, setDaily] = useState<DailyLineups | null>(null)
-  const [selectedDay, setSelectedDay] = useState<string>("")
   const [error, setError] = useState("")
   const [opponentError, setOpponentError] = useState("")
   const [applyError, setApplyError] = useState("")
@@ -131,17 +131,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         const fresh = initDailyLineups(days, youTeam?.entries ?? [])
         writeDailyLineups(leagueId, fresh)
         setDaily(fresh)
-        setSelectedDay((current) =>
-          days.includes(current) ? current : (days[0] ?? ""),
-        )
         return
       }
 
       const resolved = resolveDailyLineups(leagueId, days, nextState)
       setDaily(resolved)
-      setSelectedDay((current) =>
-        days.includes(current) ? current : (days[0] ?? ""),
-      )
     },
     [leagueId],
   )
@@ -283,22 +277,30 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     }
   }
 
-  const handleSelectDay = (day: string) => {
-    setSelectedDay(day)
-  }
-
-  const handleChangeSlot = (
+  const handleTogglePlayerDay = (
+    playerId: string,
     day: string,
-    slotIndex: number,
-    playerId: string | null,
-  ) => {
-    setDaily((current) => {
-      if (!current) return current
+  ): "started" | "sat" | "no_game" | "full" | "missing_day" => {
+    if (!daily || !matchupData) return "missing_day"
 
-      const next = setSlotPlayer(current, day, slotIndex, playerId)
+    const player = state?.players.find((entry) => entry.id === playerId)
+    const hasGame = player
+      ? playerGameDays(player, matchupData.schedule).has(day)
+      : false
+
+    const { daily: next, status } = togglePlayerDay(
+      daily,
+      day,
+      playerId,
+      hasGame,
+    )
+
+    if (status === "started" || status === "sat") {
       writeDailyLineups(leagueId, next)
-      return next
-    })
+      setDaily(next)
+    }
+
+    return status
   }
 
   const handleResetDaily = () => {
@@ -354,7 +356,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     )
   }
 
-  if (!state || !matchupData || opponentTeamIndex === null || !daily || !selectedDay) {
+  if (!state || !matchupData || opponentTeamIndex === null || !daily) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
         <p className="text-[var(--color-sale)]" role="alert">
@@ -455,12 +457,10 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         <DailyLineupPanel
           daily={daily}
           days={matchupData.schedule.matchup.days}
-          onChangeSlot={handleChangeSlot}
           onReset={handleResetDaily}
-          onSelectDay={handleSelectDay}
+          onTogglePlayerDay={handleTogglePlayerDay}
           rosterPlayers={rosterPlayers}
           schedule={matchupData.schedule}
-          selectedDay={selectedDay}
         />
 
         <div className="mt-8 space-y-8">
