@@ -29,3 +29,15 @@ export type WeeklyPlayerStats = {
   projections: Record<CategoryId, number>
   shooting: WeeklyShooting
 }
+
+export type SitStartSuggestion = {
+  benchPlayerId: string
+  activePlayerId: string
+  deltaProjectedCatWins: number
+  reason: string
+}
+
+export type SitStartSwap = {
+  benchPlayerId: string
+  activePlayerId: string
+}
