@@ -44,5 +44,8 @@ describe("buildMockCategoryRankReport", () => {
     expect(report.teams[1].ranks.PTS).toBe(2)
     expect(report.teams[0].ranks.TO).toBe(2)
     expect(report.teams[1].ranks.TO).toBe(1)
+    expect(report.teams[0].rankSum).toBeLessThan(report.teams[1].rankSum)
+    expect(report.teams[0].overallRank).toBe(1)
+    expect(report.teams[1].overallRank).toBe(2)
   })
 })

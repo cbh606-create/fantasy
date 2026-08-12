@@ -7,6 +7,10 @@ export type MockTeamCategoryRow = {
   totals: Record<CategoryId, number>
   ranks: Record<CategoryId, number>
   rosterSize: number
+  /** Sum of category ranks (lower is better; roto-style). */
+  rankSum: number
+  /** 1-based overall place from rankSum. */
+  overallRank: number
 }
 
 export type MockCategoryRankReport = {
@@ -75,23 +79,48 @@ export const buildMockCategoryRankReport = (
     }),
   ) as Record<CategoryId, number[]>
 
-  const teamRows: MockTeamCategoryRow[] = Array.from(
-    { length: teams },
-    (_, teamIndex) => ({
+  const withSums = Array.from({ length: teams }, (_, teamIndex) => {
+    const ranks = Object.fromEntries(
+      ALL_CATEGORY_IDS.map((categoryId) => [
+        categoryId,
+        ranksByCategory[categoryId][teamIndex],
+      ]),
+    ) as Record<CategoryId, number>
+    const rosterSize = rosters[teamIndex].length
+    const rankSum =
+      rosterSize === 0
+        ? Number.POSITIVE_INFINITY
+        : ALL_CATEGORY_IDS.reduce(
+            (sum, categoryId) => sum + ranks[categoryId],
+            0,
+          )
+
+    return {
       teamIndex,
       totals: teamTotals[teamIndex],
-      ranks: Object.fromEntries(
-        ALL_CATEGORY_IDS.map((categoryId) => [
-          categoryId,
-          ranksByCategory[categoryId][teamIndex],
-        ]),
-      ) as Record<CategoryId, number>,
-      rosterSize: rosters[teamIndex].length,
-    }),
-  )
+      ranks,
+      rosterSize,
+      rankSum,
+      overallRank: teams,
+    }
+  })
+
+  const overallOrder = [...withSums].sort((left, right) => {
+    if (left.rosterSize === 0 && right.rosterSize === 0) {
+      return left.teamIndex - right.teamIndex
+    }
+    if (left.rosterSize === 0) return 1
+    if (right.rosterSize === 0) return -1
+    if (left.rankSum !== right.rankSum) return left.rankSum - right.rankSum
+    return left.teamIndex - right.teamIndex
+  })
+
+  overallOrder.forEach((entry, index) => {
+    withSums[entry.teamIndex].overallRank = index + 1
+  })
 
   return {
-    teams: teamRows,
+    teams: withSums,
     categoryIds: ALL_CATEGORY_IDS,
   }
 }

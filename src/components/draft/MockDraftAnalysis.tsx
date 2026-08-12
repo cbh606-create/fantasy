@@ -65,7 +65,8 @@ export const MockDraftAnalysis = ({
       </h2>
       <p className="mt-1 text-xs text-[var(--color-mute)] sm:text-sm">
         Your team vs all {teams} teams from drafted projections.
-        Top-3 cats: {topThreeCount} · Bottom-3 cats: {bottomThreeCount}
+        Overall: {you.overallRank}/{teams} (rank sum {you.rankSum}) · Top-3
+        cats: {topThreeCount} · Bottom-3 cats: {bottomThreeCount}
       </p>
 
       <div className="mt-4 overflow-x-auto">
@@ -79,6 +80,47 @@ export const MockDraftAnalysis = ({
             </tr>
           </thead>
           <tbody>
+            {(() => {
+              const overallHighlight =
+                you.overallRank === 1
+                  ? "text-emerald-800"
+                  : you.overallRank <= Math.min(3, teams)
+                    ? "text-[var(--color-ink)]"
+                    : isBottomTier(you.overallRank)
+                      ? "text-rose-800"
+                      : ""
+              const bestOverall = report.teams.find(
+                (team) => team.overallRank === 1,
+              )
+
+              return (
+                <tr className="border-t border-[var(--color-hairline)] bg-[var(--color-soft-cloud)]/60">
+                  <th className="py-2 pr-2 font-semibold" scope="row">
+                    Overall
+                  </th>
+                  <td className="px-2 py-2 tabular-nums text-[var(--color-mute)]">
+                    sum {you.rankSum}
+                  </td>
+                  <td
+                    className={`px-2 py-2 tabular-nums font-semibold ${overallHighlight}`}
+                  >
+                    {you.overallRank}
+                    <span className="font-normal text-[var(--color-mute)]">
+                      /{teams}
+                    </span>
+                  </td>
+                  <td className="py-2 pl-2 text-[var(--color-mute)]">
+                    {bestOverall
+                      ? `T${bestOverall.teamIndex + 1}${
+                          bestOverall.teamIndex === perspectiveTeamIndex
+                            ? " (You)"
+                            : ""
+                        } · sum ${bestOverall.rankSum}`
+                      : "—"}
+                  </td>
+                </tr>
+              )
+            })()}
             {ALL_CATEGORY_IDS.map((categoryId) => {
               const rank = you.ranks[categoryId]
               const bestTeam = report.teams.find(
@@ -139,6 +181,7 @@ export const MockDraftAnalysis = ({
               <th className="sticky left-0 z-10 bg-[var(--color-canvas)] py-1.5 pr-2 font-medium">
                 Team
               </th>
+              <th className="px-1.5 py-1.5 font-medium">OVR</th>
               {ALL_CATEGORY_IDS.map((categoryId) => (
                 <th className="px-1.5 py-1.5 font-medium" key={categoryId}>
                   {CATEGORY_LABELS[categoryId]}
@@ -167,6 +210,16 @@ export const MockDraftAnalysis = ({
                     T{team.teamIndex + 1}
                     {isYou ? " · You" : ""}
                   </th>
+                  <td
+                    className="px-1.5 py-1.5 tabular-nums font-semibold"
+                    title={
+                      team.rosterSize === 0
+                        ? undefined
+                        : `Rank sum ${team.rankSum}`
+                    }
+                  >
+                    {team.rosterSize === 0 ? "—" : team.overallRank}
+                  </td>
                   {ALL_CATEGORY_IDS.map((categoryId) => (
                     <td
                       className="px-1.5 py-1.5 tabular-nums text-[var(--color-mute)]"
