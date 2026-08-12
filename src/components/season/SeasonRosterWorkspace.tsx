@@ -399,7 +399,7 @@ export const SeasonRosterWorkspace = ({
         ) : null}
         <div
           aria-labelledby="stats-tab"
-          className={tab === "stats" ? "space-y-10" : "hidden"}
+          className={tab === "stats" ? "space-y-6" : "hidden"}
           hidden={tab !== "stats"}
           id="stats-panel"
           role="tabpanel"

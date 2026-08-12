@@ -78,12 +78,12 @@ export default function RosterListPage() {
               {leagues.map((league) => (
                 <li key={league.id}>
                   <Link
-                    className="flex items-center justify-between gap-4 py-5 transition-colors hover:text-[var(--color-info)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+                    className="flex items-center justify-between gap-4 py-2 transition-colors hover:text-[var(--color-info)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
                     href={`/roster/${league.id}`}
                   >
                     <span>
-                      <span className="block text-lg font-medium">{league.name}</span>
-                      <span className="mt-1 block text-sm text-[var(--color-mute)]">
+                      <span className="block text-base font-medium">{league.name}</span>
+                      <span className="mt-0.5 block text-xs text-[var(--color-mute)]">
                         {league.season} · {league.source}
                       </span>
                     </span>
