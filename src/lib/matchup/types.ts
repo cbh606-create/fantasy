@@ -41,3 +41,23 @@ export type SitStartSwap = {
   benchPlayerId: string
   activePlayerId: string
 }
+
+export type StreamerSuggestion = {
+  playerId: string
+  score: number
+  gamesThisWeek: number
+  reasons: string[]
+}
+
+export type MatchupAdvice = {
+  opponentTeamIndex: number
+  scoringPeriod: {
+    scoringPeriodId: number
+    startDate: string
+    endDate: string
+    days: string[]
+  }
+  board: MatchupBoard
+  sitStart: SitStartSuggestion[]
+  streamers: StreamerSuggestion[]
+}
