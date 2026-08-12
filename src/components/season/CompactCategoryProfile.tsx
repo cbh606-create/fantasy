@@ -35,7 +35,7 @@ export const CompactCategoryProfile = ({
           Category profile
         </h2>
       </div>
-      <div className="grid gap-x-8 gap-y-4 rounded-[2rem] border border-[var(--color-hairline)] p-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-x-6 gap-y-2.5 rounded-2xl border border-[var(--color-hairline)] p-3.5 sm:grid-cols-2 lg:grid-cols-3">
         {ALL_CATEGORY_IDS.map((categoryId) => {
           const level = levelsByCategory.get(categoryId)
           const width = Math.min((level?.intensity ?? 0) * 50, 100)
@@ -43,7 +43,7 @@ export const CompactCategoryProfile = ({
 
           return (
             <div key={categoryId}>
-              <div className="mb-1.5 flex items-center justify-between text-xs">
+              <div className="mb-1 flex items-center justify-between text-xs">
                 <span className="font-medium">{categoryLabels[categoryId]}</span>
                 <span className="tabular-nums text-[var(--color-mute)]">
                   {(level?.z ?? 0).toFixed(2)}

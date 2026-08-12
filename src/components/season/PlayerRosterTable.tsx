@@ -44,12 +44,12 @@ export const PlayerRosterTable = ({
         </div>
         <p className="text-sm text-[var(--color-mute)]">14 slots</p>
       </div>
-      <div className="overflow-x-auto rounded-[2rem] border border-[var(--color-hairline)]">
-        <table className="w-full min-w-[70rem] border-collapse text-left text-sm">
-          <thead className="bg-[var(--color-soft-cloud)] text-xs tracking-[0.08em] text-[var(--color-mute)] uppercase">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--color-hairline)]">
+        <table className="w-full min-w-[70rem] border-collapse text-left text-[0.8125rem] leading-snug">
+          <thead className="bg-[var(--color-soft-cloud)] text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
             <tr>
               {["Slot", "Player", "FG%", "FGM/A", "FT%", "FTM/A", "3PM", "REB", "AST", "STL", "BLK", "TO", "PTS"].map((label) => (
-                <th className="px-3 py-3 font-medium" key={label} scope="col">
+                <th className="px-2.5 py-1.5 font-medium" key={label} scope="col">
                   {label}
                 </th>
               ))}
@@ -65,20 +65,20 @@ export const PlayerRosterTable = ({
                 <Fragment key={`${entry.slot}-${index}`}>
                   {currentGroup !== previousGroup ? (
                     <tr className="border-y border-[var(--color-hairline)] bg-[var(--color-canvas)]" key={`${currentGroup}-label`}>
-                      <th className="px-3 py-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase" colSpan={13} scope="rowgroup">
+                      <th className="px-2.5 py-1 text-[0.7rem] tracking-[0.14em] text-[var(--color-mute)] uppercase" colSpan={13} scope="rowgroup">
                         {currentGroup}
                       </th>
                     </tr>
                   ) : null}
                   <tr className="border-b border-[var(--color-hairline)] last:border-b-0">
-                    <th className="whitespace-nowrap px-3 py-3 font-medium" scope="row">
+                    <th className="whitespace-nowrap px-2.5 py-1 font-medium" scope="row">
                       {entry.slot}
                     </th>
-                    <td className="min-w-52 px-3 py-3 font-medium">
+                    <td className="min-w-48 px-2.5 py-1 font-medium">
                       {isEditing ? (
                         <select
                           aria-label={`${entry.slot} player`}
-                          className="w-full rounded-lg border border-[var(--color-hairline)] bg-white px-2 py-1.5 text-sm"
+                          className="w-full rounded border border-[var(--color-hairline)] bg-white px-2 py-0.5 text-[0.8125rem]"
                           onChange={(event) => onPlayerChange(index, event.target.value || null)}
                           value={entry.playerId ?? ""}
                         >
@@ -91,17 +91,17 @@ export const PlayerRosterTable = ({
                         </select>
                       ) : player ? player.name : <span className="text-[var(--color-mute)]">Empty</span>}
                     </td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatPercentage(player.projections.FG_PCT) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? `${formatStat(player.shooting.FGM)}/${formatStat(player.shooting.FGA)}` : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatPercentage(player.projections.FT_PCT) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? `${formatStat(player.shooting.FTM)}/${formatStat(player.shooting.FTA)}` : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatStat(player.projections.TPM) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatStat(player.projections.REB) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatStat(player.projections.AST) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatStat(player.projections.STL) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatStat(player.projections.BLK) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatStat(player.projections.TO) : "—"}</td>
-                    <td className="px-3 py-3 tabular-nums">{player ? formatStat(player.projections.PTS) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatPercentage(player.projections.FG_PCT) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? `${formatStat(player.shooting.FGM)}/${formatStat(player.shooting.FGA)}` : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatPercentage(player.projections.FT_PCT) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? `${formatStat(player.shooting.FTM)}/${formatStat(player.shooting.FTA)}` : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatStat(player.projections.TPM) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatStat(player.projections.REB) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatStat(player.projections.AST) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatStat(player.projections.STL) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatStat(player.projections.BLK) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatStat(player.projections.TO) : "—"}</td>
+                    <td className="px-2.5 py-1 tabular-nums">{player ? formatStat(player.projections.PTS) : "—"}</td>
                   </tr>
                 </Fragment>
               )

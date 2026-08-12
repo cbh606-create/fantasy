@@ -25,6 +25,13 @@ const categoryLabels: Record<CategoryId, string> = {
   PTS: "PTS",
 }
 
+const rankHeatBackground = (heat: number) => {
+  const good = "color-mix(in srgb, var(--color-success) 28%, white)"
+  const bad = "color-mix(in srgb, var(--color-sale) 24%, white)"
+
+  return `color-mix(in srgb, ${good} ${heat}%, ${bad})`
+}
+
 export const LeagueRankMatrix = ({
   analysis,
   perspectiveTeamIndex,
@@ -82,11 +89,11 @@ export const LeagueRankMatrix = ({
           Reset matrix order
         </button>
       </div>
-      <div className="overflow-x-auto rounded-[2rem] border border-[var(--color-hairline)]">
-        <table className="w-full min-w-[44rem] border-collapse text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--color-hairline)]">
+        <table className="w-full min-w-[44rem] border-collapse text-[0.8125rem] leading-snug">
           <thead className="bg-[var(--color-soft-cloud)]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs tracking-[0.08em] text-[var(--color-mute)] uppercase" scope="col">
+              <th className="px-2.5 py-1.5 text-left text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase" scope="col">
                 Team
               </th>
               {ALL_CATEGORY_IDS.map((categoryId) => {
@@ -96,10 +103,10 @@ export const LeagueRankMatrix = ({
                   : "best first"
 
                 return (
-                  <th className="px-1 py-2 text-center" key={categoryId} scope="col">
+                  <th className="px-1 py-1 text-center" key={categoryId} scope="col">
                     <button
                       aria-label={`Sort by ${categoryLabels[categoryId]}, ${directionLabel}`}
-                      className={`rounded px-2 py-1 text-xs font-medium ${
+                      className={`rounded px-1.5 py-0.5 text-[0.7rem] font-medium ${
                         isActive ? "bg-[var(--color-ink)] text-white" : "hover:bg-white"
                       }`}
                       onClick={() => handleCategorySort(categoryId)}
@@ -118,24 +125,30 @@ export const LeagueRankMatrix = ({
               const team = teamsByIndex.get(teamIndex)
 
               return (
-                <tr className={isYou ? "bg-[var(--color-ink)] text-white" : "border-t border-[var(--color-hairline)]"} key={teamIndex}>
-                  <th className="whitespace-nowrap px-4 py-3 text-left font-medium" scope="row">
+                <tr
+                  className={
+                    isYou
+                      ? "border-t border-[var(--color-info)]/30 bg-[color-mix(in_srgb,var(--color-info)_10%,white)]"
+                      : "border-t border-[var(--color-hairline)]"
+                  }
+                  key={teamIndex}
+                >
+                  <th className="whitespace-nowrap px-2.5 py-1 text-left font-medium" scope="row">
                     {isYou ? "YOU" : team?.name ?? `Team ${teamIndex + 1}`}
                   </th>
                   {ALL_CATEGORY_IDS.map((categoryId) => {
                     const rank = ranksByCategory.get(categoryId)?.[teamIndex]
-                    const heat = rank ? Math.round(((teams.length - rank) / Math.max(teams.length - 1, 1)) * 100) : 0
+                    const heat = rank
+                      ? Math.round(((teams.length - rank) / Math.max(teams.length - 1, 1)) * 100)
+                      : 0
 
                     return (
-                      <td
-                        className={isYou ? "px-1 py-2 text-center tabular-nums" : "px-1 py-2 text-center tabular-nums"}
-                        key={categoryId}
-                      >
+                      <td className="px-1 py-1 text-center tabular-nums" key={categoryId}>
                         <span
-                          className={`inline-flex min-w-9 justify-center rounded-md px-2 py-1 ${
-                            isYou ? "bg-white/15" : ""
+                          className={`inline-flex min-w-8 justify-center rounded px-1.5 py-0.5 text-[0.7rem] font-medium ${
+                            isYou ? "ring-1 ring-[var(--color-info)]/25" : ""
                           }`}
-                          style={isYou ? undefined : { backgroundColor: `color-mix(in srgb, var(--color-success) ${heat}%, var(--color-sale))` }}
+                          style={{ backgroundColor: rankHeatBackground(heat) }}
                         >
                           #{rank ?? "—"}
                         </span>

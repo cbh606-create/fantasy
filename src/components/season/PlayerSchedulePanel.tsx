@@ -29,19 +29,19 @@ export const PlayerSchedulePanel = ({
         Player schedule
       </h2>
     </div>
-    <div className="overflow-x-auto rounded-[2rem] border border-[var(--color-hairline)]">
-      <table className="w-full min-w-[44rem] border-collapse text-sm">
+    <div className="overflow-x-auto rounded-2xl border border-[var(--color-hairline)]">
+      <table className="w-full min-w-[44rem] border-collapse text-[0.8125rem] leading-snug">
         <thead className="bg-[var(--color-soft-cloud)]">
           <tr>
-            <th className="px-4 py-3 text-left text-xs tracking-[0.08em] text-[var(--color-mute)] uppercase" scope="col">
+            <th className="px-2.5 py-1.5 text-left text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase" scope="col">
               Player
             </th>
-            <th className="px-3 py-3 text-center text-xs tracking-[0.08em] text-[var(--color-mute)] uppercase" scope="col">
+            <th className="px-2 py-1.5 text-center text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase" scope="col">
               Games
             </th>
             {matchup.days.map((day) => (
               <th
-                className="px-2 py-3 text-center text-xs tracking-[0.08em] text-[var(--color-mute)] uppercase"
+                className="px-2 py-1.5 text-center text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase"
                 key={day}
                 scope="col"
               >
@@ -53,25 +53,25 @@ export const PlayerSchedulePanel = ({
         <tbody>
           {rows.map((row, index) => (
             <tr className="border-t border-[var(--color-hairline)]" key={`${row.slot}-${index}`}>
-              <th className="whitespace-nowrap px-4 py-3 text-left font-medium" scope="row">
+              <th className="whitespace-nowrap px-2.5 py-1 text-left font-medium" scope="row">
                 <span className="text-[var(--color-mute)]">{row.slot}</span>
                 {" · "}
                 {row.name}
                 {row.teamUnknown ? (
-                  <span className="ml-2 text-xs font-normal text-[var(--color-mute)]">team unknown</span>
+                  <span className="ml-2 text-[0.7rem] font-normal text-[var(--color-mute)]">team unknown</span>
                 ) : null}
               </th>
-              <td className="px-3 py-3 text-center tabular-nums font-semibold">
+              <td className="px-2 py-1 text-center tabular-nums font-semibold">
                 {row.games === null ? "—" : row.games}
               </td>
               {matchup.days.map((day) => {
                 const labels = row.cells[day] ?? []
                 return (
-                  <td className="px-2 py-3 text-center text-xs" key={day}>
+                  <td className="px-2 py-1 text-center text-[0.7rem] leading-tight" key={day}>
                     {labels.length ? (
-                      <span className="flex flex-col gap-0.5">
-                        {labels.map((label, index) => (
-                          <span key={index}>{label}</span>
+                      <span className="flex flex-col gap-0">
+                        {labels.map((label, labelIndex) => (
+                          <span key={labelIndex}>{label}</span>
                         ))}
                       </span>
                     ) : (
