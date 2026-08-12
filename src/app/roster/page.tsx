@@ -109,6 +109,52 @@ export default function RosterListPage() {
     }
   }
 
+  const importEspnLeague = async (): Promise<string> => {
+    const parsedTeamId = Number.parseInt(teamId, 10)
+    const parsedSeason = Number.parseInt(season, 10)
+
+    if (
+      !leagueId.trim() ||
+      !Number.isInteger(parsedTeamId) ||
+      !Number.isInteger(parsedSeason)
+    ) {
+      throw new Error("Enter leagueId, teamId, and season")
+    }
+
+    const response = await fetch("/api/espn/season-import", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name: espnName.trim() || undefined,
+        leagueId: leagueId.trim(),
+        teamId: parsedTeamId,
+        season: parsedSeason,
+      }),
+    })
+
+    const payload = (await response.json()) as {
+      id?: string
+      error?: string
+      errorCode?: string
+      message?: string
+    }
+
+    if (!response.ok) {
+      if (payload.message) throw new Error(payload.message)
+      if (payload.errorCode === "ESPN_AUTH") {
+        throw new Error(
+          "ESPN auth failed — reconnect with fresh espn_s2 / SWID cookies",
+        )
+      }
+      throw new Error(
+        payload.errorCode ?? payload.error ?? "Unable to import ESPN league",
+      )
+    }
+
+    if (!payload.id) throw new Error("Unable to import ESPN league")
+    return payload.id
+  }
+
   const handleConnectEspn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError("")
@@ -160,47 +206,51 @@ export default function RosterListPage() {
       const parsedTeamId = Number.parseInt(teamId, 10)
       const parsedSeason = Number.parseInt(season, 10)
       if (
-        leagueId.trim() &&
-        Number.isInteger(parsedTeamId) &&
-        Number.isInteger(parsedSeason)
+        !leagueId.trim() ||
+        !Number.isInteger(parsedTeamId) ||
+        !Number.isInteger(parsedSeason)
       ) {
-        const verifyResponse = await fetch("/api/espn/verify", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            leagueId: leagueId.trim(),
-            teamId: parsedTeamId,
-            season: parsedSeason,
-          }),
-        })
-        const verifyPayload = (await verifyResponse.json()) as {
-          ok?: boolean
-          leagueName?: string
-          teamName?: string
-          playerCount?: number
-          message?: string
-        }
-
-        if (!verifyResponse.ok || !verifyPayload.ok) {
-          setConnectTone("bad")
-          setConnectMessage(
-            verifyPayload.message ??
-              "Cookies saved, but ESPN rejected them for this league. Re-copy fresh cookies while logged into that league.",
-          )
-          return
-        }
-
         setConnectTone("ok")
         setConnectMessage(
-          `ESPN OK — ${verifyPayload.teamName ?? "team"} · ${verifyPayload.playerCount ?? 0} players (${verifyPayload.leagueName ?? "league"})`,
+          "쿠키 저장됨. 아래 League ID / Team ID / Season을 채운 뒤 Import를 누르세요.",
         )
-        setSuccessMessage("")
-      } else {
-        setConnectTone("ok")
-        setConnectMessage(
-          "ESPN cookies saved. Fill league/team/season below, then Import.",
-        )
+        return
       }
+
+      const verifyResponse = await fetch("/api/espn/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          leagueId: leagueId.trim(),
+          teamId: parsedTeamId,
+          season: parsedSeason,
+        }),
+      })
+      const verifyPayload = (await verifyResponse.json()) as {
+        ok?: boolean
+        leagueName?: string
+        teamName?: string
+        playerCount?: number
+        message?: string
+      }
+
+      if (!verifyResponse.ok || !verifyPayload.ok) {
+        setConnectTone("bad")
+        setConnectMessage(
+          verifyPayload.message ??
+            "Cookies saved, but ESPN rejected them for this league. Re-copy fresh cookies while logged into that league.",
+        )
+        return
+      }
+
+      setConnectTone("ok")
+      setConnectMessage(
+        `ESPN OK — ${verifyPayload.teamName ?? "team"} · importing roster…`,
+      )
+
+      const importedId = await importEspnLeague()
+      setConnectMessage("Opening roster…")
+      window.location.assign(`/roster/${importedId}`)
     } catch (requestError) {
       setConnectTone("bad")
       setConnectMessage(
@@ -238,59 +288,13 @@ export default function RosterListPage() {
 
   const handleImportEspn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
-    const parsedTeamId = Number.parseInt(teamId, 10)
-    const parsedSeason = Number.parseInt(season, 10)
-
-    if (
-      !leagueId.trim() ||
-      !Number.isInteger(parsedTeamId) ||
-      !Number.isInteger(parsedSeason)
-    ) {
-      setError("Enter leagueId, teamId, and season")
-      return
-    }
-
     setError("")
     setSuccessMessage("")
     setIsImporting(true)
 
     try {
-      const response = await fetch("/api/espn/season-import", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          name: espnName.trim() || undefined,
-          leagueId: leagueId.trim(),
-          teamId: parsedTeamId,
-          season: parsedSeason,
-        }),
-      })
-
-      const payload = (await response.json()) as {
-        id?: string
-        error?: string
-        errorCode?: string
-        message?: string
-      }
-
-      if (!response.ok) {
-        if (payload.message) {
-          throw new Error(payload.message)
-        }
-        if (payload.errorCode === "ESPN_AUTH") {
-          throw new Error(
-            "ESPN auth failed — reconnect with fresh espn_s2 / SWID cookies",
-          )
-        }
-        if (payload.errorCode) {
-          throw new Error(payload.errorCode)
-        }
-        throw new Error(payload.error ?? "Unable to import ESPN league")
-      }
-
-      if (!payload.id) throw new Error("Unable to import ESPN league")
-      window.location.assign(`/roster/${payload.id}`)
+      const importedId = await importEspnLeague()
+      window.location.assign(`/roster/${importedId}`)
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -459,10 +463,10 @@ export default function RosterListPage() {
                 type="submit"
               >
                 {isSavingEspn
-                  ? "Saving…"
+                  ? "Saving & importing…"
                   : espnConnected
-                    ? "Update ESPN cookies"
-                    : "Save ESPN cookies"}
+                    ? "Update cookies & open roster"
+                    : "Save cookies & open roster"}
               </button>
               {connectMessage ? (
                 <p
@@ -479,7 +483,7 @@ export default function RosterListPage() {
                 </p>
               ) : (
                 <p className="text-[0.75rem] text-[var(--color-mute)]">
-                  Save를 누르면 바로 아래에 결과가 표시됩니다.
+                  쿠키를 저장한 뒤 ESPN 검증이 되면 로스터 화면으로 자동 이동합니다.
                 </p>
               )}
             </form>
