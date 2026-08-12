@@ -3,29 +3,29 @@ import {
   mapEspnLeagueToSeasonState,
   type EspnLeaguePayload,
 } from "./espnSeasonMap"
+import {
+  readEnvEspnCookies,
+  type EspnCookies,
+} from "@/lib/espn/cookies"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
 const FETCH_TIMEOUT_MS = 15_000
 
-const readCookieEnv = (): { espnS2: string; swid: string } => {
-  const espnS2 = process.env.ESPN_S2?.trim() ?? ""
-  const swidRaw = process.env.ESPN_SWID?.trim() ?? ""
-  const swid =
-    swidRaw && !swidRaw.startsWith("{") ? `{${swidRaw}}` : swidRaw
-
-  if (!espnS2 || !swid) {
+const resolveCookies = (cookies?: EspnCookies): EspnCookies => {
+  const resolved = cookies ?? readEnvEspnCookies()
+  if (!resolved) {
     throw new EspnAdapterError("ESPN_AUTH")
   }
-
-  return { espnS2, swid }
+  return resolved
 }
 
 export const fetchEspnSeasonLeague = async (params: {
   leagueId: string
   season: number
   teamId: number
+  cookies?: EspnCookies
 }): Promise<SeasonLeagueState> => {
-  const { espnS2, swid } = readCookieEnv()
+  const { espnS2, swid } = resolveCookies(params.cookies)
   const url = new URL(
     `https://fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
   )

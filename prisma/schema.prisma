@@ -36,3 +36,12 @@ model SeasonLeague {
 
   @@index([clerkUserId])
 }
+
+model EspnCredential {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  espnS2      String
+  swid        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -18,21 +18,35 @@ export default function RosterListPage() {
   const [leagueId, setLeagueId] = useState("120853513")
   const [teamId, setTeamId] = useState("9")
   const [season, setSeason] = useState("2026")
+  const [espnS2, setEspnS2] = useState("")
+  const [swid, setSwid] = useState("")
+  const [espnConnected, setEspnConnected] = useState(false)
   const [error, setError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
   const [isCreating, setIsCreating] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
+  const [isSavingEspn, setIsSavingEspn] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const controller = new AbortController()
 
-    const loadLeagues = async () => {
+    const loadPage = async () => {
       try {
-        const response = await fetch("/api/season-leagues", {
-          signal: controller.signal,
-        })
-        if (!response.ok) throw new Error("Unable to load season leagues")
-        setLeagues((await response.json()) as SeasonLeagueListItem[])
+        const [leaguesResponse, credentialsResponse] = await Promise.all([
+          fetch("/api/season-leagues", { signal: controller.signal }),
+          fetch("/api/espn/credentials", { signal: controller.signal }),
+        ])
+
+        if (!leaguesResponse.ok) throw new Error("Unable to load season leagues")
+        setLeagues((await leaguesResponse.json()) as SeasonLeagueListItem[])
+
+        if (credentialsResponse.ok) {
+          const credentials = (await credentialsResponse.json()) as {
+            connected?: boolean
+          }
+          setEspnConnected(Boolean(credentials.connected))
+        }
       } catch (requestError) {
         if (
           requestError instanceof DOMException &&
@@ -50,7 +64,7 @@ export default function RosterListPage() {
       }
     }
 
-    void loadLeagues()
+    void loadPage()
 
     return () => controller.abort()
   }, [])
@@ -60,6 +74,7 @@ export default function RosterListPage() {
     if (!name.trim()) return
 
     setError("")
+    setSuccessMessage("")
     setIsCreating(true)
 
     try {
@@ -83,6 +98,61 @@ export default function RosterListPage() {
     }
   }
 
+  const handleConnectEspn = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError("")
+    setSuccessMessage("")
+    setIsSavingEspn(true)
+
+    try {
+      const response = await fetch("/api/espn/credentials", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ espnS2, swid }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Unable to save ESPN cookies — check both values")
+      }
+
+      setEspnConnected(true)
+      setEspnS2("")
+      setSwid("")
+      setSuccessMessage("ESPN connected for your account")
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to save ESPN cookies",
+      )
+    } finally {
+      setIsSavingEspn(false)
+    }
+  }
+
+  const handleDisconnectEspn = async () => {
+    setError("")
+    setSuccessMessage("")
+    setIsSavingEspn(true)
+
+    try {
+      const response = await fetch("/api/espn/credentials", {
+        method: "DELETE",
+      })
+      if (!response.ok) throw new Error("Unable to disconnect ESPN")
+      setEspnConnected(false)
+      setSuccessMessage("ESPN disconnected")
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to disconnect ESPN",
+      )
+    } finally {
+      setIsSavingEspn(false)
+    }
+  }
+
   const handleImportEspn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
@@ -99,6 +169,7 @@ export default function RosterListPage() {
     }
 
     setError("")
+    setSuccessMessage("")
     setIsImporting(true)
 
     try {
@@ -123,7 +194,7 @@ export default function RosterListPage() {
       if (!response.ok) {
         if (payload.errorCode === "ESPN_AUTH") {
           throw new Error(
-            "ESPN auth failed — check ESPN_S2 / ESPN_SWID cookies in .env, then restart",
+            "ESPN auth failed — reconnect with fresh espn_s2 / SWID cookies",
           )
         }
         if (payload.errorCode === "ESPN_UNAVAILABLE" && payload.message) {
@@ -183,7 +254,7 @@ export default function RosterListPage() {
             </ul>
           ) : (
             <p className="mt-8 text-[var(--color-mute)]">
-              No season leagues yet. Import ESPN or create a manual league.
+              No season leagues yet. Connect ESPN, then import your league.
             </p>
           )}
         </div>
@@ -191,11 +262,80 @@ export default function RosterListPage() {
         <div className="space-y-6">
           <aside className="h-fit rounded-[2rem] bg-[var(--color-soft-cloud)] p-6">
             <p className="text-xs tracking-[0.16em] text-[var(--color-mute)] uppercase">
+              ESPN connect
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold">Connect your account</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
+              ESPN blocks password login for apps. Paste your browser cookies
+              once; they stay on your account only (not shown again).
+            </p>
+            <p className="mt-2 text-sm font-medium">
+              Status:{" "}
+              <span className={espnConnected ? "text-[var(--color-info)]" : "text-[var(--color-mute)]"}>
+                {espnConnected ? "Connected" : "Not connected"}
+              </span>
+            </p>
+            <form className="mt-5 space-y-3" onSubmit={handleConnectEspn}>
+              <label className="block text-sm font-medium" htmlFor="espn-s2">
+                espn_s2
+              </label>
+              <input
+                autoComplete="off"
+                className="w-full rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2.5 font-mono text-xs"
+                id="espn-s2"
+                onChange={(event) => setEspnS2(event.target.value)}
+                placeholder="Paste espn_s2 cookie"
+                required={!espnConnected}
+                spellCheck={false}
+                type="password"
+                value={espnS2}
+              />
+              <label className="block text-sm font-medium" htmlFor="espn-swid">
+                SWID
+              </label>
+              <input
+                autoComplete="off"
+                className="w-full rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2.5 font-mono text-xs"
+                id="espn-swid"
+                onChange={(event) => setSwid(event.target.value)}
+                placeholder="{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}"
+                required={!espnConnected}
+                spellCheck={false}
+                type="password"
+                value={swid}
+              />
+              <button
+                className="w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isSavingEspn}
+                type="submit"
+              >
+                {isSavingEspn
+                  ? "Saving…"
+                  : espnConnected
+                    ? "Update ESPN cookies"
+                    : "Save ESPN cookies"}
+              </button>
+            </form>
+            {espnConnected ? (
+              <button
+                className="mt-3 w-full text-sm font-medium text-[var(--color-mute)] underline-offset-2 hover:text-[var(--color-ink)] hover:underline"
+                disabled={isSavingEspn}
+                onClick={() => void handleDisconnectEspn()}
+                type="button"
+              >
+                Disconnect ESPN
+              </button>
+            ) : null}
+          </aside>
+
+          <aside className="h-fit rounded-[2rem] bg-[var(--color-soft-cloud)] p-6">
+            <p className="text-xs tracking-[0.16em] text-[var(--color-mute)] uppercase">
               ESPN import
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Import private league</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
-              Uses server cookies (`ESPN_S2`, `ESPN_SWID`) when `ESPN_LIVE=true`.
+              Uses your connected ESPN cookies. League ID / Team ID are in the
+              ESPN team URL.
             </p>
             <form className="mt-5 space-y-3" onSubmit={handleImportEspn}>
               <label className="block text-sm font-medium" htmlFor="espn-league-id">
@@ -242,7 +382,7 @@ export default function RosterListPage() {
               />
               <button
                 className="w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={isImporting}
+                disabled={isImporting || !espnConnected}
                 type="submit"
               >
                 {isImporting ? "Importing…" : "Import ESPN league"}
@@ -282,6 +422,11 @@ export default function RosterListPage() {
             </form>
           </aside>
 
+          {successMessage ? (
+            <p className="text-sm text-[var(--color-info)]" role="status">
+              {successMessage}
+            </p>
+          ) : null}
           {error ? (
             <p className="text-sm text-[var(--color-sale)]" role="alert">
               {error}

@@ -5,6 +5,7 @@ import {
 } from "./manualSeason"
 import { EspnAdapterError, type EspnErrorCode } from "./errors"
 import { fetchEspnSeasonLeague } from "./espnSeasonLive"
+import type { EspnCookies } from "@/lib/espn/cookies"
 import type {
   SeasonLeagueState,
   SeasonRosterEntry,
@@ -15,6 +16,7 @@ type EspnSeasonParams = {
   leagueId: string
   season: number
   teamId?: number
+  cookies?: EspnCookies
   forceFail?: EspnErrorCode
 }
 
@@ -65,7 +67,10 @@ export const espnImportToSeasonLeagueState = async (
     throw new EspnAdapterError(params.forceFail)
   }
 
-  if (process.env.ESPN_LIVE === "true") {
+  const useLive =
+    Boolean(params.cookies) || process.env.ESPN_LIVE === "true"
+
+  if (useLive) {
     if (
       typeof params.teamId !== "number" ||
       !Number.isInteger(params.teamId)
@@ -77,6 +82,7 @@ export const espnImportToSeasonLeagueState = async (
       leagueId: params.leagueId,
       season: params.season,
       teamId: params.teamId,
+      cookies: params.cookies,
     })
   }
 

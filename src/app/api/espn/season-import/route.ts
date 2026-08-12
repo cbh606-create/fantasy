@@ -6,6 +6,8 @@ import {
 import { espnImportToSeasonLeagueState } from "@/lib/adapters/espnSeason"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { getUserEspnCookies } from "@/lib/espn/credentials"
+import { readEnvEspnCookies } from "@/lib/espn/cookies"
 
 const ESPN_ERROR_CODES: EspnErrorCode[] = [
   "ESPN_AUTH",
@@ -57,12 +59,19 @@ export const POST = async (request: Request): Promise<Response> => {
   const allowFixtureImport =
     process.env.NODE_ENV === "test" || process.env.ESPN_ALLOW_FIXTURE === "true"
 
-  if (process.env.ESPN_LIVE !== "true" && !allowFixtureImport) {
+  const userCookies = await getUserEspnCookies(userId)
+  const envCookies = readEnvEspnCookies()
+  const cookies = userCookies ?? envCookies ?? undefined
+  const canLiveImport =
+    Boolean(cookies) &&
+    (Boolean(userCookies) || process.env.ESPN_LIVE === "true")
+
+  if (!canLiveImport && !allowFixtureImport) {
     return NextResponse.json(
       {
         errorCode: "ESPN_UNAVAILABLE",
         message:
-          "Live ESPN import is off. Set ESPN_LIVE=true, ESPN_S2, and ESPN_SWID in .env, then restart the server.",
+          "Connect ESPN first (paste espn_s2 + SWID on this page), or set ESPN_LIVE=true with env cookies.",
       },
       { status: 503 },
     )
@@ -73,6 +82,7 @@ export const POST = async (request: Request): Promise<Response> => {
       leagueId: body.leagueId.trim(),
       season: body.season,
       teamId: body.teamId,
+      cookies: canLiveImport ? cookies : undefined,
       forceFail:
         process.env.NODE_ENV === "test" && isErrorCode(body.forceFail)
           ? body.forceFail
