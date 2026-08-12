@@ -2,6 +2,7 @@
 
 import type { ChangeEvent } from "react"
 import { BoardGrid } from "@/components/draft/BoardGrid"
+import { MockDraftAnalysis } from "@/components/draft/MockDraftAnalysis"
 import { PlayerPool } from "@/components/draft/PlayerPool"
 import { Button } from "@/components/ui/Button"
 import { isUserTurn } from "@/lib/domain/snake"
@@ -148,6 +149,12 @@ export const MockDraftView = ({
         />
         <BoardGrid label="Mock draft" state={mockState} />
       </div>
+      <MockDraftAnalysis
+        mockBoard={mockBoard}
+        perspectiveTeamIndex={perspectiveTeamIndex}
+        players={players}
+        teams={state.settings.teams}
+      />
     </div>
   )
 }
