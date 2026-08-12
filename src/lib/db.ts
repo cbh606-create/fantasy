@@ -24,11 +24,10 @@ const createPrismaClient = () => {
 }
 
 const hasEspnCredentialDelegate = (client: PrismaClient) => {
-  const delegate = (
-    client as PrismaClient & {
-      espnCredential?: { findUnique?: unknown }
-    }
-  ).espnCredential
+  // Important: read getters with the client as receiver, not a Proxy.
+  const delegate = Reflect.get(client, "espnCredential", client) as
+    | { findUnique?: unknown }
+    | undefined
 
   return typeof delegate?.findUnique === "function"
 }
@@ -46,11 +45,13 @@ const resolveClient = () => {
   return created
 }
 
-// Lazy proxy so a stale pre-migration Prisma singleton is replaced after generate.
+// Lazy access so a stale pre-migration Prisma singleton can be replaced.
+// Prisma model delegates are getters — always Reflect.get with the real client
+// as receiver, otherwise espnCredential becomes undefined.
 export const db = new Proxy({} as PrismaClient, {
-  get(_target, property, receiver) {
+  get(_target, property) {
     const client = resolveClient()
-    const value = Reflect.get(client, property, receiver)
+    const value = Reflect.get(client, property, client)
     return typeof value === "function" ? value.bind(client) : value
   },
 })
