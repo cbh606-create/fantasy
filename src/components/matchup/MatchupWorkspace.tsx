@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
@@ -58,11 +58,13 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [matchupData, setMatchupData] = useState<MatchupResponse | null>(null)
   const [opponentTeamIndex, setOpponentTeamIndex] = useState<number | null>(null)
   const [error, setError] = useState("")
+  const [opponentError, setOpponentError] = useState("")
   const [applyError, setApplyError] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [applyingSwapKey, setApplyingSwapKey] = useState<string | null>(null)
+  const opponentFetchRef = useRef<AbortController | null>(null)
 
   const loadMatchup = useCallback(
     async (opponentIndex: number, signal?: AbortSignal) => {
@@ -147,27 +149,43 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
     void bootstrap()
 
-    return () => controller.abort()
+    return () => {
+      controller.abort()
+      opponentFetchRef.current?.abort()
+    }
   }, [leagueId, loadMatchup])
 
   const handleOpponentChange = async (teamIndex: number) => {
-    setOpponentTeamIndex(teamIndex)
+    opponentFetchRef.current?.abort()
+
+    const controller = new AbortController()
+    opponentFetchRef.current = controller
+
+    setOpponentError("")
     setApplyError("")
     setSuccessMessage("")
-    window.localStorage.setItem(opponentStorageKey(leagueId), String(teamIndex))
-
     setIsRefreshing(true)
 
     try {
-      await loadMatchup(teamIndex)
+      await loadMatchup(teamIndex, controller.signal)
+      if (controller.signal.aborted) return
+
+      setOpponentTeamIndex(teamIndex)
+      window.localStorage.setItem(opponentStorageKey(leagueId), String(teamIndex))
     } catch (requestError) {
-      setError(
+      if (requestError instanceof DOMException && requestError.name === "AbortError") {
+        return
+      }
+
+      setOpponentError(
         requestError instanceof Error
           ? requestError.message
           : "Unable to load matchup advice",
       )
     } finally {
-      setIsRefreshing(false)
+      if (opponentFetchRef.current === controller) {
+        setIsRefreshing(false)
+      }
     }
   }
 
@@ -271,6 +289,12 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         {showIncompleteBanner ? (
           <Banner className="mb-6" tone="mute">
             Incomplete lineup — fill active slots for a fair projection
+          </Banner>
+        ) : null}
+
+        {opponentError ? (
+          <Banner className="mb-6" tone="danger">
+            {opponentError}
           </Banner>
         ) : null}
 

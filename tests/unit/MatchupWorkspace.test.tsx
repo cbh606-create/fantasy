@@ -148,6 +148,11 @@ describe("MatchupWorkspace", () => {
     ).toBeInTheDocument()
 
     expect(screen.getByText("YOU 5 — Opp 3 — Tie 1")).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "Incomplete lineup — fill active slots for a fair projection",
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Sit / Start" })).toBeInTheDocument()
     expect(screen.getByText("+0.42 cat wins · 3 games")).toBeInTheDocument()
 
