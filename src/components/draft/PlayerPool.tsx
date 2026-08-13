@@ -126,8 +126,10 @@ export const PlayerPool = ({
   const [query, setQuery] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("adp")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const [hoveredPlayerId, setHoveredPlayerId] = useState<string | null>(null)
   const normalizedQuery = query.trim().toLowerCase()
   const limit = compact ? 48 : 20
+  const pickedIdSet = new Set(pickedPlayerIds)
 
   const handleSort = (nextKey: SortKey) => {
     if (nextKey === sortKey) {
@@ -140,7 +142,7 @@ export const PlayerPool = ({
   }
 
   const availablePlayers = players
-    .filter((player) => !pickedPlayerIds.includes(player.id))
+    .filter((player) => !pickedIdSet.has(player.id))
     .filter((player) =>
       normalizedQuery
         ? player.name.toLowerCase().includes(normalizedQuery)
@@ -211,37 +213,57 @@ export const PlayerPool = ({
               <tbody>
                 {availablePlayers.map((player) => (
                   <tr
-                    className="group relative border-t border-[var(--color-hairline)]/60"
+                    className="relative border-t border-[var(--color-hairline)]/60"
                     key={player.id}
+                    onBlur={(event) => {
+                      if (
+                        !event.currentTarget.contains(
+                          event.relatedTarget as Node | null,
+                        )
+                      ) {
+                        setHoveredPlayerId((current) =>
+                          current === player.id ? null : current,
+                        )
+                      }
+                    }}
+                    onFocus={() => setHoveredPlayerId(player.id)}
+                    onMouseEnter={() => setHoveredPlayerId(player.id)}
+                    onMouseLeave={() =>
+                      setHoveredPlayerId((current) =>
+                        current === player.id ? null : current,
+                      )
+                    }
                   >
                     <td className="max-w-[7.5rem] py-1.5 pr-1 align-top">
                       <p className="break-words text-xs font-medium leading-tight">
                         {player.name}
                       </p>
-                      <div
-                        className="pointer-events-none absolute left-full top-0 z-20 ml-2 hidden w-52 rounded-xl border border-[var(--color-hairline)] bg-white p-3 shadow-lg group-hover:block group-focus-within:block"
-                        role="tooltip"
-                      >
-                        <p className="text-xs font-semibold">{player.name}</p>
-                        <dl className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[0.65rem]">
-                          {ALL_CATEGORY_IDS.map((categoryId) => (
-                            <div
-                              className="flex justify-between gap-2"
-                              key={categoryId}
-                            >
-                              <dt className="text-[var(--color-mute)]">
-                                {CATEGORY_LABELS[categoryId]}
-                              </dt>
-                              <dd className="tabular-nums font-medium">
-                                {formatProjection(
-                                  categoryId,
-                                  player.projections[categoryId],
-                                )}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </div>
+                      {hoveredPlayerId === player.id ? (
+                        <div
+                          className="pointer-events-none absolute left-full top-0 z-20 ml-2 w-52 rounded-xl border border-[var(--color-hairline)] bg-white p-3 shadow-lg"
+                          role="tooltip"
+                        >
+                          <p className="text-xs font-semibold">{player.name}</p>
+                          <dl className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[0.65rem]">
+                            {ALL_CATEGORY_IDS.map((categoryId) => (
+                              <div
+                                className="flex justify-between gap-2"
+                                key={categoryId}
+                              >
+                                <dt className="text-[var(--color-mute)]">
+                                  {CATEGORY_LABELS[categoryId]}
+                                </dt>
+                                <dd className="tabular-nums font-medium">
+                                  {formatProjection(
+                                    categoryId,
+                                    player.projections[categoryId],
+                                  )}
+                                </dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      ) : null}
                     </td>
                     <td className="px-1 py-1.5 align-top text-[0.65rem] text-[var(--color-mute)]">
                       {player.positions.join("/")}

@@ -178,6 +178,7 @@ export const MockDraftView = ({
         <BoardGrid label="Mock draft" state={mockState} />
       </div>
       <MockDraftAnalysis
+        isAdvancing={isAdvancing}
         mockBoard={mockBoard}
         perspectiveTeamIndex={perspectiveTeamIndex}
         players={players}

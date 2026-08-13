@@ -16,9 +16,18 @@ type PlayerPoolFile = {
   players: Player[]
 }
 
+type PlayerPoolResult = {
+  source: PlayerPoolSource
+  players: Player[]
+  fallbackUsed: boolean
+  meta?: PlayerPoolFile["meta"]
+}
+
 const DEFAULT_SOURCE: PlayerPoolSource =
   (process.env.PLAYER_POOL_SOURCE as PlayerPoolSource | undefined) ||
   "proj_2026_27"
+
+const poolCache = new Map<PlayerPoolSource, Promise<PlayerPoolResult>>()
 
 const poolPath = (source: Exclude<PlayerPoolSource, "sample">) =>
   path.join(process.cwd(), "data", "players", `${source}.json`)
@@ -41,14 +50,9 @@ const loadPoolFile = async (
   }
 }
 
-export const getPlayerPool = async (
-  source: PlayerPoolSource = DEFAULT_SOURCE,
-): Promise<{
-  source: PlayerPoolSource
-  players: Player[]
-  fallbackUsed: boolean
-  meta?: PlayerPoolFile["meta"]
-}> => {
+const resolvePlayerPool = async (
+  source: PlayerPoolSource,
+): Promise<PlayerPoolResult> => {
   const primary = await loadPoolFile(source)
   if (primary?.players?.length) {
     return {
@@ -88,5 +92,22 @@ export const getPlayerPool = async (
     players: samplePlayers as Player[],
     fallbackUsed: true,
     meta: { source: "sample", count: samplePlayers.length },
+  }
+}
+
+export const getPlayerPool = async (
+  source: PlayerPoolSource = DEFAULT_SOURCE,
+): Promise<PlayerPoolResult> => {
+  const cached = poolCache.get(source)
+  if (cached) return cached
+
+  const pending = resolvePlayerPool(source)
+  poolCache.set(source, pending)
+
+  try {
+    return await pending
+  } catch (error) {
+    poolCache.delete(source)
+    throw error
   }
 }

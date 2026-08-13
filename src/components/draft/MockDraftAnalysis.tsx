@@ -3,6 +3,7 @@ import type { CategoryId, DraftBoard, Player } from "@/lib/domain/types"
 import { buildMockCategoryRankReport } from "@/lib/draft/mockCategoryRanks"
 
 type MockDraftAnalysisProps = {
+  isAdvancing?: boolean
   mockBoard: DraftBoard
   perspectiveTeamIndex: number
   players: Player[]
@@ -30,13 +31,15 @@ const formatValue = (categoryId: CategoryId, value: number) => {
 }
 
 export const MockDraftAnalysis = ({
+  isAdvancing = false,
   mockBoard,
   perspectiveTeamIndex,
   players,
   teams,
 }: MockDraftAnalysisProps) => {
   const pickedCount = mockBoard.picks.filter((pick) => pick.playerId).length
-  if (pickedCount === 0) return null
+  // Skip heavy rank matrix while CPU is ticking picks.
+  if (pickedCount === 0 || isAdvancing) return null
 
   const report = buildMockCategoryRankReport(mockBoard, players, teams)
   const you = report.teams[perspectiveTeamIndex]

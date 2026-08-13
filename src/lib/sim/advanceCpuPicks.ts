@@ -5,6 +5,14 @@ import { createRng, pickMockCpu } from "@/lib/sim/opponent"
 const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   const { teams, rounds } = state.settings
   const totalPicks = teams * rounds
+
+  if (state.board.picks.length >= totalPicks) {
+    return state.board.picks
+      .slice(0, totalPicks)
+      .map((pick) => ({ ...pick }))
+      .sort((left, right) => left.overall - right.overall)
+  }
+
   const picksByOverall = new Map(
     state.board.picks.map((pick) => [pick.overall, { ...pick }]),
   )
@@ -25,26 +33,30 @@ const ensurePickSlots = (state: LeagueState): DraftPick[] => {
   )
 }
 
-const remainingPlayers = (state: LeagueState, picks: DraftPick[]) => {
-  const draftedPlayerIds = new Set(
-    picks.flatMap((pick) => (pick.playerId ? [pick.playerId] : [])),
-  )
+const remainingPlayers = (
+  players: Player[],
+  picks: DraftPick[],
+): Player[] => {
+  const draftedPlayerIds = new Set<string>()
+  for (const pick of picks) {
+    if (pick.playerId) draftedPlayerIds.add(pick.playerId)
+  }
 
-  return state.players.filter((player) => !draftedPlayerIds.has(player.id))
+  return players.filter((player) => !draftedPlayerIds.has(player.id))
 }
 
 const rosterForTeam = (
   picks: DraftPick[],
-  players: Player[],
+  byId: Map<string, Player>,
   teamIndex: number,
 ): Player[] => {
-  const byId = new Map(players.map((player) => [player.id, player]))
-
-  return picks.flatMap((pick) => {
-    if (pick.teamIndex !== teamIndex || !pick.playerId) return []
+  const roster: Player[] = []
+  for (const pick of picks) {
+    if (pick.teamIndex !== teamIndex || !pick.playerId) continue
     const player = byId.get(pick.playerId)
-    return player ? [player] : []
-  })
+    if (player) roster.push(player)
+  }
+  return roster
 }
 
 /** Apply a single opponent CPU pick. Returns null when it is the user turn or done. */
@@ -69,12 +81,13 @@ export const advanceOneCpuPick = (
     return null
   }
 
-  const remaining = remainingPlayers(state, picks)
+  const remaining = remainingPlayers(state.players, picks)
   if (remaining.length === 0) {
     return null
   }
 
-  const roster = rosterForTeam(picks, state.players, pick.teamIndex)
+  const byId = new Map(state.players.map((player) => [player.id, player]))
+  const roster = rosterForTeam(picks, byId, pick.teamIndex)
   const selectedPlayer = pickMockCpu(remaining, roster, createRng(seed))
 
   pick.playerId = selectedPlayer.id

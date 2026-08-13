@@ -107,18 +107,25 @@ const positionNeedBonus = (player: Player, roster: Player[]): number => {
     const slot = DEFAULT_STARTER_SLOTS[slotIndex]
     const isPrimarySlot = slot === primaryPosition
 
-    if (
-      isPrimarySlot ||
-      !canFillSlot(player, slot) ||
-      maximumStarterFits(roster, player, slotIndex) <= currentFitCount
-    ) {
+    if (isPrimarySlot || !canFillSlot(player, slot)) {
       continue
     }
 
-    return 25
+    if (maximumStarterFits(roster, player, slotIndex) > currentFitCount) {
+      return 25
+    }
   }
 
   return 0
+}
+
+/** Mock-only: avoid bipartite matching on every candidate. */
+const positionNeedBonusLight = (player: Player, roster: Player[]): number => {
+  const primaryPosition = player.positions[0]
+  const primaryPositionCovered = roster.some((rosterPlayer) =>
+    rosterPlayer.positions.includes(primaryPosition),
+  )
+  return primaryPositionCovered ? 0 : 50
 }
 
 const categoryNeedBonus = (
@@ -194,10 +201,9 @@ export const categoryFillBonus = (
   player: Player,
   roster: Player[],
   baseline: Record<CategoryId, number>,
-): number => {
-  const rosterAverage = averageProjections(roster)
-
-  return ALL_CATEGORY_IDS.reduce((bonus, categoryId) => {
+  rosterAverage = averageProjections(roster),
+): number =>
+  ALL_CATEGORY_IDS.reduce((bonus, categoryId) => {
     const gap =
       categoryId === "TO"
         ? Math.max(0, rosterAverage[categoryId] - baseline[categoryId])
@@ -212,7 +218,6 @@ export const categoryFillBonus = (
 
     return bonus + gap * contribution
   }, 0)
-}
 
 export const scoreSimOpponent = (
   player: Player,
@@ -223,10 +228,44 @@ export const scoreMockOpponent = (
   player: Player,
   roster: Player[],
   baseline: Record<CategoryId, number>,
+  rosterAverage?: Record<CategoryId, number>,
 ): number =>
   (1 / player.adp) * 100 +
-  positionNeedBonus(player, roster) +
-  categoryFillBonus(player, roster, baseline) * MOCK_CATEGORY_FILL_WEIGHT
+  positionNeedBonusLight(player, roster) +
+  categoryFillBonus(player, roster, baseline, rosterAverage) *
+    MOCK_CATEGORY_FILL_WEIGHT
+
+const topKByAdp = (players: Player[], k: number): Player[] => {
+  if (players.length <= k) {
+    return [...players].sort(
+      (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
+    )
+  }
+
+  const best: Player[] = []
+  for (const player of players) {
+    if (best.length < k) {
+      best.push(player)
+      best.sort(
+        (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
+      )
+      continue
+    }
+
+    const worst = best[best.length - 1]
+    if (
+      player.adp < worst.adp ||
+      (player.adp === worst.adp && player.id.localeCompare(worst.id) < 0)
+    ) {
+      best[best.length - 1] = player
+      best.sort(
+        (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
+      )
+    }
+  }
+
+  return best
+}
 
 export const pickLiveCpuByAdp = (
   remaining: Player[],
@@ -261,12 +300,7 @@ const pickWeightedFromWindow = (
     throw new RangeError(emptyMessage)
   }
 
-  const candidates = [...remaining]
-    .sort(
-      (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
-    )
-    .slice(0, windowSize)
-
+  const candidates = topKByAdp(remaining, windowSize)
   const scores = candidates.map((player) => Math.max(0.01, scoreFor(player)))
   const totalScore = scores.reduce((total, score) => total + score, 0)
   const threshold = rng() * totalScore
@@ -295,18 +329,19 @@ export const pickSimOpponent = (
     "Cannot pick a sim opponent from an empty pool",
   )
 
-/** Mock CPU: ADP top-5 window, then need-weighted random (position + category fill). */
+/** Mock CPU: ADP top-10 window, then need-weighted random (position + category fill). */
 export const pickMockCpu = (
   remaining: Player[],
   roster: Player[],
   rng: () => number,
 ): Player => {
   const baseline = averageProjections(remaining)
+  const rosterAverage = averageProjections(roster)
 
   return pickWeightedFromWindow(
     remaining,
     MOCK_ADP_WINDOW,
-    (player) => scoreMockOpponent(player, roster, baseline),
+    (player) => scoreMockOpponent(player, roster, baseline, rosterAverage),
     rng,
     "Cannot pick a mock CPU player from an empty pool",
   )

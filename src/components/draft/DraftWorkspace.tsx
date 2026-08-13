@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { startTransition, useEffect, useRef, useState } from "react"
 import { LiveView } from "@/components/draft/LiveView"
 import {
   MockDraftView,
@@ -16,7 +16,7 @@ import type {
 } from "@/lib/domain/types"
 import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
 
-const MOCK_PICK_DELAY_MS = 550
+const MOCK_PICK_DELAY_MS = 280
 
 const wait = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
@@ -302,9 +302,12 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
         if (!next) break
 
         const latest = resolveLatestPick(current, next)
-        if (latest) setLatestMockPick(latest)
+        const nextBoard = next.board
         current = next
-        setMockBoard(current.board)
+        startTransition(() => {
+          if (latest) setLatestMockPick(latest)
+          setMockBoard(nextBoard)
+        })
         step += 1
         await wait(MOCK_PICK_DELAY_MS, controller.signal)
       }
@@ -341,11 +344,15 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const startMockDraft = async (
     baseState: LeagueState,
     perspectiveTeamIndex = baseState.perspectiveTeamIndex,
+    options: { refreshPlayers?: boolean } = {},
   ) => {
     setLatestMockPick(null)
     setMockPerspectiveTeamIndex(perspectiveTeamIndex)
-    const players = await loadFreshMockPlayers(baseState.players)
-    setMockPlayers(players)
+    const players =
+      !options.refreshPlayers && mockPlayers?.length
+        ? mockPlayers
+        : await loadFreshMockPlayers(baseState.players)
+    if (players !== mockPlayers) setMockPlayers(players)
 
     const empty = buildEmptyBoard(
       baseState.settings.teams,
@@ -364,7 +371,9 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     setMode("mock")
     if (!state) return
     if (!mockBoard && !isMockAdvancing) {
-      void startMockDraft(state, state.perspectiveTeamIndex)
+      void startMockDraft(state, state.perspectiveTeamIndex, {
+        refreshPlayers: true,
+      })
     }
   }
 
