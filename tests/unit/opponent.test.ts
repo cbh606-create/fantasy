@@ -196,18 +196,30 @@ describe("categoryFillBonus", () => {
 })
 
 describe("pickMockCpu", () => {
-  it("never selects outside the mock ADP top window", () => {
+  it("follows best ADP in round 1", () => {
+    const remaining = [
+      player("jokic", ["C"], 1, { PTS: 10 }),
+      player("filler", ["PF"], 2, { REB: 40, PTS: 5 }),
+      player("reach", ["SG"], 8, { AST: 40 }),
+    ]
+
+    expect(pickMockCpu(remaining, [], () => 0.99, { round: 1 }).id).toBe(
+      "jokic",
+    )
+  })
+
+  it("never selects outside the mock ADP top window after round 1", () => {
     const remaining = Array.from({ length: MOCK_ADP_WINDOW + 3 }, (_, index) =>
       player(`p${index + 1}`, ["PG"], index + 1),
     )
-    const picked = pickMockCpu(remaining, [], () => 0.999999)
+    const picked = pickMockCpu(remaining, [], () => 0.999999, { round: 2 })
 
     expect(picked.adp).toBeLessThanOrEqual(MOCK_ADP_WINDOW)
     expect(picked.id).not.toBe("p11")
     expect(picked.id).not.toBe("p12")
   })
 
-  it("can prefer a category fit inside the window over pure ADP", () => {
+  it("can prefer a category fit inside the window over pure ADP after round 1", () => {
     const remaining = [
       player("adp1", ["C"], 1, { REB: 2, PTS: 20 }),
       player("adp2", ["C"], 2, { REB: 2, PTS: 19 }),
@@ -217,6 +229,8 @@ describe("pickMockCpu", () => {
     ]
     const roster = [player("guard", ["PG"], 40, { REB: 1, PTS: 22 })]
 
-    expect(pickMockCpu(remaining, roster, () => 0.55).id).toBe("adp3")
+    expect(
+      pickMockCpu(remaining, roster, () => 0.55, { round: 2 }).id,
+    ).toBe("adp3")
   })
 })

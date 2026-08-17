@@ -88,7 +88,9 @@ export const advanceOneCpuPick = (
 
   const byId = new Map(state.players.map((player) => [player.id, player]))
   const roster = rosterForTeam(picks, byId, pick.teamIndex)
-  const selectedPlayer = pickMockCpu(remaining, roster, createRng(seed))
+  const selectedPlayer = pickMockCpu(remaining, roster, createRng(seed), {
+    round: pick.round,
+  })
 
   pick.playerId = selectedPlayer.id
 

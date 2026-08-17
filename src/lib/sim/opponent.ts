@@ -329,12 +329,18 @@ export const pickSimOpponent = (
     "Cannot pick a sim opponent from an empty pool",
   )
 
-/** Mock CPU: ADP top-10 window, then need-weighted random (position + category fill). */
+/** Mock CPU: round 1 follows best ADP; later rounds use ADP top-10 + need weighting. */
 export const pickMockCpu = (
   remaining: Player[],
   roster: Player[],
   rng: () => number,
+  options: { round?: number } = {},
 ): Player => {
+  const round = options.round ?? 2
+  if (round <= 1) {
+    return pickLiveCpuByAdp(remaining, rng)
+  }
+
   const baseline = averageProjections(remaining)
   const rosterAverage = averageProjections(roster)
 
