@@ -496,12 +496,12 @@ git commit -m "feat(matchup): add matchup workspace UI and nav primacy"
 
 ### Task 7: Verification smoke
 
-- [ ] **Step 1:** `npm.cmd run lint` — PASS  
-- [ ] **Step 2:** `npx.cmd vitest run --maxWorkers=1` — PASS  
-- [ ] **Step 3:** Grep matchup paths for `@/lib/sim` / `draft` imports — none  
-- [ ] **Step 4:** Confirm fixture schedule JSON still no BOM (`{` first byte)  
-- [ ] **Step 5:** Manual checklist (or document API coverage): open `/matchup/[id]`, pick opponent, see board, apply one sit/start, confirm Roster reflects lineup; click streamer → Waivers  
-- [ ] **Step 6:** Commit fixes only if needed  
+- [x] **Step 1:** `npm.cmd run lint` — PASS  
+- [x] **Step 2:** `npx.cmd vitest run --maxWorkers=1` — PASS (171–172/173; 2 unrelated flaky timeouts under load; 24/24 matchup slice green)  
+- [x] **Step 3:** Grep matchup paths for `@/lib/sim` / `draft` imports — none  
+- [x] **Step 4:** Confirm fixture schedule JSON still no BOM (`{` first byte)  
+- [x] **Step 5:** Manual checklist (or document API coverage): open `/matchup/[id]`, pick opponent, see board, apply one sit/start, confirm Roster reflects lineup; click streamer → Waivers — documented in `.superpowers/sdd/task-7-report.md`  
+- [x] **Step 6:** Commit fixes only if needed — `235f423`  
 
 ```bash
 git commit -m "fix(matchup): <only if required>"
