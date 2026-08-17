@@ -380,6 +380,7 @@ export const DraftWorkspace = ({
   }
 
   const runMockCpuUntilUserTurn = async (baseState: LeagueState) => {
+    clearMockSimulation()
     mockAdvanceControllerRef.current?.abort()
     const controller = new AbortController()
     mockAdvanceControllerRef.current = controller

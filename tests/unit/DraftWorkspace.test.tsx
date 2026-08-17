@@ -300,12 +300,13 @@ describe("DraftWorkspace", () => {
   })
 
   it("starts a Mock draft and advances CPU until the user turn", async () => {
+    const mockSimulationSignals: AbortSignal[] = []
     const mockState: LeagueState = {
       ...state,
       perspectiveTeamIndex: 1,
       settings: {
         ...state.settings,
-        teams: 2,
+        teams: 3,
         rounds: 2,
         userPickSlot: 2,
       },
@@ -328,7 +329,7 @@ describe("DraftWorkspace", () => {
       ],
     }
 
-    vi.mocked(fetch).mockImplementation(async (input) => {
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
       const url = String(input)
       if (url === "/api/players") {
         return new Response(JSON.stringify({ players: mockState.players }), {
@@ -337,6 +338,7 @@ describe("DraftWorkspace", () => {
       }
 
       if (url === "/api/draft/simulate") {
+        mockSimulationSignals.push(init?.signal as AbortSignal)
         return new Response(
           JSON.stringify({
             nextPicks: [
@@ -420,7 +422,14 @@ describe("DraftWorkspace", () => {
         (call) => String(call[0]) === "/api/draft/simulate",
       ),
     ).toBe(true)
+    expect(mockSimulationSignals[0]?.aborted).toBe(false)
     expect(screen.getByText(/latest pick/i)).toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mark Second Player picked" }),
+    )
+
+    expect(mockSimulationSignals[0]?.aborted).toBe(true)
 
     fireEvent.change(screen.getByRole("combobox", { name: "Your pick slot" }), {
       target: { value: "1" },
