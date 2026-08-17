@@ -93,4 +93,20 @@ describe("RecPanel", () => {
 
     expect(screen.getByText(/simulating/i)).toBeInTheDocument()
   })
+
+  it("renders a horizontal row layout without outlook", () => {
+    render(
+      <RecPanel
+        layout="row"
+        maxNextPicks={3}
+        players={players}
+        result={result}
+        showCategoryOutlook={false}
+      />,
+    )
+
+    expect(screen.getByRole("list")).toBeInTheDocument()
+    expect(screen.getByText("Alpha")).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: /category outlook/i })).not.toBeInTheDocument()
+  })
 })

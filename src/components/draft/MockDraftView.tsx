@@ -104,7 +104,7 @@ export const MockDraftView = ({
       {latestPick ? (
         <div
           aria-live="polite"
-          className="mb-4 rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] px-4 py-3"
+          className="mb-3 rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] px-4 py-3"
           role="status"
         >
           <p className="text-[0.65rem] tracking-[0.14em] text-[var(--color-mute)] uppercase">
@@ -121,6 +121,24 @@ export const MockDraftView = ({
           </p>
         </div>
       ) : null}
+
+      <div className="mb-4">
+        <RecPanel
+          emptyMessage={
+            draftComplete
+              ? "Draft complete."
+              : busy
+                ? "Opponents are picking…"
+                : "Waiting for recommendations…"
+          }
+          isSimulating={isSimulating && userTurn && !draftComplete}
+          layout="row"
+          maxNextPicks={3}
+          players={players}
+          result={mockResult}
+          showCategoryOutlook={false}
+        />
+      </div>
 
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
@@ -177,7 +195,7 @@ export const MockDraftView = ({
           </Button>
         </div>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)_20rem]">
+      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
         <PlayerPool
           compact
           disabled={busy || !userTurn || draftComplete}
@@ -186,20 +204,6 @@ export const MockDraftView = ({
           players={players}
         />
         <BoardGrid label="Mock draft" state={mockState} />
-        <RecPanel
-          emptyMessage={
-            draftComplete
-              ? "Draft complete."
-              : busy
-                ? "Opponents are picking…"
-                : "Waiting for recommendations…"
-          }
-          isSimulating={isSimulating && userTurn && !draftComplete}
-          maxNextPicks={3}
-          players={players}
-          result={mockResult}
-          showCategoryOutlook={false}
-        />
       </div>
       <MockDraftAnalysis
         isAdvancing={isAdvancing}
