@@ -1,6 +1,9 @@
 import espnLeagueFixture from "../../../data/fixtures/espn-league.json"
 import { defaultCategorySettings } from "@/lib/domain/categories"
-import { buildEmptyBoard } from "@/lib/domain/snake"
+import {
+  buildEmptyBoard,
+  DEFAULT_DRAFT_ROUNDS,
+} from "@/lib/domain/snake"
 import type { LeagueState, Player, RosterSlot } from "@/lib/domain/types"
 import { EspnAdapterError, type EspnErrorCode } from "./errors"
 
@@ -40,7 +43,8 @@ export const espnImportToLeagueState = async (
   }
 
   const teams = 12 as const
-  const board = buildEmptyBoard(teams, espnLeagueFixture.rounds)
+  const rounds = DEFAULT_DRAFT_ROUNDS
+  const board = buildEmptyBoard(teams, rounds)
 
   for (const fixturePick of espnLeagueFixture.picks) {
     const boardPick = board.picks.find(
@@ -64,7 +68,7 @@ export const espnImportToLeagueState = async (
       userPickSlot: espnLeagueFixture.userPickSlot,
       puntCategoryIds: [],
       focusCategoryIds: [],
-      rounds: espnLeagueFixture.rounds,
+      rounds,
     },
     board,
     players: espnLeagueFixture.players as Player[],

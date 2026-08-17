@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Chip } from "@/components/ui/Chip"
 import { defaultCategorySettings } from "@/lib/domain/categories"
+import { DEFAULT_DRAFT_ROUNDS } from "@/lib/domain/snake"
 import type { CategoryId, CategorySetting } from "@/lib/domain/types"
 
 const PICK_SLOTS = Array.from({ length: 12 }, (_, index) => index + 1)
@@ -182,7 +183,7 @@ export const LeagueSetupForm = () => {
             categories,
             puntCategoryIds,
             focusCategoryIds,
-            rounds: 13,
+            rounds: DEFAULT_DRAFT_ROUNDS,
             playerPoolSource: "proj_2026_27",
           },
         },
@@ -217,7 +218,7 @@ export const LeagueSetupForm = () => {
           <p className="text-xs tracking-[0.16em] text-[var(--color-mute)] uppercase">
             League format
           </p>
-          <p className="mt-1 font-medium">12-team snake · 13 rounds</p>
+          <p className="mt-1 font-medium">12-team snake · {DEFAULT_DRAFT_ROUNDS} rounds</p>
         </div>
       </section>
 
