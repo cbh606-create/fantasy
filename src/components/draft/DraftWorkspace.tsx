@@ -502,7 +502,7 @@ export const DraftWorkspace = ({
           </h1>
         </header>
         <div
-          className="mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"
+          className="sticky top-[3.25rem] z-40 mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)]/95 p-1 backdrop-blur-sm"
           role="tablist"
           aria-label="Draft workspace mode"
         >
