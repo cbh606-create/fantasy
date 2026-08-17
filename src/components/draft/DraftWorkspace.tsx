@@ -7,7 +7,11 @@ import {
   type MockLatestPick,
 } from "@/components/draft/MockDraftView"
 import { PrepView } from "@/components/draft/PrepView"
-import { buildEmptyBoard, teamIndexForOverall } from "@/lib/domain/snake"
+import {
+  buildEmptyBoard,
+  DEFAULT_DRAFT_ROUNDS,
+  teamIndexForOverall,
+} from "@/lib/domain/snake"
 import type {
   DraftBoard,
   LeagueState,
@@ -15,6 +19,24 @@ import type {
   SimulationResult,
 } from "@/lib/domain/types"
 import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
+
+const toMockLeagueState = (
+  baseState: LeagueState,
+  perspectiveTeamIndex: number,
+  players: Player[],
+  board: DraftBoard,
+): LeagueState => ({
+  ...baseState,
+  perspectiveTeamIndex,
+  players,
+  board,
+  source: "manual",
+  settings: {
+    ...baseState.settings,
+    rounds: DEFAULT_DRAFT_ROUNDS,
+    userPickSlot: perspectiveTeamIndex + 1,
+  },
+})
 
 const MOCK_PICK_DELAY_MS = 280
 
@@ -361,15 +383,11 @@ export const DraftWorkspace = ({
 
     const empty = buildEmptyBoard(
       baseState.settings.teams,
-      baseState.settings.rounds,
+      DEFAULT_DRAFT_ROUNDS,
     )
-    void runMockCpuUntilUserTurn({
-      ...baseState,
-      perspectiveTeamIndex,
-      players,
-      board: empty,
-      source: "manual",
-    })
+    void runMockCpuUntilUserTurn(
+      toMockLeagueState(baseState, perspectiveTeamIndex, players, empty),
+    )
   }
 
   const handleEnterMock = () => {
@@ -424,13 +442,14 @@ export const DraftWorkspace = ({
       state.settings.teams,
       playerId,
     )
-    void runMockCpuUntilUserTurn({
-      ...state,
-      perspectiveTeamIndex: mockPerspectiveTeamIndex,
-      players: mockPlayers,
-      board: afterHuman,
-      source: "manual",
-    })
+    void runMockCpuUntilUserTurn(
+      toMockLeagueState(
+        state,
+        mockPerspectiveTeamIndex,
+        mockPlayers,
+        afterHuman,
+      ),
+    )
   }
 
   const handleLiveMarkPicked = async (playerId: string) => {
@@ -553,14 +572,21 @@ export const DraftWorkspace = ({
             <MockDraftView
               isAdvancing={isMockAdvancing}
               isSavingPick={isSavingPick}
+              isSimulating={false}
               latestPick={latestMockPick}
               mockBoard={mockBoard}
+              mockResult={null}
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
               onSlotChange={handleMockSlotChange}
               perspectiveTeamIndex={mockPerspectiveTeamIndex}
               players={mockPlayers}
-              state={state}
+              state={toMockLeagueState(
+                state,
+                mockPerspectiveTeamIndex,
+                mockPlayers,
+                mockBoard,
+              )}
             />
           ) : null}
           {mode === "live" ? (

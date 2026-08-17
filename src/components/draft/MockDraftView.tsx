@@ -4,9 +4,15 @@ import type { ChangeEvent } from "react"
 import { BoardGrid } from "@/components/draft/BoardGrid"
 import { MockDraftAnalysis } from "@/components/draft/MockDraftAnalysis"
 import { PlayerPool } from "@/components/draft/PlayerPool"
+import { RecPanel } from "@/components/draft/RecPanel"
 import { Button } from "@/components/ui/Button"
 import { isUserTurn } from "@/lib/domain/snake"
-import type { DraftBoard, LeagueState, Player } from "@/lib/domain/types"
+import type {
+  DraftBoard,
+  LeagueState,
+  Player,
+  SimulationResult,
+} from "@/lib/domain/types"
 
 export type MockLatestPick = {
   overall: number
@@ -17,8 +23,10 @@ export type MockLatestPick = {
 type MockDraftViewProps = {
   isAdvancing: boolean
   isSavingPick: boolean
+  isSimulating?: boolean
   latestPick: MockLatestPick | null
   mockBoard: DraftBoard
+  mockResult: SimulationResult | null
   onMarkPicked: (playerId: string) => void
   onReset: () => void
   onSlotChange: (slot: number) => void
@@ -30,8 +38,10 @@ type MockDraftViewProps = {
 export const MockDraftView = ({
   isAdvancing,
   isSavingPick,
+  isSimulating = false,
   latestPick,
   mockBoard,
+  mockResult,
   onMarkPicked,
   onReset,
   onSlotChange,
@@ -167,7 +177,7 @@ export const MockDraftView = ({
           </Button>
         </div>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
+      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)_20rem]">
         <PlayerPool
           compact
           disabled={busy || !userTurn || draftComplete}
@@ -176,6 +186,20 @@ export const MockDraftView = ({
           players={players}
         />
         <BoardGrid label="Mock draft" state={mockState} />
+        <RecPanel
+          emptyMessage={
+            draftComplete
+              ? "Draft complete."
+              : busy
+                ? "Opponents are picking…"
+                : "Waiting for recommendations…"
+          }
+          isSimulating={isSimulating && userTurn && !draftComplete}
+          maxNextPicks={3}
+          players={players}
+          result={mockResult}
+          showCategoryOutlook={false}
+        />
       </div>
       <MockDraftAnalysis
         isAdvancing={isAdvancing}
