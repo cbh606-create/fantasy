@@ -259,6 +259,7 @@ export const DraftWorkspace = ({
     simulationState: LeagueState,
     controller: AbortController,
   ) => {
+    setError("")
     setIsMockSimulating(true)
 
     try {
