@@ -10,6 +10,7 @@ import { PrepView } from "@/components/draft/PrepView"
 import {
   buildEmptyBoard,
   DEFAULT_DRAFT_ROUNDS,
+  isUserTurn,
   teamIndexForOverall,
 } from "@/lib/domain/snake"
 import type {
@@ -123,6 +124,7 @@ export const DraftWorkspace = ({
     null,
   )
   const [result, setResult] = useState<SimulationResult | null>(null)
+  const [mockResult, setMockResult] = useState<SimulationResult | null>(null)
   const [mode, setMode] = useState<WorkspaceMode>(initialMode)
   const [simCount, setSimCount] = useState(40)
   const [isLoading, setIsLoading] = useState(true)
@@ -130,11 +132,16 @@ export const DraftWorkspace = ({
   const [isSyncing, setIsSyncing] = useState(false)
   const [isSavingPick, setIsSavingPick] = useState(false)
   const [isMockAdvancing, setIsMockAdvancing] = useState(false)
+  const [isMockSimulating, setIsMockSimulating] = useState(false)
   const [isManualMode, setIsManualMode] = useState(false)
   const [syncError, setSyncError] = useState("")
   const [error, setError] = useState("")
   const simulationControllerRef = useRef<AbortController | null>(null)
   const simulationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mockSimulationControllerRef = useRef<AbortController | null>(null)
+  const mockSimulationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  )
   const mockAdvanceControllerRef = useRef<AbortController | null>(null)
   const didAutoEnterMockRef = useRef(false)
 
@@ -184,6 +191,10 @@ export const DraftWorkspace = ({
         clearTimeout(simulationTimerRef.current)
       }
       simulationControllerRef.current?.abort()
+      if (mockSimulationTimerRef.current) {
+        clearTimeout(mockSimulationTimerRef.current)
+      }
+      mockSimulationControllerRef.current?.abort()
       mockAdvanceControllerRef.current?.abort()
     },
     [],
@@ -242,6 +253,64 @@ export const DraftWorkspace = ({
       simulationControllerRef.current = controller
       void runSimulation(nextState, controller)
     }, 400)
+  }
+
+  const runMockSimulation = async (
+    simulationState: LeagueState,
+    controller: AbortController,
+  ) => {
+    setIsMockSimulating(true)
+
+    try {
+      const response = await fetch("/api/draft/simulate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ state: simulationState, simCount }),
+        signal: controller.signal,
+      })
+
+      if (!response.ok) throw new Error("Unable to run the simulation")
+
+      setMockResult((await response.json()) as SimulationResult)
+    } catch (requestError) {
+      if (
+        requestError instanceof DOMException &&
+        requestError.name === "AbortError"
+      ) {
+        return
+      }
+
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to run the simulation",
+      )
+    } finally {
+      if (!controller.signal.aborted) setIsMockSimulating(false)
+    }
+  }
+
+  const scheduleMockSimulation = (nextState: LeagueState) => {
+    if (mockSimulationTimerRef.current) {
+      clearTimeout(mockSimulationTimerRef.current)
+    }
+    mockSimulationControllerRef.current?.abort()
+
+    mockSimulationTimerRef.current = setTimeout(() => {
+      const controller = new AbortController()
+      mockSimulationControllerRef.current = controller
+      void runMockSimulation(nextState, controller)
+    }, 400)
+  }
+
+  const clearMockSimulation = () => {
+    if (mockSimulationTimerRef.current) {
+      clearTimeout(mockSimulationTimerRef.current)
+      mockSimulationTimerRef.current = null
+    }
+    mockSimulationControllerRef.current?.abort()
+    setMockResult(null)
+    setIsMockSimulating(false)
   }
 
   const handleSync = async () => {
@@ -352,6 +421,15 @@ export const DraftWorkspace = ({
     } finally {
       if (mockAdvanceControllerRef.current === controller) {
         setIsMockAdvancing(false)
+        const teams = current.settings.teams
+        const total = teams * current.settings.rounds
+        const complete = current.board.currentOverall > total
+        if (
+          !complete &&
+          isUserTurn(current.board, current.perspectiveTeamIndex, teams)
+        ) {
+          scheduleMockSimulation(current)
+        }
       }
     }
   }
@@ -373,6 +451,7 @@ export const DraftWorkspace = ({
     perspectiveTeamIndex = baseState.perspectiveTeamIndex,
     options: { refreshPlayers?: boolean } = {},
   ) => {
+    clearMockSimulation()
     setLatestMockPick(null)
     setMockPerspectiveTeamIndex(perspectiveTeamIndex)
     const players =
@@ -572,10 +651,10 @@ export const DraftWorkspace = ({
             <MockDraftView
               isAdvancing={isMockAdvancing}
               isSavingPick={isSavingPick}
-              isSimulating={false}
+              isSimulating={isMockSimulating}
               latestPick={latestMockPick}
               mockBoard={mockBoard}
-              mockResult={null}
+              mockResult={mockResult}
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
               onSlotChange={handleMockSlotChange}

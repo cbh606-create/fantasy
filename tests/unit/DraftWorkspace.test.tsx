@@ -336,6 +336,39 @@ describe("DraftWorkspace", () => {
         })
       }
 
+      if (url === "/api/draft/simulate") {
+        return new Response(
+          JSON.stringify({
+            nextPicks: [
+              { playerId: "player-2", score: 9, frequency: 0.6 },
+              { playerId: "player-3", score: 8, frequency: 0.3 },
+              { playerId: "player-4", score: 7, frequency: 0.1 },
+              { playerId: "player-1", score: 6, frequency: 0.0 },
+            ],
+            topCombinations: [],
+            categoryOutlook: {
+              FG_PCT: 0,
+              FT_PCT: 0,
+              TPM: 0,
+              REB: 0,
+              AST: 0,
+              STL: 0,
+              BLK: 0,
+              TO: 0,
+              PTS: 0,
+            },
+            meta: {
+              simCount: 40,
+              seed: 1,
+              generatedAt: "2026-08-18T00:00:00.000Z",
+              latencyMs: 1,
+              source: "manual",
+            },
+          } satisfies SimulationResult),
+          { status: 200 },
+        )
+      }
+
       return new Response(
         JSON.stringify({
           id: "league-1",
@@ -366,6 +399,27 @@ describe("DraftWorkspace", () => {
       },
       { timeout: 3_000 },
     )
+    await waitFor(
+      () => {
+        const nextPicksHeading = screen.getByRole("heading", {
+          name: /next picks/i,
+        })
+        const recSection = nextPicksHeading.closest("section")
+        expect(recSection).toHaveTextContent("Second Player")
+      },
+      { timeout: 4_000 },
+    )
+    expect(
+      screen.getByRole("heading", { name: /next picks/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("heading", { name: /category outlook/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      vi.mocked(fetch).mock.calls.some(
+        (call) => String(call[0]) === "/api/draft/simulate",
+      ),
+    ).toBe(true)
     expect(screen.getByText(/latest pick/i)).toBeInTheDocument()
 
     fireEvent.change(screen.getByRole("combobox", { name: "Your pick slot" }), {
