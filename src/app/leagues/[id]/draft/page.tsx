@@ -2,10 +2,22 @@ import { DraftWorkspace } from "@/components/draft/DraftWorkspace"
 
 type DraftPageProps = {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ tab?: string }>
 }
 
-export default async function DraftPage({ params }: DraftPageProps) {
-  const { id } = await params
+const parseInitialMode = (tab?: string) => {
+  if (tab === "mock" || tab === "live" || tab === "prep") return tab
+  return "prep"
+}
 
-  return <DraftWorkspace leagueId={id} />
+export default async function DraftPage({
+  params,
+  searchParams,
+}: DraftPageProps) {
+  const { id } = await params
+  const { tab } = await searchParams
+
+  return (
+    <DraftWorkspace initialMode={parseInitialMode(tab)} leagueId={id} />
+  )
 }

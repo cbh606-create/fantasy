@@ -23,7 +23,7 @@ export default function Home() {
               className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--color-hairline)] px-8 font-medium transition-colors hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
               href="/leagues/new"
             >
-              Start draft prep
+              Start mock draft
             </Link>
             <Link
               className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--color-hairline)] px-8 font-medium transition-colors hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"

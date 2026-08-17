@@ -34,10 +34,6 @@ const wait = (ms: number, signal: AbortSignal) =>
     signal.addEventListener("abort", handleAbort, { once: true })
   })
 
-type DraftWorkspaceProps = {
-  leagueId: string
-}
-
 type LeagueResponse = {
   id: string
   name: string
@@ -47,6 +43,11 @@ type LeagueResponse = {
 }
 
 type WorkspaceMode = "prep" | "mock" | "live"
+
+type DraftWorkspaceProps = {
+  initialMode?: WorkspaceMode
+  leagueId: string
+}
 
 const MODE_LABELS: Record<WorkspaceMode, string> = {
   prep: "Prep",
@@ -85,7 +86,10 @@ const applyPickToBoard = (
   }
 }
 
-export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
+export const DraftWorkspace = ({
+  initialMode = "prep",
+  leagueId,
+}: DraftWorkspaceProps) => {
   const [leagueName, setLeagueName] = useState("")
   const [espnLeagueId, setEspnLeagueId] = useState<string | null>(null)
   const [season, setSeason] = useState<number | null>(null)
@@ -97,7 +101,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
     null,
   )
   const [result, setResult] = useState<SimulationResult | null>(null)
-  const [mode, setMode] = useState<WorkspaceMode>("prep")
+  const [mode, setMode] = useState<WorkspaceMode>(initialMode)
   const [simCount, setSimCount] = useState(40)
   const [isLoading, setIsLoading] = useState(true)
   const [isSimulating, setIsSimulating] = useState(false)
@@ -110,6 +114,7 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
   const simulationControllerRef = useRef<AbortController | null>(null)
   const simulationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mockAdvanceControllerRef = useRef<AbortController | null>(null)
+  const didAutoEnterMockRef = useRef(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -376,6 +381,13 @@ export const DraftWorkspace = ({ leagueId }: DraftWorkspaceProps) => {
       })
     }
   }
+
+  useEffect(() => {
+    if (didAutoEnterMockRef.current) return
+    if (initialMode !== "mock" || !state || isLoading) return
+    didAutoEnterMockRef.current = true
+    handleEnterMock()
+  }, [initialMode, state, isLoading])
 
   const handleResetMock = () => {
     if (!state) return
