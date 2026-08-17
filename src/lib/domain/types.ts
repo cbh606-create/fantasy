@@ -63,6 +63,8 @@ export type SimulationInput = {
   simCount: number
   seed: number
   forcePickPlayerId?: string
+  /** Skip per-candidate force sims; rank next picks from free-sim frequencies. */
+  fastRecommendations?: boolean
 }
 
 export type NextPickRec = {

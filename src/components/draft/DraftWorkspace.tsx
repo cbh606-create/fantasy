@@ -19,6 +19,7 @@ import type {
   Player,
   SimulationResult,
 } from "@/lib/domain/types"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
 
 const toMockLeagueState = (
@@ -40,6 +41,45 @@ const toMockLeagueState = (
 })
 
 const MOCK_PICK_DELAY_MS = 280
+const MOCK_SIM_COUNT = 12
+const MOCK_SIM_DEBOUNCE_MS = 50
+
+const buildQuickMockRecommendations = (
+  leagueState: LeagueState,
+): SimulationResult => {
+  const draftedPlayerIds = new Set(
+    leagueState.board.picks.flatMap((pick) =>
+      pick.playerId ? [pick.playerId] : [],
+    ),
+  )
+  const topAvailable = [...leagueState.players]
+    .filter((player) => !draftedPlayerIds.has(player.id))
+    .sort(
+      (left, right) =>
+        left.adp - right.adp || left.id.localeCompare(right.id),
+    )
+    .slice(0, 3)
+  const categoryOutlook = Object.fromEntries(
+    ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
+  ) as SimulationResult["categoryOutlook"]
+
+  return {
+    nextPicks: topAvailable.map((player, index) => ({
+      playerId: player.id,
+      score: topAvailable.length - index,
+      frequency: (topAvailable.length - index) / 6,
+    })),
+    topCombinations: [],
+    categoryOutlook,
+    meta: {
+      simCount: 0,
+      seed: 0,
+      generatedAt: new Date().toISOString(),
+      latencyMs: 0,
+      source: leagueState.source,
+    },
+  }
+}
 
 const wait = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
@@ -266,7 +306,11 @@ export const DraftWorkspace = ({
       const response = await fetch("/api/draft/simulate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ state: simulationState, simCount }),
+        body: JSON.stringify({
+          state: simulationState,
+          simCount: MOCK_SIM_COUNT,
+          fastRecommendations: true,
+        }),
         signal: controller.signal,
       })
 
@@ -291,27 +335,29 @@ export const DraftWorkspace = ({
     }
   }
 
-  const scheduleMockSimulation = (nextState: LeagueState) => {
-    if (mockSimulationTimerRef.current) {
-      clearTimeout(mockSimulationTimerRef.current)
-    }
-    mockSimulationControllerRef.current?.abort()
-
-    mockSimulationTimerRef.current = setTimeout(() => {
-      const controller = new AbortController()
-      mockSimulationControllerRef.current = controller
-      void runMockSimulation(nextState, controller)
-    }, 400)
-  }
-
-  const clearMockSimulation = () => {
+  const abortMockSimulation = () => {
     if (mockSimulationTimerRef.current) {
       clearTimeout(mockSimulationTimerRef.current)
       mockSimulationTimerRef.current = null
     }
     mockSimulationControllerRef.current?.abort()
-    setMockResult(null)
     setIsMockSimulating(false)
+  }
+
+  const scheduleMockSimulation = (nextState: LeagueState) => {
+    abortMockSimulation()
+    setMockResult(buildQuickMockRecommendations(nextState))
+
+    mockSimulationTimerRef.current = setTimeout(() => {
+      const controller = new AbortController()
+      mockSimulationControllerRef.current = controller
+      void runMockSimulation(nextState, controller)
+    }, MOCK_SIM_DEBOUNCE_MS)
+  }
+
+  const clearMockSimulation = () => {
+    abortMockSimulation()
+    setMockResult(null)
   }
 
   const handleSync = async () => {
@@ -381,7 +427,7 @@ export const DraftWorkspace = ({
   }
 
   const runMockCpuUntilUserTurn = async (baseState: LeagueState) => {
-    clearMockSimulation()
+    abortMockSimulation()
     mockAdvanceControllerRef.current?.abort()
     const controller = new AbortController()
     mockAdvanceControllerRef.current = controller

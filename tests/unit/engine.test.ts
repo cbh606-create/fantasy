@@ -65,6 +65,19 @@ describe("runDraftSimulation", () => {
     )
   })
 
+  it("returns at most three next picks quickly with fastRecommendations", () => {
+    const result = runDraftSimulation({
+      state: createState(),
+      simCount: 8,
+      seed: 11,
+      fastRecommendations: true,
+    })
+
+    expect(result.nextPicks.length).toBeGreaterThan(0)
+    expect(result.nextPicks.length).toBeLessThanOrEqual(3)
+    expect(result.meta.latencyMs).toBeLessThan(5_000)
+  })
+
   it("fills only the remaining user slots in a mid-draft state", () => {
     const state = createState()
     state.board.picks[0].playerId = state.players[0].id

@@ -64,6 +64,7 @@ export const simulateBodySchema = z.object({
   simCount: z.number().int().min(1).max(100).default(40),
   seed: z.number().int().default(() => Date.now() >>> 0),
   forcePickPlayerId: z.string().min(1).optional(),
+  fastRecommendations: z.boolean().optional(),
 })
 
 export type SimulateBody = z.infer<typeof simulateBodySchema>

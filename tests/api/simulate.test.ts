@@ -87,17 +87,17 @@ describe("POST /api/draft/simulate", () => {
     expect(response.status).toBe(401)
   })
 
-  it("limits each user to ten requests per minute", async () => {
+  it("limits each user to forty requests per minute", async () => {
     authenticateAs(`limited-${crypto.randomUUID()}`)
 
-    for (let requestNumber = 0; requestNumber < 10; requestNumber++) {
+    for (let requestNumber = 0; requestNumber < 40; requestNumber++) {
       const response = await POST(
         createRequest({ state, simCount: 1, seed: requestNumber }),
       )
       expect(response.status).toBe(200)
     }
 
-    const response = await POST(createRequest({ state, simCount: 1, seed: 10 }))
+    const response = await POST(createRequest({ state, simCount: 1, seed: 40 }))
 
     expect(response.status).toBe(429)
   })

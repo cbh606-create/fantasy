@@ -422,6 +422,17 @@ describe("DraftWorkspace", () => {
         (call) => String(call[0]) === "/api/draft/simulate",
       ),
     ).toBe(true)
+    const mockSimulateCall = vi
+      .mocked(fetch)
+      .mock.calls.find((call) => String(call[0]) === "/api/draft/simulate")
+    const mockSimulateBody = JSON.parse(
+      String(mockSimulateCall?.[1]?.body ?? "{}"),
+    ) as {
+      simCount?: number
+      fastRecommendations?: boolean
+    }
+    expect(mockSimulateBody.simCount).toBe(12)
+    expect(mockSimulateBody.fastRecommendations).toBe(true)
     expect(mockSimulationSignals[0]?.aborted).toBe(false)
     expect(screen.getByText(/latest pick/i)).toBeInTheDocument()
 

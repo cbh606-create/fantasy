@@ -272,35 +272,69 @@ export const runDraftSimulation = (
       }
     }
 
-    const candidates = [...remaining]
-      .sort((left, right) => left.adp - right.adp || left.id.localeCompare(right.id))
-      .slice(0, 12)
+    const adpById = new Map(remaining.map((player) => [player.id, player.adp]))
 
-    nextPicks = candidates
-      .map((candidate) => {
-        const candidateOutcomes = Array.from(
-          { length: simCount },
-          (_, index) =>
-            simulateDraft(input.state, input.seed + index, candidate.id),
+    if (input.fastRecommendations) {
+      const rankedIds = [...firstPickFrequencies.entries()]
+        .sort(
+          (left, right) =>
+            right[1] - left[1] ||
+            (adpById.get(left[0]) ?? 999) - (adpById.get(right[0]) ?? 999) ||
+            left[0].localeCompare(right[0]),
         )
+        .map(([playerId]) => playerId)
 
-        return {
-          playerId: candidate.id,
-          score:
-            candidateOutcomes.reduce(
-              (total, outcome) => total + outcome.score,
-              0,
-            ) / simCount,
-          frequency:
-            (firstPickFrequencies.get(candidate.id) ?? 0) / simCount,
-        }
-      })
-      .sort(
-        (left, right) =>
-          right.score - left.score ||
-          right.frequency - left.frequency ||
-          left.playerId.localeCompare(right.playerId),
-      )
+      const fallbackIds = [...remaining]
+        .sort(
+          (left, right) =>
+            left.adp - right.adp || left.id.localeCompare(right.id),
+        )
+        .map((player) => player.id)
+
+      const orderedIds = [
+        ...rankedIds,
+        ...fallbackIds.filter((playerId) => !firstPickFrequencies.has(playerId)),
+      ].slice(0, 3)
+
+      nextPicks = orderedIds.map((playerId) => ({
+        playerId,
+        score: firstPickFrequencies.get(playerId) ?? 0,
+        frequency: (firstPickFrequencies.get(playerId) ?? 0) / simCount,
+      }))
+    } else {
+      const candidates = [...remaining]
+        .sort(
+          (left, right) =>
+            left.adp - right.adp || left.id.localeCompare(right.id),
+        )
+        .slice(0, 12)
+
+      nextPicks = candidates
+        .map((candidate) => {
+          const candidateOutcomes = Array.from(
+            { length: simCount },
+            (_, index) =>
+              simulateDraft(input.state, input.seed + index, candidate.id),
+          )
+
+          return {
+            playerId: candidate.id,
+            score:
+              candidateOutcomes.reduce(
+                (total, outcome) => total + outcome.score,
+                0,
+              ) / simCount,
+            frequency:
+              (firstPickFrequencies.get(candidate.id) ?? 0) / simCount,
+          }
+        })
+        .sort(
+          (left, right) =>
+            right.score - left.score ||
+            right.frequency - left.frequency ||
+            left.playerId.localeCompare(right.playerId),
+        )
+    }
   }
 
   return {
