@@ -75,7 +75,7 @@ export const InjuryPickupsPanel = ({
       </p>
       <h2 className="mt-1 text-lg font-semibold">Injury pickups</h2>
       <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
-        Depth-chart backups for OUT / GTD — distinct from season needs
+        Depth-chart backups for OUT / GTD — not season needs or matchup stream
       </p>
 
       {isLoading ? (
