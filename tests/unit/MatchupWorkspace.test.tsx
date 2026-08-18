@@ -141,6 +141,35 @@ const matchupAdvice: MatchupAdvice & {
   ],
 }
 
+const injuryPickupsResponse = {
+  events: [
+    {
+      playerId: "trae-young",
+      teamAbbr: "ATL",
+      status: "out" as const,
+      note: "Right knee",
+    },
+  ],
+  recommendations: [
+    {
+      injuredPlayerId: "trae-young",
+      injuredPlayerName: "Trae Young",
+      addPlayerId: "nickeil-alexander-walker",
+      addPlayerName: "Nickeil Alexander-Walker",
+      teamAbbr: "ATL",
+      status: "out" as const,
+      depthRank: 1,
+      urgency: "roster" as const,
+      score: 100,
+      reasons: [
+        "ATL depth #1 behind Trae Young (OUT)",
+        "On your roster — replace minutes",
+      ],
+    },
+  ],
+  source: { depth: "fixture" as const, injuries: "fixture" as const },
+}
+
 describe("MatchupWorkspace", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn(async (input, init) => {
@@ -151,10 +180,17 @@ describe("MatchupWorkspace", () => {
         return new Response(JSON.stringify({ state }), { status: 200 })
       }
 
-      if (
-        url.startsWith("/api/matchup?seasonLeagueId=season-1&opponentTeamIndex=1")
-      ) {
-        return new Response(JSON.stringify(matchupAdvice), { status: 200 })
+      if (url.startsWith("/api/matchup?") && !url.includes("apply-lineup")) {
+        return new Response(
+          JSON.stringify({ ...matchupAdvice, state }),
+          { status: 200 },
+        )
+      }
+
+      if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
+        return new Response(JSON.stringify(injuryPickupsResponse), {
+          status: 200,
+        })
       }
 
       if (url === "/api/matchup/apply-lineup" && method === "POST") {
@@ -230,5 +266,67 @@ describe("MatchupWorkspace", () => {
         boardBefore,
       )
     })
+  })
+
+  it("links injury alert CTA to waivers with addPlayerId", async () => {
+    render(<MatchupWorkspace leagueId="season-1" />)
+
+    const cta = await screen.findByRole("link", {
+      name: /Nickeil Alexander-Walker/i,
+    })
+
+    expect(cta.getAttribute("href")).toContain(
+      "addPlayerId=nickeil-alexander-walker",
+    )
+  })
+
+  it("hides injury alerts when there are no recommendations", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input, init) => {
+      const url = String(input)
+      const method = init?.method ?? "GET"
+
+      if (url.startsWith("/api/matchup?") && !url.includes("apply-lineup")) {
+        return new Response(
+          JSON.stringify({ ...matchupAdvice, state }),
+          { status: 200 },
+        )
+      }
+
+      if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
+        return new Response(
+          JSON.stringify({
+            events: [],
+            recommendations: [],
+            source: { depth: "fixture", injuries: "fixture" },
+          }),
+          { status: 200 },
+        )
+      }
+
+      if (url === "/api/matchup/apply-lineup" && method === "POST") {
+        return new Response(JSON.stringify({ ok: true, entries: [] }), {
+          status: 200,
+        })
+      }
+
+      return new Response("missing", { status: 404 })
+    }))
+
+    render(<MatchupWorkspace leagueId="season-1" />)
+
+    expect(
+      await screen.findByRole("heading", { name: "Streamers" }),
+    ).toBeInTheDocument()
+
+    await waitFor(() => {
+      const injuryGets = vi.mocked(fetch).mock.calls.filter(([request]) =>
+        String(request).includes("/api/injuries/pickups"),
+      )
+      expect(injuryGets.length).toBeGreaterThan(0)
+    })
+
+    expect(
+      screen.queryByRole("heading", { name: "Injury alerts" }),
+    ).not.toBeInTheDocument()
   })
 })

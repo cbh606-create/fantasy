@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { DailyLineupPanel } from "@/components/matchup/DailyLineupPanel"
+import { InjuryAlertsPanel } from "@/components/matchup/InjuryAlertsPanel"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
@@ -474,6 +475,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             playersById={matchupData.playersById}
             suggestions={matchupData.sitStart}
           />
+          <InjuryAlertsPanel leagueId={leagueId} />
           <StreamersPanel
             leagueId={leagueId}
             playersById={matchupData.playersById}
