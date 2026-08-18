@@ -101,6 +101,59 @@ const previewResponse = {
   categoryDeltas: [{ categoryId: "AST" as const, rankBefore: 10, rankAfter: 7 }],
 }
 
+const streamResponse = {
+  mode: "matchup" as const,
+  windowDays: ["2026-03-09", "2026-03-10"],
+  opponentTeamIndex: 1,
+  pairs: [
+    {
+      addPlayerId: "fa-1",
+      dropPlayerId: "you-1",
+      addGames: 3,
+      dropGames: 1,
+      score: 1.2,
+      deltaCatWins: 1,
+      reasons: ["Helps AST · 3 games"],
+    },
+  ],
+  topAdds: [
+    {
+      playerId: "fa-1",
+      games: 3,
+      score: 1.2,
+      reasons: ["Helps AST"],
+    },
+  ],
+  topDrops: [
+    {
+      playerId: "you-1",
+      games: 1,
+      score: 0.4,
+      reasons: ["Drop low games"],
+    },
+  ],
+}
+
+const streamPreviewResponse = {
+  mode: "matchup" as const,
+  windowDays: ["2026-03-09", "2026-03-10"],
+  before: {
+    wins: 3,
+    losses: 5,
+    ties: 1,
+    projectedCatWins: 3.2,
+    categories: [],
+  },
+  after: {
+    wins: 5,
+    losses: 3,
+    ties: 1,
+    projectedCatWins: 4.4,
+    categories: [],
+  },
+  summary: "Cats +2 (AST, STL)",
+}
+
 describe("WaiversWorkspace", () => {
   beforeEach(() => {
     mockSearchParams.get = () => null
@@ -110,6 +163,14 @@ describe("WaiversWorkspace", () => {
 
       if (url === "/api/waivers/pool?seasonLeagueId=season-1") {
         return new Response(JSON.stringify(poolResponse), { status: 200 })
+      }
+
+      if (url.includes("/api/waivers/matchup-stream/preview") && method === "POST") {
+        return new Response(JSON.stringify(streamPreviewResponse), { status: 200 })
+      }
+
+      if (url.includes("/api/waivers/matchup-stream") && method === "GET") {
+        return new Response(JSON.stringify(streamResponse), { status: 200 })
       }
 
       if (url === "/api/waivers/preview" && method === "POST") {
@@ -129,12 +190,12 @@ describe("WaiversWorkspace", () => {
     render(<WaiversWorkspace leagueId="season-1" />)
 
     const recommendationsHeading = await screen.findByRole("heading", {
-      name: "Recommended pickups",
+      name: "Season needs",
     })
     expect(recommendationsHeading).toBeInTheDocument()
 
     const recommendation = screen.getByRole("button", {
-      name: /add free agent guard/i,
+      name: "Add Free Agent Guard",
     })
     fireEvent.click(recommendation)
     expect(recommendation).toHaveAttribute("aria-pressed", "true")
@@ -156,10 +217,42 @@ describe("WaiversWorkspace", () => {
 
     render(<WaiversWorkspace leagueId="season-1" />)
 
-    await screen.findByRole("heading", { name: "Recommended pickups" })
+    await screen.findByRole("heading", { name: "Season needs" })
 
     expect(
-      screen.getByRole("button", { name: /add free agent guard/i }),
+      screen.getByRole("button", { name: "Add Free Agent Guard" }),
     ).toHaveAttribute("aria-pressed", "true")
+  })
+
+  it("prefills builder from a matchup stream pair and shows delta summary", async () => {
+    render(<WaiversWorkspace leagueId="season-1" />)
+
+    await screen.findByRole("heading", { name: "Matchup stream" })
+
+    await waitFor(() => {
+      const streamGets = vi.mocked(fetch).mock.calls.filter(([input, init]) => {
+        const url = String(input)
+        const method = init?.method ?? "GET"
+        return method === "GET" && url.includes("/api/waivers/matchup-stream")
+      })
+
+      expect(streamGets[0]?.[0]).toBe(
+        "/api/waivers/matchup-stream?seasonLeagueId=season-1&opponentTeamIndex=1",
+      )
+    })
+
+    const pairButton = await screen.findByRole("button", {
+      name: "Add Free Agent Guard / drop Your Starter",
+    })
+    fireEvent.click(pairButton)
+
+    expect(
+      screen.getByRole("heading", { name: "Free Agent Guard" }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText("Drop (optional)")).toHaveValue("you-1")
+
+    expect(
+      await screen.findByText("Cats +2 (AST, STL)"),
+    ).toBeInTheDocument()
   })
 })

@@ -2,15 +2,18 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { Banner } from "@/components/ui/Banner"
 import { AddDropBuilder } from "@/components/waivers/AddDropBuilder"
 import { AvailablePoolTable } from "@/components/waivers/AvailablePoolTable"
+import { MatchupStreamDelta } from "@/components/waivers/MatchupStreamDelta"
+import { MatchupStreamPanel } from "@/components/waivers/MatchupStreamPanel"
 import { RecommendedPickups } from "@/components/waivers/RecommendedPickups"
 import { WaiverAssumeModal } from "@/components/waivers/WaiverAssumeModal"
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
+import type { MatchupStreamPreviewResult } from "@/lib/waivers/matchupStreamTypes"
 import type { AddDropPreview, PickupRecommendation } from "@/lib/waivers/types"
 
 type WaiversWorkspaceProps = {
@@ -49,6 +52,12 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isPreviewing, setIsPreviewing] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
+  const [streamOpponent, setStreamOpponent] = useState<number | null>(null)
+  const [streamDayCount, setStreamDayCount] = useState<number | null>(null)
+  const [streamDelta, setStreamDelta] = useState<MatchupStreamPreviewResult | null>(null)
+  const [streamDeltaError, setStreamDeltaError] = useState("")
+  const [isStreamDeltaLoading, setIsStreamDeltaLoading] = useState(false)
+  const didInitStreamOpponent = useRef(false)
 
   const loadWorkspace = useCallback(async (signal?: AbortSignal) => {
     const poolResponse = await fetch(
@@ -64,6 +73,14 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
 
     setState(pool.state)
     setPoolData(pool)
+
+    if (!didInitStreamOpponent.current) {
+      const firstOtherTeam = pool.state.teams.find(
+        (team) => team.teamIndex !== pool.state.perspectiveTeamIndex,
+      )
+      setStreamOpponent(firstOtherTeam?.teamIndex ?? null)
+      didInitStreamOpponent.current = true
+    }
   }, [leagueId])
 
   useEffect(() => {
@@ -95,6 +112,70 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
     if (addPlayerId) setSelectedAddId(addPlayerId)
   }, [searchParams])
 
+  useEffect(() => {
+    if (!selectedAddId || !didInitStreamOpponent.current) {
+      setStreamDelta(null)
+      setStreamDeltaError("")
+      setIsStreamDeltaLoading(false)
+      return
+    }
+
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(() => {
+      const loadDelta = async () => {
+        setIsStreamDeltaLoading(true)
+        setStreamDeltaError("")
+
+        try {
+          const response = await fetch("/api/waivers/matchup-stream/preview", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              seasonLeagueId: leagueId,
+              addPlayerId: selectedAddId,
+              dropPlayerId: selectedDropId,
+              opponentTeamIndex: streamOpponent ?? undefined,
+              dayCount: streamDayCount ?? undefined,
+            }),
+            signal: controller.signal,
+          })
+
+          const payload = (await response.json()) as
+            | MatchupStreamPreviewResult
+            | { error: string }
+
+          if (!response.ok) {
+            throw new Error(
+              "error" in payload ? payload.error : "Unable to preview matchup stream",
+            )
+          }
+
+          setStreamDelta(payload as MatchupStreamPreviewResult)
+        } catch (requestError) {
+          if (requestError instanceof DOMException && requestError.name === "AbortError") {
+            return
+          }
+
+          setStreamDelta(null)
+          setStreamDeltaError(
+            requestError instanceof Error
+              ? requestError.message
+              : "Unable to preview matchup stream",
+          )
+        } finally {
+          if (!controller.signal.aborted) setIsStreamDeltaLoading(false)
+        }
+      }
+
+      void loadDelta()
+    }, 250)
+
+    return () => {
+      controller.abort()
+      window.clearTimeout(timeoutId)
+    }
+  }, [leagueId, selectedAddId, selectedDropId, streamDayCount, streamOpponent])
+
   const handleSelectAdd = (playerId: string) => {
     setSelectedAddId(playerId)
     setSelectedDropId(null)
@@ -102,6 +183,29 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
     setPreviewError("")
     setClaimError("")
     setSuccessMessage("")
+  }
+
+  const handleSelectPair = (addPlayerId: string, dropPlayerId: string | null) => {
+    setSelectedAddId(addPlayerId)
+    setSelectedDropId(dropPlayerId)
+    setPreview(null)
+    setPreviewError("")
+    setClaimError("")
+    setSuccessMessage("")
+  }
+
+  const handleDropChange = (playerId: string | null) => {
+    setSelectedDropId(playerId)
+    setPreview(null)
+    setPreviewError("")
+  }
+
+  const handleOpponentChange = (opponentTeamIndex: number | null) => {
+    setStreamOpponent(opponentTeamIndex)
+  }
+
+  const handleDayCountChange = (dayCount: number | null) => {
+    setStreamDayCount(dayCount)
   }
 
   const handlePreview = async () => {
@@ -268,8 +372,23 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[22rem_1fr]">
           <div className="space-y-8">
+            <MatchupStreamPanel
+              dayCount={streamDayCount}
+              leagueId={leagueId}
+              onDayCountChange={handleDayCountChange}
+              onOpponentChange={handleOpponentChange}
+              onSelectPair={handleSelectPair}
+              opponentTeamIndex={streamOpponent}
+              playersById={poolData.playersById}
+              selectedAddId={selectedAddId}
+              selectedDropId={selectedDropId}
+              state={state}
+            />
             <section>
-              <h2 className="mb-3 text-lg font-semibold">Recommended pickups</h2>
+              <h2 className="mb-3 text-lg font-semibold">Season needs</h2>
+              <p className="mb-3 text-[0.8125rem] text-[var(--color-mute)]">
+                Season-long pickups vs Matchup stream short-horizon.
+              </p>
               <RecommendedPickups
                 onSelectAdd={handleSelectAdd}
                 playersById={poolData.playersById}
@@ -287,23 +406,26 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
             </section>
           </div>
 
-          <AddDropBuilder
-            addPlayerId={selectedAddId}
-            dropPlayerId={selectedDropId}
-            isClaiming={isClaiming}
-            isPreviewing={isPreviewing}
-            onConfirm={handleConfirm}
-            onDropChange={(playerId) => {
-              setSelectedDropId(playerId)
-              setPreview(null)
-              setPreviewError("")
-            }}
-            onPreview={() => void handlePreview()}
-            preview={preview}
-            previewError={previewError}
-            state={state}
-            youWaiverRank={poolData.youWaiverRank}
-          />
+          <div className="space-y-8">
+            <MatchupStreamDelta
+              error={streamDeltaError}
+              isLoading={isStreamDeltaLoading}
+              preview={streamDelta}
+            />
+            <AddDropBuilder
+              addPlayerId={selectedAddId}
+              dropPlayerId={selectedDropId}
+              isClaiming={isClaiming}
+              isPreviewing={isPreviewing}
+              onConfirm={handleConfirm}
+              onDropChange={handleDropChange}
+              onPreview={() => void handlePreview()}
+              preview={preview}
+              previewError={previewError}
+              state={state}
+              youWaiverRank={poolData.youWaiverRank}
+            />
+          </div>
         </div>
       </div>
 
