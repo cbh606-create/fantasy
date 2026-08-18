@@ -47,6 +47,14 @@ const state: SeasonLeagueState = {
       projections,
       shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
     },
+    {
+      id: "nickeil-alexander-walker",
+      name: "Nickeil Alexander-Walker",
+      availability: "fa",
+      teamAbbr: "ATL",
+      projections,
+      shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
+    },
   ],
   teams: [
     {
@@ -154,6 +162,32 @@ const streamPreviewResponse = {
   summary: "Cats +2 (AST, STL)",
 }
 
+const injuryPickupsResponse = {
+  events: [
+    {
+      playerId: "trae-young",
+      teamAbbr: "ATL",
+      status: "out" as const,
+      note: "Right knee",
+    },
+  ],
+  recommendations: [
+    {
+      injuredPlayerId: "trae-young",
+      injuredPlayerName: "Trae Young",
+      addPlayerId: "nickeil-alexander-walker",
+      addPlayerName: "Nickeil Alexander-Walker",
+      teamAbbr: "ATL",
+      status: "out" as const,
+      depthRank: 1,
+      urgency: "league" as const,
+      score: 100,
+      reasons: ["ATL depth #1 behind Trae Young (OUT)"],
+    },
+  ],
+  source: { depth: "fixture" as const, injuries: "fixture" as const },
+}
+
 describe("WaiversWorkspace", () => {
   beforeEach(() => {
     mockSearchParams.get = () => null
@@ -163,6 +197,10 @@ describe("WaiversWorkspace", () => {
 
       if (url === "/api/waivers/pool?seasonLeagueId=season-1") {
         return new Response(JSON.stringify(poolResponse), { status: 200 })
+      }
+
+      if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
+        return new Response(JSON.stringify(injuryPickupsResponse), { status: 200 })
       }
 
       if (url.includes("/api/waivers/matchup-stream/preview") && method === "POST") {
@@ -253,6 +291,76 @@ describe("WaiversWorkspace", () => {
 
     expect(
       await screen.findByText("Cats +2 (AST, STL)"),
+    ).toBeInTheDocument()
+  })
+
+  it("prefills builder from an injury pickup recommendation", async () => {
+    render(<WaiversWorkspace leagueId="season-1" />)
+
+    await screen.findByRole("heading", { name: "Injury pickups" })
+
+    await waitFor(() => {
+      const injuryGets = vi.mocked(fetch).mock.calls.filter(([input, init]) => {
+        const url = String(input)
+        const method = init?.method ?? "GET"
+        return method === "GET" && url.includes("/api/injuries/pickups")
+      })
+
+      expect(injuryGets[0]?.[0]).toBe(
+        "/api/injuries/pickups?seasonLeagueId=season-1",
+      )
+    })
+
+    const nawButton = await screen.findByRole("button", {
+      name: "Add Nickeil Alexander-Walker",
+    })
+    fireEvent.click(nawButton)
+
+    expect(nawButton).toHaveAttribute("aria-pressed", "true")
+    expect(
+      screen.getByRole("heading", { name: "Nickeil Alexander-Walker" }),
+    ).toBeInTheDocument()
+  })
+
+  it("shows empty copy when there are no injury pickups", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input, init) => {
+      const url = String(input)
+      const method = init?.method ?? "GET"
+
+      if (url === "/api/waivers/pool?seasonLeagueId=season-1") {
+        return new Response(JSON.stringify(poolResponse), { status: 200 })
+      }
+
+      if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
+        return new Response(
+          JSON.stringify({
+            events: [],
+            recommendations: [],
+            source: { depth: "fixture", injuries: "fixture" },
+          }),
+          { status: 200 },
+        )
+      }
+
+      if (url.includes("/api/waivers/matchup-stream/preview") && method === "POST") {
+        return new Response(JSON.stringify(streamPreviewResponse), { status: 200 })
+      }
+
+      if (url.includes("/api/waivers/matchup-stream") && method === "GET") {
+        return new Response(JSON.stringify(streamResponse), { status: 200 })
+      }
+
+      if (url === "/api/waivers/preview" && method === "POST") {
+        return new Response(JSON.stringify(previewResponse), { status: 200 })
+      }
+
+      return new Response("missing", { status: 404 })
+    }))
+
+    render(<WaiversWorkspace leagueId="season-1" />)
+
+    expect(
+      await screen.findByText("No injury-driven pickups right now."),
     ).toBeInTheDocument()
   })
 })
