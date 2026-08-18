@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { GET as getMatchupStream } from "@/app/api/waivers/matchup-stream/route"
+import { POST as previewMatchupStreamRoute } from "@/app/api/waivers/matchup-stream/preview/route"
 import { POST as createSeasonLeague } from "@/app/api/season-leagues/route"
 import { db } from "@/lib/db"
 
@@ -133,5 +134,53 @@ describe("GET /api/waivers/matchup-stream", () => {
 
     expect(response.status).toBe(200)
     expect(payload.windowDays).toHaveLength(7)
+  })
+})
+
+describe("POST /api/waivers/matchup-stream/preview", () => {
+  it("returns live before/after board for a valid add/drop", async () => {
+    const league = await createManualLeague()
+
+    const response = await previewMatchupStreamRoute(
+      createJsonRequest("/api/waivers/matchup-stream/preview", {
+        seasonLeagueId: league.id,
+        addPlayerId: "fa1",
+        dropPlayerId: "t3p11",
+        opponentTeamIndex: 1,
+        dayCount: 3,
+      }),
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload).toMatchObject({
+      mode: "matchup",
+      windowDays: expect.any(Array),
+      before: expect.objectContaining({
+        wins: expect.any(Number),
+        categories: expect.any(Array),
+      }),
+      after: expect.objectContaining({
+        wins: expect.any(Number),
+        categories: expect.any(Array),
+      }),
+      summary: expect.any(String),
+    })
+    expect(payload.windowDays).toHaveLength(3)
+  })
+
+  it("returns 400 when add player is not available", async () => {
+    const league = await createManualLeague()
+
+    const response = await previewMatchupStreamRoute(
+      createJsonRequest("/api/waivers/matchup-stream/preview", {
+        seasonLeagueId: league.id,
+        addPlayerId: "t1p1",
+        dropPlayerId: "t3p11",
+      }),
+    )
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: "add_not_available" })
   })
 })
