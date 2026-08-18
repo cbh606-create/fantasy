@@ -141,6 +141,8 @@ export const MatchupStreamPanel = ({
     onSelectPair(selectedAddId, summary.playerId)
   }
 
+  const canSelectTopDrop = Boolean(selectedAddId)
+
   return (
     <section className="rounded-3xl bg-[var(--color-soft-cloud)] p-5">
       <p className="text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
@@ -214,9 +216,20 @@ export const MatchupStreamPanel = ({
         </p>
       ) : null}
 
-      {!isLoading && !error && !stream?.pairs.length ? (
+      {!isLoading && !error && stream && !stream.windowDays.length ? (
         <p className="mt-4 border-y border-[var(--color-hairline)] py-6 text-[0.8125rem] text-[var(--color-mute)]">
-          No positive stream pairs for this window.
+          No matchup schedule loaded for this league.
+        </p>
+      ) : null}
+
+      {!isLoading &&
+      !error &&
+      stream &&
+      stream.windowDays.length > 0 &&
+      !stream.pairs.length ? (
+        <p className="mt-4 border-y border-[var(--color-hairline)] py-6 text-[0.8125rem] text-[var(--color-mute)]">
+          No positive stream pairs for this window. Try widening the window or
+          picking an opponent.
         </p>
       ) : null}
 
@@ -306,6 +319,11 @@ export const MatchupStreamPanel = ({
           </div>
           <div>
             <h3 className="text-sm font-semibold">Top drops</h3>
+            {!canSelectTopDrop && stream.topDrops.length ? (
+              <p className="mt-1 text-xs text-[var(--color-mute)]">
+                Select an add first to choose a drop.
+              </p>
+            ) : null}
             {stream.topDrops.length ? (
               <ul aria-label="Top stream drops" className="mt-2 space-y-1">
                 {stream.topDrops.map((summary) => {
@@ -318,8 +336,18 @@ export const MatchupStreamPanel = ({
                   return (
                     <li key={summary.playerId}>
                       <button
-                        aria-label={`Stream drop ${name}`}
-                        className="w-full rounded-xl px-2 py-1.5 text-left text-[0.8125rem] hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                        aria-disabled={!canSelectTopDrop}
+                        aria-label={
+                          canSelectTopDrop
+                            ? `Stream drop ${name}`
+                            : `Stream drop ${name} — select an add first`
+                        }
+                        className={`w-full rounded-xl px-2 py-1.5 text-left text-[0.8125rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                          canSelectTopDrop
+                            ? "hover:bg-white"
+                            : "cursor-not-allowed opacity-50"
+                        }`}
+                        disabled={!canSelectTopDrop}
                         onClick={() => handleSelectTopDrop(summary)}
                         type="button"
                       >
