@@ -1,11 +1,13 @@
 import { ClerkProvider } from "@clerk/nextjs"
 import type { Metadata } from "next"
-import { Bebas_Neue, Inter } from "next/font/google"
+import { Barlow, Bebas_Neue } from "next/font/google"
 import { SiteNav } from "@/components/SiteNav"
 import "./globals.css"
 
-const inter = Inter({
+const barlow = Barlow({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-barlow",
 })
 
 const bebasNeue = Bebas_Neue({
@@ -26,7 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} ${bebasNeue.variable} antialiased`}>
+      <body
+        className={`${barlow.className} ${barlow.variable} ${bebasNeue.variable} antialiased`}
+      >
         <ClerkProvider>
           <div className="min-h-screen">
             <SiteNav />
