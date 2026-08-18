@@ -1,0 +1,16 @@
+{
+  "teams": [
+    {
+      "teamAbbr": "ATL",
+      "slots": [
+        {
+          "playerIds": [
+            "trae-young",
+            "nickeil-alexander-walker",
+            "atl-bench-3"
+          ]
+        }
+      ]
+    }
+  ]
+}
