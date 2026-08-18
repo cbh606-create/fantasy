@@ -1,8 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useCallback, useEffect, useState } from "react"
 import { FieldHelpTip } from "@/components/ui/FieldHelpTip"
+import {
+  espnLinkStatusLabel,
+  espnLinkStatusTone,
+  type EspnLinkStatus,
+} from "@/lib/espn/linkStatus"
 
 type SeasonLeagueListItem = {
   id: string
@@ -10,6 +15,15 @@ type SeasonLeagueListItem = {
   season: number
   source: "espn" | "manual" | "mixed"
   updatedAt: string
+}
+
+type VerifyPayload = {
+  ok?: boolean
+  leagueName?: string
+  teamName?: string
+  playerCount?: number
+  message?: string
+  errorCode?: string
 }
 
 export default function RosterListPage() {
@@ -22,6 +36,8 @@ export default function RosterListPage() {
   const [espnS2, setEspnS2] = useState("")
   const [swid, setSwid] = useState("")
   const [espnConnected, setEspnConnected] = useState(false)
+  const [espnLinkStatus, setEspnLinkStatus] = useState<EspnLinkStatus>("none")
+  const [verifiedSummary, setVerifiedSummary] = useState("")
   const [error, setError] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
   const [connectMessage, setConnectMessage] = useState("")
@@ -30,6 +46,82 @@ export default function RosterListPage() {
   const [isImporting, setIsImporting] = useState(false)
   const [isSavingEspn, setIsSavingEspn] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+
+  const parseLeagueParams = useCallback(() => {
+    const parsedTeamId = Number.parseInt(teamId, 10)
+    const parsedSeason = Number.parseInt(season, 10)
+
+    if (
+      !leagueId.trim() ||
+      !Number.isInteger(parsedTeamId) ||
+      !Number.isInteger(parsedSeason)
+    ) {
+      return null
+    }
+
+    return {
+      leagueId: leagueId.trim(),
+      teamId: parsedTeamId,
+      season: parsedSeason,
+    }
+  }, [leagueId, season, teamId])
+
+  const verifyEspnAccess = useCallback(async (): Promise<{
+    ok: boolean
+    authFailed: boolean
+    message: string
+    summary: string
+  }> => {
+    const params = parseLeagueParams()
+    if (!params) {
+      return {
+        ok: false,
+        authFailed: false,
+        message:
+          "Cookies are saved. Fill League ID / Team ID / Season to verify ESPN access.",
+        summary: "",
+      }
+    }
+
+    const verifyResponse = await fetch("/api/espn/verify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(params),
+    })
+    const verifyPayload = (await verifyResponse.json()) as VerifyPayload
+    const authFailed =
+      verifyPayload.errorCode === "ESPN_AUTH" ||
+      verifyResponse.status === 401 ||
+      verifyResponse.status === 403
+
+    if (!verifyResponse.ok || !verifyPayload.ok) {
+      return {
+        ok: false,
+        authFailed,
+        message:
+          verifyPayload.message ??
+          "ESPN rejected these cookies for this league. Paste fresh espn_s2 / SWID.",
+        summary: "",
+      }
+    }
+
+    const summary = [
+      verifyPayload.leagueName,
+      verifyPayload.teamName,
+      verifyPayload.playerCount != null
+        ? `${verifyPayload.playerCount} players`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · ")
+
+    return {
+      ok: true,
+      authFailed: false,
+      message: summary ? `ESPN OK — ${summary}` : "ESPN OK",
+      summary,
+    }
+  }, [parseLeagueParams])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -46,6 +138,7 @@ export default function RosterListPage() {
           setConnectMessage(
             "앱 로그인이 필요합니다. 상단에서 Sign in 한 뒤 ESPN 쿠키를 저장하세요.",
           )
+          setEspnLinkStatus("none")
           return
         }
 
@@ -55,8 +148,38 @@ export default function RosterListPage() {
         if (credentialsResponse.ok) {
           const credentials = (await credentialsResponse.json()) as {
             connected?: boolean
+            status?: "none" | "saved"
           }
-          setEspnConnected(Boolean(credentials.connected))
+          const connected = Boolean(credentials.connected)
+          setEspnConnected(connected)
+
+          if (!connected) {
+            setEspnLinkStatus("none")
+            return
+          }
+
+          setEspnLinkStatus("checking")
+          const verified = await verifyEspnAccess()
+          if (controller.signal.aborted) return
+
+          if (verified.ok) {
+            setEspnLinkStatus("verified")
+            setVerifiedSummary(verified.summary)
+            setConnectTone("ok")
+            setConnectMessage(verified.message)
+            return
+          }
+
+          if (verified.authFailed) {
+            setEspnLinkStatus("expired")
+            setConnectTone("bad")
+            setConnectMessage(verified.message)
+            return
+          }
+
+          setEspnLinkStatus("saved")
+          setConnectTone("mute")
+          setConnectMessage(verified.message)
         }
       } catch (requestError) {
         if (
@@ -78,7 +201,41 @@ export default function RosterListPage() {
     void loadPage()
 
     return () => controller.abort()
+    // Mount-only: re-check happens on Save / Import / Verify button.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const handleVerifyEspn = async () => {
+    if (!espnConnected) return
+    setError("")
+    setConnectMessage("")
+    setEspnLinkStatus("checking")
+    setConnectTone("mute")
+    setConnectMessage("Checking ESPN…")
+
+    try {
+      const verified = await verifyEspnAccess()
+      if (verified.ok) {
+        setEspnLinkStatus("verified")
+        setVerifiedSummary(verified.summary)
+        setConnectTone("ok")
+        setConnectMessage(verified.message)
+        return
+      }
+      setEspnLinkStatus(verified.authFailed ? "expired" : "saved")
+      setVerifiedSummary("")
+      setConnectTone("bad")
+      setConnectMessage(verified.message)
+    } catch (requestError) {
+      setEspnLinkStatus("saved")
+      setConnectTone("bad")
+      setConnectMessage(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to verify ESPN",
+      )
+    }
+  }
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -110,14 +267,8 @@ export default function RosterListPage() {
   }
 
   const importEspnLeague = async (): Promise<string> => {
-    const parsedTeamId = Number.parseInt(teamId, 10)
-    const parsedSeason = Number.parseInt(season, 10)
-
-    if (
-      !leagueId.trim() ||
-      !Number.isInteger(parsedTeamId) ||
-      !Number.isInteger(parsedSeason)
-    ) {
+    const params = parseLeagueParams()
+    if (!params) {
       throw new Error("Enter leagueId, teamId, and season")
     }
 
@@ -126,9 +277,9 @@ export default function RosterListPage() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         name: espnName.trim() || undefined,
-        leagueId: leagueId.trim(),
-        teamId: parsedTeamId,
-        season: parsedSeason,
+        leagueId: params.leagueId,
+        teamId: params.teamId,
+        season: params.season,
       }),
     })
 
@@ -140,12 +291,14 @@ export default function RosterListPage() {
     }
 
     if (!response.ok) {
-      if (payload.message) throw new Error(payload.message)
       if (payload.errorCode === "ESPN_AUTH") {
+        setEspnLinkStatus("expired")
         throw new Error(
-          "ESPN auth failed — reconnect with fresh espn_s2 / SWID cookies",
+          payload.message ??
+            "ESPN auth failed — reconnect with fresh espn_s2 / SWID cookies",
         )
       }
+      if (payload.message) throw new Error(payload.message)
       throw new Error(
         payload.errorCode ?? payload.error ?? "Unable to import ESPN league",
       )
@@ -161,6 +314,7 @@ export default function RosterListPage() {
     setSuccessMessage("")
     setConnectMessage("")
     setConnectTone("mute")
+    setVerifiedSummary("")
 
     if (!espnS2.trim() || !swid.trim()) {
       setConnectTone("bad")
@@ -169,6 +323,7 @@ export default function RosterListPage() {
     }
 
     setIsSavingEspn(true)
+    setEspnLinkStatus("checking")
     setConnectTone("mute")
     setConnectMessage("Saving cookies…")
 
@@ -201,52 +356,25 @@ export default function RosterListPage() {
       setEspnConnected(true)
       setEspnS2("")
       setSwid("")
+      setEspnLinkStatus("saved")
       setConnectMessage("Cookies saved. Checking league access…")
 
-      const parsedTeamId = Number.parseInt(teamId, 10)
-      const parsedSeason = Number.parseInt(season, 10)
-      if (
-        !leagueId.trim() ||
-        !Number.isInteger(parsedTeamId) ||
-        !Number.isInteger(parsedSeason)
-      ) {
-        setConnectTone("ok")
-        setConnectMessage(
-          "쿠키 저장됨. 아래 League ID / Team ID / Season을 채운 뒤 Import를 누르세요.",
-        )
-        return
-      }
-
-      const verifyResponse = await fetch("/api/espn/verify", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          leagueId: leagueId.trim(),
-          teamId: parsedTeamId,
-          season: parsedSeason,
-        }),
-      })
-      const verifyPayload = (await verifyResponse.json()) as {
-        ok?: boolean
-        leagueName?: string
-        teamName?: string
-        playerCount?: number
-        message?: string
-      }
-
-      if (!verifyResponse.ok || !verifyPayload.ok) {
+      const verified = await verifyEspnAccess()
+      if (!verified.ok) {
+        if (verified.authFailed) {
+          setEspnLinkStatus("expired")
+        } else {
+          setEspnLinkStatus("saved")
+        }
         setConnectTone("bad")
-        setConnectMessage(
-          verifyPayload.message ??
-            "Cookies saved, but ESPN rejected them for this league. Re-copy fresh cookies while logged into that league.",
-        )
+        setConnectMessage(verified.message)
         return
       }
 
+      setEspnLinkStatus("verified")
+      setVerifiedSummary(verified.summary)
       setConnectTone("ok")
-      setConnectMessage(
-        `ESPN OK — ${verifyPayload.teamName ?? "team"} · importing roster…`,
-      )
+      setConnectMessage(`${verified.message} · importing roster…`)
 
       const importedId = await importEspnLeague()
       setConnectMessage("Opening roster…")
@@ -274,6 +402,10 @@ export default function RosterListPage() {
       })
       if (!response.ok) throw new Error("Unable to disconnect ESPN")
       setEspnConnected(false)
+      setEspnLinkStatus("none")
+      setVerifiedSummary("")
+      setConnectMessage("")
+      setConnectTone("mute")
       setSuccessMessage("ESPN disconnected")
     } catch (requestError) {
       setError(
@@ -293,6 +425,21 @@ export default function RosterListPage() {
     setIsImporting(true)
 
     try {
+      if (espnLinkStatus === "expired") {
+        throw new Error(
+          "ESPN cookies look expired. Paste fresh espn_s2 / SWID above, then Save.",
+        )
+      }
+
+      setEspnLinkStatus("checking")
+      const verified = await verifyEspnAccess()
+      if (!verified.ok) {
+        setEspnLinkStatus(verified.authFailed ? "expired" : "saved")
+        throw new Error(verified.message)
+      }
+      setEspnLinkStatus("verified")
+      setVerifiedSummary(verified.summary)
+
       const importedId = await importEspnLeague()
       window.location.assign(`/roster/${importedId}`)
     } catch (requestError) {
@@ -390,10 +537,29 @@ export default function RosterListPage() {
             </details>
             <p className="mt-2 text-sm font-medium">
               Status:{" "}
-              <span className={espnConnected ? "text-[var(--color-info)]" : "text-[var(--color-mute)]"}>
-                {espnConnected ? "Connected" : "Not connected"}
+              <span
+                className={
+                  espnLinkStatusTone(espnLinkStatus) === "ok"
+                    ? "text-[var(--color-info)]"
+                    : espnLinkStatusTone(espnLinkStatus) === "bad"
+                      ? "text-[var(--color-sale)]"
+                      : "text-[var(--color-mute)]"
+                }
+              >
+                {espnLinkStatusLabel(espnLinkStatus)}
               </span>
             </p>
+            {verifiedSummary && espnLinkStatus === "verified" ? (
+              <p className="mt-1 text-xs text-[var(--color-mute)]">
+                {verifiedSummary}
+              </p>
+            ) : null}
+            {espnLinkStatus === "expired" ? (
+              <p className="mt-2 text-sm text-[var(--color-sale)]" role="alert">
+                Paste fresh espn_s2 / SWID from fantasy.espn.com while logged in,
+                then Save again.
+              </p>
+            ) : null}
             <form className="mt-5 space-y-3" onSubmit={handleConnectEspn}>
               <div className="flex items-center gap-1.5">
                 <label className="text-sm font-medium" htmlFor="espn-s2">
@@ -463,10 +629,10 @@ export default function RosterListPage() {
                 type="submit"
               >
                 {isSavingEspn
-                  ? "Saving & importing…"
+                  ? "Saving & verifying…"
                   : espnConnected
-                    ? "Update cookies & open roster"
-                    : "Save cookies & open roster"}
+                    ? "Update cookies & verify"
+                    : "Save cookies & verify"}
               </button>
               {connectMessage ? (
                 <p
@@ -483,19 +649,32 @@ export default function RosterListPage() {
                 </p>
               ) : (
                 <p className="text-[0.75rem] text-[var(--color-mute)]">
-                  쿠키를 저장한 뒤 ESPN 검증이 되면 로스터 화면으로 자동 이동합니다.
+                  쿠키 저장 후 ESPN 검증이 되면 로스터로 이동합니다. 페이지를 열 때도
+                  저장된 쿠키를 다시 검증합니다.
                 </p>
               )}
             </form>
             {espnConnected ? (
-              <button
-                className="mt-3 w-full text-sm font-medium text-[var(--color-mute)] underline-offset-2 hover:text-[var(--color-ink)] hover:underline"
-                disabled={isSavingEspn}
-                onClick={() => void handleDisconnectEspn()}
-                type="button"
-              >
-                Disconnect ESPN
-              </button>
+              <div className="mt-3 space-y-2">
+                <button
+                  className="w-full rounded-full border border-[var(--color-hairline)] bg-white px-5 py-2.5 text-sm font-medium hover:bg-[var(--color-canvas)] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isSavingEspn || espnLinkStatus === "checking"}
+                  onClick={() => void handleVerifyEspn()}
+                  type="button"
+                >
+                  {espnLinkStatus === "checking"
+                    ? "Checking ESPN…"
+                    : "Verify connection"}
+                </button>
+                <button
+                  className="w-full text-sm font-medium text-[var(--color-mute)] underline-offset-2 hover:text-[var(--color-ink)] hover:underline"
+                  disabled={isSavingEspn}
+                  onClick={() => void handleDisconnectEspn()}
+                  type="button"
+                >
+                  Disconnect ESPN
+                </button>
+              </div>
             ) : null}
           </aside>
 
@@ -553,10 +732,19 @@ export default function RosterListPage() {
               />
               <button
                 className="w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={isImporting || !espnConnected}
+                disabled={
+                  isImporting ||
+                  !espnConnected ||
+                  espnLinkStatus === "expired" ||
+                  espnLinkStatus === "checking"
+                }
                 type="submit"
               >
-                {isImporting ? "Importing…" : "Import ESPN league"}
+                {isImporting
+                  ? "Importing…"
+                  : espnLinkStatus === "expired"
+                    ? "Reconnect ESPN first"
+                    : "Import ESPN league"}
               </button>
             </form>
           </aside>

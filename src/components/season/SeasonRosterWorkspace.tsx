@@ -53,6 +53,7 @@ export const SeasonRosterWorkspace = ({
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [incomingState, setIncomingState] = useState<SeasonLeagueState | null>(null)
+  const [authExpired, setAuthExpired] = useState(false)
   const [tab, setTab] = useState<WorkspaceTab>("stats")
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null)
   const [scheduleError, setScheduleError] = useState("")
@@ -222,6 +223,7 @@ export const SeasonRosterWorkspace = ({
 
   const handleRefresh = async () => {
     setError("")
+    setAuthExpired(false)
     setIsRefreshing(true)
 
     try {
@@ -231,6 +233,9 @@ export const SeasonRosterWorkspace = ({
       const refresh = (await response.json()) as RefreshResponse
 
       if (!response.ok) {
+        if (refresh.errorCode === "ESPN_AUTH") {
+          setAuthExpired(true)
+        }
         throw new Error(refresh.message ?? refresh.errorCode ?? "Unable to refresh ESPN")
       }
 
@@ -372,6 +377,21 @@ export const SeasonRosterWorkspace = ({
             )}
           </div>
         </header>
+        {authExpired ? (
+          <div
+            className="mb-6 rounded-2xl border border-[var(--color-sale)]/30 bg-red-50 px-5 py-4 text-sm text-[var(--color-sale)]"
+            role="alert"
+          >
+            ESPN cookies were rejected.{" "}
+            <Link
+              className="font-medium underline underline-offset-2"
+              href="/roster"
+            >
+              Reconnect on Rosters
+            </Link>{" "}
+            with fresh espn_s2 / SWID, then refresh again.
+          </div>
+        ) : null}
         <div
           aria-label="Roster workspace view"
           className="mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"

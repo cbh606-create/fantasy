@@ -32,7 +32,10 @@ export const GET = async (): Promise<Response> => {
 
   try {
     const connected = await hasUserEspnCredentials(userId)
-    return NextResponse.json({ connected })
+    return NextResponse.json({
+      connected,
+      status: connected ? "saved" : "none",
+    })
   } catch (error) {
     console.error("ESPN credentials GET failed", error)
     return NextResponse.json(
@@ -74,7 +77,7 @@ export const PUT = async (request: Request): Promise<Response> => {
 
   try {
     await upsertUserEspnCredentials(userId, cookies)
-    return NextResponse.json({ connected: true })
+    return NextResponse.json({ connected: true, status: "saved" })
   } catch (error) {
     console.error("ESPN credentials PUT failed", error)
     return NextResponse.json(
@@ -95,7 +98,7 @@ export const DELETE = async (): Promise<Response> => {
 
   try {
     await deleteUserEspnCredentials(userId)
-    return NextResponse.json({ connected: false })
+    return NextResponse.json({ connected: false, status: "none" })
   } catch (error) {
     console.error("ESPN credentials DELETE failed", error)
     return NextResponse.json(
