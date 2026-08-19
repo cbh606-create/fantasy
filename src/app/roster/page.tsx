@@ -47,6 +47,7 @@ export default function RosterListPage() {
   const [isCreating, setIsCreating] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [isSavingEspn, setIsSavingEspn] = useState(false)
+  const [isStartingEspnConnect, setIsStartingEspnConnect] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const activeLeague = activeSeasonLeagues.find(
     (league) => league.id === activeId,
@@ -399,6 +400,43 @@ export default function RosterListPage() {
     }
   }
 
+  const handleStartEspnConnect = async () => {
+    setError("")
+    setSuccessMessage("")
+    setConnectMessage("")
+    setConnectTone("mute")
+    setIsStartingEspnConnect(true)
+
+    try {
+      const response = await fetch("/api/espn/connect/start", { method: "POST" })
+      const payload = (await response.json().catch(() => ({}))) as {
+        statusPagePath?: string
+      }
+
+      if (response.status === 401) {
+        throw new Error("Sign in to the app before connecting ESPN.")
+      }
+      if (response.status === 409) {
+        throw new Error(
+          "An ESPN connection is already in progress. Open its waiting page or wait for it to time out.",
+        )
+      }
+      if (!response.ok || !payload.statusPagePath) {
+        throw new Error("Unable to start the ESPN connection.")
+      }
+
+      window.location.assign(payload.statusPagePath)
+    } catch (requestError) {
+      setConnectTone("bad")
+      setConnectMessage(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to start the ESPN connection.",
+      )
+      setIsStartingEspnConnect(false)
+    }
+  }
+
   const handleDisconnectEspn = async () => {
     setError("")
     setSuccessMessage("")
@@ -533,41 +571,31 @@ export default function RosterListPage() {
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Connect your account</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
-              ESPN blocks password login for apps. Paste your browser cookies
-              once; they stay on your account only (not shown again).
+              Sign in through the secure ESPN browser window. We&apos;ll detect
+              when login finishes and connect your account automatically.
             </p>
-            <details className="mt-3 rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2 text-sm">
-              <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
-                How to copy espn_s2 and SWID
-              </summary>
-              <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-[0.8125rem] leading-5 text-[var(--color-mute)]">
-                <li>
-                  Chrome/Edge에서{" "}
-                  <a
-                    className="underline underline-offset-2 hover:text-[var(--color-ink)]"
-                    href="https://fantasy.espn.com"
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    fantasy.espn.com
-                  </a>
-                  에 로그인합니다.
-                </li>
-                <li>본인 팀 페이지를 연 뒤 F12(또는 우클릭 → 검사)로 DevTools를 엽니다.</li>
-                <li>
-                  상단 <span className="text-[var(--color-ink)]">Application</span>
-                  (애플리케이션) 탭 → 왼쪽 Storage → Cookies →{" "}
-                  <span className="text-[var(--color-ink)]">https://fantasy.espn.com</span>
-                  을 선택합니다.
-                </li>
-                <li>
-                  목록에서 <span className="text-[var(--color-ink)]">espn_s2</span>,{" "}
-                  <span className="text-[var(--color-ink)]">SWID</span>를 찾아 Value를
-                  더블클릭 → 복사합니다.
-                </li>
-                <li>아래에 붙여넣고 Save합니다. 쿠키가 만료되면 같은 방법으로 다시 연결하세요.</li>
-              </ol>
-            </details>
+            <button
+              className="mt-5 w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isStartingEspnConnect}
+              onClick={() => void handleStartEspnConnect()}
+              type="button"
+            >
+              {isStartingEspnConnect ? "Opening ESPN…" : "Connect with ESPN"}
+            </button>
+            {connectMessage ? (
+              <p
+                className={`mt-3 text-sm ${
+                  connectTone === "ok"
+                    ? "text-[var(--color-info)]"
+                    : connectTone === "bad"
+                      ? "text-[var(--color-sale)]"
+                      : "text-[var(--color-mute)]"
+                }`}
+                role="status"
+              >
+                {connectMessage}
+              </p>
+            ) : null}
             <p className="mt-2 text-sm font-medium">
               Status:{" "}
               <span
@@ -588,12 +616,61 @@ export default function RosterListPage() {
               </p>
             ) : null}
             {espnLinkStatus === "expired" ? (
-              <p className="mt-2 text-sm text-[var(--color-sale)]" role="alert">
-                Paste fresh espn_s2 / SWID from fantasy.espn.com while logged in,
-                then Save again.
-              </p>
+              <div
+                className="mt-3 rounded-xl border border-[var(--color-sale)]/30 bg-red-50 p-3"
+                role="alert"
+              >
+                <p className="text-sm text-[var(--color-sale)]">
+                  Your ESPN connection expired. Reconnect through the ESPN login
+                  window, then try importing again.
+                </p>
+                <button
+                  className="mt-3 rounded-full bg-[var(--color-ink)] px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isStartingEspnConnect}
+                  onClick={() => void handleStartEspnConnect()}
+                  type="button"
+                >
+                  {isStartingEspnConnect ? "Opening ESPN…" : "Reconnect with ESPN"}
+                </button>
+              </div>
             ) : null}
-            <form className="mt-5 space-y-3" onSubmit={handleConnectEspn}>
+            <details className="mt-4 rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2 text-sm">
+              <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
+                Paste cookies instead
+              </summary>
+              <details className="mt-3 rounded-xl border border-[var(--color-hairline)] px-3 py-2">
+                <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
+                  How to copy espn_s2 and SWID
+                </summary>
+                <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-[0.8125rem] leading-5 text-[var(--color-mute)]">
+                  <li>
+                    Chrome/Edge에서{" "}
+                    <a
+                      className="underline underline-offset-2 hover:text-[var(--color-ink)]"
+                      href="https://fantasy.espn.com"
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      fantasy.espn.com
+                    </a>
+                    에 로그인합니다.
+                  </li>
+                  <li>본인 팀 페이지를 연 뒤 F12(또는 우클릭 → 검사)로 DevTools를 엽니다.</li>
+                  <li>
+                    상단 <span className="text-[var(--color-ink)]">Application</span>
+                    (애플리케이션) 탭 → 왼쪽 Storage → Cookies →{" "}
+                    <span className="text-[var(--color-ink)]">https://fantasy.espn.com</span>
+                    을 선택합니다.
+                  </li>
+                  <li>
+                    목록에서 <span className="text-[var(--color-ink)]">espn_s2</span>,{" "}
+                    <span className="text-[var(--color-ink)]">SWID</span>를 찾아 Value를
+                    더블클릭 → 복사합니다.
+                  </li>
+                  <li>아래에 붙여넣고 Save합니다. 쿠키가 만료되면 같은 방법으로 다시 연결하세요.</li>
+                </ol>
+              </details>
+              <form className="mt-5 space-y-3" onSubmit={handleConnectEspn}>
               <div className="flex items-center gap-1.5">
                 <label className="text-sm font-medium" htmlFor="espn-s2">
                   espn_s2
@@ -667,26 +744,12 @@ export default function RosterListPage() {
                     ? "Update cookies & verify"
                     : "Save cookies & verify"}
               </button>
-              {connectMessage ? (
-                <p
-                  className={`text-sm ${
-                    connectTone === "ok"
-                      ? "text-[var(--color-info)]"
-                      : connectTone === "bad"
-                        ? "text-[var(--color-sale)]"
-                        : "text-[var(--color-mute)]"
-                  }`}
-                  role="status"
-                >
-                  {connectMessage}
-                </p>
-              ) : (
                 <p className="text-[0.75rem] text-[var(--color-mute)]">
                   쿠키 저장 후 ESPN 검증이 되면 로스터로 이동합니다. 페이지를 열 때도
                   저장된 쿠키를 다시 검증합니다.
                 </p>
-              )}
-            </form>
+              </form>
+            </details>
             {espnConnected ? (
               <div className="mt-3 space-y-2">
                 <button

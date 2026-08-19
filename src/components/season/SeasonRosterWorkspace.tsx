@@ -388,14 +388,15 @@ export const SeasonRosterWorkspace = ({
             className="mb-6 rounded-2xl border border-[var(--color-sale)]/30 bg-red-50 px-5 py-4 text-sm text-[var(--color-sale)]"
             role="alert"
           >
-            ESPN cookies were rejected.{" "}
+            Your ESPN connection expired.{" "}
             <Link
               className="font-medium underline underline-offset-2"
               href="/roster"
             >
-              Reconnect on Rosters
+              Reconnect with ESPN
             </Link>{" "}
-            with fresh espn_s2 / SWID, then refresh again.
+            through the login window, then refresh again. You can still paste
+            fresh espn_s2 / SWID on Rosters if needed.
           </div>
         ) : null}
         <div
