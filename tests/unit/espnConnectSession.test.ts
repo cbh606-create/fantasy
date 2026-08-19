@@ -39,6 +39,25 @@ describe("espn connect sessions", () => {
     )
   })
 
+  it("allows a new session when the previous one expired past TTL", async () => {
+    const userId = `${prefix}-expired`
+    const first = await createConnectSession(userId)
+    await db.espnConnectSession.update({
+      where: { id: first.id },
+      data: {
+        status: "awaiting_login",
+        expiresAt: new Date(Date.now() - 1000),
+      },
+    })
+    const second = await createConnectSession(userId)
+    expect(second.id).not.toBe(first.id)
+    expect(second.status).toBe("pending")
+    const expiredFirst = await db.espnConnectSession.findUnique({
+      where: { id: first.id },
+    })
+    expect(expiredFirst?.status).toBe("timed_out")
+  })
+
   it("allows a new session after the previous succeeded", async () => {
     const userId = `${prefix}-c`
     const first = await createConnectSession(userId)

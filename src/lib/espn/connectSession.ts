@@ -58,8 +58,12 @@ export const createConnectSession = async (
   })
 
   for (const session of existing) {
-    if (!isTerminalConnectStatus(session.status as EspnConnectStatus)) {
-      throw new ConnectSessionConflictError()
+    const record = mapRowToRecord(session)
+    if (!isTerminalConnectStatus(record.status)) {
+      const updated = await expireConnectSessionIfNeeded(record)
+      if (!isTerminalConnectStatus(updated.status)) {
+        throw new ConnectSessionConflictError()
+      }
     }
   }
 
