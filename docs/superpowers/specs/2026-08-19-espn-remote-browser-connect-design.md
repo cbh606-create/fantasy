@@ -1,7 +1,7 @@
 # ESPN Remote Browser Connect — Design Spec
 
 **Date:** 2026-08-19  
-**Status:** Draft (awaiting user review)  
+**Status:** Approved — phase 1 implemented (local headed Playwright)  
 **Product:** Replace DevTools cookie paste as the primary ESPN private-league auth path  
 **Related:** [ESPN Live Season Import](./2026-08-12-espn-live-season-import-design.md), [ESPN Season Live Data Roadmap](./2026-08-19-espn-season-live-data-roadmap-design.md)
 
