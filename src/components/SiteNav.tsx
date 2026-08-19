@@ -2,8 +2,10 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import type { ChangeEvent } from "react"
-import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
+import { useContext, type ChangeEvent } from "react"
+import {
+  ActiveSeasonLeagueContext,
+} from "@/components/season/ActiveSeasonLeagueProvider"
 
 const NAV_ITEMS = [
   { href: "/", label: "Home", match: (pathname: string) => pathname === "/" },
@@ -45,9 +47,19 @@ const linkClass = (active: boolean) =>
       : "text-[var(--color-mute)] hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)]",
   ].join(" ")
 
+const EMPTY_ACTIVE_LEAGUE = {
+  activeId: null as string | null,
+  isLoading: true,
+  leagues: [] as { id: string; name: string; season: number }[],
+  setActiveId: (_id: string | null) => {},
+}
+
 export const SiteNav = () => {
   const pathname = usePathname()
-  const { activeId, isLoading, leagues, setActiveId } = useActiveSeasonLeague()
+  // Optional context: Fast Refresh can remount SiteNav before the provider
+  // for one frame; throwing here surfaces as Internal Server Error.
+  const leagueContext = useContext(ActiveSeasonLeagueContext) ?? EMPTY_ACTIVE_LEAGUE
+  const { activeId, isLoading, leagues, setActiveId } = leagueContext
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setActiveId(event.target.value || null)

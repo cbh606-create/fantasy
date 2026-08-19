@@ -30,7 +30,7 @@ type ActiveSeasonLeagueContextValue = {
   setActiveId: (id: string | null) => void
 }
 
-const ActiveSeasonLeagueContext =
+export const ActiveSeasonLeagueContext =
   createContext<ActiveSeasonLeagueContextValue | null>(null)
 
 export const ActiveSeasonLeagueProvider = ({
