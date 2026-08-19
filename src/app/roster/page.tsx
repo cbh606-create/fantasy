@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { FormEvent, useCallback, useEffect, useState } from "react"
+import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
 import { FieldHelpTip } from "@/components/ui/FieldHelpTip"
 import {
   espnLinkStatusLabel,
@@ -27,6 +28,7 @@ type VerifyPayload = {
 }
 
 export default function RosterListPage() {
+  const { activeId, leagues: activeSeasonLeagues } = useActiveSeasonLeague()
   const [leagues, setLeagues] = useState<SeasonLeagueListItem[]>([])
   const [name, setName] = useState("")
   const [espnName, setEspnName] = useState("")
@@ -46,6 +48,9 @@ export default function RosterListPage() {
   const [isImporting, setIsImporting] = useState(false)
   const [isSavingEspn, setIsSavingEspn] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const activeLeague = activeSeasonLeagues.find(
+    (league) => league.id === activeId,
+  )
 
   const parseLeagueParams = useCallback(() => {
     const parsedTeamId = Number.parseInt(teamId, 10)
@@ -480,6 +485,15 @@ export default function RosterListPage() {
           <h1 className="mt-1 font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
             Rosters
           </h1>
+          {activeLeague ? (
+            <Link
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-ink)] underline underline-offset-4 transition-colors hover:text-[var(--color-info)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+              href={`/roster/${activeLeague.id}`}
+            >
+              Open {activeLeague.name}
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : null}
           {isLoading ? (
             <p className="mt-8 text-[var(--color-mute)]" role="status">
               Loading season leagues…
