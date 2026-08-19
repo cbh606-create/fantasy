@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import type { ChangeEvent } from "react"
+import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
 
 const NAV_ITEMS = [
   { href: "/", label: "Home", match: (pathname: string) => pathname === "/" },
@@ -33,6 +35,8 @@ const NAV_ITEMS = [
   },
 ] as const
 
+const SEASON_TOOL_PATHS = new Set(["/matchup", "/roster", "/trade", "/waivers"])
+
 const linkClass = (active: boolean) =>
   [
     "rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]",
@@ -43,6 +47,11 @@ const linkClass = (active: boolean) =>
 
 export const SiteNav = () => {
   const pathname = usePathname()
+  const { activeId, isLoading, leagues, setActiveId } = useActiveSeasonLeague()
+
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setActiveId(event.target.value || null)
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]">
@@ -54,18 +63,42 @@ export const SiteNav = () => {
         >
           FANTASY
         </Link>
+        <label className="sr-only" htmlFor="active-season-roster">
+          Active season roster
+        </label>
+        <select
+          aria-label="Active season roster"
+          className="min-w-0 max-w-48 rounded-full border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-3 py-1.5 text-sm text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed disabled:text-[var(--color-mute)]"
+          disabled={leagues.length === 0}
+          id="active-season-roster"
+          onChange={handleChange}
+          value={activeId ?? ""}
+        >
+          <option value="">
+            {isLoading ? "Loading season rosters…" : "No active roster"}
+          </option>
+          {leagues.map((league) => (
+            <option key={league.id} value={league.id}>
+              {league.name} · {league.season}
+            </option>
+          ))}
+        </select>
         <nav
           aria-label="Primary"
           className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2"
         >
           {NAV_ITEMS.map((item) => {
             const active = item.match(pathname)
+            const href =
+              activeId && SEASON_TOOL_PATHS.has(item.href)
+                ? `${item.href}/${activeId}`
+                : item.href
 
             return (
               <Link
                 aria-current={active ? "page" : undefined}
                 className={linkClass(active)}
-                href={item.href}
+                href={href}
                 key={item.href}
               >
                 {item.label}

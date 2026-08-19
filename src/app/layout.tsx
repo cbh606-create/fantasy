@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs"
 import type { Metadata } from "next"
 import { Barlow, Bebas_Neue } from "next/font/google"
 import { SiteNav } from "@/components/SiteNav"
+import { ActiveSeasonLeagueProvider } from "@/components/season/ActiveSeasonLeagueProvider"
 import "./globals.css"
 
 const barlow = Barlow({
@@ -32,10 +33,12 @@ export default function RootLayout({
         className={`${barlow.className} ${barlow.variable} ${bebasNeue.variable} antialiased`}
       >
         <ClerkProvider>
-          <div className="min-h-screen">
-            <SiteNav />
-            {children}
-          </div>
+          <ActiveSeasonLeagueProvider>
+            <div className="min-h-screen">
+              <SiteNav />
+              {children}
+            </div>
+          </ActiveSeasonLeagueProvider>
         </ClerkProvider>
       </body>
     </html>
