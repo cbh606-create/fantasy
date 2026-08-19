@@ -18,6 +18,16 @@ const categoryLabels: Record<CategoryId, string> = {
   PTS: "PTS",
 }
 
+const RATE_CATEGORY_IDS = new Set<CategoryId>(["FG_PCT", "FT_PCT"])
+
+const formatCategoryRaw = (categoryId: CategoryId, raw: number) => {
+  if (RATE_CATEGORY_IDS.has(categoryId)) {
+    return `${(raw * 100).toFixed(2)}%`
+  }
+
+  return raw.toFixed(1)
+}
+
 export const CompactCategoryProfile = ({
   levels,
 }: CompactCategoryProfileProps) => {
@@ -46,7 +56,7 @@ export const CompactCategoryProfile = ({
               <div className="mb-1.5 flex items-center justify-between text-xs">
                 <span className="font-medium">{categoryLabels[categoryId]}</span>
                 <span className="tabular-nums text-[var(--color-mute)]">
-                  {(level?.z ?? 0).toFixed(2)}
+                  {formatCategoryRaw(categoryId, level?.raw ?? 0)}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-px">
