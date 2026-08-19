@@ -108,11 +108,6 @@ const EspnConnectStatus = () => {
       if (response.status === 401) {
         throw new Error("Sign in to the app before reconnecting ESPN.")
       }
-      if (response.status === 409) {
-        throw new Error(
-          "An ESPN connection is already in progress. Open its waiting page or wait for it to time out.",
-        )
-      }
       if (!response.ok || !payload.statusPagePath) {
         throw new Error("Unable to start a new ESPN connection.")
       }
@@ -186,13 +181,12 @@ const EspnConnectStatus = () => {
           ) : isWaiting ? (
             <>
               <p className="text-lg font-medium">
-                A browser window should have opened.
+                Look for a Chromium window on this PC
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
-                We opened this short-lived browser session for ESPN login. After
-                you sign in, we capture the espn_s2 and SWID session cookies and
-                store them on our server only for league sync. Treat this like
-                granting read access to your ESPN league.
+                It is a separate window (not a popup inside this tab). Check the
+                taskbar or other monitors. Sign in to ESPN there, then stay on
+                this page until it says connected.
               </p>
               <p className="mt-6 text-sm text-[var(--color-mute)]" role="status">
                 Waiting for ESPN login…

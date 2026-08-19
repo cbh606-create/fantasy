@@ -50,6 +50,28 @@ const mapRowToRecord = (
   updatedAt: row.updatedAt,
 })
 
+export const cancelActiveConnectSessions = async (
+  clerkUserId: string,
+): Promise<number> => {
+  const existing = await db.espnConnectSession.findMany({
+    where: { clerkUserId },
+  })
+
+  let cancelled = 0
+  for (const session of existing) {
+    const record = mapRowToRecord(session)
+    if (isTerminalConnectStatus(record.status)) continue
+
+    const updated = await expireConnectSessionIfNeeded(record)
+    if (isTerminalConnectStatus(updated.status)) continue
+
+    await updateConnectSessionStatus(updated.id, "cancelled")
+    cancelled += 1
+  }
+
+  return cancelled
+}
+
 export const createConnectSession = async (
   clerkUserId: string,
 ): Promise<EspnConnectSessionRecord> => {
@@ -76,6 +98,24 @@ export const createConnectSession = async (
   })
 
   return mapRowToRecord(row)
+}
+
+export const findActiveConnectSession = async (
+  clerkUserId: string,
+): Promise<EspnConnectSessionRecord | null> => {
+  const existing = await db.espnConnectSession.findMany({
+    where: { clerkUserId },
+    orderBy: { createdAt: "desc" },
+  })
+
+  for (const session of existing) {
+    const record = mapRowToRecord(session)
+    if (isTerminalConnectStatus(record.status)) continue
+    const updated = await expireConnectSessionIfNeeded(record)
+    if (!isTerminalConnectStatus(updated.status)) return updated
+  }
+
+  return null
 }
 
 export const getConnectSessionForUser = async (

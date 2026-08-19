@@ -142,16 +142,25 @@ describe("ESPN connect API", () => {
     expect(cred?.espnS2).toBe("mock-s2")
   })
 
-  it("returns 409 when an active session already exists", async () => {
+  it("cancels an active session when starting again", async () => {
     setConnectWorkerForTests({ start: () => {} })
     const first = await startPost(
       new Request("http://localhost/api/espn/connect/start", { method: "POST" }),
     )
+    const firstBody = await first.json()
     expect(first.status).toBe(200)
+
     const second = await startPost(
       new Request("http://localhost/api/espn/connect/start", { method: "POST" }),
     )
-    expect(second.status).toBe(409)
+    const secondBody = await second.json()
+    expect(second.status).toBe(200)
+    expect(secondBody.sessionId).not.toBe(firstBody.sessionId)
+
+    const previous = await db.espnConnectSession.findUnique({
+      where: { id: firstBody.sessionId },
+    })
+    expect(previous?.status).toBe("cancelled")
   })
 
   it.each(["failed", "timed_out"] as const)(

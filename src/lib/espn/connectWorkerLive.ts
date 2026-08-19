@@ -117,7 +117,12 @@ export const runLiveConnectWorker = async (
 
       await waitForNextPoll()
     }
-  } catch {
+  } catch (error) {
+    console.error(
+      "ESPN connect worker failed",
+      error instanceof Error ? error.message : error,
+    )
+
     if (credentialsSaved) return
 
     const currentSession = await getConnectSessionForUser(

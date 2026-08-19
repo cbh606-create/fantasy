@@ -448,11 +448,6 @@ export default function RosterListPage() {
       if (response.status === 401) {
         throw new Error("Sign in to the app before connecting ESPN.")
       }
-      if (response.status === 409) {
-        throw new Error(
-          "An ESPN connection is already in progress. Open its waiting page or wait for it to time out.",
-        )
-      }
       if (!response.ok || !payload.statusPagePath) {
         throw new Error("Unable to start the ESPN connection.")
       }
@@ -667,8 +662,8 @@ export default function RosterListPage() {
                 role="alert"
               >
                 <p className="text-sm text-[var(--color-sale)]">
-                  Your ESPN connection expired. Reconnect through the ESPN login
-                  window, then try importing again.
+                  ESPN rejected the saved cookies (302). Reconnect in the
+                  Chromium window, or paste fresh espn_s2 / SWID below.
                 </p>
                 <button
                   className="mt-3 rounded-full bg-[var(--color-ink)] px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -680,7 +675,10 @@ export default function RosterListPage() {
                 </button>
               </div>
             ) : null}
-            <details className="mt-4 rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2 text-sm">
+            <details
+              className="mt-4 rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2 text-sm"
+              open={espnLinkStatus === "expired"}
+            >
               <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
                 Paste cookies instead
               </summary>
