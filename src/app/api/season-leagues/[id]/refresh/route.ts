@@ -6,6 +6,8 @@ import {
 import { EspnAdapterError } from "@/lib/adapters/errors"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { readEnvEspnCookies } from "@/lib/espn/cookies"
+import { getUserEspnCookies } from "@/lib/espn/credentials"
 import { rateLimit } from "@/lib/rateLimit"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
 
@@ -67,10 +69,19 @@ export const POST = async (
       storedState = null
     }
 
+    const userCookies = await getUserEspnCookies(userId)
+    const envCookies = readEnvEspnCookies()
+    const cookies =
+      userCookies ??
+      (process.env.ESPN_LIVE === "true" ? envCookies : null) ??
+      undefined
+
     const importedState = await espnImportToSeasonLeagueState({
       leagueId: league.espnLeagueId,
       season: league.season,
       teamId: storedState?.espnTeamId,
+      cookies,
+      forbidFixture: true,
     })
     const incomingState: SeasonLeagueState = {
       ...importedState,

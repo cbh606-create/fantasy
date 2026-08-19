@@ -61,7 +61,7 @@ export const detectLineupConflict = (
 }
 
 export const espnImportToSeasonLeagueState = async (
-  params: EspnSeasonParams,
+  params: EspnSeasonParams & { forbidFixture?: boolean },
 ): Promise<SeasonLeagueState> => {
   if (params.forceFail) {
     throw new EspnAdapterError(params.forceFail)
@@ -84,6 +84,13 @@ export const espnImportToSeasonLeagueState = async (
       teamId: params.teamId,
       cookies: params.cookies,
     })
+  }
+
+  if (params.forbidFixture) {
+    throw new EspnAdapterError(
+      "ESPN_NO_CREDENTIALS",
+      "Connect ESPN cookies before refreshing a live league",
+    )
   }
 
   return {

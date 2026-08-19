@@ -233,7 +233,10 @@ export const SeasonRosterWorkspace = ({
       const refresh = (await response.json()) as RefreshResponse
 
       if (!response.ok) {
-        if (refresh.errorCode === "ESPN_AUTH") {
+        if (
+          refresh.errorCode === "ESPN_AUTH" ||
+          refresh.errorCode === "ESPN_NO_CREDENTIALS"
+        ) {
           setAuthExpired(true)
         }
         throw new Error(refresh.message ?? refresh.errorCode ?? "Unable to refresh ESPN")

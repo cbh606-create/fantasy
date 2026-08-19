@@ -14,6 +14,7 @@ const ESPN_ERROR_CODES: EspnErrorCode[] = [
   "ESPN_TIMEOUT",
   "ESPN_UNAVAILABLE",
   "ESPN_PARTIAL",
+  "ESPN_NO_CREDENTIALS",
 ]
 
 type ImportSeasonLeagueBody = {

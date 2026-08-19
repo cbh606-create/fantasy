@@ -13,6 +13,7 @@ import {
   manualToSeasonLeagueState,
   type ManualSeasonLeagueInput,
 } from "@/lib/adapters/manualSeason"
+import { espnImportToSeasonLeagueState } from "@/lib/adapters/espnSeason"
 import { db } from "@/lib/db"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import fixture from "../../data/fixtures/espn-season-league.json"
@@ -20,6 +21,18 @@ import fixture from "../../data/fixtures/espn-season-league.json"
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
 }))
+
+vi.mock("@/lib/adapters/espnSeason", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/lib/adapters/espnSeason")>()
+
+  return {
+    ...actual,
+    espnImportToSeasonLeagueState: vi.fn(
+      actual.espnImportToSeasonLeagueState,
+    ),
+  }
+})
 
 const testUserPrefix = `season-leagues-api-${crypto.randomUUID()}`
 let currentUserId: string
@@ -277,6 +290,12 @@ describe("POST /api/season-leagues/:id/refresh", () => {
     const state = manualToSeasonLeagueState(
       fixture as ManualSeasonLeagueInput,
     )
+    vi.mocked(espnImportToSeasonLeagueState).mockResolvedValueOnce({
+      ...state,
+      id: "fixture-league",
+      source: "espn",
+      espnTeamId: 2,
+    })
     const localLineup = state.teams[2].entries.map((entry, index) => ({
       ...entry,
       playerId: index === 0 ? "local-player" : entry.playerId,
@@ -320,6 +339,53 @@ describe("POST /api/season-leagues/:id/refresh", () => {
       source: "mixed",
       lastSyncedAt: null,
     })
+  })
+
+  it("does not overwrite state when ESPN credentials are missing", async () => {
+    const previousEspnLive = process.env.ESPN_LIVE
+    delete process.env.ESPN_LIVE
+    await db.espnCredential.deleteMany({
+      where: { clerkUserId: currentUserId },
+    })
+
+    try {
+      const state = manualToSeasonLeagueState(
+        fixture as ManualSeasonLeagueInput,
+      )
+      const league = await db.seasonLeague.create({
+        data: {
+          clerkUserId: currentUserId,
+          name: state.name,
+          espnLeagueId: "live-league",
+          season: state.season,
+          perspectiveTeamIndex: state.perspectiveTeamIndex,
+          source: "espn",
+          stateJson: JSON.stringify(state),
+        },
+      })
+
+      const response = await refreshSeasonLeague(
+        new Request(
+          `http://localhost/api/season-leagues/${league.id}/refresh`,
+          { method: "POST" },
+        ),
+        routeContext(league.id),
+      )
+      const payload = await response.json()
+      const stored = await db.seasonLeague.findUnique({
+        where: { id: league.id },
+      })
+
+      expect(response.status).toBe(502)
+      expect(payload.errorCode).toBe("ESPN_NO_CREDENTIALS")
+      expect(stored?.stateJson).toBe(JSON.stringify(state))
+    } finally {
+      if (previousEspnLive === undefined) {
+        delete process.env.ESPN_LIVE
+      } else {
+        process.env.ESPN_LIVE = previousEspnLive
+      }
+    }
   })
 })
 
