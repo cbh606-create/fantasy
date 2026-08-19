@@ -13,6 +13,11 @@ import {
   isUserTurn,
   teamIndexForOverall,
 } from "@/lib/domain/snake"
+import {
+  DEFAULT_TEAMS,
+  ESPN_MAX_TEAMS,
+  ESPN_MIN_TEAMS,
+} from "@/lib/domain/leagueSize"
 import type {
   DraftBoard,
   LeagueState,
@@ -27,6 +32,7 @@ const toMockLeagueState = (
   perspectiveTeamIndex: number,
   players: Player[],
   board: DraftBoard,
+  teams = baseState.settings.teams,
 ): LeagueState => ({
   ...baseState,
   perspectiveTeamIndex,
@@ -35,6 +41,7 @@ const toMockLeagueState = (
   source: "manual",
   settings: {
     ...baseState.settings,
+    teams,
     rounds: DEFAULT_DRAFT_ROUNDS,
     userPickSlot: perspectiveTeamIndex + 1,
   },
@@ -159,6 +166,7 @@ export const DraftWorkspace = ({
   const [state, setState] = useState<LeagueState | null>(null)
   const [mockBoard, setMockBoard] = useState<DraftBoard | null>(null)
   const [mockPlayers, setMockPlayers] = useState<Player[] | null>(null)
+  const [mockTeams, setMockTeams] = useState(DEFAULT_TEAMS)
   const [mockPerspectiveTeamIndex, setMockPerspectiveTeamIndex] = useState(0)
   const [latestMockPick, setLatestMockPick] = useState<MockLatestPick | null>(
     null,
@@ -497,23 +505,38 @@ export const DraftWorkspace = ({
   const startMockDraft = async (
     baseState: LeagueState,
     perspectiveTeamIndex = baseState.perspectiveTeamIndex,
-    options: { refreshPlayers?: boolean } = {},
+    options: { refreshPlayers?: boolean; teams?: number } = {},
   ) => {
     clearMockSimulation()
     setLatestMockPick(null)
-    setMockPerspectiveTeamIndex(perspectiveTeamIndex)
+    const teams = Math.min(
+      ESPN_MAX_TEAMS,
+      Math.max(
+        ESPN_MIN_TEAMS,
+        options.teams ?? mockTeams ?? baseState.settings.teams,
+      ),
+    )
+    const nextPerspective = Math.min(
+      Math.max(0, perspectiveTeamIndex),
+      teams - 1,
+    )
+    setMockTeams(teams)
+    setMockPerspectiveTeamIndex(nextPerspective)
     const players =
       !options.refreshPlayers && mockPlayers?.length
         ? mockPlayers
         : await loadFreshMockPlayers(baseState.players)
     if (players !== mockPlayers) setMockPlayers(players)
 
-    const empty = buildEmptyBoard(
-      baseState.settings.teams,
-      DEFAULT_DRAFT_ROUNDS,
-    )
+    const empty = buildEmptyBoard(teams, DEFAULT_DRAFT_ROUNDS)
     void runMockCpuUntilUserTurn(
-      toMockLeagueState(baseState, perspectiveTeamIndex, players, empty),
+      toMockLeagueState(
+        baseState,
+        nextPerspective,
+        players,
+        empty,
+        teams,
+      ),
     )
   }
 
@@ -523,6 +546,7 @@ export const DraftWorkspace = ({
     if (!mockBoard && !isMockAdvancing) {
       void startMockDraft(state, state.perspectiveTeamIndex, {
         refreshPlayers: true,
+        teams: state.settings.teams,
       })
     }
   }
@@ -536,7 +560,7 @@ export const DraftWorkspace = ({
 
   const handleResetMock = () => {
     if (!state) return
-    void startMockDraft(state, mockPerspectiveTeamIndex)
+    void startMockDraft(state, mockPerspectiveTeamIndex, { teams: mockTeams })
   }
 
   const handleMockSlotChange = (slot: number) => {
@@ -544,12 +568,25 @@ export const DraftWorkspace = ({
     const nextIndex = slot - 1
     if (
       nextIndex < 0 ||
-      nextIndex >= state.settings.teams ||
+      nextIndex >= mockTeams ||
       nextIndex === mockPerspectiveTeamIndex
     ) {
       return
     }
-    void startMockDraft(state, nextIndex)
+    void startMockDraft(state, nextIndex, { teams: mockTeams })
+  }
+
+  const handleMockTeamsChange = (teams: number) => {
+    if (!state) return
+    if (
+      !Number.isInteger(teams) ||
+      teams < ESPN_MIN_TEAMS ||
+      teams > ESPN_MAX_TEAMS ||
+      teams === mockTeams
+    ) {
+      return
+    }
+    void startMockDraft(state, mockPerspectiveTeamIndex, { teams })
   }
 
   const handleMockMarkPicked = (playerId: string) => {
@@ -558,23 +595,20 @@ export const DraftWorkspace = ({
     }
 
     const overall = mockBoard.currentOverall
-    const teamIndex = teamIndexForOverall(overall, state.settings.teams)
+    const teamIndex = teamIndexForOverall(overall, mockTeams)
     const player = mockPlayers.find((entry) => entry.id === playerId)
     if (player) {
       setLatestMockPick({ overall, teamIndex, player })
     }
 
-    const afterHuman = applyPickToBoard(
-      mockBoard,
-      state.settings.teams,
-      playerId,
-    )
+    const afterHuman = applyPickToBoard(mockBoard, mockTeams, playerId)
     void runMockCpuUntilUserTurn(
       toMockLeagueState(
         state,
         mockPerspectiveTeamIndex,
         mockPlayers,
         afterHuman,
+        mockTeams,
       ),
     )
   }
@@ -706,6 +740,7 @@ export const DraftWorkspace = ({
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
               onSlotChange={handleMockSlotChange}
+              onTeamsChange={handleMockTeamsChange}
               perspectiveTeamIndex={mockPerspectiveTeamIndex}
               players={mockPlayers}
               state={toMockLeagueState(
@@ -713,6 +748,7 @@ export const DraftWorkspace = ({
                 mockPerspectiveTeamIndex,
                 mockPlayers,
                 mockBoard,
+                mockTeams,
               )}
             />
           ) : null}

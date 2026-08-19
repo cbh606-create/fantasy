@@ -58,7 +58,7 @@ export const FieldHelpTip = ({ label, children }: FieldHelpTipProps) => {
       </button>
       {open ? (
         <span
-          className="absolute left-0 top-full z-20 mt-1.5 w-[min(18.5rem,calc(100vw-3rem))] rounded-xl border border-[var(--color-hairline)] bg-white p-3 text-left text-[0.75rem] leading-5 font-normal text-[var(--color-ink)] shadow-sm"
+          className="pointer-events-none absolute left-0 top-full z-20 mt-1.5 w-[min(18.5rem,calc(100vw-3rem))] rounded-xl border border-[var(--color-hairline)] bg-white p-3 text-left text-[0.75rem] leading-5 font-normal text-[var(--color-ink)] shadow-sm"
           id={tipId}
           role="tooltip"
         >

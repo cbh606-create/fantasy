@@ -18,7 +18,7 @@ export type CategorySetting = {
 export type RosterSlot = "PG" | "SG" | "SF" | "PF" | "C" | "G" | "F" | "UTIL" | "BE"
 
 export type LeagueSettings = {
-  teams: 12
+  teams: number
   draftType: "snake"
   rosterSlots: RosterSlot[]
   categories: CategorySetting[]

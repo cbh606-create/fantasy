@@ -1,6 +1,7 @@
 {
   "leagueId": "fixture-league",
   "season": 2026,
+  "teams": 12,
   "userPickSlot": 3,
   "rounds": 13,
   "players": [

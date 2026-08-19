@@ -5,10 +5,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Chip } from "@/components/ui/Chip"
 import { defaultCategorySettings } from "@/lib/domain/categories"
+import {
+  DEFAULT_TEAMS,
+  ESPN_TEAM_COUNTS,
+} from "@/lib/domain/leagueSize"
 import { DEFAULT_DRAFT_ROUNDS } from "@/lib/domain/snake"
 import type { CategoryId, CategorySetting } from "@/lib/domain/types"
 
-const PICK_SLOTS = Array.from({ length: 12 }, (_, index) => index + 1)
 const MIN_WEIGHT = 0.5
 const MAX_WEIGHT = 2
 const WEIGHT_STEP = 0.5
@@ -37,6 +40,7 @@ export const LeagueSetupForm = () => {
   const [leagueName, setLeagueName] = useState("My League")
   const [espnLeagueId, setEspnLeagueId] = useState("")
   const [season, setSeason] = useState(new Date().getFullYear())
+  const [teams, setTeams] = useState(DEFAULT_TEAMS)
   const [pickSlot, setPickSlot] = useState(1)
   const [categories, setCategories] = useState<CategorySetting[]>(
     defaultCategorySettings,
@@ -47,6 +51,15 @@ export const LeagueSetupForm = () => {
     null,
   )
   const [error, setError] = useState("")
+
+  const pickSlots = Array.from({ length: teams }, (_, index) => index + 1)
+
+  const handleTeamsChange = (nextTeams: number) => {
+    setTeams(nextTeams)
+    setPickSlot((currentSlot) =>
+      currentSlot > nextTeams ? nextTeams : currentSlot,
+    )
+  }
 
   const handleCategoryToggle = (categoryId: CategoryId) => {
     setCategories((currentCategories) =>
@@ -155,6 +168,8 @@ export const LeagueSetupForm = () => {
           name: leagueName,
           leagueId: espnLeagueId.trim(),
           season,
+          teams,
+          userPickSlot: pickSlot,
         },
         "live",
       )
@@ -179,6 +194,7 @@ export const LeagueSetupForm = () => {
         {
           name: leagueName.trim() || "Mock Draft",
           manualInput: {
+            teams,
             userPickSlot: pickSlot,
             categories,
             puntCategoryIds,
@@ -218,14 +234,38 @@ export const LeagueSetupForm = () => {
           <p className="text-xs tracking-[0.16em] text-[var(--color-mute)] uppercase">
             League format
           </p>
-          <p className="mt-1 font-medium">12-team snake · {DEFAULT_DRAFT_ROUNDS} rounds</p>
+          <p className="mt-1 font-medium">
+            {teams}-team snake · {DEFAULT_DRAFT_ROUNDS} rounds
+          </p>
+          <p className="mt-1 text-xs text-[var(--color-mute)]">
+            ESPN Fantasy Basketball allows 4–20 teams
+          </p>
         </div>
       </section>
 
       <fieldset>
+        <legend className="text-xl font-semibold">Number of teams</legend>
+        <p className="mt-1 text-sm text-[var(--color-mute)]">
+          Match your ESPN league size (4–20).
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {ESPN_TEAM_COUNTS.map((teamCount) => (
+            <Chip
+              aria-label={`${teamCount} teams`}
+              key={teamCount}
+              onClick={() => handleTeamsChange(teamCount)}
+              variant={teams === teamCount ? "active" : "default"}
+            >
+              {teamCount}
+            </Chip>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend className="text-xl font-semibold">Your pick slot</legend>
         <div className="mt-4 flex flex-wrap gap-2">
-          {PICK_SLOTS.map((slot) => (
+          {pickSlots.map((slot) => (
             <Chip
               aria-label={`Pick slot ${slot}`}
               key={slot}

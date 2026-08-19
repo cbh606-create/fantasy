@@ -188,6 +188,9 @@ export default function RosterListPage() {
         ) {
           return
         }
+        setEspnLinkStatus((current) =>
+          current === "checking" ? "saved" : current,
+        )
         setError(
           requestError instanceof Error
             ? requestError.message
@@ -422,19 +425,32 @@ export default function RosterListPage() {
     event.preventDefault()
     setError("")
     setSuccessMessage("")
+
+    if (!espnConnected) {
+      setError("Save ESPN cookies above first, then import your league.")
+      return
+    }
+
+    if (espnLinkStatus === "expired") {
+      setError(
+        "ESPN cookies look expired. Paste fresh espn_s2 / SWID above, then Save.",
+      )
+      return
+    }
+
+    if (isSavingEspn) {
+      setError("Still saving ESPN cookies — wait a moment, then try again.")
+      return
+    }
+
     setIsImporting(true)
 
     try {
-      if (espnLinkStatus === "expired") {
-        throw new Error(
-          "ESPN cookies look expired. Paste fresh espn_s2 / SWID above, then Save.",
-        )
-      }
-
       setEspnLinkStatus("checking")
       const verified = await verifyEspnAccess()
       if (!verified.ok) {
         setEspnLinkStatus(verified.authFailed ? "expired" : "saved")
+        setVerifiedSummary("")
         throw new Error(verified.message)
       }
       setEspnLinkStatus("verified")
@@ -447,6 +463,9 @@ export default function RosterListPage() {
         requestError instanceof Error
           ? requestError.message
           : "Unable to import ESPN league",
+      )
+      setEspnLinkStatus((current) =>
+        current === "checking" ? "saved" : current,
       )
     } finally {
       setIsImporting(false)
@@ -678,7 +697,7 @@ export default function RosterListPage() {
             ) : null}
           </aside>
 
-          <aside className="h-fit rounded-[2rem] bg-[var(--color-soft-cloud)] p-6">
+          <aside className="relative z-10 h-fit rounded-[2rem] bg-[var(--color-soft-cloud)] p-6">
             <p className="text-xs tracking-[0.16em] text-[var(--color-mute)] uppercase">
               ESPN import
             </p>
@@ -732,20 +751,20 @@ export default function RosterListPage() {
               />
               <button
                 className="w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={
-                  isImporting ||
-                  !espnConnected ||
-                  espnLinkStatus === "expired" ||
-                  espnLinkStatus === "checking"
-                }
+                disabled={isImporting}
                 type="submit"
               >
-                {isImporting
-                  ? "Importing…"
-                  : espnLinkStatus === "expired"
-                    ? "Reconnect ESPN first"
-                    : "Import ESPN league"}
+                {isImporting ? "Importing…" : "Import ESPN league"}
               </button>
+              {!espnConnected ? (
+                <p className="text-[0.75rem] text-[var(--color-mute)]">
+                  Save cookies in Connect your account first, then click import.
+                </p>
+              ) : espnLinkStatus === "expired" ? (
+                <p className="text-[0.75rem] text-[var(--color-sale)]">
+                  Reconnect with fresh cookies above before importing.
+                </p>
+              ) : null}
             </form>
           </aside>
 

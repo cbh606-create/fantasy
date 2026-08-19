@@ -6,6 +6,7 @@ import { MockDraftAnalysis } from "@/components/draft/MockDraftAnalysis"
 import { PlayerPool } from "@/components/draft/PlayerPool"
 import { RecPanel } from "@/components/draft/RecPanel"
 import { Button } from "@/components/ui/Button"
+import { ESPN_TEAM_COUNTS } from "@/lib/domain/leagueSize"
 import { isUserTurn } from "@/lib/domain/snake"
 import type {
   DraftBoard,
@@ -30,6 +31,7 @@ type MockDraftViewProps = {
   onMarkPicked: (playerId: string) => void
   onReset: () => void
   onSlotChange: (slot: number) => void
+  onTeamsChange: (teams: number) => void
   perspectiveTeamIndex: number
   players: Player[]
   state: LeagueState
@@ -45,10 +47,12 @@ export const MockDraftView = ({
   onMarkPicked,
   onReset,
   onSlotChange,
+  onTeamsChange,
   perspectiveTeamIndex,
   players,
   state,
 }: MockDraftViewProps) => {
+  const teams = state.settings.teams
   const mockState: LeagueState = {
     ...state,
     board: mockBoard,
@@ -56,26 +60,27 @@ export const MockDraftView = ({
     players,
     source: "manual",
   }
-  const userTurn = isUserTurn(
-    mockBoard,
-    perspectiveTeamIndex,
-    state.settings.teams,
-  )
+  const userTurn = isUserTurn(mockBoard, perspectiveTeamIndex, teams)
   const pickedPlayerIds = mockBoard.picks.flatMap((pick) =>
     pick.playerId ? [pick.playerId] : [],
   )
   const draftComplete =
-    mockBoard.currentOverall > state.settings.teams * state.settings.rounds ||
+    mockBoard.currentOverall > teams * state.settings.rounds ||
     mockBoard.picks.every((pick) => pick.playerId !== null)
   const busy = isSavingPick || isAdvancing
-  const slotOptions = Array.from(
-    { length: state.settings.teams },
-    (_, index) => index + 1,
-  )
+  const slotOptions = Array.from({ length: teams }, (_, index) => index + 1)
+
+  const handleTeamsChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const nextTeams = Number(event.target.value)
+    if (!Number.isInteger(nextTeams) || !ESPN_TEAM_COUNTS.includes(nextTeams)) {
+      return
+    }
+    onTeamsChange(nextTeams)
+  }
 
   const handleSlotChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const slot = Number(event.target.value)
-    if (!Number.isInteger(slot) || slot < 1 || slot > state.settings.teams) {
+    if (!Number.isInteger(slot) || slot < 1 || slot > teams) {
       return
     }
     onSlotChange(slot)
@@ -158,6 +163,22 @@ export const MockDraftView = ({
         </div>
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 text-xs text-[var(--color-mute)]">
+            <span className="tracking-[0.12em] uppercase">Teams</span>
+            <select
+              aria-label="Number of teams"
+              className="h-9 min-w-[7rem] rounded-xl border border-[var(--color-hairline)] bg-white px-3 text-sm text-[var(--color-ink)]"
+              disabled={busy}
+              onChange={handleTeamsChange}
+              value={teams}
+            >
+              {ESPN_TEAM_COUNTS.map((teamCount) => (
+                <option key={teamCount} value={teamCount}>
+                  {teamCount} teams
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-[var(--color-mute)]">
             <span className="tracking-[0.12em] uppercase">Your pick slot</span>
             <select
               aria-label="Your pick slot"
@@ -210,7 +231,7 @@ export const MockDraftView = ({
         mockBoard={mockBoard}
         perspectiveTeamIndex={perspectiveTeamIndex}
         players={players}
-        teams={state.settings.teams}
+        teams={teams}
       />
     </div>
   )

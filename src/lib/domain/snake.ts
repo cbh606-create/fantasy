@@ -1,6 +1,6 @@
 import type { DraftBoard, DraftPick } from "./types"
 
-/** Standard 12-team H2H category snake draft length. */
+/** Default snake draft rounds for standard H2H category leagues. */
 export const DEFAULT_DRAFT_ROUNDS = 13
 
 export const teamIndexForOverall = (overall: number, teams: number): number => {

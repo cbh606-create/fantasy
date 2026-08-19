@@ -306,7 +306,7 @@ describe("DraftWorkspace", () => {
       perspectiveTeamIndex: 1,
       settings: {
         ...state.settings,
-        teams: 3,
+        teams: 4,
         rounds: 2,
         userPickSlot: 2,
       },
@@ -388,6 +388,9 @@ describe("DraftWorkspace", () => {
     expect(await screen.findByText(/practice only/i)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Reset mock draft" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Random pick slot" })).toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Number of teams" })).toHaveValue(
+      "4",
+    )
     expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
       "2",
     )
@@ -450,6 +453,24 @@ describe("DraftWorkspace", () => {
         "1",
       )
     })
+    await waitFor(
+      () => {
+        expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+      },
+      { timeout: 3_000 },
+    )
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Number of teams" }), {
+      target: { value: "8" },
+    })
+    await waitFor(() => {
+      expect(screen.getByRole("combobox", { name: "Number of teams" })).toHaveValue(
+        "8",
+      )
+    })
+    expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
+      "1",
+    )
     await waitFor(
       () => {
         expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()

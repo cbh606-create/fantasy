@@ -1,10 +1,21 @@
 import espnLeagueFixture from "../../../data/fixtures/espn-league.json"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import {
+  DEFAULT_TEAMS,
+  ESPN_MAX_TEAMS,
+  ESPN_MIN_TEAMS,
+} from "@/lib/domain/leagueSize"
+import {
   buildEmptyBoard,
   DEFAULT_DRAFT_ROUNDS,
 } from "@/lib/domain/snake"
-import type { LeagueState, Player, RosterSlot } from "@/lib/domain/types"
+import type {
+  CategoryId,
+  CategorySetting,
+  LeagueState,
+  Player,
+  RosterSlot,
+} from "@/lib/domain/types"
 import { EspnAdapterError, type EspnErrorCode } from "./errors"
 
 const ESPN_ROSTER_SLOTS: RosterSlot[] = [
@@ -23,12 +34,21 @@ const ESPN_ROSTER_SLOTS: RosterSlot[] = [
   "BE",
 ]
 
+const clampTeams = (value: number): number =>
+  Math.min(ESPN_MAX_TEAMS, Math.max(ESPN_MIN_TEAMS, Math.trunc(value)))
+
 type EspnParams = {
   leagueId: string
   season: number
   swid?: string
   espnS2?: string
   forceFail?: EspnErrorCode
+  /** Fixture / practice override until live ESPN size mapping ships. */
+  teams?: number
+  userPickSlot?: number
+  categories?: CategorySetting[]
+  puntCategoryIds?: CategoryId[]
+  focusCategoryIds?: CategoryId[]
 }
 
 export const espnImportToLeagueState = async (
@@ -42,8 +62,19 @@ export const espnImportToLeagueState = async (
     throw new EspnAdapterError("ESPN_UNAVAILABLE")
   }
 
-  const teams = 12 as const
-  const rounds = DEFAULT_DRAFT_ROUNDS
+  const fixtureTeams =
+    "teams" in espnLeagueFixture &&
+    typeof espnLeagueFixture.teams === "number"
+      ? espnLeagueFixture.teams
+      : DEFAULT_TEAMS
+  const teams = clampTeams(params.teams ?? fixtureTeams)
+  const rounds =
+    typeof espnLeagueFixture.rounds === "number"
+      ? espnLeagueFixture.rounds
+      : DEFAULT_DRAFT_ROUNDS
+  const requestedSlot =
+    params.userPickSlot ?? espnLeagueFixture.userPickSlot
+  const userPickSlot = Math.min(teams, Math.max(1, Math.trunc(requestedSlot)))
   const board = buildEmptyBoard(teams, rounds)
 
   for (const fixturePick of espnLeagueFixture.picks) {
@@ -64,16 +95,16 @@ export const espnImportToLeagueState = async (
       teams,
       draftType: "snake",
       rosterSlots: ESPN_ROSTER_SLOTS,
-      categories: defaultCategorySettings(),
-      userPickSlot: espnLeagueFixture.userPickSlot,
-      puntCategoryIds: [],
-      focusCategoryIds: [],
+      categories: params.categories ?? defaultCategorySettings(),
+      userPickSlot,
+      puntCategoryIds: params.puntCategoryIds ?? [],
+      focusCategoryIds: params.focusCategoryIds ?? [],
       rounds,
     },
     board,
     players: espnLeagueFixture.players as Player[],
     source: "espn",
-    perspectiveTeamIndex: espnLeagueFixture.userPickSlot - 1,
+    perspectiveTeamIndex: userPickSlot - 1,
   }
 }
 

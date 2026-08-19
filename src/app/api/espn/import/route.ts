@@ -6,6 +6,10 @@ import {
 import { espnImportToLeagueState } from "@/lib/adapters/espn"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
+import {
+  ESPN_MAX_TEAMS,
+  ESPN_MIN_TEAMS,
+} from "@/lib/domain/leagueSize"
 import { rateLimit } from "@/lib/rateLimit"
 
 const ESPN_LIMIT = 5
@@ -25,6 +29,20 @@ type ImportBody = {
   swid?: unknown
   espnS2?: unknown
   forceFail?: unknown
+  teams?: unknown
+  userPickSlot?: unknown
+}
+
+const parseOptionalTeams = (value: unknown): number | undefined => {
+  if (typeof value !== "number" || !Number.isInteger(value)) return undefined
+  if (value < ESPN_MIN_TEAMS || value > ESPN_MAX_TEAMS) return undefined
+  return value
+}
+
+const parseOptionalPickSlot = (value: unknown): number | undefined => {
+  if (typeof value !== "number" || !Number.isInteger(value)) return undefined
+  if (value < 1 || value > ESPN_MAX_TEAMS) return undefined
+  return value
 }
 
 const rateLimitedResponse = (retryAfterMs: number) =>
@@ -97,6 +115,8 @@ export const POST = async (request: Request): Promise<Response> => {
       season: body.season,
       swid: typeof body.swid === "string" ? body.swid : undefined,
       espnS2: typeof body.espnS2 === "string" ? body.espnS2 : undefined,
+      teams: parseOptionalTeams(body.teams),
+      userPickSlot: parseOptionalPickSlot(body.userPickSlot),
       forceFail:
         process.env.NODE_ENV === "test" && isErrorCode(body.forceFail)
           ? body.forceFail

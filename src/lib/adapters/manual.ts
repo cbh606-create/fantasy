@@ -1,4 +1,5 @@
 import { defaultCategorySettings } from "@/lib/domain/categories"
+import { DEFAULT_TEAMS } from "@/lib/domain/leagueSize"
 import { buildEmptyBoard } from "@/lib/domain/snake"
 import type { LeagueSettings, LeagueState, RosterSlot } from "@/lib/domain/types"
 import type { ManualLeagueInput } from "./types"
@@ -23,7 +24,7 @@ export const manualToLeagueState = (
   input: ManualLeagueInput & { players: NonNullable<ManualLeagueInput["players"]> },
 ): LeagueState => {
   const rounds = input.rounds
-  const teams = 12 as const
+  const teams = input.teams ?? DEFAULT_TEAMS
 
   const settings: LeagueSettings = {
     teams,

@@ -71,7 +71,8 @@ export const PrepView = ({
           ) : null}
         </div>
         <p className="mt-5 text-sm text-[var(--color-mute)]">
-          Pick slot {state.settings.userPickSlot} · {state.settings.rounds} rounds
+          {state.settings.teams}-team · pick slot {state.settings.userPickSlot} ·{" "}
+          {state.settings.rounds} rounds
         </p>
 
         <label className="mt-8 block space-y-2 text-sm font-medium">
