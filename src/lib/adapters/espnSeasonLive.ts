@@ -27,9 +27,10 @@ const resolveCookies = (cookies?: EspnCookies): EspnCookies => {
 
 const espnHeaders = (cookies: EspnCookies): Record<string, string> => ({
   Accept: "application/json, text/plain, */*",
-  Cookie: `espn_s2=${cookies.espnS2}; SWID=${cookies.swid}`,
+  // Keep SWID braces raw; percent-encode espn_s2 so `/` and `+` survive Cookie.
+  Cookie: `espn_s2=${encodeURIComponent(cookies.espnS2)}; SWID=${cookies.swid}`,
   "User-Agent":
-    "Mozilla/5.0 (compatible; FantasyMatchupAdvisor/1.0; +local)",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
 })
 
 const parseEspnJson = async <Payload>(response: Response): Promise<Payload> => {

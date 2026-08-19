@@ -131,6 +131,17 @@ export default function RosterListPage() {
     }
   }, [parseLeagueParams])
 
+  const clearRejectedEspnCredentials = async () => {
+    try {
+      await fetch("/api/espn/credentials", { method: "DELETE" })
+    } catch {
+      // Still reset local UI even if disconnect fails.
+    }
+    setEspnConnected(false)
+    setEspnLinkStatus("none")
+    setVerifiedSummary("")
+  }
+
   useEffect(() => {
     const controller = new AbortController()
 
@@ -179,9 +190,11 @@ export default function RosterListPage() {
           }
 
           if (verified.authFailed) {
-            setEspnLinkStatus("expired")
+            await clearRejectedEspnCredentials()
             setConnectTone("bad")
-            setConnectMessage(verified.message)
+            setConnectMessage(
+              "Saved ESPN cookies were rejected. Paste fresh espn_s2 / SWID below.",
+            )
             return
           }
 
@@ -233,7 +246,15 @@ export default function RosterListPage() {
         setConnectMessage(verified.message)
         return
       }
-      setEspnLinkStatus(verified.authFailed ? "expired" : "saved")
+      if (verified.authFailed) {
+        await clearRejectedEspnCredentials()
+        setConnectTone("bad")
+        setConnectMessage(
+          "Saved ESPN cookies were rejected. Paste fresh espn_s2 / SWID below.",
+        )
+        return
+      }
+      setEspnLinkStatus("saved")
       setVerifiedSummary("")
       setConnectTone("bad")
       setConnectMessage(verified.message)
@@ -610,19 +631,9 @@ export default function RosterListPage() {
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Connect your account</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
-              We open a short-lived browser session for you to sign in to ESPN,
-              then capture the espn_s2 and SWID session cookies. We store them
-              on our server only for league sync. Treat this like granting read
-              access to your ESPN league.
+              Paste espn_s2 and SWID from fantasy.espn.com (most reliable). We
+              store them on your account only for league sync.
             </p>
-            <button
-              className="mt-5 w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={isStartingEspnConnect}
-              onClick={() => void handleStartEspnConnect()}
-              type="button"
-            >
-              {isStartingEspnConnect ? "Opening ESPN…" : "Connect with ESPN"}
-            </button>
             {connectMessage ? (
               <p
                 className={`mt-3 text-sm ${
@@ -656,65 +667,42 @@ export default function RosterListPage() {
                 {verifiedSummary}
               </p>
             ) : null}
-            {espnLinkStatus === "expired" ? (
-              <div
-                className="mt-3 rounded-xl border border-[var(--color-sale)]/30 bg-red-50 p-3"
-                role="alert"
-              >
-                <p className="text-sm text-[var(--color-sale)]">
-                  ESPN rejected the saved cookies (302). Reconnect in the
-                  Chromium window, or paste fresh espn_s2 / SWID below.
-                </p>
-                <button
-                  className="mt-3 rounded-full bg-[var(--color-ink)] px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isStartingEspnConnect}
-                  onClick={() => void handleStartEspnConnect()}
-                  type="button"
-                >
-                  {isStartingEspnConnect ? "Opening ESPN…" : "Reconnect with ESPN"}
-                </button>
-              </div>
-            ) : null}
             <details
               className="mt-4 rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2 text-sm"
-              open={espnLinkStatus === "expired"}
+              open
             >
               <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
-                Paste cookies instead
+                How to copy espn_s2 and SWID
               </summary>
-              <details className="mt-3 rounded-xl border border-[var(--color-hairline)] px-3 py-2">
-                <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
-                  How to copy espn_s2 and SWID
-                </summary>
-                <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-[0.8125rem] leading-5 text-[var(--color-mute)]">
-                  <li>
-                    Chrome/Edge에서{" "}
-                    <a
-                      className="underline underline-offset-2 hover:text-[var(--color-ink)]"
-                      href="https://fantasy.espn.com"
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      fantasy.espn.com
-                    </a>
-                    에 로그인합니다.
-                  </li>
-                  <li>본인 팀 페이지를 연 뒤 F12(또는 우클릭 → 검사)로 DevTools를 엽니다.</li>
-                  <li>
-                    상단 <span className="text-[var(--color-ink)]">Application</span>
-                    (애플리케이션) 탭 → 왼쪽 Storage → Cookies →{" "}
-                    <span className="text-[var(--color-ink)]">https://fantasy.espn.com</span>
-                    을 선택합니다.
-                  </li>
-                  <li>
-                    목록에서 <span className="text-[var(--color-ink)]">espn_s2</span>,{" "}
-                    <span className="text-[var(--color-ink)]">SWID</span>를 찾아 Value를
-                    더블클릭 → 복사합니다.
-                  </li>
-                  <li>아래에 붙여넣고 Save합니다. 쿠키가 만료되면 같은 방법으로 다시 연결하세요.</li>
-                </ol>
-              </details>
-              <form className="mt-5 space-y-3" onSubmit={handleConnectEspn}>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-[0.8125rem] leading-5 text-[var(--color-mute)]">
+                <li>
+                  Chrome/Edge에서{" "}
+                  <a
+                    className="underline underline-offset-2 hover:text-[var(--color-ink)]"
+                    href="https://fantasy.espn.com"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    fantasy.espn.com
+                  </a>
+                  에 로그인합니다.
+                </li>
+                <li>본인 팀 페이지를 연 뒤 F12(또는 우클릭 → 검사)로 DevTools를 엽니다.</li>
+                <li>
+                  상단 <span className="text-[var(--color-ink)]">Application</span>
+                  (애플리케이션) 탭 → 왼쪽 Storage → Cookies →{" "}
+                  <span className="text-[var(--color-ink)]">https://fantasy.espn.com</span>
+                  을 선택합니다.
+                </li>
+                <li>
+                  목록에서 <span className="text-[var(--color-ink)]">espn_s2</span>,{" "}
+                  <span className="text-[var(--color-ink)]">SWID</span>를 찾아 Value를
+                  더블클릭 → 복사합니다.
+                </li>
+                <li>아래에 붙여넣고 Save합니다.</li>
+              </ol>
+            </details>
+            <form className="mt-5 space-y-3" onSubmit={handleConnectEspn}>
               <div className="flex items-center gap-1.5">
                 <label className="text-sm font-medium" htmlFor="espn-s2">
                   espn_s2
@@ -788,11 +776,23 @@ export default function RosterListPage() {
                     ? "Update cookies & verify"
                     : "Save cookies & verify"}
               </button>
-                <p className="text-[0.75rem] text-[var(--color-mute)]">
-                  쿠키 저장 후 ESPN 검증이 되면 로스터로 이동합니다. 페이지를 열 때도
-                  저장된 쿠키를 다시 검증합니다.
-                </p>
-              </form>
+            </form>
+            <details className="mt-4 rounded-xl border border-[var(--color-hairline)] bg-white px-3 py-2 text-sm">
+              <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
+                Try Chromium login window (experimental)
+              </summary>
+              <p className="mt-2 text-[0.8125rem] leading-5 text-[var(--color-mute)]">
+                Opens a separate Chromium window on this PC. Prefer paste above
+                if the window does not appear.
+              </p>
+              <button
+                className="mt-3 w-full rounded-full border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-5 py-2.5 text-sm font-medium hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isStartingEspnConnect}
+                onClick={() => void handleStartEspnConnect()}
+                type="button"
+              >
+                {isStartingEspnConnect ? "Opening ESPN…" : "Open Chromium login"}
+              </button>
             </details>
             {espnConnected ? (
               <div className="mt-3 space-y-2">
