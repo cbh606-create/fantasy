@@ -476,7 +476,7 @@ export default function RosterListPage() {
 
     if (espnLinkStatus === "expired") {
       setError(
-        "ESPN cookies look expired. Paste fresh espn_s2 / SWID above, then Save.",
+        "Your ESPN connection expired. Reconnect with ESPN above, then try importing again.",
       )
       return
     }

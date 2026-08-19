@@ -48,13 +48,13 @@ describe("ESPN credentials API", () => {
     const putPayload = await putResponse.json()
 
     expect(putResponse.status).toBe(200)
-    expect(putPayload).toEqual({ connected: true })
+    expect(putPayload).toEqual({ connected: true, status: "saved" })
     expect(JSON.stringify(putPayload)).not.toContain("test-s2-value")
 
     const getPayload = await (await GET()).json()
-    expect(getPayload).toEqual({ connected: true })
+    expect(getPayload).toEqual({ connected: true, status: "saved" })
 
     const deleteResponse = await DELETE()
-    expect(await deleteResponse.json()).toEqual({ connected: false })
+    expect(await deleteResponse.json()).toEqual({ connected: false, status: "none" })
   })
 })
