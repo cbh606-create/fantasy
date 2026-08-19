@@ -1,4 +1,5 @@
 import { defaultCategorySettings } from "@/lib/domain/categories"
+import { ASSUMED_SEASON_GAMES } from "@/lib/matchup/constants"
 import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import type {
   SeasonLeagueState,
@@ -147,6 +148,8 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
   const fga = avg["14"] ?? 0
   const ftm = avg["15"] ?? 0
   const fta = avg["16"] ?? 0
+  // ESPN averageStats are per-game; store season totals for Matchup weekly scaling.
+  const seasonTotal = (perGame: number) => perGame * ASSUMED_SEASON_GAMES
 
   return {
     id: String(player.id),
@@ -155,19 +158,19 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
     projections: {
       FG_PCT: avg["19"] ?? (fga > 0 ? fgm / fga : 0),
       FT_PCT: avg["20"] ?? (fta > 0 ? ftm / fta : 0),
-      TPM: avg["17"] ?? 0,
-      REB: avg["6"] ?? 0,
-      AST: avg["3"] ?? 0,
-      STL: avg["2"] ?? 0,
-      BLK: avg["1"] ?? 0,
-      TO: avg["11"] ?? 0,
-      PTS: avg["0"] ?? 0,
+      TPM: seasonTotal(avg["17"] ?? 0),
+      REB: seasonTotal(avg["6"] ?? 0),
+      AST: seasonTotal(avg["3"] ?? 0),
+      STL: seasonTotal(avg["2"] ?? 0),
+      BLK: seasonTotal(avg["1"] ?? 0),
+      TO: seasonTotal(avg["11"] ?? 0),
+      PTS: seasonTotal(avg["0"] ?? 0),
     },
     shooting: {
-      FGM: fgm,
-      FGA: fga,
-      FTM: ftm,
-      FTA: fta,
+      FGM: seasonTotal(fgm),
+      FGA: seasonTotal(fga),
+      FTM: seasonTotal(ftm),
+      FTA: seasonTotal(fta),
     },
   }
 }

@@ -42,7 +42,7 @@ describe("gamesThisWeekByPlayerId", () => {
 })
 
 describe("weeklyPlayerStats", () => {
-  it("scales PTS by games/82", () => {
+  it("scales season-total PTS by games/82", () => {
     const player: SeasonPlayer = {
       id: "a",
       name: "A",
@@ -53,6 +53,30 @@ describe("weeklyPlayerStats", () => {
     const weekly = weeklyPlayerStats(player, 2)
     expect(weekly.projections.PTS).toBeCloseTo((1640 / ASSUMED_SEASON_GAMES) * 2)
     expect(weekly.projections.FG_PCT).toBeCloseTo(0.5)
+  })
+
+  it("scales ESPN-style per-game projections by games only", () => {
+    const player: SeasonPlayer = {
+      id: "b",
+      name: "B",
+      teamAbbr: "BOS",
+      projections: {
+        FG_PCT: 0.45,
+        FT_PCT: 0.8,
+        TPM: 1.6,
+        REB: 5,
+        AST: 4,
+        STL: 1,
+        BLK: 0.5,
+        TO: 2,
+        PTS: 18.2,
+      },
+      shooting: { FGM: 7, FGA: 15, FTM: 3, FTA: 3.5 },
+    }
+    const weekly = weeklyPlayerStats(player, 3)
+    expect(weekly.projections.TPM).toBeCloseTo(1.6 * 3)
+    expect(weekly.projections.PTS).toBeCloseTo(18.2 * 3)
+    expect(weekly.projections.FG_PCT).toBeCloseTo(7 / 15)
   })
 })
 

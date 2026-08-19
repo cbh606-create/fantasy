@@ -8,16 +8,31 @@ const COUNTING_CATEGORIES = ALL_CATEGORY_IDS.filter(
   (categoryId) => categoryId !== "FG_PCT" && categoryId !== "FT_PCT",
 )
 
+/** ESPN season averageStats are per-game; draft/Hashtag pools use season totals. */
+const PER_GAME_PTS_CEILING = 50
+
 const emptyTotals = (): Record<CategoryId, number> =>
   Object.fromEntries(
     ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
   ) as Record<CategoryId, number>
 
+export const isPerGameProjectionPlayer = (player: SeasonPlayer): boolean =>
+  player.projections.PTS > 0 && player.projections.PTS < PER_GAME_PTS_CEILING
+
+export const weeklyProjectionFactor = (
+  player: SeasonPlayer,
+  games: number,
+): number => {
+  if (games <= 0) return 0
+  if (isPerGameProjectionPlayer(player)) return games
+  return games / ASSUMED_SEASON_GAMES
+}
+
 export const weeklyPlayerStats = (
   player: SeasonPlayer,
   games: number,
 ): WeeklyPlayerStats => {
-  const factor = games / ASSUMED_SEASON_GAMES
+  const factor = weeklyProjectionFactor(player, games)
   const projections = {} as Record<CategoryId, number>
 
   for (const categoryId of COUNTING_CATEGORIES) {

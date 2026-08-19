@@ -75,7 +75,11 @@ describe("mapEspnLeagueToSeasonState", () => {
     expect(star).toMatchObject({
       name: "Star Point",
       teamAbbr: "BOS",
-      projections: expect.objectContaining({ PTS: 24.1, AST: 6.5 }),
+      projections: expect.objectContaining({
+        PTS: 24.1 * 82,
+        AST: 6.5 * 82,
+        TPM: 2.4 * 82,
+      }),
     })
   })
 
