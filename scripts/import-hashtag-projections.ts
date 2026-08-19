@@ -1,11 +1,15 @@
+import "dotenv/config"
+
 import { readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 
+import { db } from "../src/lib/db"
 import {
   applyHashtagProjections,
   parseHashtagCsv,
   type Projections,
 } from "../src/lib/players/hashtagImport"
+import type { SeasonLeagueState } from "../src/lib/season/types"
 
 const DEFAULT_POOL_PATH = "data/players/proj_2026_27.json"
 const DEFAULT_GP = 70
@@ -72,7 +76,7 @@ const readPool = async (poolPath: string): Promise<PoolFile> => {
 const main = async () => {
   if (!csvArg) {
     throw new Error(
-      "Usage: npm run players:import-hashtag -- <csv-path> [--dry-run] [--pool=path] [--gp-default=70] [--per-game=true]",
+      "Usage: npm run players:import-hashtag -- <csv-path> [--dry-run] [--pool=path] [--gp-default=70] [--per-game=true] [--season-league-id=id]",
     )
   }
 
@@ -80,7 +84,9 @@ const main = async () => {
   const poolArg = args.pool ?? DEFAULT_POOL_PATH
   const poolPath = path.resolve(process.cwd(), poolArg)
   const dryRun = parseBoolean(args["dry-run"], "--dry-run")
-  const perGame = parseBoolean(args["per-game"], "--per-game")
+  const perGame = args["per-game"] === undefined
+    ? true
+    : parseBoolean(args["per-game"], "--per-game")
   const gpDefault = parseGpDefault(args["gp-default"])
 
   const rows = parseHashtagCsv(await readFile(csvPath, "utf8"))
@@ -123,6 +129,47 @@ const main = async () => {
 
   await writeFile(poolPath, `${JSON.stringify(nextPool, null, 2)}\n`, "utf8")
   console.log(`Wrote projection overlay to ${poolArg}`)
+
+  const seasonLeagueId = args["season-league-id"]
+  if (!seasonLeagueId) {
+    return
+  }
+
+  try {
+    const seasonLeague = await db.seasonLeague.findUnique({
+      where: { id: seasonLeagueId },
+    })
+    if (!seasonLeague) {
+      console.warn(`Season league not found: ${seasonLeagueId}`)
+      process.exitCode = 2
+      return
+    }
+
+    const seasonState = JSON.parse(seasonLeague.stateJson) as SeasonLeagueState
+    if (!Array.isArray(seasonState.players)) {
+      throw new Error(`Season league has no players array: ${seasonLeagueId}`)
+    }
+
+    const seasonResult = applyHashtagProjections(seasonState.players, rows, {
+      perGame,
+      gpDefault,
+    })
+    await db.seasonLeague.update({
+      where: { id: seasonLeagueId },
+      data: {
+        stateJson: JSON.stringify({
+          ...seasonState,
+          players: seasonResult.players,
+        }),
+      },
+    })
+    console.log(`Wrote projection overlay to season league ${seasonLeagueId}`)
+  } catch (error) {
+    console.error(
+      `Season league update failed: ${error instanceof Error ? error.message : error}`,
+    )
+    process.exitCode = 2
+  }
 }
 
 main().catch((error) => {

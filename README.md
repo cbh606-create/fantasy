@@ -65,6 +65,8 @@ Optional env: `PLAYER_POOL_SOURCE=proj_2026_27` (default). Prior season cache: `
 3. Apply the overlay with `npm run players:import-hashtag -- path/to/hashtag.csv`.
 4. Re-run the overlay after `players:refresh` or an ESPN season refresh to restore the Hashtag numbers.
 
+Per-game CSV values are scaled by GP by default; pass `--per-game=false` for season totals. To patch a saved season after the draft pool write, pass `--season-league-id=<id>`.
+
 ## ESPN integration
 
 `ESPN_LIVE` defaults to `false`. The MVP uses **fixture-first** ESPN data (`data/fixtures/espn-league.json`) for import and sync flows. Manual league setup works without ESPN.
