@@ -58,6 +58,13 @@ npm run players:espn-rankings   # overlay ESPN H2H Points article ranks onto tha
 
 Optional env: `PLAYER_POOL_SOURCE=proj_2026_27` (default). Prior season cache: `stats_2025_26`.
 
+### Hashtag projections overlay
+
+1. Copy the Hashtag projections table into a CSV with Player, Team, GP, FG%, FT%, 3PM, PTS, REB, AST, STL, BLK, TO.
+2. Preview matches with `npm run players:import-hashtag -- path/to/hashtag.csv --dry-run`.
+3. Apply the overlay with `npm run players:import-hashtag -- path/to/hashtag.csv`.
+4. Re-run the overlay after `players:refresh` or an ESPN season refresh to restore the Hashtag numbers.
+
 ## ESPN integration
 
 `ESPN_LIVE` defaults to `false`. The MVP uses **fixture-first** ESPN data (`data/fixtures/espn-league.json`) for import and sync flows. Manual league setup works without ESPN.

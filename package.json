@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "players:refresh": "node scripts/refresh-players.mjs",
+    "players:import-hashtag": "tsx scripts/import-hashtag-projections.ts",
     "players:espn-rankings": "node scripts/refresh-espn-rankings.mjs",
     "players:yahoo-adp": "node scripts/refresh-yahoo-adp.mjs"
   },
@@ -42,6 +43,7 @@
     "playwright": "^1.62.0",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5",
     "vitest": "^4.1.10"
   },
