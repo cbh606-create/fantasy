@@ -1,17 +1,29 @@
 /**
- * Overlay Yahoo ADP from FantasyPros onto the local player pool JSON.
+ * Overlay Yahoo Draft Analysis overall rank onto the local player pool JSON.
+ *
+ * Yahoo Current ADP (average_pick) is Plus-gated; free public API exposes
+ * overall Rank (o-rank), which we store as adp.
  *
  * Usage:
  *   node scripts/refresh-yahoo-adp.mjs
- *   node scripts/refresh-yahoo-adp.mjs --in=data/players/stats_2025_26.json --out=data/players/stats_2025_26.json
+ *   node scripts/refresh-yahoo-adp.mjs --in=data/players/proj_2026_27.json
+ *   node scripts/refresh-yahoo-adp.mjs --fixture
+ *   node scripts/refresh-yahoo-adp.mjs --write-fixture
  *
- * Source: https://www.fantasypros.com/nba/adp/overall.php (Yahoo column)
+ * Source: https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard
  */
 
 import { readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 
-const FANTASYPROS_ADP_URL = "https://www.fantasypros.com/nba/adp/overall.php"
+const YAHOO_PAGE_URL =
+  "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard"
+const YAHOO_API_BASE =
+  "https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2/league/478.l.public/players"
+const PAGE_SIZE = 25
+const FIXTURE_REL = "data/players/yahoo_draft_analysis_rank_2026_27.json"
+const USER_AGENT =
+  "fantasy-draft-tool/0.1 (local Yahoo rank refresh; +https://github.com/cbh606-create/fantasy)"
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((arg) => {
@@ -20,10 +32,14 @@ const args = Object.fromEntries(
   }),
 )
 
-const inRel = args.in ?? "data/players/stats_2025_26.json"
+const inRel = args.in ?? "data/players/proj_2026_27.json"
 const outRel = args.out ?? inRel
+const fixtureRel = args.ranks ?? FIXTURE_REL
+const forceFixture = args.fixture === "true"
+const writeFixture = args["write-fixture"] === "true"
 const inPath = path.resolve(process.cwd(), inRel)
 const outPath = path.resolve(process.cwd(), outRel)
+const fixturePath = path.resolve(process.cwd(), fixtureRel)
 
 const normalizeName = (name) =>
   name
@@ -37,55 +53,165 @@ const normalizeName = (name) =>
     .replace(/\s+/g, " ")
     .trim()
 
-const parseYahooAdp = (html) => {
+const flattenPlayer = (playerNode) => {
+  if (!playerNode) return null
+  if (!Array.isArray(playerNode)) return playerNode
+  return Object.assign(
+    {},
+    ...playerNode.filter(
+      (part) => part && typeof part === "object" && !Array.isArray(part),
+    ),
+  )
+}
+
+const overallRank = (player) => {
+  const ranks = player?.player_ranks
+  if (!Array.isArray(ranks)) return null
+  for (const entry of ranks) {
+    const rank = entry?.player_rank ?? entry
+    if (!rank) continue
+    if (rank.rank_type && rank.rank_type !== "OR") continue
+    const value = Number.parseFloat(rank.rank_value)
+    if (Number.isFinite(value) && value > 0) return value
+  }
+  return null
+}
+
+const parseYahooPlayersPayload = (json) => {
+  const league = json?.fantasy_content?.league
+  const playersBlock = league?.players
+  if (!playersBlock || typeof playersBlock !== "object") return []
+
+  const attrCount = Number(league?.["players:attributes"]?.count)
+  const indexedKeys = Object.keys(playersBlock)
+    .filter((key) => /^\d+$/.test(key))
+    .map(Number)
+    .sort((a, b) => a - b)
+
+  const limit =
+    Number.isFinite(attrCount) && attrCount > 0
+      ? attrCount
+      : indexedKeys.length
+
   const rows = []
-  const rowPattern =
-    /fp-player-name="([^"]+)"[\s\S]*?<\/td>\s*<td>([^<]*)<\/td>\s*<td>([^<]*)<\/td>\s*<td>([^<]*)<\/td>/g
-
-  for (const match of html.matchAll(rowPattern)) {
-    const name = match[1].trim()
-    const yahooRaw = match[2].trim()
-    const yahoo = Number.parseFloat(yahooRaw)
-
-    if (!name || !Number.isFinite(yahoo) || yahoo <= 0) continue
-
+  for (let i = 0; i < limit; i += 1) {
+    const entry = playersBlock[i] ?? playersBlock[String(i)]
+    const player = flattenPlayer(entry?.player)
+    if (!player?.name?.full) continue
+    const rank = overallRank(player)
+    if (rank === null) continue
     rows.push({
-      name,
-      yahoo,
-      key: normalizeName(name),
+      name: player.name.full,
+      rank,
+      key: normalizeName(player.name.full),
     })
   }
 
   return rows
 }
 
-const main = async () => {
-  const response = await fetch(FANTASYPROS_ADP_URL, {
+const buildApiUrl = (start, count) =>
+  `${YAHOO_API_BASE};position=ALL;start=${start};count=${count};sort=average_pick;out=ranks;ranks=o-rank?format=json_f`
+
+const fetchYahooPage = async (start) => {
+  const response = await fetch(buildApiUrl(start, PAGE_SIZE), {
     headers: {
-      "user-agent":
-        "fantasy-draft-tool/0.1 (local ADP refresh; +https://github.com/cbh606-create/fantasy)",
-      accept: "text/html",
+      "user-agent": USER_AGENT,
+      accept: "application/json",
     },
   })
 
   if (!response.ok) {
-    throw new Error(`FantasyPros fetch failed: ${response.status}`)
+    throw new Error(`Yahoo API fetch failed at start=${start}: ${response.status}`)
   }
 
-  const html = await response.text()
-  const yahooRows = parseYahooAdp(html)
+  return response.json()
+}
 
-  if (yahooRows.length < 50) {
-    throw new Error(
-      `Parsed only ${yahooRows.length} Yahoo ADP rows — page shape may have changed`,
-    )
+const fetchYahooRanksLive = async () => {
+  const rows = []
+  let start = 0
+
+  for (let guard = 0; guard < 40; guard += 1) {
+    const page = await fetchYahooPage(start)
+    const pageRows = parseYahooPlayersPayload(page)
+    if (pageRows.length === 0) break
+    rows.push(...pageRows)
+    if (pageRows.length < PAGE_SIZE) break
+    start += PAGE_SIZE
   }
 
-  const yahooByKey = new Map()
-  for (const row of yahooRows) {
-    if (!yahooByKey.has(row.key)) {
-      yahooByKey.set(row.key, row.yahoo)
+  const byKey = new Map()
+  for (const row of rows) {
+    if (!byKey.has(row.key)) byKey.set(row.key, row)
+  }
+
+  const unique = [...byKey.values()].sort((a, b) => a.rank - b.rank)
+  if (unique.length < 50) {
+    throw new Error(`Yahoo API returned only ${unique.length} ranked players`)
+  }
+  return unique
+}
+
+const loadFixtureRanks = async () => {
+  const file = JSON.parse(await readFile(fixturePath, "utf8"))
+  const rankings = Array.isArray(file.rankings) ? file.rankings : []
+  return rankings
+    .map((row) => ({
+      name: row.name,
+      rank: Number(row.rank),
+      key: normalizeName(row.name),
+    }))
+    .filter((row) => row.name && Number.isFinite(row.rank) && row.rank > 0)
+}
+
+const saveFixture = async (rows) => {
+  const payload = {
+    meta: {
+      source: "yahoo_draft_analysis_rank",
+      url: YAHOO_PAGE_URL,
+      api: YAHOO_API_BASE,
+      fetchedAt: new Date().toISOString(),
+      count: rows.length,
+      note: "Overall Rank (o-rank); Current ADP is Yahoo Plus-gated",
+    },
+    rankings: rows.map((row) => ({ name: row.name, rank: row.rank })),
+  }
+  await writeFile(fixturePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8")
+  console.log(`Wrote fixture ${fixturePath} (${rows.length} ranks)`)
+}
+
+const loadRanks = async () => {
+  if (forceFixture) {
+    const rows = await loadFixtureRanks()
+    if (rows.length < 50) {
+      throw new Error(`Fixture has only ${rows.length} ranks in ${fixtureRel}`)
     }
+    return { rows, source: "fixture" }
+  }
+
+  try {
+    const rows = await fetchYahooRanksLive()
+    if (writeFixture) await saveFixture(rows)
+    return { rows, source: "live" }
+  } catch (error) {
+    console.warn(`Live Yahoo failed (${error.message}); trying fixture…`)
+    const rows = await loadFixtureRanks()
+    if (rows.length < 50) {
+      throw new Error(
+        `Live Yahoo failed and fixture has only ${rows.length} ranks in ${fixtureRel}`,
+      )
+    }
+    return { rows, source: "fixture" }
+  }
+}
+
+const main = async () => {
+  const { rows, source } = await loadRanks()
+
+  const rankByKey = new Map()
+  for (const row of rows) {
+    if (!rankByKey.has(row.key)) rankByKey.set(row.key, row.rank)
   }
 
   const pool = JSON.parse(await readFile(inPath, "utf8"))
@@ -99,9 +225,9 @@ const main = async () => {
 
   const players = pool.players.map((player) => {
     const key = normalizeName(player.name)
-    const yahoo = yahooByKey.get(key)
+    const rank = rankByKey.get(key)
 
-    if (yahoo === undefined) {
+    if (rank === undefined) {
       unmatched += 1
       if (unmatchedNames.length < 20) unmatchedNames.push(player.name)
       return player
@@ -110,31 +236,41 @@ const main = async () => {
     matched += 1
     return {
       ...player,
-      adp: yahoo,
+      adp: rank,
     }
   })
+
+  players.sort((a, b) => a.adp - b.adp)
 
   const next = {
     ...pool,
     meta: {
       ...pool.meta,
-      adpSource: "fantasypros_yahoo",
-      adpSourceUrl: FANTASYPROS_ADP_URL,
+      adpSource: "yahoo_draft_analysis_rank",
+      adpSourceUrl: YAHOO_PAGE_URL,
       adpUpdatedAt: new Date().toISOString(),
       adpMatched: matched,
       adpUnmatched: unmatched,
+      adpRankRows: rows.length,
+      adpFetchSource: source,
     },
     players,
   }
 
   await writeFile(outPath, `${JSON.stringify(next, null, 2)}\n`, "utf8")
 
-  console.log(`Yahoo ADP rows parsed: ${yahooRows.length}`)
+  console.log(`Yahoo rank rows (${source}): ${rows.length}`)
   console.log(`Matched onto pool: ${matched}/${pool.players.length}`)
   console.log(`Unmatched (kept prior ADP): ${unmatched}`)
   if (unmatchedNames.length) {
     console.log(`Unmatched sample: ${unmatchedNames.join(", ")}`)
   }
+  console.log(
+    `Top 12: ${players
+      .slice(0, 12)
+      .map((player) => `${player.adp}. ${player.name}`)
+      .join(" | ")}`,
+  )
   console.log(`Wrote ${outPath}`)
 }
 

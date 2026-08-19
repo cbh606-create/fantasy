@@ -1,7 +1,8 @@
 # Yahoo ADP via FantasyPros
 
 Date: 2026-08-12  
-Status: approved / implemented
+Status: superseded  
+Superseded by: `2026-08-20-yahoo-draft-analysis-adp-design.md` (`players:yahoo-adp` now uses Yahoo Draft Analysis overall rank)
 
 ## Goal
 
