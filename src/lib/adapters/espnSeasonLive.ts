@@ -161,8 +161,11 @@ export const fetchEspnSeasonLeague = async (params: {
       if (faPlayers.length > 0) {
         return mergeAvailablePlayers(state, faPlayers, "espn_fa")
       }
-    } catch {
-      // Fall through to ownership-based availability.
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown error"
+      console.warn(
+        `ESPN free-agent fetch failed; using ownership-based availability: ${message}`,
+      )
     }
 
     const ownershipIds = deriveAvailableFromOwnership(state)

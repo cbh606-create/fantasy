@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import rosterSample from "../../data/fixtures/espn-api-season-league-sample.json"
 import freeAgentsSample from "../../data/fixtures/espn-api-free-agents-sample.json"
+import { mapEspnLeagueToSeasonState } from "@/lib/adapters/espnSeasonMap"
 import { fetchEspnSeasonLeague } from "@/lib/adapters/espnSeasonLive"
 
 const jsonResponse = (payload: unknown): Response =>
@@ -18,6 +19,7 @@ const params = {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 describe("fetchEspnSeasonLeague free agents", () => {
@@ -53,7 +55,29 @@ describe("fetchEspnSeasonLeague free agents", () => {
     })
   })
 
-  it("returns roster state with empty availability when FA fetch fails", async () => {
+  it("derives available players from ownership when FA fetch fails", async () => {
+    const rosterState = mapEspnLeagueToSeasonState(rosterSample, params)
+    rosterState.players.push({
+      id: "9003",
+      name: "Ownership Free Agent",
+      projections: {
+        FG_PCT: 0,
+        FT_PCT: 0,
+        TPM: 0,
+        REB: 0,
+        AST: 0,
+        STL: 0,
+        BLK: 0,
+        TO: 0,
+        PTS: 0,
+      },
+    })
+    vi.spyOn(
+      await import("@/lib/adapters/espnSeasonMap"),
+      "mapEspnLeagueToSeasonState",
+    )
+      .mockReturnValueOnce(rosterState)
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined)
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse(rosterSample))
@@ -67,7 +91,16 @@ describe("fetchEspnSeasonLeague free agents", () => {
       "201",
       "202",
       "203",
+      "9003",
     ])
-    expect(state.availablePlayerIds).toEqual([])
+    expect(state.availablePlayerIds).toEqual(["9003"])
+    expect(state.players).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "9003", availability: "fa" }),
+      ]),
+    )
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("FA unavailable"),
+    )
   })
 })
