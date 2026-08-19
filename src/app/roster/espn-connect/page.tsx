@@ -29,15 +29,18 @@ const EspnConnectStatus = () => {
   const [errorCode, setErrorCode] = useState<string | null>(null)
   const [message, setMessage] = useState("")
   const [isRetrying, setIsRetrying] = useState(false)
+  const [hasTerminalError, setHasTerminalError] = useState(false)
 
   useEffect(() => {
     setStatus(null)
     setErrorCode(null)
     setMessage("")
     setIsRetrying(false)
+    setHasTerminalError(false)
 
     if (!sessionId) {
       setMessage("This connection link is missing a session ID.")
+      setHasTerminalError(true)
       return
     }
 
@@ -52,13 +55,17 @@ const EspnConnectStatus = () => {
         )
         const payload = (await response.json().catch(() => ({}))) as StatusPayload
 
+        if (response.status === 401 || response.status === 404) {
+          setMessage(
+            response.status === 401
+              ? "Sign in to the app, then try connecting ESPN again."
+              : "This connection session could not be found.",
+          )
+          setHasTerminalError(true)
+          return
+        }
+
         if (!response.ok || !payload.status) {
-          if (response.status === 401) {
-            throw new Error("Sign in to the app, then return to this page.")
-          }
-          if (response.status === 404) {
-            throw new Error("This connection session could not be found.")
-          }
           throw new Error("Unable to check the ESPN connection.")
         }
 
@@ -123,7 +130,7 @@ const EspnConnectStatus = () => {
 
   const isWaiting = status === null || status === "pending" || status === "awaiting_login"
   const canRetry =
-    !sessionId ||
+    hasTerminalError ||
     status === "timed_out" ||
     status === "failed" ||
     status === "cancelled"
@@ -182,7 +189,10 @@ const EspnConnectStatus = () => {
                 A browser window should have opened.
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
-                Log into ESPN there. This page updates automatically.
+                We opened this short-lived browser session for ESPN login. After
+                you sign in, we capture the espn_s2 and SWID session cookies and
+                store them on our server only for league sync. Treat this like
+                granting read access to your ESPN league.
               </p>
               <p className="mt-6 text-sm text-[var(--color-mute)]" role="status">
                 Waiting for ESPN login…

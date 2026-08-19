@@ -571,8 +571,10 @@ export default function RosterListPage() {
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Connect your account</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
-              Sign in through the secure ESPN browser window. We&apos;ll detect
-              when login finishes and connect your account automatically.
+              We open a short-lived browser session for you to sign in to ESPN,
+              then capture the espn_s2 and SWID session cookies. We store them
+              on our server only for league sync. Treat this like granting read
+              access to your ESPN league.
             </p>
             <button
               className="mt-5 w-full rounded-full bg-[var(--color-ink)] px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"

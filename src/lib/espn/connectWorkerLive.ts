@@ -1,4 +1,4 @@
-import { chromium, type Browser } from "playwright"
+import type { Browser } from "playwright"
 import {
   expireConnectSessionIfNeeded,
   getConnectSessionForUser,
@@ -77,6 +77,7 @@ export const runLiveConnectWorker = async (
   let credentialsSaved = false
 
   try {
+    const { chromium } = await import("playwright")
     browser = await chromium.launch({ headless: false })
     const context = await browser.newContext()
     const page = await context.newPage()

@@ -11,11 +11,32 @@ vi.mock("next/headers", () => ({ headers: vi.fn() }))
 
 const prefix = `espn-connect-api-${crypto.randomUUID()}`
 let userId: string
+const originalLiveConnectSetting = process.env.ESPN_CONNECT_LIVE
 
 const authenticateAs = (id?: string) => {
   vi.mocked(headers).mockResolvedValue(
     new Headers(id ? { "x-test-user-id": id } : {}) as never,
   )
+}
+
+const waitForStatus = async (
+  sessionId: string,
+  expectedStatus: string,
+): Promise<{ status?: string; errorCode?: string | null }> => {
+  let body: { status?: string; errorCode?: string | null } = {}
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const response = await statusGet(
+      new Request(
+        `http://localhost/api/espn/connect/status?sessionId=${sessionId}`,
+      ),
+    )
+    body = await response.json()
+    if (body.status === expectedStatus) return body
+    await new Promise((resolve) => setTimeout(resolve, 25))
+  }
+
+  return body
 }
 
 beforeEach(() => {
@@ -36,6 +57,11 @@ beforeEach(() => {
 
 afterEach(async () => {
   setConnectWorkerForTests(null)
+  if (originalLiveConnectSetting === undefined) {
+    delete process.env.ESPN_CONNECT_LIVE
+  } else {
+    process.env.ESPN_CONNECT_LIVE = originalLiveConnectSetting
+  }
   await db.espnConnectSession.deleteMany({
     where: { clerkUserId: { startsWith: prefix } },
   })
@@ -51,6 +77,39 @@ describe("ESPN connect API", () => {
       new Request("http://localhost/api/espn/connect/start", { method: "POST" }),
     )
     expect(response.status).toBe(401)
+  })
+
+  it("returns 401 for unauthenticated status requests", async () => {
+    authenticateAs(undefined)
+    const response = await statusGet(
+      new Request(
+        "http://localhost/api/espn/connect/status?sessionId=session-id",
+      ),
+    )
+    expect(response.status).toBe(401)
+  })
+
+  it("returns 400 when status sessionId is missing", async () => {
+    const response = await statusGet(
+      new Request("http://localhost/api/espn/connect/status"),
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it("returns 404 for another user's session", async () => {
+    setConnectWorkerForTests({ start: () => {} })
+    const startResponse = await startPost(
+      new Request("http://localhost/api/espn/connect/start", { method: "POST" }),
+    )
+    const startBody = await startResponse.json()
+
+    authenticateAs(`${prefix}-other-user`)
+    const response = await statusGet(
+      new Request(
+        `http://localhost/api/espn/connect/status?sessionId=${startBody.sessionId}`,
+      ),
+    )
+    expect(response.status).toBe(404)
   })
 
   it("starts a session and reaches succeeded without returning cookies", async () => {
@@ -93,5 +152,54 @@ describe("ESPN connect API", () => {
       new Request("http://localhost/api/espn/connect/start", { method: "POST" }),
     )
     expect(second.status).toBe(409)
+  })
+
+  it.each(["failed", "timed_out"] as const)(
+    "keeps existing credentials unchanged when the worker ends %s",
+    async (terminalStatus) => {
+      await upsertUserEspnCredentials(userId, {
+        espnS2: "existing-s2",
+        swid: "{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}",
+      })
+      setConnectWorkerForTests({
+        start: (sessionId) => {
+          void updateConnectSessionStatus(sessionId, terminalStatus)
+        },
+      })
+
+      const startResponse = await startPost(
+        new Request("http://localhost/api/espn/connect/start", {
+          method: "POST",
+        }),
+      )
+      const startBody = await startResponse.json()
+      expect((await waitForStatus(startBody.sessionId, terminalStatus)).status).toBe(
+        terminalStatus,
+      )
+
+      const credential = await db.espnCredential.findUnique({
+        where: { clerkUserId: userId },
+      })
+      expect(credential).toMatchObject({
+        espnS2: "existing-s2",
+        swid: "{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}",
+      })
+    },
+  )
+
+  it("fails with CONNECT_LIVE_DISABLED when no worker override is enabled", async () => {
+    setConnectWorkerForTests(null)
+    delete process.env.ESPN_CONNECT_LIVE
+
+    const startResponse = await startPost(
+      new Request("http://localhost/api/espn/connect/start", { method: "POST" }),
+    )
+    const startBody = await startResponse.json()
+    const statusBody = await waitForStatus(startBody.sessionId, "failed")
+
+    expect(statusBody).toEqual({
+      status: "failed",
+      errorCode: "CONNECT_LIVE_DISABLED",
+    })
   })
 })
