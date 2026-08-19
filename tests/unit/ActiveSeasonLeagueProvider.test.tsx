@@ -8,6 +8,7 @@ import {
   ActiveSeasonLeagueProvider,
   useActiveSeasonLeague,
 } from "@/components/season/ActiveSeasonLeagueProvider"
+import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { ACTIVE_SEASON_LEAGUE_STORAGE_KEY } from "@/lib/season/activeSeasonLeague"
 
 vi.mock("next/navigation", () => ({
@@ -35,6 +36,11 @@ const renderNavigation = () =>
       <SiteNav />
     </ActiveSeasonLeagueProvider>,
   )
+
+const SyncActiveLeague = ({ leagueId }: { leagueId: string }) => {
+  useSyncActiveSeasonLeague(leagueId)
+  return null
+}
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -151,5 +157,19 @@ describe("ActiveSeasonLeagueProvider with SiteNav", () => {
 
     await waitFor(() => expect(observedSetters.length).toBeGreaterThan(1))
     expect(new Set(observedSetters).size).toBe(1)
+  })
+
+  it("syncs the active league from a detail route", async () => {
+    render(
+      <ActiveSeasonLeagueProvider>
+        <SyncActiveLeague leagueId="league-2" />
+      </ActiveSeasonLeagueProvider>,
+    )
+
+    await waitFor(() => {
+      expect(
+        window.localStorage.getItem(ACTIVE_SEASON_LEAGUE_STORAGE_KEY),
+      ).toBe("league-2")
+    })
   })
 })

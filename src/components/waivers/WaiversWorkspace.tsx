@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { Banner } from "@/components/ui/Banner"
 import { AddDropBuilder } from "@/components/waivers/AddDropBuilder"
@@ -39,6 +40,8 @@ type WaiversPoolResponse = {
 }
 
 export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
+  useSyncActiveSeasonLeague(leagueId)
+
   const searchParams = useSearchParams()
   const [state, setState] = useState<SeasonLeagueState | null>(null)
   const [poolData, setPoolData] = useState<WaiversPoolResponse | null>(null)

@@ -7,6 +7,10 @@ import { TradeWorkspace } from "@/components/trade/TradeWorkspace"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
+vi.mock("@/components/season/useSyncActiveSeasonLeague", () => ({
+  useSyncActiveSeasonLeague: vi.fn(),
+}))
+
 const projections = {
   FG_PCT: 0.5,
   FT_PCT: 0.8,

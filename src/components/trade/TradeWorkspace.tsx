@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { DealDetail } from "@/components/trade/DealDetail"
 import {
   NO_SUGGESTIONS_COPY,
@@ -24,6 +25,8 @@ type TradeSuggestionsResponse = {
 }
 
 export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
+  useSyncActiveSeasonLeague(leagueId)
+
   const [tradeData, setTradeData] = useState<TradeSuggestionsResponse | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState("")

@@ -7,6 +7,7 @@ import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { PlayerSchedulePanel } from "@/components/season/PlayerSchedulePanel"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
+import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import {
   analyzeSeasonLeague,
   type SeasonAnalysis,
@@ -45,6 +46,8 @@ const responseMessage = async (response: Response, fallback: string) => {
 export const SeasonRosterWorkspace = ({
   leagueId,
 }: SeasonRosterWorkspaceProps) => {
+  useSyncActiveSeasonLeague(leagueId)
+
   const [data, setData] = useState<SeasonLeagueResponse | null>(null)
   const [draftEntries, setDraftEntries] = useState<SeasonRosterEntry[] | null>(null)
   const [error, setError] = useState("")

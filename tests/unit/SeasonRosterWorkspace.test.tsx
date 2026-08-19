@@ -8,6 +8,10 @@ import { defaultCategorySettings } from "@/lib/domain/categories"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
+vi.mock("@/components/season/useSyncActiveSeasonLeague", () => ({
+  useSyncActiveSeasonLeague: vi.fn(),
+}))
+
 const categories = {
   FG_PCT: 0.5,
   FT_PCT: 0.8,

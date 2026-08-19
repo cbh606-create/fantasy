@@ -15,6 +15,10 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => mockSearchParams,
 }))
 
+vi.mock("@/components/season/useSyncActiveSeasonLeague", () => ({
+  useSyncActiveSeasonLeague: vi.fn(),
+}))
+
 const projections = {
   FG_PCT: 0.5,
   FT_PCT: 0.8,

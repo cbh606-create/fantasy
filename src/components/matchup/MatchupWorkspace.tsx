@@ -8,6 +8,7 @@ import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
 import { StreamersPanel } from "@/components/matchup/StreamersPanel"
+import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { Banner } from "@/components/ui/Banner"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
@@ -103,6 +104,8 @@ const swapKey = (suggestion: SitStartSuggestion) =>
   `${suggestion.benchPlayerId}:${suggestion.activePlayerId}`
 
 export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
+  useSyncActiveSeasonLeague(leagueId)
+
   const [state, setState] = useState<SeasonLeagueState | null>(null)
   const [matchupData, setMatchupData] = useState<MatchupResponse | null>(null)
   const [opponentTeamIndex, setOpponentTeamIndex] = useState<number | null>(null)
