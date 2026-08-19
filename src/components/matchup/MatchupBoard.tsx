@@ -1,20 +1,11 @@
-import type { CategoryId } from "@/lib/domain/types"
 import type { MatchupBoard as MatchupBoardData } from "@/lib/matchup/types"
+import {
+  CATEGORY_SHORT_LABELS,
+  formatCategoryStat,
+} from "@/lib/season/formatCategoryStat"
 
 type MatchupBoardProps = {
   board: MatchupBoardData
-}
-
-const formatValue = (categoryId: CategoryId, value: number) => {
-  if (categoryId === "FG_PCT" || categoryId === "FT_PCT") {
-    return value.toFixed(3)
-  }
-
-  if (categoryId === "TO") {
-    return value.toFixed(1)
-  }
-
-  return value.toFixed(1)
 }
 
 const outcomeClass = (outcome: "W" | "L" | "T") => {
@@ -41,14 +32,14 @@ export const MatchupBoard = ({ board }: MatchupBoardProps) => (
           key={row.categoryId}
         >
           <p className="text-xs font-medium tracking-wide text-[var(--color-mute)]">
-            {row.categoryId}
+            {CATEGORY_SHORT_LABELS[row.categoryId]}
           </p>
           <p className={`mt-1 text-lg font-semibold ${outcomeClass(row.outcome)}`}>
             {row.outcome}
           </p>
-          <p className="mt-1 text-xs text-[var(--color-mute)]">
-            {formatValue(row.categoryId, row.you)} vs{" "}
-            {formatValue(row.categoryId, row.opp)}
+          <p className="mt-1 text-xs tabular-nums text-[var(--color-mute)]">
+            {formatCategoryStat(row.categoryId, row.you)} vs{" "}
+            {formatCategoryStat(row.categoryId, row.opp)}
           </p>
           <p className="mt-0.5 text-[0.6875rem] text-[var(--color-mute)]">
             {(row.winProb * 100).toFixed(0)}%
