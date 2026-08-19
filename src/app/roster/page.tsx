@@ -28,7 +28,8 @@ type VerifyPayload = {
 }
 
 export default function RosterListPage() {
-  const { activeId, leagues: activeSeasonLeagues } = useActiveSeasonLeague()
+  const { activeId, leagues: activeSeasonLeagues, removeLeague } =
+    useActiveSeasonLeague()
   const [leagues, setLeagues] = useState<SeasonLeagueListItem[]>([])
   const [name, setName] = useState("")
   const [espnName, setEspnName] = useState("")
@@ -48,6 +49,7 @@ export default function RosterListPage() {
   const [isImporting, setIsImporting] = useState(false)
   const [isSavingEspn, setIsSavingEspn] = useState(false)
   const [isStartingEspnConnect, setIsStartingEspnConnect] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const activeLeague = activeSeasonLeagues.find(
     (league) => league.id === activeId,
@@ -272,6 +274,36 @@ export default function RosterListPage() {
       )
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  const handleDeleteLeague = async (league: SeasonLeagueListItem) => {
+    const confirmed = window.confirm(
+      `Delete “${league.name}”? This cannot be undone.`,
+    )
+    if (!confirmed) return
+
+    setError("")
+    setSuccessMessage("")
+    setDeletingId(league.id)
+
+    try {
+      const response = await fetch(`/api/season-leagues/${league.id}`, {
+        method: "DELETE",
+      })
+      if (!response.ok) throw new Error("Unable to delete season league")
+
+      setLeagues((current) => current.filter((item) => item.id !== league.id))
+      removeLeague(league.id)
+      setSuccessMessage(`Deleted ${league.name}`)
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to delete season league",
+      )
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -539,13 +571,16 @@ export default function RosterListPage() {
           ) : leagues.length ? (
             <ul className="mt-8 divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)]">
               {leagues.map((league) => (
-                <li key={league.id}>
+                <li
+                  className="flex items-center gap-3 py-5"
+                  key={league.id}
+                >
                   <Link
-                    className="flex items-center justify-between gap-4 py-5 transition-colors hover:text-[var(--color-info)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+                    className="flex min-w-0 flex-1 items-center justify-between gap-4 transition-colors hover:text-[var(--color-info)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
                     href={`/roster/${league.id}`}
                   >
-                    <span>
-                      <span className="block text-lg font-medium">
+                    <span className="min-w-0">
+                      <span className="block truncate text-lg font-medium">
                         {league.name}
                       </span>
                       <span className="mt-1 block text-sm text-[var(--color-mute)]">
@@ -554,6 +589,15 @@ export default function RosterListPage() {
                     </span>
                     <span aria-hidden="true">→</span>
                   </Link>
+                  <button
+                    aria-label={`Delete ${league.name}`}
+                    className="shrink-0 rounded-full px-3 py-1.5 text-sm text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-sale)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={deletingId === league.id}
+                    onClick={() => void handleDeleteLeague(league)}
+                    type="button"
+                  >
+                    {deletingId === league.id ? "Deleting…" : "Delete"}
+                  </button>
                 </li>
               ))}
             </ul>

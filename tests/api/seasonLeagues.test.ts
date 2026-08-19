@@ -5,7 +5,10 @@ import {
   GET as GET_LIST,
   POST,
 } from "@/app/api/season-leagues/route"
-import { GET as GET_SEASON_LEAGUE } from "@/app/api/season-leagues/[id]/route"
+import {
+  DELETE as DELETE_SEASON_LEAGUE,
+  GET as GET_SEASON_LEAGUE,
+} from "@/app/api/season-leagues/[id]/route"
 import { PATCH as updateSeasonLeagueLineup } from "@/app/api/season-leagues/[id]/lineup/route"
 import { POST as refreshSeasonLeague } from "@/app/api/season-leagues/[id]/refresh/route"
 import { POST as resolveSeasonLeagueConflict } from "@/app/api/season-leagues/[id]/resolve-conflict/route"
@@ -80,6 +83,66 @@ describe("GET /api/season-leagues", () => {
     const response = await GET_LIST()
 
     expect(response.status).toBe(401)
+  })
+})
+
+describe("DELETE /api/season-leagues/[id]", () => {
+  it("requires authentication", async () => {
+    authenticateAs()
+
+    const response = await DELETE_SEASON_LEAGUE(
+      new Request("http://localhost/api/season-leagues/x", { method: "DELETE" }),
+      routeContext("x"),
+    )
+
+    expect(response.status).toBe(401)
+  })
+
+  it("returns 404 for another users league", async () => {
+    const createResponse = await POST(
+      createRequest("/api/season-leagues", {
+        name: "Owner league",
+        manual: true,
+      }),
+    )
+    const league = await createResponse.json()
+
+    authenticateAs(`${testUserPrefix}-other-${crypto.randomUUID()}`)
+
+    const response = await DELETE_SEASON_LEAGUE(
+      new Request(`http://localhost/api/season-leagues/${league.id}`, {
+        method: "DELETE",
+      }),
+      routeContext(league.id),
+    )
+
+    expect(response.status).toBe(404)
+    expect(
+      await db.seasonLeague.findUnique({ where: { id: league.id } }),
+    ).not.toBeNull()
+  })
+
+  it("deletes the owners league", async () => {
+    const createResponse = await POST(
+      createRequest("/api/season-leagues", {
+        name: "Delete me",
+        manual: true,
+      }),
+    )
+    const league = await createResponse.json()
+
+    const response = await DELETE_SEASON_LEAGUE(
+      new Request(`http://localhost/api/season-leagues/${league.id}`, {
+        method: "DELETE",
+      }),
+      routeContext(league.id),
+    )
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ ok: true })
+    expect(
+      await db.seasonLeague.findUnique({ where: { id: league.id } }),
+    ).toBeNull()
   })
 })
 
