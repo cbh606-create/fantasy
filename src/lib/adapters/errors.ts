@@ -3,6 +3,7 @@ export type EspnErrorCode =
   | "ESPN_TIMEOUT"
   | "ESPN_UNAVAILABLE"
   | "ESPN_PARTIAL"
+  | "ESPN_NO_CREDENTIALS"
 
 export class EspnAdapterError extends Error {
   readonly code: EspnErrorCode
