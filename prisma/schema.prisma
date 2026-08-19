@@ -45,3 +45,15 @@ model EspnCredential {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model EspnConnectSession {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  status      String
+  errorCode   String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clerkUserId])
+}
