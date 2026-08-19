@@ -83,6 +83,13 @@ export type EspnLeaguePayload = {
   teams?: EspnTeam[]
 }
 
+export type EspnFreeAgentsPayload = {
+  players?: {
+    status?: string
+    player?: EspnPlayer
+  }[]
+}
+
 export const mapEspnLineupSlot = (lineupSlotId: number): SeasonSlot => {
   switch (lineupSlotId) {
     case 0:
@@ -164,6 +171,20 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
     },
   }
 }
+
+export const mapEspnFreeAgentPlayers = (
+  payload: EspnFreeAgentsPayload,
+  season: number,
+): SeasonPlayer[] =>
+  (payload.players ?? []).flatMap((entry) => {
+    if (!entry.player?.id) return []
+    if (entry.status !== "FREEAGENT" && entry.status !== "WAIVERS") return []
+
+    return [{
+      ...playerFromEspn(entry.player, season),
+      availability: entry.status === "WAIVERS" ? "waiver" : "fa",
+    }]
+  })
 
 const packEntries = (raw: { slot: SeasonSlot; playerId: string }[]): SeasonRosterEntry[] => {
   const queues = new Map<SeasonSlot, string[]>()

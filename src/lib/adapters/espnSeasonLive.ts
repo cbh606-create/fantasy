@@ -1,8 +1,14 @@
 import { EspnAdapterError } from "./errors"
 import {
+  mapEspnFreeAgentPlayers,
   mapEspnLeagueToSeasonState,
+  type EspnFreeAgentsPayload,
   type EspnLeaguePayload,
 } from "./espnSeasonMap"
+import {
+  deriveAvailableFromOwnership,
+  mergeAvailablePlayers,
+} from "./espnAvailable"
 import {
   readEnvEspnCookies,
   type EspnCookies,
@@ -19,7 +25,14 @@ const resolveCookies = (cookies?: EspnCookies): EspnCookies => {
   return resolved
 }
 
-const parseEspnJson = async (response: Response): Promise<EspnLeaguePayload> => {
+const espnHeaders = (cookies: EspnCookies): Record<string, string> => ({
+  Accept: "application/json, text/plain, */*",
+  Cookie: `espn_s2=${cookies.espnS2}; SWID=${cookies.swid}`,
+  "User-Agent":
+    "Mozilla/5.0 (compatible; FantasyMatchupAdvisor/1.0; +local)",
+})
+
+const parseEspnJson = async <Payload>(response: Response): Promise<Payload> => {
   const contentType = response.headers.get("content-type") ?? ""
   const bodyText = await response.text()
 
@@ -34,12 +47,58 @@ const parseEspnJson = async (response: Response): Promise<EspnLeaguePayload> => 
   }
 
   try {
-    return JSON.parse(bodyText) as EspnLeaguePayload
+    return JSON.parse(bodyText) as Payload
   } catch {
     throw new EspnAdapterError(
       "ESPN_UNAVAILABLE",
       "ESPN response was not valid JSON",
     )
+  }
+}
+
+const fetchEspnFreeAgents = async (
+  params: {
+    leagueId: string
+    season: number
+  },
+  cookies: EspnCookies,
+) => {
+  const faUrl = new URL(
+    `https://fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
+  )
+  faUrl.searchParams.append("view", "kona_player_info")
+
+  const fantasyFilter = JSON.stringify({
+    players: {
+      filterStatus: { value: ["FREEAGENT", "WAIVERS"] },
+      limit: 200,
+      sortPercOwned: { sortPriority: 1, sortAsc: false },
+    },
+  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(faUrl, {
+      headers: {
+        ...espnHeaders(cookies),
+        "X-Fantasy-Filter": fantasyFilter,
+      },
+      redirect: "manual",
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      throw new EspnAdapterError(
+        "ESPN_UNAVAILABLE",
+        `HTTP ${response.status} from ESPN free-agent API`,
+      )
+    }
+
+    const payload = await parseEspnJson<EspnFreeAgentsPayload>(response)
+    return mapEspnFreeAgentPlayers(payload, params.season)
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
@@ -49,7 +108,7 @@ export const fetchEspnSeasonLeague = async (params: {
   teamId: number
   cookies?: EspnCookies
 }): Promise<SeasonLeagueState> => {
-  const { espnS2, swid } = resolveCookies(params.cookies)
+  const cookies = resolveCookies(params.cookies)
   const url = new URL(
     `https://fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
   )
@@ -62,12 +121,7 @@ export const fetchEspnSeasonLeague = async (params: {
 
   try {
     const response = await fetch(url, {
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        Cookie: `espn_s2=${espnS2}; SWID=${swid}`,
-        "User-Agent":
-          "Mozilla/5.0 (compatible; FantasyMatchupAdvisor/1.0; +local)",
-      },
+      headers: espnHeaders(cookies),
       redirect: "manual",
       signal: controller.signal,
     })
@@ -99,8 +153,27 @@ export const fetchEspnSeasonLeague = async (params: {
       )
     }
 
-    const payload = await parseEspnJson(response)
-    return mapEspnLeagueToSeasonState(payload, params)
+    const payload = await parseEspnJson<EspnLeaguePayload>(response)
+    const state = mapEspnLeagueToSeasonState(payload, params)
+
+    try {
+      const faPlayers = await fetchEspnFreeAgents(params, cookies)
+      if (faPlayers.length > 0) {
+        return mergeAvailablePlayers(state, faPlayers, "espn_fa")
+      }
+    } catch {
+      // Fall through to ownership-based availability.
+    }
+
+    const ownershipIds = deriveAvailableFromOwnership(state)
+    if (ownershipIds.length === 0) {
+      return { ...state, availablePlayerIds: [] }
+    }
+
+    const ownershipPlayers = state.players.filter((player) =>
+      ownershipIds.includes(player.id),
+    )
+    return mergeAvailablePlayers(state, ownershipPlayers, "ownership")
   } catch (error) {
     if (error instanceof EspnAdapterError) throw error
 

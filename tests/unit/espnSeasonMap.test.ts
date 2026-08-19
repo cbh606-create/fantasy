@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest"
 import sample from "../../data/fixtures/espn-api-season-league-sample.json"
+import freeAgentsSample from "../../data/fixtures/espn-api-free-agents-sample.json"
 import {
+  mapEspnFreeAgentPlayers,
   mapEspnLeagueToSeasonState,
   mapEspnLineupSlot,
+  type EspnFreeAgentsPayload,
   type EspnLeaguePayload,
 } from "@/lib/adapters/espnSeasonMap"
 import { EspnAdapterError } from "@/lib/adapters/errors"
@@ -15,6 +18,29 @@ describe("mapEspnLineupSlot", () => {
     expect(mapEspnLineupSlot(12)).toBe("BE")
     expect(mapEspnLineupSlot(13)).toBe("IL")
     expect(mapEspnLineupSlot(8)).toBe("UTIL")
+  })
+})
+
+describe("mapEspnFreeAgentPlayers", () => {
+  it("maps ESPN free agents and waiver players with availability", () => {
+    const players = mapEspnFreeAgentPlayers(
+      freeAgentsSample as EspnFreeAgentsPayload,
+      2026,
+    )
+
+    expect(players).toHaveLength(2)
+    expect(players[0]).toMatchObject({
+      id: "9001",
+      name: "Sample FA",
+      teamAbbr: "ATL",
+      availability: "fa",
+    })
+    expect(players[1]).toMatchObject({
+      id: "9002",
+      name: "Sample Waiver",
+      teamAbbr: "BOS",
+      availability: "waiver",
+    })
   })
 })
 
