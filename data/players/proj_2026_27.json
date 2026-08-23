@@ -72,7 +72,9 @@
         "yahoo_draft_analysis_rank": 1,
         "fantasypros_yahoo": 2,
         "espn_article_h2h_points": 2
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5104157.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-3112335",
@@ -99,7 +101,9 @@
         "yahoo_draft_analysis_rank": 2,
         "fantasypros_yahoo": 1,
         "espn_article_h2h_points": 1
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3112335.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-3945274",
@@ -126,7 +130,9 @@
         "yahoo_draft_analysis_rank": 3,
         "fantasypros_yahoo": 4,
         "espn_article_h2h_points": 4
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3945274.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-4278073",
@@ -153,7 +159,9 @@
         "yahoo_draft_analysis_rank": 4,
         "fantasypros_yahoo": 3,
         "espn_article_h2h_points": 3
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278073.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-4432166",
@@ -180,7 +188,9 @@
         "yahoo_draft_analysis_rank": 5,
         "fantasypros_yahoo": 7,
         "espn_article_h2h_points": 6
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432166.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-4431678",
@@ -208,7 +218,9 @@
         "yahoo_draft_analysis_rank": 6,
         "fantasypros_yahoo": 16,
         "espn_article_h2h_points": 5
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431678.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4065648",
@@ -236,7 +248,9 @@
         "yahoo_draft_analysis_rank": 7,
         "fantasypros_yahoo": 137,
         "espn_article_h2h_points": 12
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4065648.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-4594268",
@@ -264,7 +278,9 @@
         "yahoo_draft_analysis_rank": 8,
         "fantasypros_yahoo": 6,
         "espn_article_h2h_points": 10
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4594268.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-3032977",
@@ -292,7 +308,9 @@
         "yahoo_draft_analysis_rank": 9,
         "fantasypros_yahoo": 5,
         "espn_article_h2h_points": 7
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3032977.png",
+      "teamAbbr": "MIA"
     },
     {
       "id": "espn-4701230",
@@ -319,7 +337,9 @@
         "yahoo_draft_analysis_rank": 10,
         "fantasypros_yahoo": 24,
         "espn_article_h2h_points": 8
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4701230.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-3908809",
@@ -347,7 +367,9 @@
         "yahoo_draft_analysis_rank": 11,
         "fantasypros_yahoo": 17,
         "espn_article_h2h_points": 9
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3908809.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-4396993",
@@ -375,7 +397,9 @@
         "yahoo_draft_analysis_rank": 12,
         "fantasypros_yahoo": 115,
         "espn_article_h2h_points": 20
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4396993.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-5041939",
@@ -403,7 +427,9 @@
         "yahoo_draft_analysis_rank": 13,
         "fantasypros_yahoo": 40,
         "espn_article_h2h_points": 11
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5041939.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-3202",
@@ -431,7 +457,9 @@
         "yahoo_draft_analysis_rank": 14,
         "fantasypros_yahoo": 15,
         "espn_article_h2h_points": 18
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3202.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-4433134",
@@ -459,7 +487,9 @@
         "yahoo_draft_analysis_rank": 15,
         "fantasypros_yahoo": 26,
         "espn_article_h2h_points": 14
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433134.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-3136195",
@@ -486,7 +516,9 @@
         "yahoo_draft_analysis_rank": 16,
         "fantasypros_yahoo": 9,
         "espn_article_h2h_points": 17
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3136195.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-3936299",
@@ -513,7 +545,9 @@
         "yahoo_draft_analysis_rank": 17,
         "fantasypros_yahoo": 38,
         "espn_article_h2h_points": 15
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3936299.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-6450",
@@ -541,7 +575,9 @@
         "yahoo_draft_analysis_rank": 18,
         "fantasypros_yahoo": 46,
         "espn_article_h2h_points": 24
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6450.png",
+      "teamAbbr": "LAC"
     },
     {
       "id": "espn-4433255",
@@ -569,7 +605,9 @@
         "yahoo_draft_analysis_rank": 19,
         "fantasypros_yahoo": 23,
         "espn_article_h2h_points": 23
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433255.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-4432816",
@@ -596,7 +634,9 @@
         "yahoo_draft_analysis_rank": 20,
         "fantasypros_yahoo": 28,
         "espn_article_h2h_points": 58
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432816.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-6583",
@@ -624,7 +664,9 @@
         "yahoo_draft_analysis_rank": 21,
         "fantasypros_yahoo": 8,
         "espn_article_h2h_points": 43
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6583.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-4277905",
@@ -651,7 +693,9 @@
         "yahoo_draft_analysis_rank": 22,
         "fantasypros_yahoo": 11,
         "espn_article_h2h_points": 52
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277905.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-4871144",
@@ -678,7 +722,9 @@
         "yahoo_draft_analysis_rank": 23,
         "fantasypros_yahoo": 19,
         "espn_article_h2h_points": 16
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4871144.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-4066457",
@@ -706,7 +752,9 @@
         "yahoo_draft_analysis_rank": 24,
         "fantasypros_yahoo": 47,
         "espn_article_h2h_points": 38
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066457.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-3975",
@@ -733,7 +781,9 @@
         "yahoo_draft_analysis_rank": 25,
         "fantasypros_yahoo": 14,
         "espn_article_h2h_points": 55
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3975.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-4433136",
@@ -760,7 +810,9 @@
         "yahoo_draft_analysis_rank": 26,
         "fantasypros_yahoo": 57,
         "espn_article_h2h_points": 98
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433136.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-4871145",
@@ -788,7 +840,9 @@
         "yahoo_draft_analysis_rank": 27,
         "fantasypros_yahoo": 30,
         "espn_article_h2h_points": 35
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4871145.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-3934672",
@@ -815,7 +869,9 @@
         "yahoo_draft_analysis_rank": 28,
         "fantasypros_yahoo": 20,
         "espn_article_h2h_points": 37
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3934672.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-4433621",
@@ -842,7 +898,9 @@
         "yahoo_draft_analysis_rank": 29,
         "fantasypros_yahoo": 56,
         "espn_article_h2h_points": 25
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433621.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-4397688",
@@ -870,7 +928,9 @@
         "yahoo_draft_analysis_rank": 30,
         "fantasypros_yahoo": 43,
         "espn_article_h2h_points": 31
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397688.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-4684740",
@@ -898,7 +958,9 @@
         "yahoo_draft_analysis_rank": 31,
         "fantasypros_yahoo": 21,
         "espn_article_h2h_points": 13
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4684740.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-4432158",
@@ -926,7 +988,9 @@
         "yahoo_draft_analysis_rank": 32,
         "fantasypros_yahoo": 18,
         "espn_article_h2h_points": 26
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432158.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-3136193",
@@ -954,7 +1018,9 @@
         "yahoo_draft_analysis_rank": 33,
         "fantasypros_yahoo": 10,
         "espn_article_h2h_points": 28
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3136193.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-3155942",
@@ -982,7 +1048,9 @@
         "yahoo_draft_analysis_rank": 34,
         "fantasypros_yahoo": 12,
         "espn_article_h2h_points": 41
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3155942.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-3992",
@@ -1010,7 +1078,9 @@
         "yahoo_draft_analysis_rank": 35,
         "fantasypros_yahoo": 13,
         "espn_article_h2h_points": 21
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3992.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-4066261",
@@ -1038,7 +1108,9 @@
         "yahoo_draft_analysis_rank": 36,
         "fantasypros_yahoo": 32,
         "espn_article_h2h_points": 59
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066261.png",
+      "teamAbbr": "MIA"
     },
     {
       "id": "espn-5061575",
@@ -1066,7 +1138,9 @@
         "yahoo_draft_analysis_rank": 37,
         "fantasypros_yahoo": 226,
         "espn_article_h2h_points": 33
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5061575.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-5105565",
@@ -1093,7 +1167,9 @@
         "yahoo_draft_analysis_rank": 38,
         "fantasypros_yahoo": 85,
         "espn_article_h2h_points": 75
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105565.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-3078576",
@@ -1121,7 +1197,9 @@
         "yahoo_draft_analysis_rank": 39,
         "fantasypros_yahoo": 33,
         "espn_article_h2h_points": 87
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3078576.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-3917376",
@@ -1149,7 +1227,9 @@
         "yahoo_draft_analysis_rank": 40,
         "fantasypros_yahoo": 29,
         "espn_article_h2h_points": 22
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3917376.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4683021",
@@ -1177,7 +1257,9 @@
         "yahoo_draft_analysis_rank": 41,
         "fantasypros_yahoo": 48,
         "espn_article_h2h_points": 27
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683021.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-1966",
@@ -1205,7 +1287,9 @@
         "yahoo_draft_analysis_rank": 42,
         "fantasypros_yahoo": 27,
         "espn_article_h2h_points": 45
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/1966.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4593803",
@@ -1233,7 +1317,9 @@
         "yahoo_draft_analysis_rank": 43,
         "fantasypros_yahoo": 22,
         "espn_article_h2h_points": 39
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4593803.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-4066336",
@@ -1261,7 +1347,9 @@
         "yahoo_draft_analysis_rank": 44,
         "fantasypros_yahoo": 53,
         "espn_article_h2h_points": 44
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066336.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-6442",
@@ -1288,7 +1376,9 @@
         "yahoo_draft_analysis_rank": 45,
         "fantasypros_yahoo": 136,
         "espn_article_h2h_points": 34
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6442.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-4433287",
@@ -1316,7 +1406,9 @@
         "yahoo_draft_analysis_rank": 46,
         "fantasypros_yahoo": 50,
         "espn_article_h2h_points": 51
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433287.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-4433627",
@@ -1344,7 +1436,9 @@
         "yahoo_draft_analysis_rank": 47,
         "fantasypros_yahoo": 118,
         "espn_article_h2h_points": 42
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433627.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-3059318",
@@ -1371,7 +1465,9 @@
         "yahoo_draft_analysis_rank": 48,
         "fantasypros_yahoo": 51,
         "espn_article_h2h_points": 71
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3059318.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4066320",
@@ -1399,7 +1495,9 @@
         "yahoo_draft_analysis_rank": 49,
         "fantasypros_yahoo": 41,
         "espn_article_h2h_points": 69
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066320.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-4277961",
@@ -1427,7 +1525,9 @@
         "yahoo_draft_analysis_rank": 50,
         "fantasypros_yahoo": 39,
         "espn_article_h2h_points": 57
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277961.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-4566434",
@@ -1455,7 +1555,9 @@
         "yahoo_draft_analysis_rank": 51,
         "fantasypros_yahoo": 34,
         "espn_article_h2h_points": 68
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4566434.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-3149673",
@@ -1482,7 +1584,9 @@
         "yahoo_draft_analysis_rank": 52,
         "fantasypros_yahoo": 31,
         "espn_article_h2h_points": 29
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3149673.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-4396907",
@@ -1509,7 +1613,9 @@
         "yahoo_draft_analysis_rank": 53,
         "fantasypros_yahoo": 67,
         "espn_article_h2h_points": 40
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4396907.png",
+      "teamAbbr": "LAC"
     },
     {
       "id": "espn-4432573",
@@ -1537,7 +1643,9 @@
         "yahoo_draft_analysis_rank": 54,
         "fantasypros_yahoo": 25,
         "espn_article_h2h_points": 30
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432573.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-4278039",
@@ -1565,7 +1673,9 @@
         "yahoo_draft_analysis_rank": 55,
         "fantasypros_yahoo": 156,
         "espn_article_h2h_points": 53
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278039.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-5160992",
@@ -1593,7 +1703,9 @@
         "yahoo_draft_analysis_rank": 56,
         "fantasypros_yahoo": 82,
         "espn_article_h2h_points": 54
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5160992.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-4431680",
@@ -1620,7 +1732,9 @@
         "yahoo_draft_analysis_rank": 57,
         "fantasypros_yahoo": 95,
         "espn_article_h2h_points": 108
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431680.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-4395725",
@@ -1648,7 +1762,9 @@
         "yahoo_draft_analysis_rank": 58,
         "fantasypros_yahoo": 70,
         "espn_article_h2h_points": 60
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395725.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-3907497",
@@ -1676,7 +1792,9 @@
         "yahoo_draft_analysis_rank": 59,
         "fantasypros_yahoo": 150,
         "espn_article_h2h_points": 47
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3907497.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-3934719",
@@ -1704,7 +1822,9 @@
         "yahoo_draft_analysis_rank": 60,
         "fantasypros_yahoo": 64,
         "espn_article_h2h_points": 89
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3934719.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-4396971",
@@ -1732,7 +1852,9 @@
         "yahoo_draft_analysis_rank": 61,
         "fantasypros_yahoo": 93,
         "espn_article_h2h_points": 137
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4396971.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-4600663",
@@ -1759,7 +1881,9 @@
         "yahoo_draft_analysis_rank": 62,
         "fantasypros_yahoo": 121,
         "espn_article_h2h_points": 74
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4600663.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-4869342",
@@ -1787,7 +1911,9 @@
         "yahoo_draft_analysis_rank": 63,
         "fantasypros_yahoo": 35,
         "espn_article_h2h_points": 110
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4869342.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-3064514",
@@ -1814,7 +1940,9 @@
         "yahoo_draft_analysis_rank": 64,
         "fantasypros_yahoo": 62,
         "espn_article_h2h_points": 91
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3064514.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-5041935",
@@ -1839,7 +1967,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 65
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5041935.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-6606",
@@ -1866,7 +1996,9 @@
         "yahoo_draft_analysis_rank": 66,
         "fantasypros_yahoo": 131,
         "espn_article_h2h_points": 66
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6606.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-4278104",
@@ -1894,7 +2026,9 @@
         "yahoo_draft_analysis_rank": 67,
         "fantasypros_yahoo": 69,
         "espn_article_h2h_points": 48
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278104.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-4017837",
@@ -1921,7 +2055,9 @@
         "yahoo_draft_analysis_rank": 68,
         "fantasypros_yahoo": 37,
         "espn_article_h2h_points": 90
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4017837.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-4591725",
@@ -1948,7 +2084,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 69,
         "espn_article_h2h_points": 116
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4591725.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4845367",
@@ -1976,7 +2114,9 @@
         "yahoo_draft_analysis_rank": 70,
         "fantasypros_yahoo": 120,
         "espn_article_h2h_points": 32
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4845367.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-5124612",
@@ -2003,7 +2143,9 @@
         "yahoo_draft_analysis_rank": 71,
         "fantasypros_yahoo": 189,
         "espn_article_h2h_points": 36
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5124612.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4395628",
@@ -2031,7 +2173,9 @@
         "yahoo_draft_analysis_rank": 72,
         "fantasypros_yahoo": 42,
         "espn_article_h2h_points": 56
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395628.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-3147657",
@@ -2059,7 +2203,9 @@
         "yahoo_draft_analysis_rank": 73,
         "fantasypros_yahoo": 78,
         "espn_article_h2h_points": 19
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3147657.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-4431671",
@@ -2087,7 +2233,9 @@
         "yahoo_draft_analysis_rank": 74,
         "fantasypros_yahoo": 114,
         "espn_article_h2h_points": 97
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431671.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-4251",
@@ -2115,7 +2263,9 @@
         "yahoo_draft_analysis_rank": 75,
         "fantasypros_yahoo": 79,
         "espn_article_h2h_points": 46
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4251.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-4066328",
@@ -2142,7 +2292,9 @@
         "yahoo_draft_analysis_rank": 76,
         "fantasypros_yahoo": 55,
         "espn_article_h2h_points": 76
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066328.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-3913176",
@@ -2170,7 +2322,9 @@
         "yahoo_draft_analysis_rank": 77,
         "fantasypros_yahoo": 71,
         "espn_article_h2h_points": 64
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3913176.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-3032976",
@@ -2197,7 +2351,9 @@
         "yahoo_draft_analysis_rank": 78,
         "fantasypros_yahoo": 65,
         "espn_article_h2h_points": 85
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3032976.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-5037871",
@@ -2225,7 +2381,9 @@
         "yahoo_draft_analysis_rank": 79,
         "fantasypros_yahoo": 187,
         "espn_article_h2h_points": 93
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5037871.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-4066354",
@@ -2253,7 +2411,9 @@
         "yahoo_draft_analysis_rank": 80,
         "fantasypros_yahoo": 68,
         "espn_article_h2h_points": 78
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066354.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-5095151",
@@ -2278,7 +2438,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 81
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5095151.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-5105623",
@@ -2305,7 +2467,9 @@
         "yahoo_draft_analysis_rank": 82,
         "fantasypros_yahoo": 84,
         "espn_article_h2h_points": 122
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105623.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4711294",
@@ -2333,7 +2497,9 @@
         "yahoo_draft_analysis_rank": 83,
         "fantasypros_yahoo": 87,
         "espn_article_h2h_points": 49
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4711294.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-4066259",
@@ -2361,7 +2527,9 @@
         "yahoo_draft_analysis_rank": 84,
         "fantasypros_yahoo": 36,
         "espn_article_h2h_points": 61
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066259.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-4395651",
@@ -2389,7 +2557,9 @@
         "yahoo_draft_analysis_rank": 85,
         "fantasypros_yahoo": 58,
         "espn_article_h2h_points": 138
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395651.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-5142718",
@@ -2414,7 +2584,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 86
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5142718.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-4065733",
@@ -2442,7 +2614,9 @@
         "yahoo_draft_analysis_rank": 87,
         "fantasypros_yahoo": 231,
         "espn_article_h2h_points": 143
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4065733.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-4432194",
@@ -2467,7 +2641,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 88
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432194.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-4279888",
@@ -2494,7 +2670,9 @@
         "yahoo_draft_analysis_rank": 89,
         "fantasypros_yahoo": 44,
         "espn_article_h2h_points": 50
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4279888.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-4395724",
@@ -2522,7 +2700,9 @@
         "yahoo_draft_analysis_rank": 90,
         "fantasypros_yahoo": 75,
         "espn_article_h2h_points": 107
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395724.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-2595516",
@@ -2550,7 +2730,9 @@
         "yahoo_draft_analysis_rank": 91,
         "fantasypros_yahoo": 89,
         "espn_article_h2h_points": 77
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2595516.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-4684742",
@@ -2578,7 +2760,9 @@
         "yahoo_draft_analysis_rank": 92,
         "fantasypros_yahoo": 80,
         "espn_article_h2h_points": 104
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4684742.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-5041955",
@@ -2604,7 +2788,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 93
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5041955.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-4869780",
@@ -2631,7 +2817,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 94,
         "espn_article_h2h_points": 80
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4869780.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-3133628",
@@ -2658,7 +2846,9 @@
         "yahoo_draft_analysis_rank": 95,
         "fantasypros_yahoo": 45,
         "espn_article_h2h_points": 112
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3133628.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4701232",
@@ -2685,7 +2875,9 @@
         "yahoo_draft_analysis_rank": 96,
         "fantasypros_yahoo": 83,
         "espn_article_h2h_points": 115
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4701232.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-3062679",
@@ -2713,7 +2905,9 @@
         "yahoo_draft_analysis_rank": 97,
         "fantasypros_yahoo": 60,
         "espn_article_h2h_points": 95
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3062679.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-4278067",
@@ -2740,7 +2934,9 @@
         "yahoo_draft_analysis_rank": 98,
         "fantasypros_yahoo": 100,
         "espn_article_h2h_points": 129
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278067.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-4222252",
@@ -2767,7 +2963,9 @@
         "yahoo_draft_analysis_rank": 99,
         "fantasypros_yahoo": 77,
         "espn_article_h2h_points": 135
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4222252.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-4397424",
@@ -2794,7 +2992,9 @@
         "yahoo_draft_analysis_rank": 100,
         "fantasypros_yahoo": 201,
         "espn_article_h2h_points": 114
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397424.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-4397002",
@@ -2822,7 +3022,9 @@
         "yahoo_draft_analysis_rank": 101,
         "fantasypros_yahoo": 199,
         "espn_article_h2h_points": 126
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397002.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-4432165",
@@ -2850,7 +3052,9 @@
         "yahoo_draft_analysis_rank": 102,
         "fantasypros_yahoo": 102,
         "espn_article_h2h_points": 100
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432165.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-4277847",
@@ -2876,7 +3080,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 103,
         "fantasypros_yahoo": 184
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277847.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-4066383",
@@ -2904,7 +3110,9 @@
         "yahoo_draft_analysis_rank": 104,
         "fantasypros_yahoo": 61,
         "espn_article_h2h_points": 88
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066383.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-3102531",
@@ -2932,7 +3140,9 @@
         "yahoo_draft_analysis_rank": 105,
         "fantasypros_yahoo": 54,
         "espn_article_h2h_points": 128
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3102531.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-5174563",
@@ -2960,7 +3170,9 @@
         "yahoo_draft_analysis_rank": 106,
         "fantasypros_yahoo": 203,
         "espn_article_h2h_points": 102
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5174563.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-4709138",
@@ -2987,7 +3199,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 107,
         "fantasypros_yahoo": 124
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4709138.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-4903027",
@@ -3013,7 +3227,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 108
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4903027.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-3059319",
@@ -3041,7 +3257,9 @@
         "yahoo_draft_analysis_rank": 109,
         "fantasypros_yahoo": 104,
         "espn_article_h2h_points": 83
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3059319.png",
+      "teamAbbr": "MIA"
     },
     {
       "id": "espn-4397140",
@@ -3069,7 +3287,9 @@
         "yahoo_draft_analysis_rank": 110,
         "fantasypros_yahoo": 113,
         "espn_article_h2h_points": 118
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397140.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4432639",
@@ -3097,7 +3317,9 @@
         "yahoo_draft_analysis_rank": 111,
         "fantasypros_yahoo": 125,
         "espn_article_h2h_points": 103
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432639.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-4278580",
@@ -3123,7 +3345,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 112
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278580.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-4576087",
@@ -3151,7 +3375,9 @@
         "yahoo_draft_analysis_rank": 113,
         "fantasypros_yahoo": 193,
         "espn_article_h2h_points": 134
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4576087.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-3102530",
@@ -3178,7 +3404,9 @@
         "yahoo_draft_analysis_rank": 114,
         "fantasypros_yahoo": 190,
         "espn_article_h2h_points": 144
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3102530.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-2490149",
@@ -3206,7 +3434,9 @@
         "yahoo_draft_analysis_rank": 115,
         "fantasypros_yahoo": 99,
         "espn_article_h2h_points": 67
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2490149.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-5142620",
@@ -3231,7 +3461,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 116
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5142620.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-4432848",
@@ -3259,7 +3491,9 @@
         "yahoo_draft_analysis_rank": 117,
         "fantasypros_yahoo": 213,
         "espn_article_h2h_points": 120
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432848.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4594327",
@@ -3286,7 +3520,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 118,
         "fantasypros_yahoo": 107
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4594327.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-2991230",
@@ -3313,7 +3549,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 119,
         "espn_article_h2h_points": 62
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2991230.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-4431736",
@@ -3341,7 +3579,9 @@
         "yahoo_draft_analysis_rank": 120,
         "fantasypros_yahoo": 106,
         "espn_article_h2h_points": 105
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431736.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-3908845",
@@ -3369,7 +3609,9 @@
         "yahoo_draft_analysis_rank": 121,
         "fantasypros_yahoo": 94,
         "espn_article_h2h_points": 127
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3908845.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-3978",
@@ -3397,7 +3639,9 @@
         "yahoo_draft_analysis_rank": 122,
         "fantasypros_yahoo": 63,
         "espn_article_h2h_points": 84
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3978.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-4395625",
@@ -3425,7 +3669,9 @@
         "yahoo_draft_analysis_rank": 123,
         "fantasypros_yahoo": 91,
         "espn_article_h2h_points": 72
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395625.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-4437244",
@@ -3453,7 +3699,9 @@
         "yahoo_draft_analysis_rank": 124,
         "fantasypros_yahoo": 73,
         "espn_article_h2h_points": 81
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4437244.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-3064440",
@@ -3480,7 +3728,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 125,
         "fantasypros_yahoo": 59
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3064440.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-4397136",
@@ -3507,7 +3757,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 126,
         "espn_article_h2h_points": 65
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397136.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-5093267",
@@ -3532,7 +3784,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 128
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5093267.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-6430",
@@ -3559,7 +3813,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 129,
         "fantasypros_yahoo": 49
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6430.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-4395712",
@@ -3587,7 +3843,9 @@
         "yahoo_draft_analysis_rank": 130,
         "fantasypros_yahoo": 74,
         "espn_article_h2h_points": 92
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395712.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-4278585",
@@ -3612,7 +3870,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 131
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278585.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-5175737",
@@ -3638,7 +3898,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 132
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5175737.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-3995",
@@ -3666,7 +3928,9 @@
         "yahoo_draft_analysis_rank": 133,
         "fantasypros_yahoo": 108,
         "espn_article_h2h_points": 86
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3995.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-4278049",
@@ -3693,7 +3957,9 @@
         "yahoo_draft_analysis_rank": 134,
         "fantasypros_yahoo": 163,
         "espn_article_h2h_points": 147
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278049.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-5175643",
@@ -3721,7 +3987,9 @@
         "yahoo_draft_analysis_rank": 135,
         "fantasypros_yahoo": 222,
         "espn_article_h2h_points": 109
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5175643.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-3134908",
@@ -3748,7 +4016,9 @@
         "yahoo_draft_analysis_rank": 136,
         "fantasypros_yahoo": 76,
         "espn_article_h2h_points": 117
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3134908.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-4278053",
@@ -3775,7 +4045,9 @@
         "yahoo_draft_analysis_rank": 137,
         "fantasypros_yahoo": 206,
         "espn_article_h2h_points": 130
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278053.png",
+      "teamAbbr": "MIA"
     },
     {
       "id": "espn-2779",
@@ -3800,7 +4072,8 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "fantasypros_yahoo": 172
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2779.png"
     },
     {
       "id": "espn-4711272",
@@ -3828,7 +4101,9 @@
         "yahoo_draft_analysis_rank": 138,
         "fantasypros_yahoo": 119,
         "espn_article_h2h_points": 82
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4711272.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-3448",
@@ -3854,7 +4129,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 139,
         "fantasypros_yahoo": 160
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3448.png",
+      "teamAbbr": "LAC"
     },
     {
       "id": "espn-3893023",
@@ -3876,7 +4153,9 @@
       "adp": 139.79,
       "espnId": "3893023",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3893023.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-4277871",
@@ -3898,7 +4177,9 @@
       "adp": 139.8,
       "espnId": "4277871",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277871.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-2528386",
@@ -3920,7 +4201,9 @@
       "adp": 139.84,
       "espnId": "2528386",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2528386.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-3058254",
@@ -3942,7 +4225,8 @@
       "adp": 139.87,
       "espnId": "3058254",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3058254.png"
     },
     {
       "id": "espn-4431727",
@@ -3964,7 +4248,9 @@
       "adp": 139.88,
       "espnId": "4431727",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431727.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-3012",
@@ -3986,7 +4272,9 @@
       "adp": 139.9,
       "espnId": "3012",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3012.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-2490620",
@@ -4008,7 +4296,8 @@
       "adp": 139.92,
       "espnId": "2490620",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2490620.png"
     },
     {
       "id": "espn-2531362",
@@ -4030,7 +4319,9 @@
       "adp": 139.92,
       "espnId": "2531362",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2531362.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-2579466",
@@ -4052,7 +4343,9 @@
       "adp": 139.92,
       "espnId": "2579466",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2579466.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-2580349",
@@ -4074,7 +4367,9 @@
       "adp": 139.92,
       "espnId": "2580349",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2580349.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-3033",
@@ -4096,7 +4391,8 @@
       "adp": 139.92,
       "espnId": "3033",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3033.png"
     },
     {
       "id": "espn-3064528",
@@ -4118,7 +4414,9 @@
       "adp": 139.92,
       "espnId": "3064528",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3064528.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-3078286",
@@ -4140,7 +4438,9 @@
       "adp": 139.92,
       "espnId": "3078286",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3078286.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-4397014",
@@ -4167,7 +4467,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 140,
         "fantasypros_yahoo": 175
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397014.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-4278562",
@@ -4193,7 +4495,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 141
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278562.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-4900671",
@@ -4219,7 +4523,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 142
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4900671.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-4712849",
@@ -4247,7 +4553,9 @@
         "yahoo_draft_analysis_rank": 143,
         "fantasypros_yahoo": 167,
         "espn_article_h2h_points": 63
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4712849.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-4278078",
@@ -4275,7 +4583,9 @@
         "yahoo_draft_analysis_rank": 144,
         "fantasypros_yahoo": 158,
         "espn_article_h2h_points": 119
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278078.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-3133603",
@@ -4302,7 +4612,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 145,
         "fantasypros_yahoo": 216
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3133603.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-4914336",
@@ -4330,7 +4642,9 @@
         "yahoo_draft_analysis_rank": 146,
         "fantasypros_yahoo": 92,
         "espn_article_h2h_points": 79
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4914336.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-6589",
@@ -4357,7 +4671,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 147,
         "fantasypros_yahoo": 103
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6589.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-3138196",
@@ -4384,7 +4700,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 148,
         "fantasypros_yahoo": 88
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3138196.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-5254165",
@@ -4410,7 +4728,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 149
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5254165.png",
+      "teamAbbr": "LAC"
     },
     {
       "id": "espn-3064482",
@@ -4437,7 +4757,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 150,
         "fantasypros_yahoo": 122
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3064482.png",
+      "teamAbbr": "MIA"
     },
     {
       "id": "espn-4592479",
@@ -4463,7 +4785,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 151
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4592479.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-4873138",
@@ -4491,7 +4815,9 @@
         "yahoo_draft_analysis_rank": 152,
         "fantasypros_yahoo": 138,
         "espn_article_h2h_points": 106
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4873138.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-4873153",
@@ -4517,7 +4843,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 153
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4873153.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-4683692",
@@ -4545,7 +4873,9 @@
         "yahoo_draft_analysis_rank": 154,
         "fantasypros_yahoo": 130,
         "espn_article_h2h_points": 142
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683692.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-3155526",
@@ -4573,7 +4903,9 @@
         "yahoo_draft_analysis_rank": 155,
         "fantasypros_yahoo": 212,
         "espn_article_h2h_points": 121
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3155526.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-3064290",
@@ -4600,7 +4932,9 @@
         "yahoo_draft_analysis_rank": 156,
         "fantasypros_yahoo": 112,
         "espn_article_h2h_points": 101
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3064290.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-4433192",
@@ -4627,7 +4961,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 158,
         "fantasypros_yahoo": 117
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433192.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-5144091",
@@ -4654,7 +4990,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 159,
         "espn_article_h2h_points": 94
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5144091.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-4278129",
@@ -4681,7 +5019,9 @@
         "yahoo_draft_analysis_rank": 160,
         "fantasypros_yahoo": 66,
         "espn_article_h2h_points": 111
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278129.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-4395630",
@@ -4709,7 +5049,9 @@
         "yahoo_draft_analysis_rank": 161,
         "fantasypros_yahoo": 98,
         "espn_article_h2h_points": 124
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395630.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-5101761",
@@ -4734,7 +5076,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 162
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5101761.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-4683766",
@@ -4761,7 +5105,9 @@
         "yahoo_draft_analysis_rank": 164,
         "fantasypros_yahoo": 153,
         "espn_article_h2h_points": 123
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683766.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-4065731",
@@ -4787,7 +5133,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 165,
         "fantasypros_yahoo": 214
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4065731.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-4684793",
@@ -4815,7 +5163,9 @@
         "yahoo_draft_analysis_rank": 166,
         "fantasypros_yahoo": 230,
         "espn_article_h2h_points": 148
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4684793.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-4431767",
@@ -4843,7 +5193,9 @@
         "yahoo_draft_analysis_rank": 167,
         "fantasypros_yahoo": 90,
         "espn_article_h2h_points": 150
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431767.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-5203685",
@@ -4869,7 +5221,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 168,
         "fantasypros_yahoo": 234
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5203685.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-5279133",
@@ -4894,7 +5248,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 169
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5279133.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-3135045",
@@ -4922,7 +5278,9 @@
         "yahoo_draft_analysis_rank": 171,
         "fantasypros_yahoo": 196,
         "espn_article_h2h_points": 99
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3135045.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-2991070",
@@ -4949,7 +5307,9 @@
         "yahoo_draft_analysis_rank": 172,
         "fantasypros_yahoo": 205,
         "espn_article_h2h_points": 125
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2991070.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-4395626",
@@ -4976,7 +5336,9 @@
         "yahoo_draft_analysis_rank": 173,
         "fantasypros_yahoo": 183,
         "espn_article_h2h_points": 113
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395626.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-6478",
@@ -5003,7 +5365,9 @@
         "yahoo_draft_analysis_rank": 174,
         "fantasypros_yahoo": 52,
         "espn_article_h2h_points": 70
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6478.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-4683634",
@@ -5031,7 +5395,9 @@
         "yahoo_draft_analysis_rank": 175,
         "fantasypros_yahoo": 96,
         "espn_article_h2h_points": 132
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683634.png",
+      "teamAbbr": "LAC"
     },
     {
       "id": "espn-4431785",
@@ -5058,7 +5424,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 176,
         "fantasypros_yahoo": 215
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431785.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-4433249",
@@ -5086,7 +5454,9 @@
         "yahoo_draft_analysis_rank": 177,
         "fantasypros_yahoo": 225,
         "espn_article_h2h_points": 140
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433249.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-4277813",
@@ -5113,7 +5483,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 179,
         "fantasypros_yahoo": 123
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277813.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-5082206",
@@ -5138,7 +5510,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 180
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5082206.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4351851",
@@ -5166,7 +5540,9 @@
         "yahoo_draft_analysis_rank": 181,
         "fantasypros_yahoo": 86,
         "espn_article_h2h_points": 96
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4351851.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4997526",
@@ -5191,7 +5567,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 182
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4997526.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-6440",
@@ -5218,7 +5596,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 183,
         "fantasypros_yahoo": 116
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6440.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-2528210",
@@ -5244,7 +5624,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 184
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2528210.png",
+      "teamAbbr": "MIA"
     },
     {
       "id": "espn-5104155",
@@ -5272,7 +5654,9 @@
         "yahoo_draft_analysis_rank": 185,
         "fantasypros_yahoo": 221,
         "espn_article_h2h_points": 139
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5104155.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-5061589",
@@ -5298,7 +5682,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 186,
         "fantasypros_yahoo": 147
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5061589.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-4277811",
@@ -5326,7 +5712,9 @@
         "yahoo_draft_analysis_rank": 187,
         "fantasypros_yahoo": 191,
         "espn_article_h2h_points": 146
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277811.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-4351852",
@@ -5352,7 +5740,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 188,
         "fantasypros_yahoo": 171
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4351852.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-5105637",
@@ -5378,7 +5768,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 189,
         "fantasypros_yahoo": 217
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105637.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4593125",
@@ -5406,7 +5798,9 @@
         "yahoo_draft_analysis_rank": 190,
         "fantasypros_yahoo": 105,
         "espn_article_h2h_points": 133
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4593125.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-5149077",
@@ -5432,7 +5826,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 191
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5149077.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-4432823",
@@ -5458,7 +5854,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 193
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432823.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-4066648",
@@ -5485,7 +5883,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 195,
         "fantasypros_yahoo": 198
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066648.png",
+      "teamAbbr": "LAC"
     },
     {
       "id": "espn-4395723",
@@ -5511,7 +5911,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 196
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395723.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-4066262",
@@ -5538,7 +5940,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 197,
         "fantasypros_yahoo": 128
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066262.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-4396909",
@@ -5565,7 +5969,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 199,
         "fantasypros_yahoo": 166
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4396909.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-4683678",
@@ -5593,7 +5999,9 @@
         "yahoo_draft_analysis_rank": 202,
         "fantasypros_yahoo": 186,
         "espn_article_h2h_points": 73
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683678.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-4278594",
@@ -5620,7 +6028,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 203,
         "espn_article_h2h_points": 149
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278594.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-4066436",
@@ -5646,7 +6056,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 204
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066436.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-3157465",
@@ -5673,7 +6085,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 205,
         "fantasypros_yahoo": 182
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3157465.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-4433174",
@@ -5698,7 +6112,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 206
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433174.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-4433247",
@@ -5725,7 +6141,8 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 207,
         "fantasypros_yahoo": 140
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433247.png"
     },
     {
       "id": "espn-5174983",
@@ -5750,7 +6167,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 209
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5174983.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-4593841",
@@ -5775,7 +6194,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 210
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4593841.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-4683688",
@@ -5801,7 +6222,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 211,
         "fantasypros_yahoo": 109
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683688.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-3134907",
@@ -5829,7 +6252,9 @@
         "yahoo_draft_analysis_rank": 212,
         "fantasypros_yahoo": 176,
         "espn_article_h2h_points": 145
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3134907.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4395702",
@@ -5855,7 +6280,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 213,
         "fantasypros_yahoo": 144
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4395702.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-4702384",
@@ -5881,7 +6308,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 214
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4702384.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-5211175",
@@ -5907,7 +6336,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 215,
         "fantasypros_yahoo": 145
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5211175.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-5164559",
@@ -5932,7 +6363,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 216
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5164559.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-3064560",
@@ -5957,7 +6390,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 220
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3064560.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-4277848",
@@ -5983,7 +6418,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 221
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277848.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-4066757",
@@ -6008,7 +6445,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 222
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066757.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-4683778",
@@ -6035,7 +6474,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 223,
         "fantasypros_yahoo": 209
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683778.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-5107199",
@@ -6060,7 +6501,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 224
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5107199.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-4702382",
@@ -6086,7 +6529,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 225
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4702382.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-4702177",
@@ -6113,7 +6558,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 230,
         "fantasypros_yahoo": 208
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4702177.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-4065732",
@@ -6140,7 +6587,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 236,
         "fantasypros_yahoo": 179
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4065732.png",
+      "teamAbbr": "SAC"
     },
     {
       "id": "espn-4277956",
@@ -6167,7 +6616,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 237,
         "fantasypros_yahoo": 72
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277956.png",
+      "teamAbbr": "NOP"
     },
     {
       "id": "espn-4601023",
@@ -6192,7 +6643,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 239
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4601023.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-4845374",
@@ -6219,7 +6672,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 240,
         "fantasypros_yahoo": 227
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4845374.png",
+      "teamAbbr": "WAS"
     },
     {
       "id": "espn-6585",
@@ -6244,7 +6699,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 241
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6585.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-2583632",
@@ -6271,7 +6728,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 243,
         "fantasypros_yahoo": 169
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2583632.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-5279129",
@@ -6296,7 +6755,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 244
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5279129.png",
+      "teamAbbr": "DAL"
     },
     {
       "id": "espn-5061568",
@@ -6321,7 +6782,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 245
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5061568.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-4065804",
@@ -6348,7 +6811,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 246,
         "fantasypros_yahoo": 164
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4065804.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-2530530",
@@ -6374,7 +6839,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 247,
         "fantasypros_yahoo": 151
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2530530.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-3213",
@@ -6401,7 +6868,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 248,
         "fantasypros_yahoo": 202
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3213.png",
+      "teamAbbr": "GSW"
     },
     {
       "id": "espn-3934673",
@@ -6429,7 +6898,9 @@
         "yahoo_draft_analysis_rank": 251,
         "fantasypros_yahoo": 126,
         "espn_article_h2h_points": 136
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3934673.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-3913174",
@@ -6454,7 +6925,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 255
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3913174.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-6578",
@@ -6481,7 +6954,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 256,
         "fantasypros_yahoo": 174
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6578.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-4066372",
@@ -6507,7 +6982,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 257
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066372.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-5105839",
@@ -6535,7 +7012,9 @@
         "yahoo_draft_analysis_rank": 258,
         "fantasypros_yahoo": 170,
         "espn_article_h2h_points": 131
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105839.png",
+      "teamAbbr": "UTA"
     },
     {
       "id": "espn-3468",
@@ -6561,7 +7040,8 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 262,
         "fantasypros_yahoo": 229
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3468.png"
     },
     {
       "id": "espn-4397020",
@@ -6588,7 +7068,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 264,
         "fantasypros_yahoo": 157
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397020.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-3032979",
@@ -6615,7 +7097,9 @@
         "yahoo_draft_analysis_rank": 269,
         "fantasypros_yahoo": 134,
         "espn_article_h2h_points": 141
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3032979.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-4397183",
@@ -6642,7 +7126,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 271,
         "fantasypros_yahoo": 194
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397183.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-6475",
@@ -6669,7 +7155,8 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 273,
         "fantasypros_yahoo": 132
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6475.png"
     },
     {
       "id": "espn-4870562",
@@ -6695,7 +7182,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 274
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4870562.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4277869",
@@ -6720,7 +7209,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 276
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277869.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-2990992",
@@ -6747,7 +7238,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 278,
         "fantasypros_yahoo": 161
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2990992.png",
+      "teamAbbr": "HOU"
     },
     {
       "id": "espn-4712896",
@@ -6773,7 +7266,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 279,
         "fantasypros_yahoo": 235
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4712896.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-2991350",
@@ -6800,7 +7295,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 282,
         "fantasypros_yahoo": 155
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2991350.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-3912848",
@@ -6825,7 +7322,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 285
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3912848.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4432822",
@@ -6851,7 +7350,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 286
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432822.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-4888725",
@@ -6877,7 +7378,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 287
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4888725.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-2581018",
@@ -6904,7 +7407,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 292,
         "fantasypros_yahoo": 181
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2581018.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-4431823",
@@ -6930,7 +7435,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 294
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431823.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-4277951",
@@ -6955,7 +7462,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 298
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4277951.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-4683689",
@@ -6980,7 +7489,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 299
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683689.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-4592492",
@@ -7005,7 +7516,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 300
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4592492.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-2991043",
@@ -7032,7 +7545,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 303,
         "fantasypros_yahoo": 223
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2991043.png",
+      "teamAbbr": "MIL"
     },
     {
       "id": "espn-4602025",
@@ -7057,7 +7572,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 304
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4602025.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-3195",
@@ -7083,7 +7600,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 305,
         "fantasypros_yahoo": 168
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3195.png",
+      "teamAbbr": "BOS"
     },
     {
       "id": "espn-2990984",
@@ -7110,7 +7629,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 307,
         "fantasypros_yahoo": 154
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2990984.png",
+      "teamAbbr": "ATL"
     },
     {
       "id": "espn-5106258",
@@ -7137,7 +7658,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 313,
         "fantasypros_yahoo": 180
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5106258.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-3135046",
@@ -7163,7 +7686,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 316,
         "fantasypros_yahoo": 192
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3135046.png",
+      "teamAbbr": "DEN"
     },
     {
       "id": "espn-2528426",
@@ -7190,7 +7715,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 329,
         "fantasypros_yahoo": 177
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2528426.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-4278355",
@@ -7216,7 +7743,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 333,
         "fantasypros_yahoo": 211
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278355.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-3133626",
@@ -7241,7 +7770,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 339
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3133626.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-3914044",
@@ -7266,7 +7797,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 341
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3914044.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-4066421",
@@ -7293,7 +7826,8 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 351,
         "fantasypros_yahoo": 165
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066421.png"
     },
     {
       "id": "espn-4431752",
@@ -7318,7 +7852,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 353
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431752.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-4997528",
@@ -7344,7 +7880,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 379,
         "fantasypros_yahoo": 149
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4997528.png",
+      "teamAbbr": "MIA"
     },
     {
       "id": "espn-4432809",
@@ -7371,7 +7909,8 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 387,
         "fantasypros_yahoo": 200
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432809.png"
     },
     {
       "id": "espn-4433225",
@@ -7396,7 +7935,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 388
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4433225.png",
+      "teamAbbr": "NYK"
     },
     {
       "id": "espn-3136776",
@@ -7423,7 +7964,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 400,
         "fantasypros_yahoo": 110
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3136776.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-4432174",
@@ -7450,7 +7993,8 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 405,
         "fantasypros_yahoo": 81
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432174.png"
     },
     {
       "id": "espn-4278572",
@@ -7475,7 +8019,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 414
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4278572.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-5105592",
@@ -7502,7 +8048,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 419,
         "fantasypros_yahoo": 218
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105592.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-2580365",
@@ -7527,7 +8075,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 420
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2580365.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-6580",
@@ -7554,7 +8104,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 430,
         "fantasypros_yahoo": 101
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/6580.png",
+      "teamAbbr": "LAC"
     },
     {
       "id": "espn-4398207",
@@ -7579,7 +8131,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 439
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4398207.png",
+      "teamAbbr": "IND"
     },
     {
       "id": "espn-2326307",
@@ -7605,7 +8159,8 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 447
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/2326307.png"
     },
     {
       "id": "espn-4683774",
@@ -7632,7 +8187,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 469,
         "fantasypros_yahoo": 152
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683774.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-5159895",
@@ -7657,7 +8214,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 492
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5159895.png",
+      "teamAbbr": "CHI"
     },
     {
       "id": "espn-3102533",
@@ -7682,7 +8241,8 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 533
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3102533.png"
     },
     {
       "id": "espn-4397204",
@@ -7707,7 +8267,9 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 537
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4397204.png",
+      "teamAbbr": "ORL"
     },
     {
       "id": "espn-5217746",
@@ -7733,7 +8295,9 @@
       "adpBySource": {
         "yahoo_draft_analysis_rank": 541,
         "fantasypros_yahoo": 197
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5217746.png",
+      "teamAbbr": "POR"
     },
     {
       "id": "espn-4432452",
@@ -7758,7 +8322,8 @@
       "statsSeasonId": 2026,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 586
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432452.png"
     },
     {
       "id": "espn-5106270",
@@ -7783,7 +8348,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 602
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5106270.png",
+      "teamAbbr": "OKC"
     },
     {
       "id": "espn-5041953",
@@ -7808,7 +8375,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 604
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5041953.png",
+      "teamAbbr": "PHX"
     },
     {
       "id": "espn-5041951",
@@ -7833,7 +8402,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 605
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5041951.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-5258459",
@@ -7859,7 +8430,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 617
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5258459.png",
+      "teamAbbr": "DET"
     },
     {
       "id": "espn-5105809",
@@ -7884,7 +8457,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 626
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105809.png",
+      "teamAbbr": "SAS"
     },
     {
       "id": "espn-5113969",
@@ -7910,7 +8485,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 628
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5113969.png",
+      "teamAbbr": "LAL"
     },
     {
       "id": "espn-5105462",
@@ -7935,7 +8512,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 633
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105462.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-4873090",
@@ -7961,7 +8540,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 638
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4873090.png",
+      "teamAbbr": "PHI"
     },
     {
       "id": "espn-5060701",
@@ -7986,7 +8567,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 642
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5060701.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-5061585",
@@ -8011,7 +8594,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 647
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5061585.png",
+      "teamAbbr": "MIN"
     },
     {
       "id": "espn-5231919",
@@ -8036,7 +8621,9 @@
       "statsSeasonId": null,
       "adpBySource": {
         "yahoo_draft_analysis_rank": 648
-      }
+      },
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5231919.png",
+      "teamAbbr": "MEM"
     }
   ]
 }

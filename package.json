@@ -15,7 +15,8 @@
     "players:espn-rankings": "node scripts/refresh-espn-rankings.mjs",
     "players:yahoo-adp": "node scripts/refresh-yahoo-adp.mjs",
     "players:fantasypros-adp": "node scripts/refresh-fantasypros-adp.mjs",
-    "players:adp-merge": "node scripts/merge-adp-sources.mjs"
+    "players:adp-merge": "node scripts/merge-adp-sources.mjs",
+    "players:enrich-identity": "node scripts/enrich-player-identity.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.2",
