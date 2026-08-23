@@ -3,6 +3,7 @@
 import type { ChangeEvent } from "react"
 import { BoardGrid } from "@/components/draft/BoardGrid"
 import { MockDraftAnalysis } from "@/components/draft/MockDraftAnalysis"
+import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import { PlayerPool } from "@/components/draft/PlayerPool"
 import { RecPanel } from "@/components/draft/RecPanel"
 import { Button } from "@/components/ui/Button"
@@ -132,12 +133,18 @@ export const MockDraftView = ({
           <p className="text-[0.65rem] tracking-[0.14em] text-[var(--color-mute)] uppercase">
             Latest pick
           </p>
-          <p className="mt-1 text-sm font-semibold sm:text-base">
-            #{latestPick.overall} · Team {latestPick.teamIndex + 1}
-            {latestPick.teamIndex === perspectiveTeamIndex ? " (You)" : ""}
-            {" — "}
-            {latestPick.player.name}
-          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <PlayerAvatar player={latestPick.player} size="sm" />
+            <p className="min-w-0 text-sm font-semibold sm:text-base">
+              #{latestPick.overall} · Team {latestPick.teamIndex + 1}
+              {latestPick.teamIndex === perspectiveTeamIndex ? " (You)" : ""}
+              {" — "}
+              {latestPick.player.name}
+              <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                {latestPick.player.teamAbbr ?? "—"}
+              </span>
+            </p>
+          </div>
           <p className="mt-0.5 text-xs text-[var(--color-mute)]">
             {latestPick.player.positions.join("/")} ·{" "}
             {formatAdpReferenceLine(latestPick.player, adpSource)}

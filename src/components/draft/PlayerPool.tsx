@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import { Button } from "@/components/ui/Button"
 import { SearchPill } from "@/components/ui/SearchPill"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
@@ -242,12 +243,20 @@ export const PlayerPool = ({
                     }
                   >
                     <td className="max-w-[7.5rem] py-1.5 pr-1 align-top">
-                      <p className="break-words text-xs font-medium leading-tight">
-                        {player.name}
-                      </p>
-                      <p className="mt-0.5 break-words text-[0.55rem] leading-tight text-[var(--color-mute)]">
-                        {formatAdpReferenceLine(player, adpSource)}
-                      </p>
+                      <div className="flex items-start gap-1.5">
+                        <PlayerAvatar player={player} size="sm" />
+                        <div className="min-w-0">
+                          <p className="break-words text-xs font-medium leading-tight">
+                            {player.name}
+                            <span className="ml-1 font-normal text-[var(--color-mute)]">
+                              {player.teamAbbr ?? "—"}
+                            </span>
+                          </p>
+                          <p className="mt-0.5 break-words text-[0.55rem] leading-tight text-[var(--color-mute)]">
+                            {formatAdpReferenceLine(player, adpSource)}
+                          </p>
+                        </div>
+                      </div>
                       {hoveredPlayerId === player.id ? (
                         <div
                           className="pointer-events-none absolute left-full top-0 z-20 ml-2 w-52 rounded-xl border border-[var(--color-hairline)] bg-white p-3 shadow-lg"
@@ -301,14 +310,20 @@ export const PlayerPool = ({
               {availablePlayers.map((player) => (
                 <li className="rounded-2xl bg-white p-3" key={player.id}>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="break-words font-medium leading-tight">
-                        {player.name}
-                      </p>
-                      <p className="mt-1 text-xs text-[var(--color-mute)]">
-                        {player.positions.join("/")} ·{" "}
-                        {formatAdpReferenceLine(player, adpSource)}
-                      </p>
+                    <div className="flex min-w-0 items-start gap-2">
+                      <PlayerAvatar player={player} size="sm" />
+                      <div className="min-w-0">
+                        <p className="break-words font-medium leading-tight">
+                          {player.name}
+                          <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                            {player.teamAbbr ?? "—"}
+                          </span>
+                        </p>
+                        <p className="mt-1 text-xs text-[var(--color-mute)]">
+                          {player.positions.join("/")} ·{" "}
+                          {formatAdpReferenceLine(player, adpSource)}
+                        </p>
+                      </div>
                     </div>
                     <Button
                       aria-label={`Mark ${player.name} picked`}
