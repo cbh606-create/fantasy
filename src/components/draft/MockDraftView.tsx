@@ -31,6 +31,7 @@ export type MockLatestPick = {
 type MockDraftViewProps = {
   adpSource?: AdpSourceId
   isAdvancing: boolean
+  isPlayersLoading?: boolean
   isSavingPick: boolean
   isSimulating?: boolean
   latestPick: MockLatestPick | null
@@ -49,6 +50,7 @@ type MockDraftViewProps = {
 export const MockDraftView = ({
   adpSource = DEFAULT_ADP_SOURCE,
   isAdvancing,
+  isPlayersLoading = false,
   isSavingPick,
   isSimulating = false,
   latestPick,
@@ -78,7 +80,7 @@ export const MockDraftView = ({
   const draftComplete =
     mockBoard.currentOverall > teams * state.settings.rounds ||
     mockBoard.picks.every((pick) => pick.playerId !== null)
-  const busy = isSavingPick || isAdvancing
+  const busy = isSavingPick || isAdvancing || isPlayersLoading
   const slotOptions = Array.from({ length: teams }, (_, index) => index + 1)
 
   const handleTeamsChange = (event: ChangeEvent<HTMLSelectElement>) => {

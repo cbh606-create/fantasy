@@ -187,6 +187,7 @@ export const DraftWorkspace = ({
   const [isSavingPick, setIsSavingPick] = useState(false)
   const [isMockAdvancing, setIsMockAdvancing] = useState(false)
   const [isMockSimulating, setIsMockSimulating] = useState(false)
+  const [isMockPlayersLoading, setIsMockPlayersLoading] = useState(false)
   const [isManualMode, setIsManualMode] = useState(false)
   const [syncError, setSyncError] = useState("")
   const [error, setError] = useState("")
@@ -197,6 +198,7 @@ export const DraftWorkspace = ({
     null,
   )
   const mockAdvanceControllerRef = useRef<AbortController | null>(null)
+  const mockStartRequestIdRef = useRef(0)
   const didAutoEnterMockRef = useRef(false)
 
   useEffect(() => {
@@ -519,6 +521,8 @@ export const DraftWorkspace = ({
   ) => {
     clearMockSimulation()
     setLatestMockPick(null)
+    const requestId = mockStartRequestIdRef.current + 1
+    mockStartRequestIdRef.current = requestId
     const teams = Math.min(
       ESPN_MAX_TEAMS,
       Math.max(
@@ -533,23 +537,36 @@ export const DraftWorkspace = ({
     setMockTeams(teams)
     setMockPerspectiveTeamIndex(nextPerspective)
     const source = options.adpSource ?? adpSource
-    const rawPlayers =
-      !options.refreshPlayers && mockPlayers?.length
-        ? mockPlayers
-        : await loadFreshMockPlayers(baseState.players)
-    const players = withProjectedAdp(rawPlayers, source)
-    setMockPlayers(players)
+    const cachedPlayers = mockPlayers
+    const needsFetch =
+      Boolean(options.refreshPlayers) || !cachedPlayers?.length
+    setIsMockPlayersLoading(needsFetch)
+    try {
+      let rawPlayers: Player[]
+      if (needsFetch || !cachedPlayers?.length) {
+        rawPlayers = await loadFreshMockPlayers(baseState.players)
+      } else {
+        rawPlayers = cachedPlayers
+      }
+      if (mockStartRequestIdRef.current !== requestId) return
+      const players = withProjectedAdp(rawPlayers, source)
+      setMockPlayers(players)
 
-    const empty = buildEmptyBoard(teams, DEFAULT_DRAFT_ROUNDS)
-    void runMockCpuUntilUserTurn(
-      toMockLeagueState(
-        baseState,
-        nextPerspective,
-        players,
-        empty,
-        teams,
-      ),
-    )
+      const empty = buildEmptyBoard(teams, DEFAULT_DRAFT_ROUNDS)
+      void runMockCpuUntilUserTurn(
+        toMockLeagueState(
+          baseState,
+          nextPerspective,
+          players,
+          empty,
+          teams,
+        ),
+      )
+    } finally {
+      if (mockStartRequestIdRef.current === requestId) {
+        setIsMockPlayersLoading(false)
+      }
+    }
   }
 
   const handleAdpSourceChange = (next: AdpSourceId) => {
@@ -583,7 +600,6 @@ export const DraftWorkspace = ({
   const handleResetMock = () => {
     if (!state) return
     void startMockDraft(state, mockPerspectiveTeamIndex, {
-      refreshPlayers: true,
       teams: mockTeams,
     })
   }
@@ -599,7 +615,6 @@ export const DraftWorkspace = ({
       return
     }
     void startMockDraft(state, nextIndex, {
-      refreshPlayers: true,
       teams: mockTeams,
     })
   }
@@ -615,7 +630,6 @@ export const DraftWorkspace = ({
       return
     }
     void startMockDraft(state, mockPerspectiveTeamIndex, {
-      refreshPlayers: true,
       teams,
     })
   }
@@ -764,6 +778,7 @@ export const DraftWorkspace = ({
             <MockDraftView
               adpSource={adpSource}
               isAdvancing={isMockAdvancing}
+              isPlayersLoading={isMockPlayersLoading}
               isSavingPick={isSavingPick}
               isSimulating={isMockSimulating}
               latestPick={latestMockPick}
