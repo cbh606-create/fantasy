@@ -637,6 +637,7 @@ export const DraftWorkspace = ({
       return
     }
     void startMockDraft(state, mockPerspectiveTeamIndex, {
+      refreshPlayers: true,
       teams,
     })
   }
