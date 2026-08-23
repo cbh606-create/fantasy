@@ -33,6 +33,8 @@ export const playerSchema = z.object({
   adp: z.number(),
   adpBySource: z.record(z.string(), z.number()).optional(),
   espnId: z.string().optional(),
+  teamAbbr: z.string().optional(),
+  imageUrl: z.string().optional(),
   status: z.enum(["active", "out", "gtd"]).optional(),
 })
 
