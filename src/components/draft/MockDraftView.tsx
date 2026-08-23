@@ -14,6 +14,13 @@ import type {
   Player,
   SimulationResult,
 } from "@/lib/domain/types"
+import {
+  ADP_SOURCE_IDS,
+  ADP_SOURCES,
+  DEFAULT_ADP_SOURCE,
+  formatAdpReferenceLine,
+  type AdpSourceId,
+} from "@/lib/players/adpSources"
 
 export type MockLatestPick = {
   overall: number
@@ -22,12 +29,14 @@ export type MockLatestPick = {
 }
 
 type MockDraftViewProps = {
+  adpSource?: AdpSourceId
   isAdvancing: boolean
   isSavingPick: boolean
   isSimulating?: boolean
   latestPick: MockLatestPick | null
   mockBoard: DraftBoard
   mockResult: SimulationResult | null
+  onAdpSourceChange: (source: AdpSourceId) => void
   onMarkPicked: (playerId: string) => void
   onReset: () => void
   onSlotChange: (slot: number) => void
@@ -38,12 +47,14 @@ type MockDraftViewProps = {
 }
 
 export const MockDraftView = ({
+  adpSource = DEFAULT_ADP_SOURCE,
   isAdvancing,
   isSavingPick,
   isSimulating = false,
   latestPick,
   mockBoard,
   mockResult,
+  onAdpSourceChange,
   onMarkPicked,
   onReset,
   onSlotChange,
@@ -86,6 +97,10 @@ export const MockDraftView = ({
     onSlotChange(slot)
   }
 
+  const handleAdpSourceChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    onAdpSourceChange(event.target.value as AdpSourceId)
+  }
+
   const handleRandomSlot = () => {
     if (slotOptions.length === 0) return
 
@@ -122,7 +137,8 @@ export const MockDraftView = ({
             {latestPick.player.name}
           </p>
           <p className="mt-0.5 text-xs text-[var(--color-mute)]">
-            {latestPick.player.positions.join("/")} · ADP {latestPick.player.adp}
+            {latestPick.player.positions.join("/")} ·{" "}
+            {formatAdpReferenceLine(latestPick.player, adpSource)}
           </p>
         </div>
       ) : null}
@@ -162,6 +178,22 @@ export const MockDraftView = ({
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1 text-xs text-[var(--color-mute)]">
+            <span className="tracking-[0.12em] uppercase">ADP source</span>
+            <select
+              aria-label="ADP source"
+              className="h-9 min-w-[9rem] rounded-xl border border-[var(--color-hairline)] bg-white px-3 text-sm text-[var(--color-ink)]"
+              disabled={busy}
+              onChange={handleAdpSourceChange}
+              value={adpSource}
+            >
+              {ADP_SOURCE_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {ADP_SOURCES[id].label}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="flex flex-col gap-1 text-xs text-[var(--color-mute)]">
             <span className="tracking-[0.12em] uppercase">Teams</span>
             <select
@@ -218,6 +250,7 @@ export const MockDraftView = ({
       </div>
       <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
         <PlayerPool
+          adpSource={adpSource}
           compact
           disabled={busy || !userTurn || draftComplete}
           onMarkPicked={onMarkPicked}

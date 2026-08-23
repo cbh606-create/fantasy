@@ -5,8 +5,14 @@ import { Button } from "@/components/ui/Button"
 import { SearchPill } from "@/components/ui/SearchPill"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId, Player } from "@/lib/domain/types"
+import {
+  DEFAULT_ADP_SOURCE,
+  formatAdpReferenceLine,
+  type AdpSourceId,
+} from "@/lib/players/adpSources"
 
 type PlayerPoolProps = {
+  adpSource?: AdpSourceId
   compact?: boolean
   disabled?: boolean
   onMarkPicked: (playerId: string) => void
@@ -117,6 +123,7 @@ const SortHeader = ({
 }
 
 export const PlayerPool = ({
+  adpSource = DEFAULT_ADP_SOURCE,
   compact = false,
   disabled = false,
   onMarkPicked,
@@ -238,6 +245,9 @@ export const PlayerPool = ({
                       <p className="break-words text-xs font-medium leading-tight">
                         {player.name}
                       </p>
+                      <p className="mt-0.5 break-words text-[0.55rem] leading-tight text-[var(--color-mute)]">
+                        {formatAdpReferenceLine(player, adpSource)}
+                      </p>
                       {hoveredPlayerId === player.id ? (
                         <div
                           className="pointer-events-none absolute left-full top-0 z-20 ml-2 w-52 rounded-xl border border-[var(--color-hairline)] bg-white p-3 shadow-lg"
@@ -296,7 +306,8 @@ export const PlayerPool = ({
                         {player.name}
                       </p>
                       <p className="mt-1 text-xs text-[var(--color-mute)]">
-                        {player.positions.join("/")} · ADP {formatAdp(player.adp)}
+                        {player.positions.join("/")} ·{" "}
+                        {formatAdpReferenceLine(player, adpSource)}
                       </p>
                     </div>
                     <Button

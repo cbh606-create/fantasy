@@ -26,6 +26,11 @@ import type {
 } from "@/lib/domain/types"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
+import {
+  DEFAULT_ADP_SOURCE,
+  withProjectedAdp,
+  type AdpSourceId,
+} from "@/lib/players/adpSources"
 
 const toMockLeagueState = (
   baseState: LeagueState,
@@ -171,6 +176,7 @@ export const DraftWorkspace = ({
   const [latestMockPick, setLatestMockPick] = useState<MockLatestPick | null>(
     null,
   )
+  const [adpSource, setAdpSource] = useState<AdpSourceId>(DEFAULT_ADP_SOURCE)
   const [result, setResult] = useState<SimulationResult | null>(null)
   const [mockResult, setMockResult] = useState<SimulationResult | null>(null)
   const [mode, setMode] = useState<WorkspaceMode>(initialMode)
@@ -505,7 +511,11 @@ export const DraftWorkspace = ({
   const startMockDraft = async (
     baseState: LeagueState,
     perspectiveTeamIndex = baseState.perspectiveTeamIndex,
-    options: { refreshPlayers?: boolean; teams?: number } = {},
+    options: {
+      refreshPlayers?: boolean
+      teams?: number
+      adpSource?: AdpSourceId
+    } = {},
   ) => {
     clearMockSimulation()
     setLatestMockPick(null)
@@ -522,11 +532,13 @@ export const DraftWorkspace = ({
     )
     setMockTeams(teams)
     setMockPerspectiveTeamIndex(nextPerspective)
-    const players =
+    const source = options.adpSource ?? adpSource
+    const rawPlayers =
       !options.refreshPlayers && mockPlayers?.length
         ? mockPlayers
         : await loadFreshMockPlayers(baseState.players)
-    if (players !== mockPlayers) setMockPlayers(players)
+    const players = withProjectedAdp(rawPlayers, source)
+    setMockPlayers(players)
 
     const empty = buildEmptyBoard(teams, DEFAULT_DRAFT_ROUNDS)
     void runMockCpuUntilUserTurn(
@@ -538,6 +550,16 @@ export const DraftWorkspace = ({
         teams,
       ),
     )
+  }
+
+  const handleAdpSourceChange = (next: AdpSourceId) => {
+    setAdpSource(next)
+    if (!state) return
+    void startMockDraft(state, mockPerspectiveTeamIndex, {
+      refreshPlayers: true,
+      teams: mockTeams,
+      adpSource: next,
+    })
   }
 
   const handleEnterMock = () => {
@@ -560,7 +582,10 @@ export const DraftWorkspace = ({
 
   const handleResetMock = () => {
     if (!state) return
-    void startMockDraft(state, mockPerspectiveTeamIndex, { teams: mockTeams })
+    void startMockDraft(state, mockPerspectiveTeamIndex, {
+      refreshPlayers: true,
+      teams: mockTeams,
+    })
   }
 
   const handleMockSlotChange = (slot: number) => {
@@ -573,7 +598,10 @@ export const DraftWorkspace = ({
     ) {
       return
     }
-    void startMockDraft(state, nextIndex, { teams: mockTeams })
+    void startMockDraft(state, nextIndex, {
+      refreshPlayers: true,
+      teams: mockTeams,
+    })
   }
 
   const handleMockTeamsChange = (teams: number) => {
@@ -586,7 +614,10 @@ export const DraftWorkspace = ({
     ) {
       return
     }
-    void startMockDraft(state, mockPerspectiveTeamIndex, { teams })
+    void startMockDraft(state, mockPerspectiveTeamIndex, {
+      refreshPlayers: true,
+      teams,
+    })
   }
 
   const handleMockMarkPicked = (playerId: string) => {
@@ -731,12 +762,14 @@ export const DraftWorkspace = ({
           ) : null}
           {mode === "mock" && mockBoard && mockPlayers ? (
             <MockDraftView
+              adpSource={adpSource}
               isAdvancing={isMockAdvancing}
               isSavingPick={isSavingPick}
               isSimulating={isMockSimulating}
               latestPick={latestMockPick}
               mockBoard={mockBoard}
               mockResult={mockResult}
+              onAdpSourceChange={handleAdpSourceChange}
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
               onSlotChange={handleMockSlotChange}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   DEFAULT_ADP_SOURCE,
+  formatAdpReferenceLine,
   projectAdpFromSource,
   withProjectedAdp,
 } from "@/lib/players/adpSources"
@@ -57,5 +58,23 @@ describe("adpSources", () => {
     expect(next.map((p) => p.id)).toEqual(["a", "b"])
     expect(next[0].adp).toBe(5)
     expect(DEFAULT_ADP_SOURCE).toBe("yahoo_draft_analysis_rank")
+  })
+
+  it("formatAdpReferenceLine shows primary and other sources", () => {
+    const player = base({
+      id: "1",
+      name: "A",
+      adp: 3,
+      adpBySource: {
+        yahoo_draft_analysis_rank: 3,
+        fantasypros_yahoo: 4.2,
+      },
+    })
+    expect(formatAdpReferenceLine(player, "yahoo_draft_analysis_rank")).toBe(
+      "ADP 3 · FP 4.2 · ESPN —",
+    )
+    expect(formatAdpReferenceLine(player, "fantasypros_yahoo")).toBe(
+      "ADP 3 · Yahoo 3 · ESPN —",
+    )
   })
 })
