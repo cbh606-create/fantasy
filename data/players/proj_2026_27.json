@@ -7,23 +7,41 @@
     "count": 300,
     "adpSource": "yahoo_draft_analysis_rank",
     "adpSourceUrl": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
-    "adpUpdatedAt": "2026-08-23T14:22:52.250Z",
+    "adpUpdatedAt": "2026-08-23T14:28:07.757Z",
     "adpArticleParsed": 150,
     "adpArticleMatched": 150,
     "adpArticleAdded": 0,
-    "adpMatched": 286,
-    "adpUnmatched": 14,
-    "adpRankRows": 662,
-    "adpFetchSource": "fixture",
+    "adpMatched": 207,
+    "adpUnmatched": 93,
+    "adpRankRows": 234,
+    "adpFetchSource": "live",
     "adpSources": {
       "yahoo_draft_analysis_rank": {
         "id": "yahoo_draft_analysis_rank",
         "label": "Yahoo rank",
         "url": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
-        "updatedAt": "2026-08-23T14:22:52.208Z",
+        "updatedAt": "2026-08-23T14:27:38.035Z",
         "matched": 286,
         "unmatched": 14,
         "rowCount": 662
+      },
+      "fantasypros_yahoo": {
+        "id": "fantasypros_yahoo",
+        "label": "FantasyPros Yahoo",
+        "url": "https://www.fantasypros.com/nba/adp/overall.php",
+        "updatedAt": "2026-08-23T14:27:53.738Z",
+        "matched": 207,
+        "unmatched": 93,
+        "rowCount": 234
+      },
+      "espn_article_h2h_points": {
+        "id": "espn_article_h2h_points",
+        "label": "ESPN article",
+        "url": "https://www.espn.com/fantasy/basketball/story/_/id/48484688/fantasy-basketball-way-too-early-points-league-rankings-next-season-2026-27",
+        "updatedAt": "2026-08-23T14:28:05.587Z",
+        "matched": 150,
+        "unmatched": 150,
+        "rowCount": 150
       }
     },
     "adpPrimaryDefault": "yahoo_draft_analysis_rank"
@@ -51,7 +69,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 1
+        "yahoo_draft_analysis_rank": 1,
+        "fantasypros_yahoo": 2,
+        "espn_article_h2h_points": 2
       }
     },
     {
@@ -76,7 +96,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 2
+        "yahoo_draft_analysis_rank": 2,
+        "fantasypros_yahoo": 1,
+        "espn_article_h2h_points": 1
       }
     },
     {
@@ -101,7 +123,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 3
+        "yahoo_draft_analysis_rank": 3,
+        "fantasypros_yahoo": 4,
+        "espn_article_h2h_points": 4
       }
     },
     {
@@ -126,7 +150,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 4
+        "yahoo_draft_analysis_rank": 4,
+        "fantasypros_yahoo": 3,
+        "espn_article_h2h_points": 3
       }
     },
     {
@@ -151,7 +177,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 5
+        "yahoo_draft_analysis_rank": 5,
+        "fantasypros_yahoo": 7,
+        "espn_article_h2h_points": 6
       }
     },
     {
@@ -177,7 +205,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 6
+        "yahoo_draft_analysis_rank": 6,
+        "fantasypros_yahoo": 16,
+        "espn_article_h2h_points": 5
       }
     },
     {
@@ -203,7 +233,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 7
+        "yahoo_draft_analysis_rank": 7,
+        "fantasypros_yahoo": 137,
+        "espn_article_h2h_points": 12
       }
     },
     {
@@ -229,7 +261,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 8
+        "yahoo_draft_analysis_rank": 8,
+        "fantasypros_yahoo": 6,
+        "espn_article_h2h_points": 10
       }
     },
     {
@@ -255,7 +289,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 9
+        "yahoo_draft_analysis_rank": 9,
+        "fantasypros_yahoo": 5,
+        "espn_article_h2h_points": 7
       }
     },
     {
@@ -280,7 +316,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 10
+        "yahoo_draft_analysis_rank": 10,
+        "fantasypros_yahoo": 24,
+        "espn_article_h2h_points": 8
       }
     },
     {
@@ -306,7 +344,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 11
+        "yahoo_draft_analysis_rank": 11,
+        "fantasypros_yahoo": 17,
+        "espn_article_h2h_points": 9
       }
     },
     {
@@ -332,7 +372,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 12
+        "yahoo_draft_analysis_rank": 12,
+        "fantasypros_yahoo": 115,
+        "espn_article_h2h_points": 20
       }
     },
     {
@@ -358,7 +400,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 13
+        "yahoo_draft_analysis_rank": 13,
+        "fantasypros_yahoo": 40,
+        "espn_article_h2h_points": 11
       }
     },
     {
@@ -384,7 +428,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 14
+        "yahoo_draft_analysis_rank": 14,
+        "fantasypros_yahoo": 15,
+        "espn_article_h2h_points": 18
       }
     },
     {
@@ -410,7 +456,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 15
+        "yahoo_draft_analysis_rank": 15,
+        "fantasypros_yahoo": 26,
+        "espn_article_h2h_points": 14
       }
     },
     {
@@ -435,7 +483,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 16
+        "yahoo_draft_analysis_rank": 16,
+        "fantasypros_yahoo": 9,
+        "espn_article_h2h_points": 17
       }
     },
     {
@@ -460,7 +510,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 17
+        "yahoo_draft_analysis_rank": 17,
+        "fantasypros_yahoo": 38,
+        "espn_article_h2h_points": 15
       }
     },
     {
@@ -486,7 +538,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 18
+        "yahoo_draft_analysis_rank": 18,
+        "fantasypros_yahoo": 46,
+        "espn_article_h2h_points": 24
       }
     },
     {
@@ -512,7 +566,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 19
+        "yahoo_draft_analysis_rank": 19,
+        "fantasypros_yahoo": 23,
+        "espn_article_h2h_points": 23
       }
     },
     {
@@ -537,7 +593,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 20
+        "yahoo_draft_analysis_rank": 20,
+        "fantasypros_yahoo": 28,
+        "espn_article_h2h_points": 58
       }
     },
     {
@@ -563,7 +621,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 21
+        "yahoo_draft_analysis_rank": 21,
+        "fantasypros_yahoo": 8,
+        "espn_article_h2h_points": 43
       }
     },
     {
@@ -588,7 +648,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 22
+        "yahoo_draft_analysis_rank": 22,
+        "fantasypros_yahoo": 11,
+        "espn_article_h2h_points": 52
       }
     },
     {
@@ -613,7 +675,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 23
+        "yahoo_draft_analysis_rank": 23,
+        "fantasypros_yahoo": 19,
+        "espn_article_h2h_points": 16
       }
     },
     {
@@ -639,7 +703,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 24
+        "yahoo_draft_analysis_rank": 24,
+        "fantasypros_yahoo": 47,
+        "espn_article_h2h_points": 38
       }
     },
     {
@@ -664,7 +730,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 25
+        "yahoo_draft_analysis_rank": 25,
+        "fantasypros_yahoo": 14,
+        "espn_article_h2h_points": 55
       }
     },
     {
@@ -689,7 +757,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 26
+        "yahoo_draft_analysis_rank": 26,
+        "fantasypros_yahoo": 57,
+        "espn_article_h2h_points": 98
       }
     },
     {
@@ -715,7 +785,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 27
+        "yahoo_draft_analysis_rank": 27,
+        "fantasypros_yahoo": 30,
+        "espn_article_h2h_points": 35
       }
     },
     {
@@ -740,7 +812,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 28
+        "yahoo_draft_analysis_rank": 28,
+        "fantasypros_yahoo": 20,
+        "espn_article_h2h_points": 37
       }
     },
     {
@@ -765,7 +839,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 29
+        "yahoo_draft_analysis_rank": 29,
+        "fantasypros_yahoo": 56,
+        "espn_article_h2h_points": 25
       }
     },
     {
@@ -791,7 +867,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 30
+        "yahoo_draft_analysis_rank": 30,
+        "fantasypros_yahoo": 43,
+        "espn_article_h2h_points": 31
       }
     },
     {
@@ -817,7 +895,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 31
+        "yahoo_draft_analysis_rank": 31,
+        "fantasypros_yahoo": 21,
+        "espn_article_h2h_points": 13
       }
     },
     {
@@ -843,7 +923,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 32
+        "yahoo_draft_analysis_rank": 32,
+        "fantasypros_yahoo": 18,
+        "espn_article_h2h_points": 26
       }
     },
     {
@@ -869,7 +951,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 33
+        "yahoo_draft_analysis_rank": 33,
+        "fantasypros_yahoo": 10,
+        "espn_article_h2h_points": 28
       }
     },
     {
@@ -895,7 +979,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 34
+        "yahoo_draft_analysis_rank": 34,
+        "fantasypros_yahoo": 12,
+        "espn_article_h2h_points": 41
       }
     },
     {
@@ -921,7 +1007,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 35
+        "yahoo_draft_analysis_rank": 35,
+        "fantasypros_yahoo": 13,
+        "espn_article_h2h_points": 21
       }
     },
     {
@@ -947,7 +1035,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 36
+        "yahoo_draft_analysis_rank": 36,
+        "fantasypros_yahoo": 32,
+        "espn_article_h2h_points": 59
       }
     },
     {
@@ -973,7 +1063,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 37
+        "yahoo_draft_analysis_rank": 37,
+        "fantasypros_yahoo": 226,
+        "espn_article_h2h_points": 33
       }
     },
     {
@@ -998,7 +1090,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 38
+        "yahoo_draft_analysis_rank": 38,
+        "fantasypros_yahoo": 85,
+        "espn_article_h2h_points": 75
       }
     },
     {
@@ -1024,7 +1118,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 39
+        "yahoo_draft_analysis_rank": 39,
+        "fantasypros_yahoo": 33,
+        "espn_article_h2h_points": 87
       }
     },
     {
@@ -1050,7 +1146,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 40
+        "yahoo_draft_analysis_rank": 40,
+        "fantasypros_yahoo": 29,
+        "espn_article_h2h_points": 22
       }
     },
     {
@@ -1076,7 +1174,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 41
+        "yahoo_draft_analysis_rank": 41,
+        "fantasypros_yahoo": 48,
+        "espn_article_h2h_points": 27
       }
     },
     {
@@ -1102,7 +1202,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 42
+        "yahoo_draft_analysis_rank": 42,
+        "fantasypros_yahoo": 27,
+        "espn_article_h2h_points": 45
       }
     },
     {
@@ -1128,7 +1230,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 43
+        "yahoo_draft_analysis_rank": 43,
+        "fantasypros_yahoo": 22,
+        "espn_article_h2h_points": 39
       }
     },
     {
@@ -1154,7 +1258,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 44
+        "yahoo_draft_analysis_rank": 44,
+        "fantasypros_yahoo": 53,
+        "espn_article_h2h_points": 44
       }
     },
     {
@@ -1179,7 +1285,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 45
+        "yahoo_draft_analysis_rank": 45,
+        "fantasypros_yahoo": 136,
+        "espn_article_h2h_points": 34
       }
     },
     {
@@ -1205,7 +1313,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 46
+        "yahoo_draft_analysis_rank": 46,
+        "fantasypros_yahoo": 50,
+        "espn_article_h2h_points": 51
       }
     },
     {
@@ -1231,7 +1341,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 47
+        "yahoo_draft_analysis_rank": 47,
+        "fantasypros_yahoo": 118,
+        "espn_article_h2h_points": 42
       }
     },
     {
@@ -1256,7 +1368,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 48
+        "yahoo_draft_analysis_rank": 48,
+        "fantasypros_yahoo": 51,
+        "espn_article_h2h_points": 71
       }
     },
     {
@@ -1282,7 +1396,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 49
+        "yahoo_draft_analysis_rank": 49,
+        "fantasypros_yahoo": 41,
+        "espn_article_h2h_points": 69
       }
     },
     {
@@ -1308,7 +1424,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 50
+        "yahoo_draft_analysis_rank": 50,
+        "fantasypros_yahoo": 39,
+        "espn_article_h2h_points": 57
       }
     },
     {
@@ -1334,7 +1452,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 51
+        "yahoo_draft_analysis_rank": 51,
+        "fantasypros_yahoo": 34,
+        "espn_article_h2h_points": 68
       }
     },
     {
@@ -1359,7 +1479,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 52
+        "yahoo_draft_analysis_rank": 52,
+        "fantasypros_yahoo": 31,
+        "espn_article_h2h_points": 29
       }
     },
     {
@@ -1384,7 +1506,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 53
+        "yahoo_draft_analysis_rank": 53,
+        "fantasypros_yahoo": 67,
+        "espn_article_h2h_points": 40
       }
     },
     {
@@ -1410,7 +1534,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 54
+        "yahoo_draft_analysis_rank": 54,
+        "fantasypros_yahoo": 25,
+        "espn_article_h2h_points": 30
       }
     },
     {
@@ -1436,7 +1562,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 55
+        "yahoo_draft_analysis_rank": 55,
+        "fantasypros_yahoo": 156,
+        "espn_article_h2h_points": 53
       }
     },
     {
@@ -1462,7 +1590,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 56
+        "yahoo_draft_analysis_rank": 56,
+        "fantasypros_yahoo": 82,
+        "espn_article_h2h_points": 54
       }
     },
     {
@@ -1487,7 +1617,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 57
+        "yahoo_draft_analysis_rank": 57,
+        "fantasypros_yahoo": 95,
+        "espn_article_h2h_points": 108
       }
     },
     {
@@ -1513,7 +1645,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 58
+        "yahoo_draft_analysis_rank": 58,
+        "fantasypros_yahoo": 70,
+        "espn_article_h2h_points": 60
       }
     },
     {
@@ -1539,7 +1673,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 59
+        "yahoo_draft_analysis_rank": 59,
+        "fantasypros_yahoo": 150,
+        "espn_article_h2h_points": 47
       }
     },
     {
@@ -1565,7 +1701,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 60
+        "yahoo_draft_analysis_rank": 60,
+        "fantasypros_yahoo": 64,
+        "espn_article_h2h_points": 89
       }
     },
     {
@@ -1591,7 +1729,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 61
+        "yahoo_draft_analysis_rank": 61,
+        "fantasypros_yahoo": 93,
+        "espn_article_h2h_points": 137
       }
     },
     {
@@ -1616,7 +1756,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 62
+        "yahoo_draft_analysis_rank": 62,
+        "fantasypros_yahoo": 121,
+        "espn_article_h2h_points": 74
       }
     },
     {
@@ -1642,7 +1784,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 63
+        "yahoo_draft_analysis_rank": 63,
+        "fantasypros_yahoo": 35,
+        "espn_article_h2h_points": 110
       }
     },
     {
@@ -1667,7 +1811,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 64
+        "yahoo_draft_analysis_rank": 64,
+        "fantasypros_yahoo": 62,
+        "espn_article_h2h_points": 91
       }
     },
     {
@@ -1717,7 +1863,9 @@
       "status": "gtd",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 66
+        "yahoo_draft_analysis_rank": 66,
+        "fantasypros_yahoo": 131,
+        "espn_article_h2h_points": 66
       }
     },
     {
@@ -1743,7 +1891,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 67
+        "yahoo_draft_analysis_rank": 67,
+        "fantasypros_yahoo": 69,
+        "espn_article_h2h_points": 48
       }
     },
     {
@@ -1768,7 +1918,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 68
+        "yahoo_draft_analysis_rank": 68,
+        "fantasypros_yahoo": 37,
+        "espn_article_h2h_points": 90
       }
     },
     {
@@ -1794,7 +1946,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 69
+        "yahoo_draft_analysis_rank": 69,
+        "espn_article_h2h_points": 116
       }
     },
     {
@@ -1820,7 +1973,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 70
+        "yahoo_draft_analysis_rank": 70,
+        "fantasypros_yahoo": 120,
+        "espn_article_h2h_points": 32
       }
     },
     {
@@ -1845,7 +2000,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 71
+        "yahoo_draft_analysis_rank": 71,
+        "fantasypros_yahoo": 189,
+        "espn_article_h2h_points": 36
       }
     },
     {
@@ -1871,7 +2028,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 72
+        "yahoo_draft_analysis_rank": 72,
+        "fantasypros_yahoo": 42,
+        "espn_article_h2h_points": 56
       }
     },
     {
@@ -1897,7 +2056,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 73
+        "yahoo_draft_analysis_rank": 73,
+        "fantasypros_yahoo": 78,
+        "espn_article_h2h_points": 19
       }
     },
     {
@@ -1923,7 +2084,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 74
+        "yahoo_draft_analysis_rank": 74,
+        "fantasypros_yahoo": 114,
+        "espn_article_h2h_points": 97
       }
     },
     {
@@ -1949,7 +2112,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 75
+        "yahoo_draft_analysis_rank": 75,
+        "fantasypros_yahoo": 79,
+        "espn_article_h2h_points": 46
       }
     },
     {
@@ -1974,7 +2139,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 76
+        "yahoo_draft_analysis_rank": 76,
+        "fantasypros_yahoo": 55,
+        "espn_article_h2h_points": 76
       }
     },
     {
@@ -2000,7 +2167,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 77
+        "yahoo_draft_analysis_rank": 77,
+        "fantasypros_yahoo": 71,
+        "espn_article_h2h_points": 64
       }
     },
     {
@@ -2025,7 +2194,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 78
+        "yahoo_draft_analysis_rank": 78,
+        "fantasypros_yahoo": 65,
+        "espn_article_h2h_points": 85
       }
     },
     {
@@ -2051,7 +2222,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 79
+        "yahoo_draft_analysis_rank": 79,
+        "fantasypros_yahoo": 187,
+        "espn_article_h2h_points": 93
       }
     },
     {
@@ -2077,7 +2250,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 80
+        "yahoo_draft_analysis_rank": 80,
+        "fantasypros_yahoo": 68,
+        "espn_article_h2h_points": 78
       }
     },
     {
@@ -2127,7 +2302,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 82
+        "yahoo_draft_analysis_rank": 82,
+        "fantasypros_yahoo": 84,
+        "espn_article_h2h_points": 122
       }
     },
     {
@@ -2153,7 +2330,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 83
+        "yahoo_draft_analysis_rank": 83,
+        "fantasypros_yahoo": 87,
+        "espn_article_h2h_points": 49
       }
     },
     {
@@ -2179,7 +2358,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 84
+        "yahoo_draft_analysis_rank": 84,
+        "fantasypros_yahoo": 36,
+        "espn_article_h2h_points": 61
       }
     },
     {
@@ -2205,7 +2386,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 85
+        "yahoo_draft_analysis_rank": 85,
+        "fantasypros_yahoo": 58,
+        "espn_article_h2h_points": 138
       }
     },
     {
@@ -2256,7 +2439,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 87
+        "yahoo_draft_analysis_rank": 87,
+        "fantasypros_yahoo": 231,
+        "espn_article_h2h_points": 143
       }
     },
     {
@@ -2306,7 +2491,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 89
+        "yahoo_draft_analysis_rank": 89,
+        "fantasypros_yahoo": 44,
+        "espn_article_h2h_points": 50
       }
     },
     {
@@ -2332,7 +2519,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 90
+        "yahoo_draft_analysis_rank": 90,
+        "fantasypros_yahoo": 75,
+        "espn_article_h2h_points": 107
       }
     },
     {
@@ -2358,7 +2547,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 91
+        "yahoo_draft_analysis_rank": 91,
+        "fantasypros_yahoo": 89,
+        "espn_article_h2h_points": 77
       }
     },
     {
@@ -2384,7 +2575,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 92
+        "yahoo_draft_analysis_rank": 92,
+        "fantasypros_yahoo": 80,
+        "espn_article_h2h_points": 104
       }
     },
     {
@@ -2436,7 +2629,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 94
+        "yahoo_draft_analysis_rank": 94,
+        "espn_article_h2h_points": 80
       }
     },
     {
@@ -2461,7 +2655,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 95
+        "yahoo_draft_analysis_rank": 95,
+        "fantasypros_yahoo": 45,
+        "espn_article_h2h_points": 112
       }
     },
     {
@@ -2486,7 +2682,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 96
+        "yahoo_draft_analysis_rank": 96,
+        "fantasypros_yahoo": 83,
+        "espn_article_h2h_points": 115
       }
     },
     {
@@ -2512,7 +2710,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 97
+        "yahoo_draft_analysis_rank": 97,
+        "fantasypros_yahoo": 60,
+        "espn_article_h2h_points": 95
       }
     },
     {
@@ -2537,7 +2737,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 98
+        "yahoo_draft_analysis_rank": 98,
+        "fantasypros_yahoo": 100,
+        "espn_article_h2h_points": 129
       }
     },
     {
@@ -2562,7 +2764,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 99
+        "yahoo_draft_analysis_rank": 99,
+        "fantasypros_yahoo": 77,
+        "espn_article_h2h_points": 135
       }
     },
     {
@@ -2587,7 +2791,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 100
+        "yahoo_draft_analysis_rank": 100,
+        "fantasypros_yahoo": 201,
+        "espn_article_h2h_points": 114
       }
     },
     {
@@ -2613,7 +2819,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 101
+        "yahoo_draft_analysis_rank": 101,
+        "fantasypros_yahoo": 199,
+        "espn_article_h2h_points": 126
       }
     },
     {
@@ -2639,7 +2847,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 102
+        "yahoo_draft_analysis_rank": 102,
+        "fantasypros_yahoo": 102,
+        "espn_article_h2h_points": 100
       }
     },
     {
@@ -2664,7 +2874,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 103
+        "yahoo_draft_analysis_rank": 103,
+        "fantasypros_yahoo": 184
       }
     },
     {
@@ -2690,7 +2901,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 104
+        "yahoo_draft_analysis_rank": 104,
+        "fantasypros_yahoo": 61,
+        "espn_article_h2h_points": 88
       }
     },
     {
@@ -2716,7 +2929,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 105
+        "yahoo_draft_analysis_rank": 105,
+        "fantasypros_yahoo": 54,
+        "espn_article_h2h_points": 128
       }
     },
     {
@@ -2742,7 +2957,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 106
+        "yahoo_draft_analysis_rank": 106,
+        "fantasypros_yahoo": 203,
+        "espn_article_h2h_points": 102
       }
     },
     {
@@ -2768,7 +2985,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 107
+        "yahoo_draft_analysis_rank": 107,
+        "fantasypros_yahoo": 124
       }
     },
     {
@@ -2820,7 +3038,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 109
+        "yahoo_draft_analysis_rank": 109,
+        "fantasypros_yahoo": 104,
+        "espn_article_h2h_points": 83
       }
     },
     {
@@ -2846,7 +3066,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 110
+        "yahoo_draft_analysis_rank": 110,
+        "fantasypros_yahoo": 113,
+        "espn_article_h2h_points": 118
       }
     },
     {
@@ -2872,7 +3094,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 111
+        "yahoo_draft_analysis_rank": 111,
+        "fantasypros_yahoo": 125,
+        "espn_article_h2h_points": 103
       }
     },
     {
@@ -2924,7 +3148,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 113
+        "yahoo_draft_analysis_rank": 113,
+        "fantasypros_yahoo": 193,
+        "espn_article_h2h_points": 134
       }
     },
     {
@@ -2949,7 +3175,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 114
+        "yahoo_draft_analysis_rank": 114,
+        "fantasypros_yahoo": 190,
+        "espn_article_h2h_points": 144
       }
     },
     {
@@ -2975,7 +3203,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 115
+        "yahoo_draft_analysis_rank": 115,
+        "fantasypros_yahoo": 99,
+        "espn_article_h2h_points": 67
       }
     },
     {
@@ -3026,7 +3256,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 117
+        "yahoo_draft_analysis_rank": 117,
+        "fantasypros_yahoo": 213,
+        "espn_article_h2h_points": 120
       }
     },
     {
@@ -3052,7 +3284,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 118
+        "yahoo_draft_analysis_rank": 118,
+        "fantasypros_yahoo": 107
       }
     },
     {
@@ -3078,7 +3311,8 @@
       "status": "gtd",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 119
+        "yahoo_draft_analysis_rank": 119,
+        "espn_article_h2h_points": 62
       }
     },
     {
@@ -3104,7 +3338,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 120
+        "yahoo_draft_analysis_rank": 120,
+        "fantasypros_yahoo": 106,
+        "espn_article_h2h_points": 105
       }
     },
     {
@@ -3130,7 +3366,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 121
+        "yahoo_draft_analysis_rank": 121,
+        "fantasypros_yahoo": 94,
+        "espn_article_h2h_points": 127
       }
     },
     {
@@ -3156,7 +3394,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 122
+        "yahoo_draft_analysis_rank": 122,
+        "fantasypros_yahoo": 63,
+        "espn_article_h2h_points": 84
       }
     },
     {
@@ -3182,7 +3422,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 123
+        "yahoo_draft_analysis_rank": 123,
+        "fantasypros_yahoo": 91,
+        "espn_article_h2h_points": 72
       }
     },
     {
@@ -3208,7 +3450,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 124
+        "yahoo_draft_analysis_rank": 124,
+        "fantasypros_yahoo": 73,
+        "espn_article_h2h_points": 81
       }
     },
     {
@@ -3234,7 +3478,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 125
+        "yahoo_draft_analysis_rank": 125,
+        "fantasypros_yahoo": 59
       }
     },
     {
@@ -3260,7 +3505,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 126
+        "yahoo_draft_analysis_rank": 126,
+        "espn_article_h2h_points": 65
       }
     },
     {
@@ -3311,7 +3557,8 @@
       "status": "out",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 129
+        "yahoo_draft_analysis_rank": 129,
+        "fantasypros_yahoo": 49
       }
     },
     {
@@ -3337,7 +3584,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 130
+        "yahoo_draft_analysis_rank": 130,
+        "fantasypros_yahoo": 74,
+        "espn_article_h2h_points": 92
       }
     },
     {
@@ -3414,7 +3663,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 133
+        "yahoo_draft_analysis_rank": 133,
+        "fantasypros_yahoo": 108,
+        "espn_article_h2h_points": 86
       }
     },
     {
@@ -3439,7 +3690,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 134
+        "yahoo_draft_analysis_rank": 134,
+        "fantasypros_yahoo": 163,
+        "espn_article_h2h_points": 147
       }
     },
     {
@@ -3465,7 +3718,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 135
+        "yahoo_draft_analysis_rank": 135,
+        "fantasypros_yahoo": 222,
+        "espn_article_h2h_points": 109
       }
     },
     {
@@ -3490,7 +3745,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 136
+        "yahoo_draft_analysis_rank": 136,
+        "fantasypros_yahoo": 76,
+        "espn_article_h2h_points": 117
       }
     },
     {
@@ -3515,7 +3772,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 137
+        "yahoo_draft_analysis_rank": 137,
+        "fantasypros_yahoo": 206,
+        "espn_article_h2h_points": 130
       }
     },
     {
@@ -3538,7 +3797,10 @@
       "adp": 137.04,
       "espnId": "2779",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "fantasypros_yahoo": 172
+      }
     },
     {
       "id": "espn-4711272",
@@ -3563,7 +3825,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 138
+        "yahoo_draft_analysis_rank": 138,
+        "fantasypros_yahoo": 119,
+        "espn_article_h2h_points": 82
       }
     },
     {
@@ -3588,7 +3852,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 139
+        "yahoo_draft_analysis_rank": 139,
+        "fantasypros_yahoo": 160
       }
     },
     {
@@ -3900,7 +4165,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 140
+        "yahoo_draft_analysis_rank": 140,
+        "fantasypros_yahoo": 175
       }
     },
     {
@@ -3978,7 +4244,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 143
+        "yahoo_draft_analysis_rank": 143,
+        "fantasypros_yahoo": 167,
+        "espn_article_h2h_points": 63
       }
     },
     {
@@ -4004,7 +4272,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 144
+        "yahoo_draft_analysis_rank": 144,
+        "fantasypros_yahoo": 158,
+        "espn_article_h2h_points": 119
       }
     },
     {
@@ -4030,7 +4300,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 145
+        "yahoo_draft_analysis_rank": 145,
+        "fantasypros_yahoo": 216
       }
     },
     {
@@ -4056,7 +4327,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 146
+        "yahoo_draft_analysis_rank": 146,
+        "fantasypros_yahoo": 92,
+        "espn_article_h2h_points": 79
       }
     },
     {
@@ -4082,7 +4355,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 147
+        "yahoo_draft_analysis_rank": 147,
+        "fantasypros_yahoo": 103
       }
     },
     {
@@ -4108,7 +4382,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 148
+        "yahoo_draft_analysis_rank": 148,
+        "fantasypros_yahoo": 88
       }
     },
     {
@@ -4160,7 +4435,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 150
+        "yahoo_draft_analysis_rank": 150,
+        "fantasypros_yahoo": 122
       }
     },
     {
@@ -4212,7 +4488,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 152
+        "yahoo_draft_analysis_rank": 152,
+        "fantasypros_yahoo": 138,
+        "espn_article_h2h_points": 106
       }
     },
     {
@@ -4264,7 +4542,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 154
+        "yahoo_draft_analysis_rank": 154,
+        "fantasypros_yahoo": 130,
+        "espn_article_h2h_points": 142
       }
     },
     {
@@ -4290,7 +4570,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 155
+        "yahoo_draft_analysis_rank": 155,
+        "fantasypros_yahoo": 212,
+        "espn_article_h2h_points": 121
       }
     },
     {
@@ -4315,7 +4597,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 156
+        "yahoo_draft_analysis_rank": 156,
+        "fantasypros_yahoo": 112,
+        "espn_article_h2h_points": 101
       }
     },
     {
@@ -4341,7 +4625,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 158
+        "yahoo_draft_analysis_rank": 158,
+        "fantasypros_yahoo": 117
       }
     },
     {
@@ -4367,7 +4652,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 159
+        "yahoo_draft_analysis_rank": 159,
+        "espn_article_h2h_points": 94
       }
     },
     {
@@ -4392,7 +4678,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 160
+        "yahoo_draft_analysis_rank": 160,
+        "fantasypros_yahoo": 66,
+        "espn_article_h2h_points": 111
       }
     },
     {
@@ -4418,7 +4706,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 161
+        "yahoo_draft_analysis_rank": 161,
+        "fantasypros_yahoo": 98,
+        "espn_article_h2h_points": 124
       }
     },
     {
@@ -4468,7 +4758,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 164
+        "yahoo_draft_analysis_rank": 164,
+        "fantasypros_yahoo": 153,
+        "espn_article_h2h_points": 123
       }
     },
     {
@@ -4493,7 +4785,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 165
+        "yahoo_draft_analysis_rank": 165,
+        "fantasypros_yahoo": 214
       }
     },
     {
@@ -4519,7 +4812,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 166
+        "yahoo_draft_analysis_rank": 166,
+        "fantasypros_yahoo": 230,
+        "espn_article_h2h_points": 148
       }
     },
     {
@@ -4545,7 +4840,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 167
+        "yahoo_draft_analysis_rank": 167,
+        "fantasypros_yahoo": 90,
+        "espn_article_h2h_points": 150
       }
     },
     {
@@ -4570,7 +4867,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 168
+        "yahoo_draft_analysis_rank": 168,
+        "fantasypros_yahoo": 234
       }
     },
     {
@@ -4621,7 +4919,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 171
+        "yahoo_draft_analysis_rank": 171,
+        "fantasypros_yahoo": 196,
+        "espn_article_h2h_points": 99
       }
     },
     {
@@ -4646,7 +4946,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 172
+        "yahoo_draft_analysis_rank": 172,
+        "fantasypros_yahoo": 205,
+        "espn_article_h2h_points": 125
       }
     },
     {
@@ -4671,7 +4973,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 173
+        "yahoo_draft_analysis_rank": 173,
+        "fantasypros_yahoo": 183,
+        "espn_article_h2h_points": 113
       }
     },
     {
@@ -4696,7 +5000,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 174
+        "yahoo_draft_analysis_rank": 174,
+        "fantasypros_yahoo": 52,
+        "espn_article_h2h_points": 70
       }
     },
     {
@@ -4722,7 +5028,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 175
+        "yahoo_draft_analysis_rank": 175,
+        "fantasypros_yahoo": 96,
+        "espn_article_h2h_points": 132
       }
     },
     {
@@ -4748,7 +5056,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 176
+        "yahoo_draft_analysis_rank": 176,
+        "fantasypros_yahoo": 215
       }
     },
     {
@@ -4774,7 +5083,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 177
+        "yahoo_draft_analysis_rank": 177,
+        "fantasypros_yahoo": 225,
+        "espn_article_h2h_points": 140
       }
     },
     {
@@ -4800,7 +5111,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 179
+        "yahoo_draft_analysis_rank": 179,
+        "fantasypros_yahoo": 123
       }
     },
     {
@@ -4851,7 +5163,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 181
+        "yahoo_draft_analysis_rank": 181,
+        "fantasypros_yahoo": 86,
+        "espn_article_h2h_points": 96
       }
     },
     {
@@ -4902,7 +5216,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 183
+        "yahoo_draft_analysis_rank": 183,
+        "fantasypros_yahoo": 116
       }
     },
     {
@@ -4954,7 +5269,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 185
+        "yahoo_draft_analysis_rank": 185,
+        "fantasypros_yahoo": 221,
+        "espn_article_h2h_points": 139
       }
     },
     {
@@ -4979,7 +5296,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 186
+        "yahoo_draft_analysis_rank": 186,
+        "fantasypros_yahoo": 147
       }
     },
     {
@@ -5005,7 +5323,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 187
+        "yahoo_draft_analysis_rank": 187,
+        "fantasypros_yahoo": 191,
+        "espn_article_h2h_points": 146
       }
     },
     {
@@ -5030,7 +5350,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 188
+        "yahoo_draft_analysis_rank": 188,
+        "fantasypros_yahoo": 171
       }
     },
     {
@@ -5055,7 +5376,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 189
+        "yahoo_draft_analysis_rank": 189,
+        "fantasypros_yahoo": 217
       }
     },
     {
@@ -5081,7 +5403,9 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 190
+        "yahoo_draft_analysis_rank": 190,
+        "fantasypros_yahoo": 105,
+        "espn_article_h2h_points": 133
       }
     },
     {
@@ -5159,7 +5483,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 195
+        "yahoo_draft_analysis_rank": 195,
+        "fantasypros_yahoo": 198
       }
     },
     {
@@ -5211,7 +5536,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 197
+        "yahoo_draft_analysis_rank": 197,
+        "fantasypros_yahoo": 128
       }
     },
     {
@@ -5237,7 +5563,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 199
+        "yahoo_draft_analysis_rank": 199,
+        "fantasypros_yahoo": 166
       }
     },
     {
@@ -5263,7 +5590,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 202
+        "yahoo_draft_analysis_rank": 202,
+        "fantasypros_yahoo": 186,
+        "espn_article_h2h_points": 73
       }
     },
     {
@@ -5289,7 +5618,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 203
+        "yahoo_draft_analysis_rank": 203,
+        "espn_article_h2h_points": 149
       }
     },
     {
@@ -5341,7 +5671,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 205
+        "yahoo_draft_analysis_rank": 205,
+        "fantasypros_yahoo": 182
       }
     },
     {
@@ -5392,7 +5723,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 207
+        "yahoo_draft_analysis_rank": 207,
+        "fantasypros_yahoo": 140
       }
     },
     {
@@ -5467,7 +5799,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 211
+        "yahoo_draft_analysis_rank": 211,
+        "fantasypros_yahoo": 109
       }
     },
     {
@@ -5493,7 +5826,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 212
+        "yahoo_draft_analysis_rank": 212,
+        "fantasypros_yahoo": 176,
+        "espn_article_h2h_points": 145
       }
     },
     {
@@ -5518,7 +5853,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 213
+        "yahoo_draft_analysis_rank": 213,
+        "fantasypros_yahoo": 144
       }
     },
     {
@@ -5569,7 +5905,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 215
+        "yahoo_draft_analysis_rank": 215,
+        "fantasypros_yahoo": 145
       }
     },
     {
@@ -5696,7 +6033,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 223
+        "yahoo_draft_analysis_rank": 223,
+        "fantasypros_yahoo": 209
       }
     },
     {
@@ -5773,7 +6111,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 230
+        "yahoo_draft_analysis_rank": 230,
+        "fantasypros_yahoo": 208
       }
     },
     {
@@ -5799,7 +6138,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 236
+        "yahoo_draft_analysis_rank": 236,
+        "fantasypros_yahoo": 179
       }
     },
     {
@@ -5825,7 +6165,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 237
+        "yahoo_draft_analysis_rank": 237,
+        "fantasypros_yahoo": 72
       }
     },
     {
@@ -5876,7 +6217,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 240
+        "yahoo_draft_analysis_rank": 240,
+        "fantasypros_yahoo": 227
       }
     },
     {
@@ -5927,7 +6269,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 243
+        "yahoo_draft_analysis_rank": 243,
+        "fantasypros_yahoo": 169
       }
     },
     {
@@ -6003,7 +6346,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 246
+        "yahoo_draft_analysis_rank": 246,
+        "fantasypros_yahoo": 164
       }
     },
     {
@@ -6028,7 +6372,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 247
+        "yahoo_draft_analysis_rank": 247,
+        "fantasypros_yahoo": 151
       }
     },
     {
@@ -6054,7 +6399,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 248
+        "yahoo_draft_analysis_rank": 248,
+        "fantasypros_yahoo": 202
       }
     },
     {
@@ -6080,7 +6426,9 @@
       "status": "out",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 251
+        "yahoo_draft_analysis_rank": 251,
+        "fantasypros_yahoo": 126,
+        "espn_article_h2h_points": 136
       }
     },
     {
@@ -6131,7 +6479,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 256
+        "yahoo_draft_analysis_rank": 256,
+        "fantasypros_yahoo": 174
       }
     },
     {
@@ -6183,7 +6532,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 258
+        "yahoo_draft_analysis_rank": 258,
+        "fantasypros_yahoo": 170,
+        "espn_article_h2h_points": 131
       }
     },
     {
@@ -6208,7 +6559,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 262
+        "yahoo_draft_analysis_rank": 262,
+        "fantasypros_yahoo": 229
       }
     },
     {
@@ -6234,7 +6586,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 264
+        "yahoo_draft_analysis_rank": 264,
+        "fantasypros_yahoo": 157
       }
     },
     {
@@ -6259,7 +6612,9 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 269
+        "yahoo_draft_analysis_rank": 269,
+        "fantasypros_yahoo": 134,
+        "espn_article_h2h_points": 141
       }
     },
     {
@@ -6285,7 +6640,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 271
+        "yahoo_draft_analysis_rank": 271,
+        "fantasypros_yahoo": 194
       }
     },
     {
@@ -6311,7 +6667,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 273
+        "yahoo_draft_analysis_rank": 273,
+        "fantasypros_yahoo": 132
       }
     },
     {
@@ -6388,7 +6745,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 278
+        "yahoo_draft_analysis_rank": 278,
+        "fantasypros_yahoo": 161
       }
     },
     {
@@ -6413,7 +6771,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 279
+        "yahoo_draft_analysis_rank": 279,
+        "fantasypros_yahoo": 235
       }
     },
     {
@@ -6439,7 +6798,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 282
+        "yahoo_draft_analysis_rank": 282,
+        "fantasypros_yahoo": 155
       }
     },
     {
@@ -6542,7 +6902,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 292
+        "yahoo_draft_analysis_rank": 292,
+        "fantasypros_yahoo": 181
       }
     },
     {
@@ -6669,7 +7030,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 303
+        "yahoo_draft_analysis_rank": 303,
+        "fantasypros_yahoo": 223
       }
     },
     {
@@ -6719,7 +7081,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 305
+        "yahoo_draft_analysis_rank": 305,
+        "fantasypros_yahoo": 168
       }
     },
     {
@@ -6745,7 +7108,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 307
+        "yahoo_draft_analysis_rank": 307,
+        "fantasypros_yahoo": 154
       }
     },
     {
@@ -6771,7 +7135,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 313
+        "yahoo_draft_analysis_rank": 313,
+        "fantasypros_yahoo": 180
       }
     },
     {
@@ -6796,7 +7161,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 316
+        "yahoo_draft_analysis_rank": 316,
+        "fantasypros_yahoo": 192
       }
     },
     {
@@ -6822,7 +7188,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 329
+        "yahoo_draft_analysis_rank": 329,
+        "fantasypros_yahoo": 177
       }
     },
     {
@@ -6847,7 +7214,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 333
+        "yahoo_draft_analysis_rank": 333,
+        "fantasypros_yahoo": 211
       }
     },
     {
@@ -6923,7 +7291,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 351
+        "yahoo_draft_analysis_rank": 351,
+        "fantasypros_yahoo": 165
       }
     },
     {
@@ -6973,7 +7342,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 379
+        "yahoo_draft_analysis_rank": 379,
+        "fantasypros_yahoo": 149
       }
     },
     {
@@ -6999,7 +7369,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 387
+        "yahoo_draft_analysis_rank": 387,
+        "fantasypros_yahoo": 200
       }
     },
     {
@@ -7050,7 +7421,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 400
+        "yahoo_draft_analysis_rank": 400,
+        "fantasypros_yahoo": 110
       }
     },
     {
@@ -7076,7 +7448,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 405
+        "yahoo_draft_analysis_rank": 405,
+        "fantasypros_yahoo": 81
       }
     },
     {
@@ -7127,7 +7500,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 419
+        "yahoo_draft_analysis_rank": 419,
+        "fantasypros_yahoo": 218
       }
     },
     {
@@ -7178,7 +7552,8 @@
       "status": "gtd",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 430
+        "yahoo_draft_analysis_rank": 430,
+        "fantasypros_yahoo": 101
       }
     },
     {
@@ -7255,7 +7630,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 469
+        "yahoo_draft_analysis_rank": 469,
+        "fantasypros_yahoo": 152
       }
     },
     {
@@ -7355,7 +7731,8 @@
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 541
+        "yahoo_draft_analysis_rank": 541,
+        "fantasypros_yahoo": 197
       }
     },
     {
