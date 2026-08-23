@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises"
+import { readFile, stat } from "node:fs/promises"
 import path from "node:path"
 import samplePlayers from "../../../data/fixtures/players-sample.json"
 import type { Player } from "@/lib/domain/types"
@@ -23,14 +23,28 @@ type PlayerPoolResult = {
   meta?: PlayerPoolFile["meta"]
 }
 
+type CachedPool = {
+  mtimeMs: number
+  promise: Promise<PlayerPoolResult>
+}
+
 const DEFAULT_SOURCE: PlayerPoolSource =
   (process.env.PLAYER_POOL_SOURCE as PlayerPoolSource | undefined) ||
   "proj_2026_27"
 
-const poolCache = new Map<PlayerPoolSource, Promise<PlayerPoolResult>>()
+const poolCache = new Map<PlayerPoolSource, CachedPool>()
 
 const poolPath = (source: Exclude<PlayerPoolSource, "sample">) =>
   path.join(process.cwd(), "data", "players", `${source}.json`)
+
+const poolFileMtimeMs = async (source: PlayerPoolSource): Promise<number> => {
+  if (source === "sample") return 0
+  try {
+    return (await stat(poolPath(source))).mtimeMs
+  } catch {
+    return -1
+  }
+}
 
 const loadPoolFile = async (
   source: PlayerPoolSource,
@@ -98,11 +112,12 @@ const resolvePlayerPool = async (
 export const getPlayerPool = async (
   source: PlayerPoolSource = DEFAULT_SOURCE,
 ): Promise<PlayerPoolResult> => {
+  const mtimeMs = await poolFileMtimeMs(source)
   const cached = poolCache.get(source)
-  if (cached) return cached
+  if (cached && cached.mtimeMs === mtimeMs) return cached.promise
 
   const pending = resolvePlayerPool(source)
-  poolCache.set(source, pending)
+  poolCache.set(source, { mtimeMs, promise: pending })
 
   try {
     return await pending
