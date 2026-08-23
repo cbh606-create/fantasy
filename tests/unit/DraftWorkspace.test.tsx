@@ -53,6 +53,9 @@ const state: LeagueState = {
       positions: ["PG"],
       projections,
       adp: 1,
+      adpBySource: {
+        yahoo_draft_analysis_rank: 1,
+      },
     },
     {
       id: "player-2",
@@ -60,6 +63,9 @@ const state: LeagueState = {
       positions: ["SG"],
       projections,
       adp: 2,
+      adpBySource: {
+        yahoo_draft_analysis_rank: 2,
+      },
     },
   ],
   source: "manual",
@@ -318,6 +324,9 @@ describe("DraftWorkspace", () => {
           positions: ["PG"],
           projections,
           adp: 3,
+          adpBySource: {
+            yahoo_draft_analysis_rank: 3,
+          },
         },
         {
           id: "player-4",
@@ -325,6 +334,16 @@ describe("DraftWorkspace", () => {
           positions: ["SG"],
           projections,
           adp: 4,
+          adpBySource: {
+            yahoo_draft_analysis_rank: 4,
+          },
+        },
+        {
+          id: "player-no-primary-adp",
+          name: "No Primary Adp Player",
+          positions: ["PG"],
+          projections,
+          adp: 5,
         },
       ],
     }
@@ -394,6 +413,9 @@ describe("DraftWorkspace", () => {
     expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
       "2",
     )
+    expect(
+      screen.queryByRole("button", { name: "Mark No Primary Adp Player picked" }),
+    ).not.toBeInTheDocument()
     expect(
       screen.getByRole("columnheader", { name: /ADP/i }),
     ).toBeInTheDocument()

@@ -31,6 +31,7 @@ import {
   withProjectedAdp,
   type AdpSourceId,
 } from "@/lib/players/adpSources"
+import { filterDraftEligible } from "@/lib/players/draftEligible"
 
 const toMockLeagueState = (
   baseState: LeagueState,
@@ -549,7 +550,13 @@ export const DraftWorkspace = ({
         rawPlayers = cachedPlayers
       }
       if (mockStartRequestIdRef.current !== requestId) return
-      const players = withProjectedAdp(rawPlayers, source)
+      const projected = withProjectedAdp(rawPlayers, source)
+      const rounds = baseState.settings.rounds ?? DEFAULT_DRAFT_ROUNDS
+      const players = filterDraftEligible(projected, {
+        primary: source,
+        teams,
+        rounds,
+      })
       setMockPlayers(players)
 
       const empty = buildEmptyBoard(teams, DEFAULT_DRAFT_ROUNDS)
