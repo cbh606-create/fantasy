@@ -34,6 +34,14 @@ export type Player = {
   positions: Array<"PG" | "SG" | "SF" | "PF" | "C">
   projections: Record<CategoryId, number>
   adp: number
+  adpBySource?: Partial<
+    Record<
+      | "yahoo_draft_analysis_rank"
+      | "fantasypros_yahoo"
+      | "espn_article_h2h_points",
+      number
+    >
+  >
   espnId?: string
   status?: "active" | "out" | "gtd"
 }
