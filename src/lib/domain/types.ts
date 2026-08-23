@@ -43,6 +43,8 @@ export type Player = {
     >
   >
   espnId?: string
+  teamAbbr?: string
+  imageUrl?: string
   status?: "active" | "out" | "gtd"
 }
 

@@ -1,3 +1,4 @@
+import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import type {
   CategoryId,
   Player,
@@ -35,7 +36,7 @@ export const RecPanel = ({
   result,
   showCategoryOutlook = true,
 }: RecPanelProps) => {
-  const playerNames = new Map(players.map((player) => [player.id, player.name]))
+  const playersById = new Map(players.map((player) => [player.id, player]))
   const nextPicks = result
     ? maxNextPicks === undefined
       ? result.nextPicks
@@ -88,28 +89,39 @@ export const RecPanel = ({
                 : "mt-5 space-y-3"
             }
           >
-            {nextPicks.map((pick, index) => (
-              <li
-                className={
-                  isRow
-                    ? "flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5"
-                    : "flex items-center justify-between gap-4 rounded-2xl bg-white px-4 py-3"
-                }
-                key={pick.playerId}
-              >
-                <div className="min-w-0">
-                  <span className="mr-2 text-sm text-[var(--color-stone)]">
-                    {index + 1}
+            {nextPicks.map((pick, index) => {
+              const player = playersById.get(pick.playerId)
+              const displayName = player?.name ?? pick.playerId
+
+              return (
+                <li
+                  className={
+                    isRow
+                      ? "flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5"
+                      : "flex items-center justify-between gap-4 rounded-2xl bg-white px-4 py-3"
+                  }
+                  key={pick.playerId}
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="shrink-0 text-sm text-[var(--color-stone)]">
+                      {index + 1}
+                    </span>
+                    {player ? <PlayerAvatar player={player} size="sm" /> : null}
+                    <span className="min-w-0 font-medium">
+                      {displayName}
+                      {player ? (
+                        <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                          {player.teamAbbr ?? "—"}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                  <span className="shrink-0 text-sm tabular-nums text-[var(--color-mute)]">
+                    {Math.round(pick.frequency * 100)}%
                   </span>
-                  <span className="font-medium">
-                    {playerNames.get(pick.playerId) ?? pick.playerId}
-                  </span>
-                </div>
-                <span className="shrink-0 text-sm tabular-nums text-[var(--color-mute)]">
-                  {Math.round(pick.frequency * 100)}%
-                </span>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ol>
         ) : (
           <p
