@@ -32,6 +32,28 @@ describe("espnImportToSeasonLeagueState", () => {
       }),
     ).rejects.toMatchObject({ code: "ESPN_TIMEOUT" })
   })
+
+  it("throws ESPN_NO_CREDENTIALS when forbidFixture and no live cookies", async () => {
+    const previousEspnLive = process.env.ESPN_LIVE
+    delete process.env.ESPN_LIVE
+
+    try {
+      await expect(
+        espnImportToSeasonLeagueState({
+          leagueId: "fixture-league",
+          season: fixture.season,
+          teamId: 1,
+          forbidFixture: true,
+        }),
+      ).rejects.toMatchObject({ code: "ESPN_NO_CREDENTIALS" })
+    } finally {
+      if (previousEspnLive === undefined) {
+        delete process.env.ESPN_LIVE
+      } else {
+        process.env.ESPN_LIVE = previousEspnLive
+      }
+    }
+  })
 })
 
 describe("detectLineupConflict", () => {

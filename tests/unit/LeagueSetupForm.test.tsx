@@ -48,7 +48,7 @@ describe("LeagueSetupForm", () => {
     )
   })
 
-  it("creates a manual league with player pool source and redirects", async () => {
+  it("starts a mock draft without ESPN league ID and opens the Mock tab", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       status: 201,
@@ -60,7 +60,7 @@ describe("LeagueSetupForm", () => {
       target: { value: "My League" },
     })
     fireEvent.click(screen.getByRole("button", { name: "Pick slot 4" }))
-    fireEvent.click(screen.getByRole("button", { name: "Enter manually" }))
+    fireEvent.click(screen.getByRole("button", { name: "Start mock draft" }))
 
     await waitFor(() => expect(fetch).toHaveBeenCalledOnce())
     const [url, options] = vi.mocked(fetch).mock.calls[0]
@@ -69,9 +69,9 @@ describe("LeagueSetupForm", () => {
     expect(url).toBe("/api/leagues")
     expect(body.name).toBe("My League")
     expect(body.manualInput.userPickSlot).toBe(4)
-    expect(body.manualInput.playerPoolSource).toBe("stats_2025_26")
+    expect(body.manualInput.playerPoolSource).toBe("proj_2026_27")
     expect(body.manualInput.players).toBeUndefined()
-    expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft")
+    expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft?tab=mock")
   })
 
   it("imports an ESPN league and redirects", async () => {
@@ -105,7 +105,18 @@ describe("LeagueSetupForm", () => {
         }),
       ),
     )
-    expect(push).toHaveBeenCalledWith("/leagues/league-espn/draft")
+    expect(push).toHaveBeenCalledWith("/leagues/league-espn/draft?tab=live")
+  })
+
+  it("shows an error when ESPN import is clicked without a league ID", async () => {
+    render(<LeagueSetupForm />)
+
+    fireEvent.click(screen.getByRole("button", { name: "Import from ESPN" }))
+
+    expect(
+      await screen.findByRole("alert", { name: "Setup error" }),
+    ).toHaveTextContent(/espn league id/i)
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it("shows an error when a request fails", async () => {

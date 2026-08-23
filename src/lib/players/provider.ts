@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises"
+import { readFile, stat } from "node:fs/promises"
 import path from "node:path"
 import samplePlayers from "../../../data/fixtures/players-sample.json"
 import type { Player } from "@/lib/domain/types"
@@ -16,12 +16,35 @@ type PlayerPoolFile = {
   players: Player[]
 }
 
+type PlayerPoolResult = {
+  source: PlayerPoolSource
+  players: Player[]
+  fallbackUsed: boolean
+  meta?: PlayerPoolFile["meta"]
+}
+
+type CachedPool = {
+  mtimeMs: number
+  promise: Promise<PlayerPoolResult>
+}
+
 const DEFAULT_SOURCE: PlayerPoolSource =
   (process.env.PLAYER_POOL_SOURCE as PlayerPoolSource | undefined) ||
-  "stats_2025_26"
+  "proj_2026_27"
+
+const poolCache = new Map<PlayerPoolSource, CachedPool>()
 
 const poolPath = (source: Exclude<PlayerPoolSource, "sample">) =>
   path.join(process.cwd(), "data", "players", `${source}.json`)
+
+const poolFileMtimeMs = async (source: PlayerPoolSource): Promise<number> => {
+  if (source === "sample") return 0
+  try {
+    return (await stat(poolPath(source))).mtimeMs
+  } catch {
+    return -1
+  }
+}
 
 const loadPoolFile = async (
   source: PlayerPoolSource,
@@ -41,14 +64,9 @@ const loadPoolFile = async (
   }
 }
 
-export const getPlayerPool = async (
-  source: PlayerPoolSource = DEFAULT_SOURCE,
-): Promise<{
-  source: PlayerPoolSource
-  players: Player[]
-  fallbackUsed: boolean
-  meta?: PlayerPoolFile["meta"]
-}> => {
+const resolvePlayerPool = async (
+  source: PlayerPoolSource,
+): Promise<PlayerPoolResult> => {
   const primary = await loadPoolFile(source)
   if (primary?.players?.length) {
     return {
@@ -56,6 +74,18 @@ export const getPlayerPool = async (
       players: primary.players,
       fallbackUsed: false,
       meta: primary.meta,
+    }
+  }
+
+  if (source !== "proj_2026_27") {
+    const projPool = await loadPoolFile("proj_2026_27")
+    if (projPool?.players?.length) {
+      return {
+        source: "proj_2026_27",
+        players: projPool.players,
+        fallbackUsed: true,
+        meta: projPool.meta,
+      }
     }
   }
 
@@ -76,5 +106,23 @@ export const getPlayerPool = async (
     players: samplePlayers as Player[],
     fallbackUsed: true,
     meta: { source: "sample", count: samplePlayers.length },
+  }
+}
+
+export const getPlayerPool = async (
+  source: PlayerPoolSource = DEFAULT_SOURCE,
+): Promise<PlayerPoolResult> => {
+  const mtimeMs = await poolFileMtimeMs(source)
+  const cached = poolCache.get(source)
+  if (cached && cached.mtimeMs === mtimeMs) return cached.promise
+
+  const pending = resolvePlayerPool(source)
+  poolCache.set(source, { mtimeMs, promise: pending })
+
+  try {
+    return await pending
+  } catch (error) {
+    poolCache.delete(source)
+    throw error
   }
 }

@@ -107,18 +107,25 @@ const positionNeedBonus = (player: Player, roster: Player[]): number => {
     const slot = DEFAULT_STARTER_SLOTS[slotIndex]
     const isPrimarySlot = slot === primaryPosition
 
-    if (
-      isPrimarySlot ||
-      !canFillSlot(player, slot) ||
-      maximumStarterFits(roster, player, slotIndex) <= currentFitCount
-    ) {
+    if (isPrimarySlot || !canFillSlot(player, slot)) {
       continue
     }
 
-    return 25
+    if (maximumStarterFits(roster, player, slotIndex) > currentFitCount) {
+      return 25
+    }
   }
 
   return 0
+}
+
+/** Mock-only: avoid bipartite matching on every candidate. */
+const positionNeedBonusLight = (player: Player, roster: Player[]): number => {
+  const primaryPosition = player.positions[0]
+  const primaryPositionCovered = roster.some((rosterPlayer) =>
+    rosterPlayer.positions.includes(primaryPosition),
+  )
+  return primaryPositionCovered ? 0 : 50
 }
 
 const categoryNeedBonus = (
@@ -162,31 +169,186 @@ export const scoreOpponentNeed = (
   positionNeedBonus(player, roster) +
   categoryNeedBonus(roster, weights, leagueAvg)
 
-export const pickOpponentPlayer = (
-  remaining: Player[],
+export const SIM_ADP_WINDOW = 8
+export const MOCK_ADP_WINDOW = 10
+/** Scales category-fill vs ADP so needs can beat a small ADP edge inside the window. */
+const MOCK_CATEGORY_FILL_WEIGHT = 4
+
+const averageProjections = (
+  players: Player[],
+): Record<CategoryId, number> => {
+  const averages = Object.fromEntries(
+    ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
+  ) as Record<CategoryId, number>
+
+  if (players.length === 0) return averages
+
+  for (const player of players) {
+    for (const categoryId of ALL_CATEGORY_IDS) {
+      averages[categoryId] += player.projections[categoryId]
+    }
+  }
+
+  for (const categoryId of ALL_CATEGORY_IDS) {
+    averages[categoryId] /= players.length
+  }
+
+  return averages
+}
+
+/** How much this player fills categories where the roster lags the pool baseline. */
+export const categoryFillBonus = (
+  player: Player,
   roster: Player[],
-  weights: CategoryWeights,
-  leagueAvg: Record<CategoryId, number>,
+  baseline: Record<CategoryId, number>,
+  rosterAverage = averageProjections(roster),
+): number =>
+  ALL_CATEGORY_IDS.reduce((bonus, categoryId) => {
+    const gap =
+      categoryId === "TO"
+        ? Math.max(0, rosterAverage[categoryId] - baseline[categoryId])
+        : Math.max(0, baseline[categoryId] - rosterAverage[categoryId])
+
+    if (gap <= 0) return bonus
+
+    const contribution =
+      categoryId === "TO"
+        ? Math.max(0, baseline[categoryId] - player.projections[categoryId])
+        : Math.max(0, player.projections[categoryId])
+
+    return bonus + gap * contribution
+  }, 0)
+
+export const scoreSimOpponent = (
+  player: Player,
+  roster: Player[],
+): number => (1 / player.adp) * 100 + positionNeedBonus(player, roster)
+
+export const scoreMockOpponent = (
+  player: Player,
+  roster: Player[],
+  baseline: Record<CategoryId, number>,
+  rosterAverage?: Record<CategoryId, number>,
+): number =>
+  (1 / player.adp) * 100 +
+  positionNeedBonusLight(player, roster) +
+  categoryFillBonus(player, roster, baseline, rosterAverage) *
+    MOCK_CATEGORY_FILL_WEIGHT
+
+const topKByAdp = (players: Player[], k: number): Player[] => {
+  if (players.length <= k) {
+    return [...players].sort(
+      (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
+    )
+  }
+
+  const best: Player[] = []
+  for (const player of players) {
+    if (best.length < k) {
+      best.push(player)
+      best.sort(
+        (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
+      )
+      continue
+    }
+
+    const worst = best[best.length - 1]
+    if (
+      player.adp < worst.adp ||
+      (player.adp === worst.adp && player.id.localeCompare(worst.id) < 0)
+    ) {
+      best[best.length - 1] = player
+      best.sort(
+        (left, right) => left.adp - right.adp || left.id.localeCompare(right.id),
+      )
+    }
+  }
+
+  return best
+}
+
+export const pickLiveCpuByAdp = (
+  remaining: Player[],
   rng: () => number,
 ): Player => {
   if (remaining.length === 0) {
-    throw new RangeError("Cannot pick an opponent player from an empty pool")
+    throw new RangeError("Cannot pick a live CPU player from an empty pool")
   }
 
-  const scores = remaining.map((player) =>
-    scoreOpponentNeed(player, roster, weights, leagueAvg),
+  const bestAdp = remaining.reduce(
+    (lowest, player) => Math.min(lowest, player.adp),
+    remaining[0].adp,
   )
+  const tied = remaining.filter((player) => player.adp === bestAdp)
+
+  if (tied.length === 1) {
+    return tied[0]
+  }
+
+  const index = Math.min(tied.length - 1, Math.floor(rng() * tied.length))
+  return tied[index]
+}
+
+const pickWeightedFromWindow = (
+  remaining: Player[],
+  windowSize: number,
+  scoreFor: (player: Player) => number,
+  rng: () => number,
+  emptyMessage: string,
+): Player => {
+  if (remaining.length === 0) {
+    throw new RangeError(emptyMessage)
+  }
+
+  const candidates = topKByAdp(remaining, windowSize)
+  const scores = candidates.map((player) => Math.max(0.01, scoreFor(player)))
   const totalScore = scores.reduce((total, score) => total + score, 0)
   const threshold = rng() * totalScore
   let cumulativeScore = 0
 
-  for (let index = 0; index < remaining.length; index++) {
+  for (let index = 0; index < candidates.length; index++) {
     cumulativeScore += scores[index]
-
     if (threshold < cumulativeScore) {
-      return remaining[index]
+      return candidates[index]
     }
   }
 
-  return remaining[remaining.length - 1]
+  return candidates[candidates.length - 1]
+}
+
+export const pickSimOpponent = (
+  remaining: Player[],
+  roster: Player[],
+  rng: () => number,
+): Player =>
+  pickWeightedFromWindow(
+    remaining,
+    SIM_ADP_WINDOW,
+    (player) => scoreSimOpponent(player, roster),
+    rng,
+    "Cannot pick a sim opponent from an empty pool",
+  )
+
+/** Mock CPU: round 1 follows best ADP; later rounds use ADP top-10 + need weighting. */
+export const pickMockCpu = (
+  remaining: Player[],
+  roster: Player[],
+  rng: () => number,
+  options: { round?: number } = {},
+): Player => {
+  const round = options.round ?? 2
+  if (round <= 1) {
+    return pickLiveCpuByAdp(remaining, rng)
+  }
+
+  const baseline = averageProjections(remaining)
+  const rosterAverage = averageProjections(roster)
+
+  return pickWeightedFromWindow(
+    remaining,
+    MOCK_ADP_WINDOW,
+    (player) => scoreMockOpponent(player, roster, baseline, rosterAverage),
+    rng,
+    "Cannot pick a mock CPU player from an empty pool",
+  )
 }

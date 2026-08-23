@@ -6,18 +6,22 @@ import {
 import { espnImportToSeasonLeagueState } from "@/lib/adapters/espnSeason"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { getUserEspnCookies } from "@/lib/espn/credentials"
+import { readEnvEspnCookies } from "@/lib/espn/cookies"
 
 const ESPN_ERROR_CODES: EspnErrorCode[] = [
   "ESPN_AUTH",
   "ESPN_TIMEOUT",
   "ESPN_UNAVAILABLE",
   "ESPN_PARTIAL",
+  "ESPN_NO_CREDENTIALS",
 ]
 
 type ImportSeasonLeagueBody = {
   name?: unknown
   leagueId?: unknown
   season?: unknown
+  teamId?: unknown
   forceFail?: unknown
 }
 
@@ -46,15 +50,40 @@ export const POST = async (request: Request): Promise<Response> => {
     typeof body.leagueId !== "string" ||
     !body.leagueId.trim() ||
     typeof body.season !== "number" ||
-    !Number.isInteger(body.season)
+    !Number.isInteger(body.season) ||
+    typeof body.teamId !== "number" ||
+    !Number.isInteger(body.teamId)
   ) {
     return NextResponse.json({ error: "validation" }, { status: 400 })
+  }
+
+  const allowFixtureImport =
+    process.env.NODE_ENV === "test" || process.env.ESPN_ALLOW_FIXTURE === "true"
+
+  const userCookies = await getUserEspnCookies(userId)
+  const envCookies = readEnvEspnCookies()
+  const cookies = userCookies ?? envCookies ?? undefined
+  const canLiveImport =
+    Boolean(cookies) &&
+    (Boolean(userCookies) || process.env.ESPN_LIVE === "true")
+
+  if (!canLiveImport && !allowFixtureImport) {
+    return NextResponse.json(
+      {
+        errorCode: "ESPN_UNAVAILABLE",
+        message:
+          "Connect ESPN first (paste espn_s2 + SWID on this page), or set ESPN_LIVE=true with env cookies.",
+      },
+      { status: 503 },
+    )
   }
 
   try {
     const state = await espnImportToSeasonLeagueState({
       leagueId: body.leagueId.trim(),
       season: body.season,
+      teamId: body.teamId,
+      cookies: canLiveImport ? cookies : undefined,
       forceFail:
         process.env.NODE_ENV === "test" && isErrorCode(body.forceFail)
           ? body.forceFail

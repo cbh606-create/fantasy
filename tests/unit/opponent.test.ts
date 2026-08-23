@@ -2,9 +2,15 @@ import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId, Player } from "@/lib/domain/types"
 import {
+  categoryFillBonus,
   createRng,
-  pickOpponentPlayer,
+  MOCK_ADP_WINDOW,
+  pickLiveCpuByAdp,
+  pickMockCpu,
+  pickSimOpponent,
   scoreOpponentNeed,
+  scoreSimOpponent,
+  SIM_ADP_WINDOW,
 } from "@/lib/sim/opponent"
 
 const projections = (
@@ -117,22 +123,114 @@ describe("scoreOpponentNeed", () => {
   })
 })
 
-describe("pickOpponentPlayer", () => {
-  it("uses the supplied RNG to make a deterministic weighted pick", () => {
+describe("pickLiveCpuByAdp", () => {
+  it("always takes the best remaining ADP", () => {
     const remaining = [
-      player("first", ["PG"], 1),
-      player("second", ["SG"], 2),
-      player("third", ["SF"], 3),
+      player("first", ["PG"], 12),
+      player("second", ["SG"], 3),
+      player("third", ["SF"], 40),
     ]
 
-    const picked = pickOpponentPlayer(
-      remaining,
-      [],
-      weights(),
-      projections(),
-      () => 0.6,
-    )
+    expect(pickLiveCpuByAdp(remaining, () => 0.6).id).toBe("second")
+  })
 
-    expect(picked.id).toBe("second")
+  it("breaks ADP ties with the supplied RNG", () => {
+    const remaining = [
+      player("alpha", ["PG"], 5),
+      player("beta", ["SG"], 5),
+      player("gamma", ["SF"], 20),
+    ]
+
+    expect(pickLiveCpuByAdp(remaining, () => 0).id).toBe("alpha")
+    expect(pickLiveCpuByAdp(remaining, () => 0.99).id).toBe("beta")
+  })
+})
+
+describe("scoreSimOpponent", () => {
+  it("combines ADP weight and position need without category bonus", () => {
+    const roster = [player("center", ["C"], 20)]
+    const guard = player("guard", ["PG"], 10)
+
+    expect(scoreSimOpponent(guard, roster)).toBe(60)
+  })
+})
+
+describe("pickSimOpponent", () => {
+  it("never selects outside the ADP top window", () => {
+    const remaining = Array.from({ length: SIM_ADP_WINDOW + 2 }, (_, index) =>
+      player(`p${index + 1}`, ["PG"], index + 1),
+    )
+    const picked = pickSimOpponent(remaining, [], () => 0.999999)
+
+    expect(picked.adp).toBeLessThanOrEqual(SIM_ADP_WINDOW)
+    expect(picked.id).not.toBe("p9")
+    expect(picked.id).not.toBe("p10")
+  })
+
+  it("can prefer a position fit inside the window over a slightly better ADP", () => {
+    const remaining = [
+      player("star-c", ["C"], 1),
+      player("fit-pg", ["PG"], 2),
+    ]
+    const roster = [
+      player("c1", ["C"], 40),
+      player("c2", ["C"], 41),
+      player("c3", ["C"], 42),
+    ]
+
+    expect(pickSimOpponent(remaining, roster, () => 0.75).id).toBe("fit-pg")
+  })
+})
+
+describe("categoryFillBonus", () => {
+  it("rewards candidates that cover lagging categories", () => {
+    const roster = [player("scorer", ["SG"], 20, { PTS: 30, REB: 2 })]
+    const baseline = projections({ PTS: 15, REB: 8 })
+    const rebounder = player("board-man", ["PF"], 10, { PTS: 8, REB: 14 })
+    const moreScoring = player("scorer-2", ["SG"], 10, { PTS: 28, REB: 2 })
+
+    expect(categoryFillBonus(rebounder, roster, baseline)).toBeGreaterThan(
+      categoryFillBonus(moreScoring, roster, baseline),
+    )
+  })
+})
+
+describe("pickMockCpu", () => {
+  it("follows best ADP in round 1", () => {
+    const remaining = [
+      player("jokic", ["C"], 1, { PTS: 10 }),
+      player("filler", ["PF"], 2, { REB: 40, PTS: 5 }),
+      player("reach", ["SG"], 8, { AST: 40 }),
+    ]
+
+    expect(pickMockCpu(remaining, [], () => 0.99, { round: 1 }).id).toBe(
+      "jokic",
+    )
+  })
+
+  it("never selects outside the mock ADP top window after round 1", () => {
+    const remaining = Array.from({ length: MOCK_ADP_WINDOW + 3 }, (_, index) =>
+      player(`p${index + 1}`, ["PG"], index + 1),
+    )
+    const picked = pickMockCpu(remaining, [], () => 0.999999, { round: 2 })
+
+    expect(picked.adp).toBeLessThanOrEqual(MOCK_ADP_WINDOW)
+    expect(picked.id).not.toBe("p11")
+    expect(picked.id).not.toBe("p12")
+  })
+
+  it("can prefer a category fit inside the window over pure ADP after round 1", () => {
+    const remaining = [
+      player("adp1", ["C"], 1, { REB: 2, PTS: 20 }),
+      player("adp2", ["C"], 2, { REB: 2, PTS: 19 }),
+      player("adp3", ["PF"], 3, { REB: 14, PTS: 12 }),
+      player("adp4", ["C"], 4, { REB: 2, PTS: 18 }),
+      player("adp5", ["C"], 5, { REB: 2, PTS: 17 }),
+    ]
+    const roster = [player("guard", ["PG"], 40, { REB: 1, PTS: 22 })]
+
+    expect(
+      pickMockCpu(remaining, roster, () => 0.55, { round: 2 }).id,
+    ).toBe("adp3")
   })
 })

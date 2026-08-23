@@ -225,14 +225,42 @@ describe("DraftWorkspace", () => {
     )
   })
 
-  it("persists a manual pick then refreshes recommendations after 400ms", async () => {
+  it("persists a Live pick without CPU-filling later rounds", async () => {
+    const userFirstState: LeagueState = {
+      ...state,
+      perspectiveTeamIndex: 0,
+      settings: {
+        ...state.settings,
+        teams: 2,
+        rounds: 2,
+        userPickSlot: 1,
+      },
+      players: [
+        ...state.players,
+        {
+          id: "player-3",
+          name: "Third Player",
+          positions: ["PG"],
+          projections,
+          adp: 3,
+        },
+        {
+          id: "player-4",
+          name: "Fourth Player",
+          positions: ["SG"],
+          projections,
+          adp: 4,
+        },
+      ],
+    }
+
     vi.mocked(fetch)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           id: "league-1",
           name: "Test League",
-          stateJson: JSON.stringify(state),
+          stateJson: JSON.stringify(userFirstState),
         }),
       } as Response)
       .mockResolvedValueOnce({
@@ -255,26 +283,199 @@ describe("DraftWorkspace", () => {
     )
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
-    expect(fetch).toHaveBeenNthCalledWith(
-      2,
-      "/api/leagues/league-1",
-      expect.objectContaining({
-        method: "PATCH",
-        body: expect.stringContaining('"playerId":"player-1"'),
-      }),
-    )
+    const patchBody = JSON.parse(
+      String(vi.mocked(fetch).mock.calls[1]?.[1]?.body),
+    ) as { state: LeagueState }
+
+    expect(patchBody.state.board.picks.find((pick) => pick.overall === 1)?.playerId)
+      .toBe("player-1")
+    expect(patchBody.state.board.picks.find((pick) => pick.overall === 2)?.playerId)
+      .toBeFalsy()
+    expect(patchBody.state.board.currentOverall).toBe(2)
 
     await waitFor(
       () => expect(fetch).toHaveBeenCalledTimes(3),
       { timeout: 1_000 },
     )
-    expect(fetch).toHaveBeenNthCalledWith(
-      3,
-      "/api/draft/simulate",
-      expect.objectContaining({
-        method: "POST",
-        signal: expect.any(AbortSignal),
-      }),
+  })
+
+  it("starts a Mock draft and advances CPU until the user turn", async () => {
+    const mockSimulationSignals: AbortSignal[] = []
+    const mockState: LeagueState = {
+      ...state,
+      perspectiveTeamIndex: 1,
+      settings: {
+        ...state.settings,
+        teams: 4,
+        rounds: 2,
+        userPickSlot: 2,
+      },
+      players: [
+        ...state.players,
+        {
+          id: "player-3",
+          name: "Third Player",
+          positions: ["PG"],
+          projections,
+          adp: 3,
+        },
+        {
+          id: "player-4",
+          name: "Fourth Player",
+          positions: ["SG"],
+          projections,
+          adp: 4,
+        },
+      ],
+    }
+
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = String(input)
+      if (url === "/api/players") {
+        return new Response(JSON.stringify({ players: mockState.players }), {
+          status: 200,
+        })
+      }
+
+      if (url === "/api/draft/simulate") {
+        mockSimulationSignals.push(init?.signal as AbortSignal)
+        return new Response(
+          JSON.stringify({
+            nextPicks: [
+              { playerId: "player-2", score: 9, frequency: 0.6 },
+              { playerId: "player-3", score: 8, frequency: 0.3 },
+              { playerId: "player-4", score: 7, frequency: 0.1 },
+              { playerId: "player-1", score: 6, frequency: 0.0 },
+            ],
+            topCombinations: [],
+            categoryOutlook: {
+              FG_PCT: 0,
+              FT_PCT: 0,
+              TPM: 0,
+              REB: 0,
+              AST: 0,
+              STL: 0,
+              BLK: 0,
+              TO: 0,
+              PTS: 0,
+            },
+            meta: {
+              simCount: 40,
+              seed: 1,
+              generatedAt: "2026-08-18T00:00:00.000Z",
+              latencyMs: 1,
+              source: "manual",
+            },
+          } satisfies SimulationResult),
+          { status: 200 },
+        )
+      }
+
+      return new Response(
+        JSON.stringify({
+          id: "league-1",
+          name: "Test League",
+          stateJson: JSON.stringify(mockState),
+        }),
+        { status: 200 },
+      )
+    })
+
+    render(<DraftWorkspace leagueId="league-1" />)
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Mock" }))
+
+    expect(await screen.findByText(/practice only/i)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Reset mock draft" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Random pick slot" })).toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Number of teams" })).toHaveValue(
+      "4",
+    )
+    expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
+      "2",
+    )
+    expect(
+      screen.getByRole("columnheader", { name: /ADP/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Sort by ADP" })).toBeInTheDocument()
+    await waitFor(
+      () => {
+        expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+      },
+      { timeout: 3_000 },
+    )
+    await waitFor(
+      () => {
+        const nextPicksHeading = screen.getByRole("heading", {
+          name: /next picks/i,
+        })
+        const recSection = nextPicksHeading.closest("section")
+        expect(recSection).toHaveTextContent("Second Player")
+      },
+      { timeout: 4_000 },
+    )
+    expect(
+      screen.getByRole("heading", { name: /next picks/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("heading", { name: /category outlook/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      vi.mocked(fetch).mock.calls.some(
+        (call) => String(call[0]) === "/api/draft/simulate",
+      ),
+    ).toBe(true)
+    const mockSimulateCall = vi
+      .mocked(fetch)
+      .mock.calls.find((call) => String(call[0]) === "/api/draft/simulate")
+    const mockSimulateBody = JSON.parse(
+      String(mockSimulateCall?.[1]?.body ?? "{}"),
+    ) as {
+      simCount?: number
+      fastRecommendations?: boolean
+    }
+    expect(mockSimulateBody.simCount).toBe(12)
+    expect(mockSimulateBody.fastRecommendations).toBe(true)
+    expect(mockSimulationSignals[0]?.aborted).toBe(false)
+    expect(screen.getByText(/latest pick/i)).toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mark Second Player picked" }),
+    )
+
+    expect(mockSimulationSignals[0]?.aborted).toBe(true)
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Your pick slot" }), {
+      target: { value: "1" },
+    })
+    await waitFor(() => {
+      expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
+        "1",
+      )
+    })
+    await waitFor(
+      () => {
+        expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+      },
+      { timeout: 3_000 },
+    )
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Number of teams" }), {
+      target: { value: "8" },
+    })
+    await waitFor(() => {
+      expect(screen.getByRole("combobox", { name: "Number of teams" })).toHaveValue(
+        "8",
+      )
+    })
+    expect(screen.getByRole("combobox", { name: "Your pick slot" })).toHaveValue(
+      "1",
+    )
+    await waitFor(
+      () => {
+        expect(screen.getByText(/your turn to pick/i)).toBeInTheDocument()
+      },
+      { timeout: 3_000 },
     )
   })
 })

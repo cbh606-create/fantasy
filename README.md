@@ -49,13 +49,23 @@ ESPN Fantasy Basketball draft analysis app — snake 12-team H2H categories, sim
 
 ## Player pool (Manual draft)
 
-Manual leagues load real NBA players from a cached JSON pool (default: 2025-26 ESPN Fantasy stats / % owned ranking).
+Manual leagues load real NBA players from a cached JSON pool (default: 2026-27 ESPN Fantasy ADP + published rankings).
 
 ```bash
-npm run players:refresh   # rewrite data/players/stats_2025_26.json (~250 players)
+npm run players:refresh         # ESPN season 2027 → data/players/proj_2026_27.json
+npm run players:espn-rankings   # overlay ESPN H2H Points article ranks onto that pool
 ```
 
-Optional env: `PLAYER_POOL_SOURCE=stats_2025_26` (default). Later: `proj_2026_27` when that cache exists.
+Optional env: `PLAYER_POOL_SOURCE=proj_2026_27` (default). Prior season cache: `stats_2025_26`.
+
+### Hashtag projections overlay
+
+1. Copy the Hashtag projections table into a CSV with Player, Team, GP, FG%, FT%, 3PM, PTS, REB, AST, STL, BLK, TO.
+2. Preview matches with `npm run players:import-hashtag -- path/to/hashtag.csv --dry-run`.
+3. Apply the overlay with `npm run players:import-hashtag -- path/to/hashtag.csv`.
+4. Re-run the overlay after `players:refresh` or an ESPN season refresh to restore the Hashtag numbers.
+
+Per-game CSV values are scaled by GP by default; pass `--per-game=false` for season totals. To patch a saved season after the draft pool write, pass `--season-league-id=<id>`.
 
 ## ESPN integration
 

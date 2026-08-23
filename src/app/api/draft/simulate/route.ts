@@ -8,7 +8,7 @@ import { rateLimit } from "@/lib/rateLimit"
 import { runDraftSimulation } from "@/lib/sim/engine"
 import { simulateBodySchema } from "@/lib/validation/simulate"
 
-const SIMULATION_LIMIT = 10
+const SIMULATION_LIMIT = 40
 const SIMULATION_WINDOW_MS = 60_000
 const SLOW_SIMULATION_MS = 8_000
 

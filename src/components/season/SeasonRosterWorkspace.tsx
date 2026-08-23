@@ -1,13 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { CompactCategoryProfile } from "@/components/season/CompactCategoryProfile"
 import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { PlayerSchedulePanel } from "@/components/season/PlayerSchedulePanel"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
-import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
+import {
+  analyzeSeasonLeague,
+  type SeasonAnalysis,
+} from "@/lib/season/analysis"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import { buildPlayerMatchupSchedule } from "@/lib/season/schedule"
 import type {
@@ -22,6 +26,7 @@ type SeasonRosterWorkspaceProps = {
 
 type SeasonLeagueResponse = {
   state: SeasonLeagueState
+  analysis: SeasonAnalysis
 }
 
 type WorkspaceTab = "stats" | "schedule"
@@ -41,6 +46,8 @@ const responseMessage = async (response: Response, fallback: string) => {
 export const SeasonRosterWorkspace = ({
   leagueId,
 }: SeasonRosterWorkspaceProps) => {
+  useSyncActiveSeasonLeague(leagueId)
+
   const [data, setData] = useState<SeasonLeagueResponse | null>(null)
   const [draftEntries, setDraftEntries] = useState<SeasonRosterEntry[] | null>(null)
   const [error, setError] = useState("")
@@ -49,6 +56,7 @@ export const SeasonRosterWorkspace = ({
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [incomingState, setIncomingState] = useState<SeasonLeagueState | null>(null)
+  const [authExpired, setAuthExpired] = useState(false)
   const [tab, setTab] = useState<WorkspaceTab>("stats")
   const [schedule, setSchedule] = useState<ScheduleResponse | null>(null)
   const [scheduleError, setScheduleError] = useState("")
@@ -138,14 +146,20 @@ export const SeasonRosterWorkspace = ({
   const rosteredPlayers = data?.state.players.filter(
     (player) => rosteredPlayerIds.has(player.id),
   ) ?? []
-  const effectiveState = data
-    ? applyLocalLineup(data.state, effectiveEntries)
+  const draftFingerprint = draftEntries
+    ? draftEntries.map((entry) => `${entry.slot}:${entry.playerId ?? ""}`).join("|")
     : null
-  const effectiveAnalysis = effectiveState
-    ? analyzeSeasonLeague(effectiveState)
-    : null
+  const effectiveAnalysis = useMemo(() => {
+    if (!data) return null
+    if (!draftFingerprint || !draftEntries) {
+      return data.analysis ?? analyzeSeasonLeague(data.state)
+    }
+
+    return analyzeSeasonLeague(applyLocalLineup(data.state, draftEntries))
+  }, [data, draftEntries, draftFingerprint])
+  const perspectiveTeamIndex = data?.state.perspectiveTeamIndex
   const userLevels = effectiveAnalysis?.byTeam.find(
-    (team) => team.teamIndex === effectiveState!.perspectiveTeamIndex,
+    (team) => team.teamIndex === perspectiveTeamIndex,
   )?.levels ?? []
   const scheduleRows = schedule
     ? buildPlayerMatchupSchedule({
@@ -212,6 +226,7 @@ export const SeasonRosterWorkspace = ({
 
   const handleRefresh = async () => {
     setError("")
+    setAuthExpired(false)
     setIsRefreshing(true)
 
     try {
@@ -221,6 +236,12 @@ export const SeasonRosterWorkspace = ({
       const refresh = (await response.json()) as RefreshResponse
 
       if (!response.ok) {
+        if (
+          refresh.errorCode === "ESPN_AUTH" ||
+          refresh.errorCode === "ESPN_NO_CREDENTIALS"
+        ) {
+          setAuthExpired(true)
+        }
         throw new Error(refresh.message ?? refresh.errorCode ?? "Unable to refresh ESPN")
       }
 
@@ -309,12 +330,6 @@ export const SeasonRosterWorkspace = ({
           >
             All rosters
           </Link>
-          <Link
-            className="text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
-            href="/leagues/new"
-          >
-            Draft
-          </Link>
         </div>
         <header className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -368,6 +383,22 @@ export const SeasonRosterWorkspace = ({
             )}
           </div>
         </header>
+        {authExpired ? (
+          <div
+            className="mb-6 rounded-2xl border border-[var(--color-sale)]/30 bg-red-50 px-5 py-4 text-sm text-[var(--color-sale)]"
+            role="alert"
+          >
+            Your ESPN connection expired.{" "}
+            <Link
+              className="font-medium underline underline-offset-2"
+              href="/roster"
+            >
+              Reconnect with ESPN
+            </Link>{" "}
+            through the login window, then refresh again. You can still paste
+            fresh espn_s2 / SWID on Rosters if needed.
+          </div>
+        ) : null}
         <div
           aria-label="Roster workspace view"
           className="mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"
@@ -414,7 +445,7 @@ export const SeasonRosterWorkspace = ({
           <LeagueRankMatrix
             analysis={effectiveAnalysis!}
             perspectiveTeamIndex={data.state.perspectiveTeamIndex}
-            teams={effectiveState!.teams}
+            teams={data.state.teams}
           />
         </div>
         <div

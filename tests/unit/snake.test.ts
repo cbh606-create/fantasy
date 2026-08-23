@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { teamIndexForOverall, buildEmptyBoard, isUserTurn } from "@/lib/domain/snake"
+import {
+  teamIndexForOverall,
+  buildEmptyBoard,
+  isUserTurn,
+  overallForTeamRound,
+} from "@/lib/domain/snake"
 
 describe("teamIndexForOverall", () => {
   it("snakes across 12 teams", () => {
@@ -25,10 +30,19 @@ describe("buildEmptyBoard", () => {
 })
 
 describe("isUserTurn", () => {
-  it("is true when current overall maps to user slot", () => {
+  it("is true when current overall maps to the perspective team", () => {
     const board = buildEmptyBoard(12, 13)
-    expect(isUserTurn(board, 1)).toBe(true)
+    expect(isUserTurn(board, 0, 12)).toBe(true)
     board.currentOverall = 2
-    expect(isUserTurn(board, 1)).toBe(false)
+    expect(isUserTurn(board, 0, 12)).toBe(false)
+  })
+})
+
+describe("overallForTeamRound", () => {
+  it("keeps team columns fixed across snake rounds", () => {
+    expect(overallForTeamRound(1, 0, 12)).toBe(1)
+    expect(overallForTeamRound(1, 11, 12)).toBe(12)
+    expect(overallForTeamRound(2, 11, 12)).toBe(13)
+    expect(overallForTeamRound(2, 0, 12)).toBe(24)
   })
 })

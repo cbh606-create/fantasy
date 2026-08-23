@@ -3,9 +3,9 @@
  *
  * Usage:
  *   node scripts/refresh-players.mjs
- *   node scripts/refresh-players.mjs --season=2026 --limit=250 --out=data/players/stats_2025_26.json
+ *   node scripts/refresh-players.mjs --season=2027 --limit=300 --out=data/players/proj_2026_27.json
  *
- * Fantasy season year 2026 ≈ NBA 2025-26.
+ * Fantasy season year 2027 ≈ NBA 2026-27.
  */
 
 import { writeFile, mkdir } from "node:fs/promises"
@@ -18,13 +18,15 @@ const args = Object.fromEntries(
   }),
 )
 
-const season = Number(args.season ?? 2026)
-const limit = Number(args.limit ?? 250)
+const season = Number(args.season ?? 2027)
+const limit = Number(args.limit ?? 300)
 const outRel =
   args.out ??
-  (season === 2026
-    ? "data/players/stats_2025_26.json"
-    : `data/players/stats_${season - 1}_${String(season).slice(2)}.json`)
+  (season === 2027
+    ? "data/players/proj_2026_27.json"
+    : season === 2026
+      ? "data/players/stats_2025_26.json"
+      : `data/players/stats_${season - 1}_${String(season).slice(2)}.json`)
 
 const POSITION_BY_DEFAULT_ID = {
   1: "PG",
@@ -58,9 +60,31 @@ const STAT = {
   FT_PCT: "20",
 }
 
+const EMPTY_PROJECTIONS = {
+  FG_PCT: 0,
+  FT_PCT: 0,
+  TPM: 0,
+  REB: 0,
+  AST: 0,
+  STL: 0,
+  BLK: 0,
+  TO: 0,
+  PTS: 0,
+}
+
 const num = (stats, key, fallback = 0) => {
   const value = stats?.[key]
   return typeof value === "number" && Number.isFinite(value) ? value : fallback
+}
+
+const hasCountingStats = (stats) => {
+  if (!stats) return false
+  return (
+    num(stats, STAT.PTS) > 0 ||
+    num(stats, STAT.REB) > 0 ||
+    num(stats, STAT.AST) > 0 ||
+    num(stats, STAT.TPM) > 0
+  )
 }
 
 const pickSeasonStats = (player, seasonId) => {
@@ -74,13 +98,16 @@ const pickSeasonStats = (player, seasonId) => {
 
   for (const id of preferredIds) {
     const match = stats.find((entry) => entry.id === id && entry.stats)
-    if (match) return { id, stats: match.stats }
+    if (match && hasCountingStats(match.stats)) {
+      return { id, stats: match.stats, seasonId }
+    }
   }
 
   const seasonEntries = stats.filter(
     (entry) =>
       entry.seasonId === seasonId &&
       entry.stats &&
+      hasCountingStats(entry.stats) &&
       (entry.statSplitTypeId === 0 || entry.statSplitTypeId === 1),
   )
   seasonEntries.sort((a, b) => {
@@ -89,8 +116,23 @@ const pickSeasonStats = (player, seasonId) => {
     return score(a) - score(b)
   })
   if (seasonEntries[0]) {
-    return { id: seasonEntries[0].id, stats: seasonEntries[0].stats }
+    return {
+      id: seasonEntries[0].id,
+      stats: seasonEntries[0].stats,
+      seasonId,
+    }
   }
+
+  return null
+}
+
+const pickBestStats = (player, seasonId) => {
+  const current = pickSeasonStats(player, seasonId)
+  if (current) return current
+
+  // Rookies / early offseason often have empty current-season rows.
+  const prior = pickSeasonStats(player, seasonId - 1)
+  if (prior) return prior
 
   return null
 }
@@ -105,13 +147,7 @@ const positionsFor = (player) => {
 }
 
 const resolveAdp = (espnPlayer, fallbackRank) => {
-  const standardRank = espnPlayer.draftRanksByRankType?.STANDARD?.rank
-  if (typeof standardRank === "number" && standardRank > 0) {
-    return standardRank
-  }
-
   const ownershipAdp = espnPlayer.ownership?.averageDraftPosition
-  // ESPN often parks unranked ADP at 140; treat that as missing.
   if (
     typeof ownershipAdp === "number" &&
     ownershipAdp > 0 &&
@@ -120,41 +156,65 @@ const resolveAdp = (espnPlayer, fallbackRank) => {
     return ownershipAdp
   }
 
+  const standardRank = espnPlayer.draftRanksByRankType?.STANDARD?.rank
+  if (typeof standardRank === "number" && standardRank > 0) {
+    return standardRank
+  }
+
+  const owned = espnPlayer.ownership?.percentOwned
+  if (typeof owned === "number" && owned > 0) {
+    // Soft placeholder so high-owned rookies without ADP still sort early-ish.
+    return 200 - owned
+  }
+
   return fallbackRank
 }
 
-const toPlayer = (espnPlayer, seasonId, fallbackRank) => {
-  const seasonStats = pickSeasonStats(espnPlayer, seasonId)
-  if (!seasonStats) return null
+const isDraftRelevant = (espnPlayer) => {
+  const ownershipAdp = espnPlayer.ownership?.averageDraftPosition
+  const standardRank = espnPlayer.draftRanksByRankType?.STANDARD?.rank
+  const owned = espnPlayer.ownership?.percentOwned ?? 0
 
-  const s = seasonStats.stats
-  const fgPct = num(s, STAT.FG_PCT, null)
-  const ftPct = num(s, STAT.FT_PCT, null)
-  const fgm = num(s, STAT.FGM)
-  const fga = num(s, STAT.FGA)
-  const ftm = num(s, STAT.FTM)
-  const fta = num(s, STAT.FTA)
-
-  const projections = {
-    FG_PCT: fgPct ?? (fga > 0 ? fgm / fga : 0),
-    FT_PCT: ftPct ?? (fta > 0 ? ftm / fta : 0),
-    TPM: num(s, STAT.TPM),
-    REB: num(s, STAT.REB),
-    AST: num(s, STAT.AST),
-    STL: num(s, STAT.STL),
-    BLK: num(s, STAT.BLK),
-    TO: num(s, STAT.TO),
-    PTS: num(s, STAT.PTS),
+  if (typeof standardRank === "number" && standardRank > 0 && standardRank <= 300) {
+    return true
   }
-
   if (
-    projections.PTS === 0 &&
-    projections.REB === 0 &&
-    projections.AST === 0 &&
-    projections.TPM === 0
+    typeof ownershipAdp === "number" &&
+    ownershipAdp > 0 &&
+    ownershipAdp !== 140 &&
+    ownershipAdp <= 250
   ) {
-    return null
+    return true
   }
+  if (owned >= 5) return true
+
+  return false
+}
+
+const toPlayer = (espnPlayer, seasonId, fallbackRank) => {
+  const seasonStats = pickBestStats(espnPlayer, seasonId)
+  const draftRelevant = isDraftRelevant(espnPlayer)
+
+  if (!seasonStats && !draftRelevant) return null
+
+  const s = seasonStats?.stats
+  const projections = s
+    ? {
+        FG_PCT: num(s, STAT.FG_PCT, null) ?? (num(s, STAT.FGA) > 0
+          ? num(s, STAT.FGM) / num(s, STAT.FGA)
+          : 0),
+        FT_PCT: num(s, STAT.FT_PCT, null) ?? (num(s, STAT.FTA) > 0
+          ? num(s, STAT.FTM) / num(s, STAT.FTA)
+          : 0),
+        TPM: num(s, STAT.TPM),
+        REB: num(s, STAT.REB),
+        AST: num(s, STAT.AST),
+        STL: num(s, STAT.STL),
+        BLK: num(s, STAT.BLK),
+        TO: num(s, STAT.TO),
+        PTS: num(s, STAT.PTS),
+      }
+    : { ...EMPTY_PROJECTIONS }
 
   const status =
     espnPlayer.injuryStatus === "OUT"
@@ -173,6 +233,7 @@ const toPlayer = (espnPlayer, seasonId, fallbackRank) => {
     espnId: String(espnPlayer.id),
     status,
     percentOwned: espnPlayer.ownership?.percentOwned ?? 0,
+    statsSeasonId: seasonStats?.seasonId ?? null,
   }
 }
 
@@ -205,10 +266,12 @@ const main = async () => {
   console.log(`Fetching ESPN FBA players for season ${season} (top ${limit})…`)
   const espnPlayers = await fetchEspnPlayers(season)
 
-  espnPlayers.sort(
-    (a, b) =>
-      (b.ownership?.percentOwned ?? 0) - (a.ownership?.percentOwned ?? 0),
-  )
+  espnPlayers.sort((a, b) => {
+    const adpA = resolveAdp(a, 999)
+    const adpB = resolveAdp(b, 999)
+    if (adpA !== adpB) return adpA - adpB
+    return (b.ownership?.percentOwned ?? 0) - (a.ownership?.percentOwned ?? 0)
+  })
 
   const players = []
   for (const [index, espnPlayer] of espnPlayers.entries()) {
@@ -218,14 +281,8 @@ const main = async () => {
     if (players.length >= limit) break
   }
 
-  // Prefer ownership order for draft sim; keep ADP as rank when available.
-  players.sort((a, b) => {
-    const ownedDiff = (b.percentOwned ?? 0) - (a.percentOwned ?? 0)
-    if (ownedDiff !== 0) return ownedDiff
-    return a.adp - b.adp
-  })
-  players.forEach((player, index) => {
-    player.adp = index + 1
+  players.sort((a, b) => a.adp - b.adp)
+  players.forEach((player) => {
     delete player.percentOwned
   })
 
@@ -241,6 +298,7 @@ const main = async () => {
           nbaSeasonLabel: `${season - 1}-${String(season).slice(2)}`,
           generatedAt: new Date().toISOString(),
           count: players.length,
+          adpSource: "espn_ownership_or_draft_rank",
         },
         players,
       },
@@ -253,10 +311,15 @@ const main = async () => {
   console.log(`Wrote ${players.length} players → ${outPath}`)
   console.log(
     `Sample: ${players
-      .slice(0, 5)
+      .slice(0, 8)
       .map((player) => `${player.adp}. ${player.name}`)
       .join(" | ")}`,
   )
+  const rookies = ["Cameron Boozer", "AJ Dybantsa", "Darryn Peterson", "Cooper Flagg"]
+  for (const name of rookies) {
+    const hit = players.find((player) => player.name === name)
+    console.log(name, hit ? `adp=${hit.adp}` : "MISSING")
+  }
 }
 
 main().catch((error) => {

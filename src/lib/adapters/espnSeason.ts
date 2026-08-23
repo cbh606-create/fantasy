@@ -4,6 +4,8 @@ import {
   type ManualSeasonLeagueInput,
 } from "./manualSeason"
 import { EspnAdapterError, type EspnErrorCode } from "./errors"
+import { fetchEspnSeasonLeague } from "./espnSeasonLive"
+import type { EspnCookies } from "@/lib/espn/cookies"
 import type {
   SeasonLeagueState,
   SeasonRosterEntry,
@@ -13,6 +15,8 @@ import type {
 type EspnSeasonParams = {
   leagueId: string
   season: number
+  teamId?: number
+  cookies?: EspnCookies
   forceFail?: EspnErrorCode
 }
 
@@ -57,14 +61,36 @@ export const detectLineupConflict = (
 }
 
 export const espnImportToSeasonLeagueState = async (
-  params: EspnSeasonParams,
+  params: EspnSeasonParams & { forbidFixture?: boolean },
 ): Promise<SeasonLeagueState> => {
   if (params.forceFail) {
     throw new EspnAdapterError(params.forceFail)
   }
 
-  if (process.env.ESPN_LIVE === "true") {
-    throw new EspnAdapterError("ESPN_UNAVAILABLE")
+  const useLive =
+    Boolean(params.cookies) || process.env.ESPN_LIVE === "true"
+
+  if (useLive) {
+    if (
+      typeof params.teamId !== "number" ||
+      !Number.isInteger(params.teamId)
+    ) {
+      throw new EspnAdapterError("ESPN_PARTIAL")
+    }
+
+    return fetchEspnSeasonLeague({
+      leagueId: params.leagueId,
+      season: params.season,
+      teamId: params.teamId,
+      cookies: params.cookies,
+    })
+  }
+
+  if (params.forbidFixture) {
+    throw new EspnAdapterError(
+      "ESPN_NO_CREDENTIALS",
+      "Connect ESPN cookies before refreshing a live league",
+    )
   }
 
   return {
@@ -73,5 +99,6 @@ export const espnImportToSeasonLeagueState = async (
     ),
     id: params.leagueId,
     source: "espn",
+    espnTeamId: params.teamId,
   }
 }

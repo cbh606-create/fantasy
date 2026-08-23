@@ -124,7 +124,15 @@ export const LeagueRankMatrix = ({
                   </th>
                   {ALL_CATEGORY_IDS.map((categoryId) => {
                     const rank = ranksByCategory.get(categoryId)?.[teamIndex]
-                    const heat = rank ? Math.round(((teams.length - rank) / Math.max(teams.length - 1, 1)) * 100) : 0
+                    const heat = rank
+                      ? Math.round(
+                          ((teams.length - rank) / Math.max(teams.length - 1, 1)) *
+                            100,
+                        )
+                      : 0
+                    // Soften the green/red mix so ranks stay tinted but not loud.
+                    const heatColor = `color-mix(in srgb, var(--color-success) ${heat}%, var(--color-sale))`
+                    const softHeatColor = `color-mix(in srgb, ${heatColor} 28%, white)`
 
                     return (
                       <td
@@ -135,7 +143,11 @@ export const LeagueRankMatrix = ({
                           className={`inline-flex min-w-9 justify-center rounded-md px-2 py-1 ${
                             isYou ? "bg-white/15" : ""
                           }`}
-                          style={isYou ? undefined : { backgroundColor: `color-mix(in srgb, var(--color-success) ${heat}%, var(--color-sale))` }}
+                          style={
+                            isYou
+                              ? undefined
+                              : { backgroundColor: softHeatColor }
+                          }
                         >
                           #{rank ?? "—"}
                         </span>

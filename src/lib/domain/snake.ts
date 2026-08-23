@@ -1,5 +1,8 @@
 import type { DraftBoard, DraftPick } from "./types"
 
+/** Default snake draft rounds for standard H2H category leagues. */
+export const DEFAULT_DRAFT_ROUNDS = 13
+
 export const teamIndexForOverall = (overall: number, teams: number): number => {
   const zeroBased = overall - 1
   const roundIndex = Math.floor(zeroBased / teams)
@@ -8,7 +11,21 @@ export const teamIndexForOverall = (overall: number, teams: number): number => {
   return teams - 1 - posInRound
 }
 
-export const buildEmptyBoard = (teams: 12, rounds: number): DraftBoard => {
+/** Overall pick number for a fixed team column in a snake board row. */
+export const overallForTeamRound = (
+  round: number,
+  teamIndex: number,
+  teams: number,
+): number => {
+  const roundIndex = round - 1
+  if (roundIndex % 2 === 0) {
+    return roundIndex * teams + teamIndex + 1
+  }
+
+  return roundIndex * teams + (teams - teamIndex)
+}
+
+export const buildEmptyBoard = (teams: number, rounds: number): DraftBoard => {
   const picks: DraftPick[] = []
   const total = teams * rounds
   for (let overall = 1; overall <= total; overall++) {
@@ -23,7 +40,9 @@ export const buildEmptyBoard = (teams: 12, rounds: number): DraftBoard => {
   return { picks, currentOverall: 1 }
 }
 
-export const isUserTurn = (board: DraftBoard, userPickSlot: number): boolean => {
-  const teamIndex = userPickSlot - 1
-  return teamIndexForOverall(board.currentOverall, 12) === teamIndex
-}
+export const isUserTurn = (
+  board: DraftBoard,
+  perspectiveTeamIndex: number,
+  teams: number,
+): boolean =>
+  teamIndexForOverall(board.currentOverall, teams) === perspectiveTeamIndex

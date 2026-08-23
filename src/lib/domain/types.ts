@@ -18,7 +18,7 @@ export type CategorySetting = {
 export type RosterSlot = "PG" | "SG" | "SF" | "PF" | "C" | "G" | "F" | "UTIL" | "BE"
 
 export type LeagueSettings = {
-  teams: 12
+  teams: number
   draftType: "snake"
   rosterSlots: RosterSlot[]
   categories: CategorySetting[]
@@ -34,6 +34,14 @@ export type Player = {
   positions: Array<"PG" | "SG" | "SF" | "PF" | "C">
   projections: Record<CategoryId, number>
   adp: number
+  adpBySource?: Partial<
+    Record<
+      | "yahoo_draft_analysis_rank"
+      | "fantasypros_yahoo"
+      | "espn_article_h2h_points",
+      number
+    >
+  >
   espnId?: string
   status?: "active" | "out" | "gtd"
 }
@@ -63,6 +71,8 @@ export type SimulationInput = {
   simCount: number
   seed: number
   forcePickPlayerId?: string
+  /** Skip per-candidate force sims; rank next picks from free-sim frequencies. */
+  fastRecommendations?: boolean
 }
 
 export type NextPickRec = {

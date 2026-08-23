@@ -56,3 +56,31 @@ export const GET = async (
     analysis: analyzeSeasonLeague(effectiveState),
   })
 }
+
+export const DELETE = async (
+  _request: Request,
+  context: SeasonLeagueRouteContext,
+): Promise<Response> => {
+  let userId: string
+
+  try {
+    userId = await requireUserId()
+  } catch {
+    return unauthorizedResponse()
+  }
+
+  const { id } = await context.params
+  const league = await db.seasonLeague.findFirst({
+    where: {
+      id,
+      clerkUserId: userId,
+    },
+    select: { id: true },
+  })
+
+  if (!league) return notFoundResponse()
+
+  await db.seasonLeague.delete({ where: { id: league.id } })
+
+  return NextResponse.json({ ok: true })
+}

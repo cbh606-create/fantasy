@@ -7,9 +7,11 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 }
 
 const buttonVariantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-[#111111] text-white",
-  secondary: "bg-[#f5f5f5] text-[#111111]",
+  primary: "bg-[var(--color-ink)] text-white",
+  secondary:
+    "border border-[var(--color-ink)] bg-transparent text-[var(--color-ink)]",
 }
+
 
 export const Button = ({
   className = "",

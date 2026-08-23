@@ -1,13 +1,17 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Chip } from "@/components/ui/Chip"
 import { defaultCategorySettings } from "@/lib/domain/categories"
+import {
+  DEFAULT_TEAMS,
+  ESPN_TEAM_COUNTS,
+} from "@/lib/domain/leagueSize"
+import { DEFAULT_DRAFT_ROUNDS } from "@/lib/domain/snake"
 import type { CategoryId, CategorySetting } from "@/lib/domain/types"
 
-const PICK_SLOTS = Array.from({ length: 12 }, (_, index) => index + 1)
 const MIN_WEIGHT = 0.5
 const MAX_WEIGHT = 2
 const WEIGHT_STEP = 0.5
@@ -36,6 +40,7 @@ export const LeagueSetupForm = () => {
   const [leagueName, setLeagueName] = useState("My League")
   const [espnLeagueId, setEspnLeagueId] = useState("")
   const [season, setSeason] = useState(new Date().getFullYear())
+  const [teams, setTeams] = useState(DEFAULT_TEAMS)
   const [pickSlot, setPickSlot] = useState(1)
   const [categories, setCategories] = useState<CategorySetting[]>(
     defaultCategorySettings,
@@ -46,6 +51,15 @@ export const LeagueSetupForm = () => {
     null,
   )
   const [error, setError] = useState("")
+
+  const pickSlots = Array.from({ length: teams }, (_, index) => index + 1)
+
+  const handleTeamsChange = (nextTeams: number) => {
+    setTeams(nextTeams)
+    setPickSlot((currentSlot) =>
+      currentSlot > nextTeams ? nextTeams : currentSlot,
+    )
+  }
 
   const handleCategoryToggle = (categoryId: CategoryId) => {
     setCategories((currentCategories) =>
@@ -100,6 +114,7 @@ export const LeagueSetupForm = () => {
   const createLeague = async (
     endpoint: string,
     body: Record<string, unknown>,
+    draftTab: "prep" | "mock" | "live" = "prep",
   ) => {
     const response = await fetch(endpoint, {
       method: "POST",
@@ -118,7 +133,7 @@ export const LeagueSetupForm = () => {
         result = JSON.parse(rawText) as typeof result
       } catch {
         throw new Error(
-          `Server returned a non-JSON response (${response.status}). Try again or use Enter manually.`,
+          `Server returned a non-JSON response (${response.status}). Try again or use Start mock draft.`,
         )
       }
     }
@@ -132,20 +147,32 @@ export const LeagueSetupForm = () => {
       throw new Error(detail || "Unable to create your league")
     }
 
-    router.push(`/leagues/${result.id}/draft`)
+    const tabQuery = draftTab === "prep" ? "" : `?tab=${draftTab}`
+    router.push(`/leagues/${result.id}/draft${tabQuery}`)
   }
 
-  const handleEspnImport = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const handleEspnImport = async () => {
     setError("")
+
+    if (!espnLeagueId.trim()) {
+      setError("Enter an ESPN league ID to import, or use Start mock draft.")
+      return
+    }
+
     setPendingAction("espn")
 
     try {
-      await createLeague("/api/espn/import", {
-        name: leagueName,
-        leagueId: espnLeagueId,
-        season,
-      })
+      await createLeague(
+        "/api/espn/import",
+        {
+          name: leagueName,
+          leagueId: espnLeagueId.trim(),
+          season,
+          teams,
+          userPickSlot: pickSlot,
+        },
+        "live",
+      )
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -157,27 +184,32 @@ export const LeagueSetupForm = () => {
     }
   }
 
-  const handleManualEntry = async () => {
+  const handleStartMockDraft = async () => {
     setError("")
     setPendingAction("manual")
 
     try {
-      await createLeague("/api/leagues", {
-        name: leagueName,
-        manualInput: {
-          userPickSlot: pickSlot,
-          categories,
-          puntCategoryIds,
-          focusCategoryIds,
-          rounds: 13,
-          playerPoolSource: "stats_2025_26",
+      await createLeague(
+        "/api/leagues",
+        {
+          name: leagueName.trim() || "Mock Draft",
+          manualInput: {
+            teams,
+            userPickSlot: pickSlot,
+            categories,
+            puntCategoryIds,
+            focusCategoryIds,
+            rounds: DEFAULT_DRAFT_ROUNDS,
+            playerPoolSource: "proj_2026_27",
+          },
         },
-      })
+        "mock",
+      )
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to create your league",
+          : "Unable to start mock draft",
       )
     } finally {
       setPendingAction(null)
@@ -187,7 +219,7 @@ export const LeagueSetupForm = () => {
   const isPending = pendingAction !== null
 
   return (
-    <form className="space-y-12" onSubmit={handleEspnImport}>
+    <div className="space-y-12">
       <section className="grid gap-6 sm:grid-cols-2">
         <label className="space-y-2 text-sm font-medium">
           <span>League name</span>
@@ -202,14 +234,38 @@ export const LeagueSetupForm = () => {
           <p className="text-xs tracking-[0.16em] text-[var(--color-mute)] uppercase">
             League format
           </p>
-          <p className="mt-1 font-medium">12-team snake · 13 rounds</p>
+          <p className="mt-1 font-medium">
+            {teams}-team snake · {DEFAULT_DRAFT_ROUNDS} rounds
+          </p>
+          <p className="mt-1 text-xs text-[var(--color-mute)]">
+            ESPN Fantasy Basketball allows 4–20 teams
+          </p>
         </div>
       </section>
 
       <fieldset>
+        <legend className="text-xl font-semibold">Number of teams</legend>
+        <p className="mt-1 text-sm text-[var(--color-mute)]">
+          Match your ESPN league size (4–20).
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {ESPN_TEAM_COUNTS.map((teamCount) => (
+            <Chip
+              aria-label={`${teamCount} teams`}
+              key={teamCount}
+              onClick={() => handleTeamsChange(teamCount)}
+              variant={teams === teamCount ? "active" : "default"}
+            >
+              {teamCount}
+            </Chip>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend className="text-xl font-semibold">Your pick slot</legend>
         <div className="mt-4 flex flex-wrap gap-2">
-          {PICK_SLOTS.map((slot) => (
+          {pickSlots.map((slot) => (
             <Chip
               aria-label={`Pick slot ${slot}`}
               key={slot}
@@ -320,45 +376,55 @@ export const LeagueSetupForm = () => {
       ))}
 
       <section className="rounded-[2rem] bg-[var(--color-soft-cloud)] p-6 sm:p-8">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="space-y-2 text-sm font-medium">
-            <span>ESPN league ID</span>
-            <input
-              className="h-12 w-full rounded-full bg-white px-5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]"
-              inputMode="numeric"
-              onChange={(event) => setEspnLeagueId(event.target.value)}
-              placeholder="e.g. 12345678"
-              required
-              value={espnLeagueId}
-            />
-          </label>
-          <label className="space-y-2 text-sm font-medium">
-            <span>Season</span>
-            <input
-              className="h-12 w-full rounded-full bg-white px-5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]"
-              min="2000"
-              onChange={(event) => setSeason(Number(event.target.value))}
-              required
-              type="number"
-              value={season}
-            />
-          </label>
-        </div>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mb-6">
+          <p className="text-sm font-medium">Practice without ESPN</p>
+          <p className="mt-1 text-sm text-[var(--color-mute)]">
+            Mock draft uses the shared player pool. No ESPN league ID needed.
+          </p>
           <Button
-            className="w-full sm:w-auto"
+            aria-label="Start mock draft"
+            className="mt-4 w-full sm:w-auto"
             disabled={isPending}
-            type="submit"
+            onClick={handleStartMockDraft}
+            type="button"
           >
-            {pendingAction === "espn" ? "Importing…" : "Import from ESPN"}
+            {pendingAction === "manual" ? "Starting…" : "Start mock draft"}
           </Button>
+        </div>
+
+        <div className="border-t border-[var(--color-hairline)] pt-6">
+          <p className="text-sm font-medium">Or import a live ESPN league</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label className="space-y-2 text-sm font-medium">
+              <span>ESPN league ID</span>
+              <input
+                className="h-12 w-full rounded-full bg-white px-5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]"
+                inputMode="numeric"
+                onChange={(event) => setEspnLeagueId(event.target.value)}
+                placeholder="Optional — only for ESPN import"
+                value={espnLeagueId}
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium">
+              <span>Season</span>
+              <input
+                className="h-12 w-full rounded-full bg-white px-5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]"
+                min="2000"
+                onChange={(event) => setSeason(Number(event.target.value))}
+                type="number"
+                value={season}
+              />
+            </label>
+          </div>
           <Button
-            className="w-full sm:w-auto"
+            aria-label="Import from ESPN"
+            className="mt-4 w-full sm:w-auto"
             disabled={isPending}
-            onClick={handleManualEntry}
+            onClick={handleEspnImport}
+            type="button"
             variant="secondary"
           >
-            {pendingAction === "manual" ? "Creating…" : "Enter manually"}
+            {pendingAction === "espn" ? "Importing…" : "Import from ESPN"}
           </Button>
         </div>
         {error ? (
@@ -371,6 +437,6 @@ export const LeagueSetupForm = () => {
           </p>
         ) : null}
       </section>
-    </form>
+    </div>
   )
 }

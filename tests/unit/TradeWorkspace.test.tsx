@@ -7,6 +7,10 @@ import { TradeWorkspace } from "@/components/trade/TradeWorkspace"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
+vi.mock("@/components/season/useSyncActiveSeasonLeague", () => ({
+  useSyncActiveSeasonLeague: vi.fn(),
+}))
+
 const projections = {
   FG_PCT: 0.5,
   FT_PCT: 0.8,
@@ -111,16 +115,13 @@ describe("TradeWorkspace", () => {
     vi.stubGlobal("fetch", vi.fn(async (input) => {
       const url = String(input)
 
-      if (url === "/api/season-leagues/season-1") {
-        return new Response(JSON.stringify({ state }), { status: 200 })
-      }
-
       if (url === "/api/trade/suggestions?seasonLeagueId=season-1") {
         return new Response(JSON.stringify({
           suggestions,
           youNeeds: ["AST", "STL"],
           youSurplus: ["PTS"],
           analysisPerspectiveTeamIndex: 0,
+          state,
         }), { status: 200 })
       }
 

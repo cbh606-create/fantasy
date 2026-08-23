@@ -1,21 +1,13 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { CategoryLevel } from "@/lib/season/analysis"
+import {
+  CATEGORY_SHORT_LABELS,
+  formatCategoryStat,
+} from "@/lib/season/formatCategoryStat"
 
 type CompactCategoryProfileProps = {
   levels: CategoryLevel[]
-}
-
-const categoryLabels: Record<CategoryId, string> = {
-  FG_PCT: "FG%",
-  FT_PCT: "FT%",
-  TPM: "3PM",
-  REB: "REB",
-  AST: "AST",
-  STL: "STL",
-  BLK: "BLK",
-  TO: "TO",
-  PTS: "PTS",
 }
 
 export const CompactCategoryProfile = ({
@@ -44,9 +36,11 @@ export const CompactCategoryProfile = ({
           return (
             <div key={categoryId}>
               <div className="mb-1.5 flex items-center justify-between text-xs">
-                <span className="font-medium">{categoryLabels[categoryId]}</span>
+                <span className="font-medium">
+                  {CATEGORY_SHORT_LABELS[categoryId]}
+                </span>
                 <span className="tabular-nums text-[var(--color-mute)]">
-                  {(level?.z ?? 0).toFixed(2)}
+                  {formatCategoryStat(categoryId, level?.raw ?? 0)}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-px">

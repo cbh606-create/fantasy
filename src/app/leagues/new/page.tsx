@@ -12,8 +12,8 @@ export default function NewLeaguePage() {
             BUILD YOUR BOARD
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-7 text-[var(--color-mute)]">
-            Set your draft position and category strategy, then connect ESPN or
-            start with the sample player pool.
+            Set your draft position and category strategy, then start a mock
+            draft right away — ESPN league ID is optional for live import.
           </p>
         </header>
 

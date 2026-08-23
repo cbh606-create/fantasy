@@ -110,6 +110,10 @@ describe("GET /api/waivers/pool", () => {
       youNeeds: expect.any(Array),
       recommendations: expect.any(Array),
       playersById: expect.any(Object),
+      state: expect.objectContaining({
+        name: expect.any(String),
+        teams: expect.any(Array),
+      }),
     })
   })
 })

@@ -13,12 +13,25 @@ describe("espnImportToLeagueState", () => {
 
     expect(state.source).toBe("espn")
     expect(state.settings.teams).toBe(12)
-    expect(state.settings.rounds).toBe(3)
+    expect(state.settings.rounds).toBe(13)
     expect(state.perspectiveTeamIndex).toBe(2)
     expect(state.players.length).toBeGreaterThan(0)
-    expect(state.board.picks).toHaveLength(36)
+    expect(state.board.picks).toHaveLength(12 * 13)
     expect(state.board.picks[0].playerId).toBe("p01")
     expect(state.board.currentOverall).toBe(3)
+  })
+
+  it("honors an ESPN-sized teams override on the fixture path", async () => {
+    const state = await espnImportToLeagueState({
+      ...params,
+      teams: 10,
+      userPickSlot: 7,
+    })
+
+    expect(state.settings.teams).toBe(10)
+    expect(state.settings.userPickSlot).toBe(7)
+    expect(state.perspectiveTeamIndex).toBe(6)
+    expect(state.board.picks).toHaveLength(10 * 13)
   })
 
   it("throws a typed adapter error for a simulated failure", async () => {

@@ -124,7 +124,7 @@ describe("POST /api/leagues", () => {
         manualInput: {
           userPickSlot: 2,
           rounds: 1,
-          playerPoolSource: "stats_2025_26",
+          playerPoolSource: "proj_2026_27",
         },
       }),
     )
