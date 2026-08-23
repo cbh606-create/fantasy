@@ -7,14 +7,26 @@
     "count": 300,
     "adpSource": "yahoo_draft_analysis_rank",
     "adpSourceUrl": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
-    "adpUpdatedAt": "2026-08-19T23:44:55.340Z",
+    "adpUpdatedAt": "2026-08-23T14:22:52.250Z",
     "adpArticleParsed": 150,
     "adpArticleMatched": 150,
     "adpArticleAdded": 0,
     "adpMatched": 286,
     "adpUnmatched": 14,
-    "adpRankRows": 661,
-    "adpFetchSource": "fixture"
+    "adpRankRows": 662,
+    "adpFetchSource": "fixture",
+    "adpSources": {
+      "yahoo_draft_analysis_rank": {
+        "id": "yahoo_draft_analysis_rank",
+        "label": "Yahoo rank",
+        "url": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
+        "updatedAt": "2026-08-23T14:22:52.208Z",
+        "matched": 286,
+        "unmatched": 14,
+        "rowCount": 662
+      }
+    },
+    "adpPrimaryDefault": "yahoo_draft_analysis_rank"
   },
   "players": [
     {
@@ -37,7 +49,10 @@
       "adp": 1,
       "espnId": "5104157",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 1
+      }
     },
     {
       "id": "espn-3112335",
@@ -59,7 +74,10 @@
       "adp": 2,
       "espnId": "3112335",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 2
+      }
     },
     {
       "id": "espn-3945274",
@@ -81,7 +99,10 @@
       "adp": 3,
       "espnId": "3945274",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 3
+      }
     },
     {
       "id": "espn-4278073",
@@ -103,7 +124,10 @@
       "adp": 4,
       "espnId": "4278073",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 4
+      }
     },
     {
       "id": "espn-4432166",
@@ -125,7 +149,10 @@
       "adp": 5,
       "espnId": "4432166",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 5
+      }
     },
     {
       "id": "espn-4431678",
@@ -148,7 +175,10 @@
       "adp": 6,
       "espnId": "4431678",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 6
+      }
     },
     {
       "id": "espn-4065648",
@@ -171,7 +201,10 @@
       "adp": 7,
       "espnId": "4065648",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 7
+      }
     },
     {
       "id": "espn-4594268",
@@ -194,7 +227,10 @@
       "adp": 8,
       "espnId": "4594268",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 8
+      }
     },
     {
       "id": "espn-3032977",
@@ -217,7 +253,10 @@
       "adp": 9,
       "espnId": "3032977",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 9
+      }
     },
     {
       "id": "espn-4701230",
@@ -239,7 +278,10 @@
       "adp": 10,
       "espnId": "4701230",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 10
+      }
     },
     {
       "id": "espn-3908809",
@@ -262,7 +304,10 @@
       "adp": 11,
       "espnId": "3908809",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 11
+      }
     },
     {
       "id": "espn-4396993",
@@ -285,7 +330,10 @@
       "adp": 12,
       "espnId": "4396993",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 12
+      }
     },
     {
       "id": "espn-5041939",
@@ -308,7 +356,10 @@
       "adp": 13,
       "espnId": "5041939",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 13
+      }
     },
     {
       "id": "espn-3202",
@@ -331,7 +382,10 @@
       "adp": 14,
       "espnId": "3202",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 14
+      }
     },
     {
       "id": "espn-4433134",
@@ -354,7 +408,10 @@
       "adp": 15,
       "espnId": "4433134",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 15
+      }
     },
     {
       "id": "espn-3136195",
@@ -376,7 +433,10 @@
       "adp": 16,
       "espnId": "3136195",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 16
+      }
     },
     {
       "id": "espn-3936299",
@@ -398,7 +458,10 @@
       "adp": 17,
       "espnId": "3936299",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 17
+      }
     },
     {
       "id": "espn-6450",
@@ -421,7 +484,10 @@
       "adp": 18,
       "espnId": "6450",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 18
+      }
     },
     {
       "id": "espn-4433255",
@@ -444,29 +510,35 @@
       "adp": 19,
       "espnId": "4433255",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 19
+      }
     },
     {
-      "id": "espn-4277905",
-      "name": "Trae Young",
+      "id": "espn-4432816",
+      "name": "LaMelo Ball",
       "positions": [
         "PG"
       ],
       "projections": {
-        "FG_PCT": 0.45762712,
-        "FT_PCT": 0.82474227,
-        "TPM": 27,
-        "REB": 30,
-        "AST": 120,
-        "STL": 13,
-        "BLK": 2,
-        "TO": 39,
-        "PTS": 269
+        "FG_PCT": 0.40675241,
+        "FT_PCT": 0.89944134,
+        "TPM": 272,
+        "REB": 347,
+        "AST": 514,
+        "STL": 87,
+        "BLK": 18,
+        "TO": 202,
+        "PTS": 1445
       },
       "adp": 20,
-      "espnId": "4277905",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "espnId": "4432816",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 20
+      }
     },
     {
       "id": "espn-6583",
@@ -489,29 +561,35 @@
       "adp": 21,
       "espnId": "6583",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 21
+      }
     },
     {
-      "id": "espn-4432816",
-      "name": "LaMelo Ball",
+      "id": "espn-4277905",
+      "name": "Trae Young",
       "positions": [
         "PG"
       ],
       "projections": {
-        "FG_PCT": 0.40675241,
-        "FT_PCT": 0.89944134,
-        "TPM": 272,
-        "REB": 347,
-        "AST": 514,
-        "STL": 87,
-        "BLK": 18,
-        "TO": 202,
-        "PTS": 1445
+        "FG_PCT": 0.45762712,
+        "FT_PCT": 0.82474227,
+        "TPM": 27,
+        "REB": 30,
+        "AST": 120,
+        "STL": 13,
+        "BLK": 2,
+        "TO": 39,
+        "PTS": 269
       },
       "adp": 22,
-      "espnId": "4432816",
-      "status": "active",
-      "statsSeasonId": 2026
+      "espnId": "4277905",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 22
+      }
     },
     {
       "id": "espn-4871144",
@@ -533,29 +611,10 @@
       "adp": 23,
       "espnId": "4871144",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4433136",
-      "name": "Walker Kessler",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.7027027,
-        "FT_PCT": 0.7,
-        "TPM": 6,
-        "REB": 54,
-        "AST": 15,
-        "STL": 7,
-        "BLK": 9,
-        "TO": 16,
-        "PTS": 72
-      },
-      "adp": 24,
-      "espnId": "4433136",
-      "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 23
+      }
     },
     {
       "id": "espn-4066457",
@@ -575,10 +634,13 @@
         "TO": 151,
         "PTS": 1187
       },
-      "adp": 25,
+      "adp": 24,
       "espnId": "4066457",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 24
+      }
     },
     {
       "id": "espn-3975",
@@ -597,54 +659,38 @@
         "TO": 121,
         "PTS": 1142
       },
-      "adp": 26,
+      "adp": 25,
       "espnId": "3975",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 25
+      }
     },
     {
-      "id": "espn-3934672",
-      "name": "Jalen Brunson",
-      "positions": [
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.46711864,
-        "FT_PCT": 0.84085511,
-        "TPM": 195,
-        "REB": 247,
-        "AST": 503,
-        "STL": 57,
-        "BLK": 8,
-        "TO": 175,
-        "PTS": 1927
-      },
-      "adp": 27,
-      "espnId": "3934672",
-      "status": "gtd",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4433621",
-      "name": "Jalen Duren",
+      "id": "espn-4433136",
+      "name": "Walker Kessler",
       "positions": [
         "C"
       ],
       "projections": {
-        "FG_PCT": 0.65006227,
-        "FT_PCT": 0.74651163,
-        "TPM": 0,
-        "REB": 737,
-        "AST": 138,
-        "STL": 57,
-        "BLK": 59,
-        "TO": 130,
-        "PTS": 1365
+        "FG_PCT": 0.7027027,
+        "FT_PCT": 0.7,
+        "TPM": 6,
+        "REB": 54,
+        "AST": 15,
+        "STL": 7,
+        "BLK": 9,
+        "TO": 16,
+        "PTS": 72
       },
-      "adp": 28,
-      "espnId": "4433621",
+      "adp": 26,
+      "espnId": "4433136",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 26
+      }
     },
     {
       "id": "espn-4871145",
@@ -664,10 +710,63 @@
         "TO": 196,
         "PTS": 919
       },
-      "adp": 29,
+      "adp": 27,
       "espnId": "4871145",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 27
+      }
+    },
+    {
+      "id": "espn-3934672",
+      "name": "Jalen Brunson",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.46711864,
+        "FT_PCT": 0.84085511,
+        "TPM": 195,
+        "REB": 247,
+        "AST": 503,
+        "STL": 57,
+        "BLK": 8,
+        "TO": 175,
+        "PTS": 1927
+      },
+      "adp": 28,
+      "espnId": "3934672",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 28
+      }
+    },
+    {
+      "id": "espn-4433621",
+      "name": "Jalen Duren",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.65006227,
+        "FT_PCT": 0.74651163,
+        "TPM": 0,
+        "REB": 737,
+        "AST": 138,
+        "STL": 57,
+        "BLK": 59,
+        "TO": 130,
+        "PTS": 1365
+      },
+      "adp": 29,
+      "espnId": "4433621",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 29
+      }
     },
     {
       "id": "espn-4397688",
@@ -690,7 +789,10 @@
       "adp": 30,
       "espnId": "4397688",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 30
+      }
     },
     {
       "id": "espn-4684740",
@@ -713,7 +815,10 @@
       "adp": 31,
       "espnId": "4684740",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 31
+      }
     },
     {
       "id": "espn-4432158",
@@ -736,7 +841,10 @@
       "adp": 32,
       "espnId": "4432158",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 32
+      }
     },
     {
       "id": "espn-3136193",
@@ -759,7 +867,10 @@
       "adp": 33,
       "espnId": "3136193",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 33
+      }
     },
     {
       "id": "espn-3155942",
@@ -782,7 +893,10 @@
       "adp": 34,
       "espnId": "3155942",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 34
+      }
     },
     {
       "id": "espn-3992",
@@ -805,7 +919,10 @@
       "adp": 35,
       "espnId": "3992",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 35
+      }
     },
     {
       "id": "espn-4066261",
@@ -828,7 +945,10 @@
       "adp": 36,
       "espnId": "4066261",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 36
+      }
     },
     {
       "id": "espn-5061575",
@@ -851,7 +971,10 @@
       "adp": 37,
       "espnId": "5061575",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 37
+      }
     },
     {
       "id": "espn-5105565",
@@ -873,7 +996,10 @@
       "adp": 38,
       "espnId": "5105565",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 38
+      }
     },
     {
       "id": "espn-3078576",
@@ -896,7 +1022,10 @@
       "adp": 39,
       "espnId": "3078576",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 39
+      }
     },
     {
       "id": "espn-3917376",
@@ -919,7 +1048,10 @@
       "adp": 40,
       "espnId": "3917376",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 40
+      }
     },
     {
       "id": "espn-4683021",
@@ -942,7 +1074,10 @@
       "adp": 41,
       "espnId": "4683021",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 41
+      }
     },
     {
       "id": "espn-1966",
@@ -965,7 +1100,10 @@
       "adp": 42,
       "espnId": "1966",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 42
+      }
     },
     {
       "id": "espn-4593803",
@@ -988,29 +1126,10 @@
       "adp": 43,
       "espnId": "4593803",
       "status": "gtd",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-6442",
-      "name": "Kyrie Irving",
-      "positions": [
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.477,
-        "FT_PCT": 0.914,
-        "TPM": 126,
-        "REB": 206,
-        "AST": 202,
-        "STL": 56,
-        "BLK": 22,
-        "TO": 95,
-        "PTS": 1071
-      },
-      "adp": 44,
-      "espnId": "6442",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 43
+      }
     },
     {
       "id": "espn-4066336",
@@ -1030,10 +1149,38 @@
         "TO": 63,
         "PTS": 1123
       },
-      "adp": 45,
+      "adp": 44,
       "espnId": "4066336",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 44
+      }
+    },
+    {
+      "id": "espn-6442",
+      "name": "Kyrie Irving",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.477,
+        "FT_PCT": 0.914,
+        "TPM": 126,
+        "REB": 206,
+        "AST": 202,
+        "STL": 56,
+        "BLK": 22,
+        "TO": 95,
+        "PTS": 1071
+      },
+      "adp": 45,
+      "espnId": "6442",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 45
+      }
     },
     {
       "id": "espn-4433287",
@@ -1056,7 +1203,10 @@
       "adp": 46,
       "espnId": "4433287",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 46
+      }
     },
     {
       "id": "espn-4433627",
@@ -1079,7 +1229,10 @@
       "adp": 47,
       "espnId": "4433627",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 47
+      }
     },
     {
       "id": "espn-3059318",
@@ -1101,7 +1254,10 @@
       "adp": 48,
       "espnId": "3059318",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 48
+      }
     },
     {
       "id": "espn-4066320",
@@ -1124,7 +1280,10 @@
       "adp": 49,
       "espnId": "4066320",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 49
+      }
     },
     {
       "id": "espn-4277961",
@@ -1147,7 +1306,10 @@
       "adp": 50,
       "espnId": "4277961",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 50
+      }
     },
     {
       "id": "espn-4566434",
@@ -1170,7 +1332,10 @@
       "adp": 51,
       "espnId": "4566434",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 51
+      }
     },
     {
       "id": "espn-3149673",
@@ -1192,7 +1357,10 @@
       "adp": 52,
       "espnId": "3149673",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 52
+      }
     },
     {
       "id": "espn-4396907",
@@ -1214,30 +1382,10 @@
       "adp": 53,
       "espnId": "4396907",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4278039",
-      "name": "Nickeil Alexander-Walker",
-      "positions": [
-        "SG",
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.45857741,
-        "FT_PCT": 0.90228013,
-        "TPM": 251,
-        "REB": 268,
-        "AST": 286,
-        "STL": 102,
-        "BLK": 42,
-        "TO": 162,
-        "PTS": 1624
-      },
-      "adp": 54,
-      "espnId": "4278039",
-      "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 53
+      }
     },
     {
       "id": "espn-4432573",
@@ -1257,32 +1405,39 @@
         "TO": 222,
         "PTS": 1599
       },
-      "adp": 55,
+      "adp": 54,
       "espnId": "4432573",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 54
+      }
     },
     {
-      "id": "espn-4600663",
-      "name": "Zach Edey",
+      "id": "espn-4278039",
+      "name": "Nickeil Alexander-Walker",
       "positions": [
-        "C"
+        "SG",
+        "PG"
       ],
       "projections": {
-        "FG_PCT": 0.63265306,
-        "FT_PCT": 0.78125,
-        "TPM": 1,
-        "REB": 122,
-        "AST": 12,
-        "STL": 7,
-        "BLK": 21,
-        "TO": 26,
-        "PTS": 150
+        "FG_PCT": 0.45857741,
+        "FT_PCT": 0.90228013,
+        "TPM": 251,
+        "REB": 268,
+        "AST": 286,
+        "STL": 102,
+        "BLK": 42,
+        "TO": 162,
+        "PTS": 1624
       },
-      "adp": 56,
-      "espnId": "4600663",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "adp": 55,
+      "espnId": "4278039",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 55
+      }
     },
     {
       "id": "espn-5160992",
@@ -1302,10 +1457,13 @@
         "TO": 82,
         "PTS": 783
       },
-      "adp": 57,
+      "adp": 56,
       "espnId": "5160992",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 56
+      }
     },
     {
       "id": "espn-4431680",
@@ -1324,10 +1482,13 @@
         "TO": 127,
         "PTS": 1123
       },
-      "adp": 58,
+      "adp": 57,
       "espnId": "4431680",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 57
+      }
     },
     {
       "id": "espn-4395725",
@@ -1347,10 +1508,13 @@
         "TO": 64,
         "PTS": 677
       },
-      "adp": 59,
+      "adp": 58,
       "espnId": "4395725",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 58
+      }
     },
     {
       "id": "espn-3907497",
@@ -1370,10 +1534,13 @@
         "TO": 47,
         "PTS": 234
       },
-      "adp": 60,
+      "adp": 59,
       "espnId": "3907497",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 59
+      }
     },
     {
       "id": "espn-3934719",
@@ -1393,10 +1560,13 @@
         "TO": 123,
         "PTS": 1118
       },
-      "adp": 61,
+      "adp": 60,
       "espnId": "3934719",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 60
+      }
     },
     {
       "id": "espn-4396971",
@@ -1416,189 +1586,38 @@
         "TO": 126,
         "PTS": 1046
       },
-      "adp": 62,
+      "adp": 61,
       "espnId": "4396971",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 61
+      }
     },
     {
-      "id": "espn-3064514",
-      "name": "Julius Randle",
-      "positions": [
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.48053024,
-        "FT_PCT": 0.80241935,
-        "TPM": 109,
-        "REB": 532,
-        "AST": 398,
-        "STL": 86,
-        "BLK": 18,
-        "TO": 217,
-        "PTS": 1667
-      },
-      "adp": 63,
-      "espnId": "3064514",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-5041935",
-      "name": "Cameron Boozer",
-      "positions": [
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 64,
-      "espnId": "5041935",
-      "status": "active",
-      "statsSeasonId": null
-    },
-    {
-      "id": "espn-6606",
-      "name": "Damian Lillard",
-      "positions": [
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 65,
-      "espnId": "6606",
-      "status": "gtd",
-      "statsSeasonId": null
-    },
-    {
-      "id": "espn-4278104",
-      "name": "Michael Porter Jr.",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.46346555,
-        "FT_PCT": 0.85903084,
-        "TPM": 176,
-        "REB": 367,
-        "AST": 158,
-        "STL": 55,
-        "BLK": 13,
-        "TO": 122,
-        "PTS": 1259
-      },
-      "adp": 66,
-      "espnId": "4278104",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4017837",
-      "name": "Ivica Zubac",
+      "id": "espn-4600663",
+      "name": "Zach Edey",
       "positions": [
         "C"
       ],
       "projections": {
-        "FG_PCT": 0.59751037,
-        "FT_PCT": 0.71126761,
-        "TPM": 0,
-        "REB": 509,
-        "AST": 105,
-        "STL": 18,
-        "BLK": 40,
-        "TO": 86,
-        "PTS": 677
+        "FG_PCT": 0.63265306,
+        "FT_PCT": 0.78125,
+        "TPM": 1,
+        "REB": 122,
+        "AST": 12,
+        "STL": 7,
+        "BLK": 21,
+        "TO": 26,
+        "PTS": 150
       },
-      "adp": 67,
-      "espnId": "4017837",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4591725",
-      "name": "Ryan Rollins",
-      "positions": [
-        "SG",
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.47184466,
-        "FT_PCT": 0.79617834,
-        "TPM": 184,
-        "REB": 338,
-        "AST": 414,
-        "STL": 110,
-        "BLK": 31,
-        "TO": 201,
-        "PTS": 1281
-      },
-      "adp": 68,
-      "espnId": "4591725",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4845367",
-      "name": "Stephon Castle",
-      "positions": [
-        "PG",
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0.47058824,
-        "FT_PCT": 0.734375,
-        "TPM": 81,
-        "REB": 361,
-        "AST": 502,
-        "STL": 78,
-        "BLK": 19,
-        "TO": 217,
-        "PTS": 1131
-      },
-      "adp": 69,
-      "espnId": "4845367",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-5124612",
-      "name": "VJ Edgecombe",
-      "positions": [
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0.43786408,
-        "FT_PCT": 0.81767956,
-        "TPM": 149,
-        "REB": 423,
-        "AST": 315,
-        "STL": 107,
-        "BLK": 39,
-        "TO": 137,
-        "PTS": 1199
-      },
-      "adp": 70,
-      "espnId": "5124612",
-      "status": "active",
-      "statsSeasonId": 2026
+      "adp": 62,
+      "espnId": "4600663",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 62
+      }
     },
     {
       "id": "espn-4869342",
@@ -1618,10 +1637,216 @@
         "TO": 135,
         "PTS": 901
       },
-      "adp": 71,
+      "adp": 63,
       "espnId": "4869342",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 63
+      }
+    },
+    {
+      "id": "espn-3064514",
+      "name": "Julius Randle",
+      "positions": [
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.48053024,
+        "FT_PCT": 0.80241935,
+        "TPM": 109,
+        "REB": 532,
+        "AST": 398,
+        "STL": 86,
+        "BLK": 18,
+        "TO": 217,
+        "PTS": 1667
+      },
+      "adp": 64,
+      "espnId": "3064514",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 64
+      }
+    },
+    {
+      "id": "espn-5041935",
+      "name": "Cameron Boozer",
+      "positions": [
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 65,
+      "espnId": "5041935",
+      "status": "active",
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 65
+      }
+    },
+    {
+      "id": "espn-6606",
+      "name": "Damian Lillard",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 66,
+      "espnId": "6606",
+      "status": "gtd",
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 66
+      }
+    },
+    {
+      "id": "espn-4278104",
+      "name": "Michael Porter Jr.",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.46346555,
+        "FT_PCT": 0.85903084,
+        "TPM": 176,
+        "REB": 367,
+        "AST": 158,
+        "STL": 55,
+        "BLK": 13,
+        "TO": 122,
+        "PTS": 1259
+      },
+      "adp": 67,
+      "espnId": "4278104",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 67
+      }
+    },
+    {
+      "id": "espn-4017837",
+      "name": "Ivica Zubac",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.59751037,
+        "FT_PCT": 0.71126761,
+        "TPM": 0,
+        "REB": 509,
+        "AST": 105,
+        "STL": 18,
+        "BLK": 40,
+        "TO": 86,
+        "PTS": 677
+      },
+      "adp": 68,
+      "espnId": "4017837",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 68
+      }
+    },
+    {
+      "id": "espn-4591725",
+      "name": "Ryan Rollins",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.47184466,
+        "FT_PCT": 0.79617834,
+        "TPM": 184,
+        "REB": 338,
+        "AST": 414,
+        "STL": 110,
+        "BLK": 31,
+        "TO": 201,
+        "PTS": 1281
+      },
+      "adp": 69,
+      "espnId": "4591725",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 69
+      }
+    },
+    {
+      "id": "espn-4845367",
+      "name": "Stephon Castle",
+      "positions": [
+        "PG",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.47058824,
+        "FT_PCT": 0.734375,
+        "TPM": 81,
+        "REB": 361,
+        "AST": 502,
+        "STL": 78,
+        "BLK": 19,
+        "TO": 217,
+        "PTS": 1131
+      },
+      "adp": 70,
+      "espnId": "4845367",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 70
+      }
+    },
+    {
+      "id": "espn-5124612",
+      "name": "VJ Edgecombe",
+      "positions": [
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43786408,
+        "FT_PCT": 0.81767956,
+        "TPM": 149,
+        "REB": 423,
+        "AST": 315,
+        "STL": 107,
+        "BLK": 39,
+        "TO": 137,
+        "PTS": 1199
+      },
+      "adp": 71,
+      "espnId": "5124612",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 71
+      }
     },
     {
       "id": "espn-4395628",
@@ -1644,7 +1869,10 @@
       "adp": 72,
       "espnId": "4395628",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 72
+      }
     },
     {
       "id": "espn-3147657",
@@ -1667,7 +1895,10 @@
       "adp": 73,
       "espnId": "3147657",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 73
+      }
     },
     {
       "id": "espn-4431671",
@@ -1690,7 +1921,10 @@
       "adp": 74,
       "espnId": "4431671",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 74
+      }
     },
     {
       "id": "espn-4251",
@@ -1713,7 +1947,10 @@
       "adp": 75,
       "espnId": "4251",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 75
+      }
     },
     {
       "id": "espn-4066328",
@@ -1735,7 +1972,10 @@
       "adp": 76,
       "espnId": "4066328",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 76
+      }
     },
     {
       "id": "espn-3913176",
@@ -1758,7 +1998,10 @@
       "adp": 77,
       "espnId": "3913176",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 77
+      }
     },
     {
       "id": "espn-3032976",
@@ -1780,7 +2023,10 @@
       "adp": 78,
       "espnId": "3032976",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 78
+      }
     },
     {
       "id": "espn-5037871",
@@ -1803,7 +2049,10 @@
       "adp": 79,
       "espnId": "5037871",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 79
+      }
     },
     {
       "id": "espn-4066354",
@@ -1826,7 +2075,10 @@
       "adp": 80,
       "espnId": "4066354",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 80
+      }
     },
     {
       "id": "espn-5095151",
@@ -1848,7 +2100,10 @@
       "adp": 81,
       "espnId": "5095151",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 81
+      }
     },
     {
       "id": "espn-5105623",
@@ -1870,7 +2125,10 @@
       "adp": 82,
       "espnId": "5105623",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 82
+      }
     },
     {
       "id": "espn-4711294",
@@ -1893,7 +2151,10 @@
       "adp": 83,
       "espnId": "4711294",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 83
+      }
     },
     {
       "id": "espn-4066259",
@@ -1916,7 +2177,10 @@
       "adp": 84,
       "espnId": "4066259",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 84
+      }
     },
     {
       "id": "espn-4395651",
@@ -1939,7 +2203,10 @@
       "adp": 85,
       "espnId": "4395651",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 85
+      }
     },
     {
       "id": "espn-5142718",
@@ -1961,7 +2228,10 @@
       "adp": 86,
       "espnId": "5142718",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 86
+      }
     },
     {
       "id": "espn-4065733",
@@ -1984,7 +2254,10 @@
       "adp": 87,
       "espnId": "4065733",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 87
+      }
     },
     {
       "id": "espn-4432194",
@@ -2006,7 +2279,10 @@
       "adp": 88,
       "espnId": "4432194",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 88
+      }
     },
     {
       "id": "espn-4279888",
@@ -2028,7 +2304,10 @@
       "adp": 89,
       "espnId": "4279888",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 89
+      }
     },
     {
       "id": "espn-4395724",
@@ -2051,187 +2330,10 @@
       "adp": 90,
       "espnId": "4395724",
       "status": "gtd",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4684742",
-      "name": "Ausar Thompson",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.52512998,
-        "FT_PCT": 0.57068063,
-        "TPM": 6,
-        "REB": 418,
-        "AST": 228,
-        "STL": 146,
-        "BLK": 69,
-        "TO": 110,
-        "PTS": 721
-      },
-      "adp": 91,
-      "espnId": "4684742",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-5041955",
-      "name": "Darryn Peterson",
-      "positions": [
-        "SG",
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 92,
-      "espnId": "5041955",
-      "status": "active",
-      "statsSeasonId": null
-    },
-    {
-      "id": "espn-4869780",
-      "name": "Derik Queen",
-      "positions": [
-        "C",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.47326203,
-        "FT_PCT": 0.79487179,
-        "TPM": 23,
-        "REB": 572,
-        "AST": 298,
-        "STL": 84,
-        "BLK": 74,
-        "TO": 190,
-        "PTS": 948
-      },
-      "adp": 93,
-      "espnId": "4869780",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-3133628",
-      "name": "Myles Turner",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.43962848,
-        "FT_PCT": 0.74011299,
-        "TPM": 147,
-        "REB": 378,
-        "AST": 103,
-        "STL": 50,
-        "BLK": 115,
-        "TO": 83,
-        "PTS": 846
-      },
-      "adp": 94,
-      "espnId": "3133628",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4278067",
-      "name": "Nic Claxton",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.57118353,
-        "FT_PCT": 0.61572052,
-        "TPM": 3,
-        "REB": 478,
-        "AST": 253,
-        "STL": 45,
-        "BLK": 77,
-        "TO": 96,
-        "PTS": 810
-      },
-      "adp": 95,
-      "espnId": "4278067",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4397424",
-      "name": "Neemias Queta",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.65330661,
-        "FT_PCT": 0.70285714,
-        "TPM": 1,
-        "REB": 636,
-        "AST": 126,
-        "STL": 60,
-        "BLK": 100,
-        "TO": 75,
-        "PTS": 776
-      },
-      "adp": 96,
-      "espnId": "4397424",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4432165",
-      "name": "Jalen Suggs",
-      "positions": [
-        "PG",
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0.43451464,
-        "FT_PCT": 0.85470085,
-        "TPM": 122,
-        "REB": 220,
-        "AST": 312,
-        "STL": 105,
-        "BLK": 40,
-        "TO": 152,
-        "PTS": 786
-      },
-      "adp": 97,
-      "espnId": "4432165",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4277847",
-      "name": "Wendell Carter Jr.",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.51177394,
-        "FT_PCT": 0.792,
-        "TPM": 72,
-        "REB": 577,
-        "AST": 154,
-        "STL": 60,
-        "BLK": 49,
-        "TO": 100,
-        "PTS": 922
-      },
-      "adp": 98,
-      "espnId": "4277847",
-      "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 90
+      }
     },
     {
       "id": "espn-2595516",
@@ -2251,10 +2353,141 @@
         "TO": 111,
         "PTS": 1261
       },
-      "adp": 99,
+      "adp": 91,
       "espnId": "2595516",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 91
+      }
+    },
+    {
+      "id": "espn-4684742",
+      "name": "Ausar Thompson",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.52512998,
+        "FT_PCT": 0.57068063,
+        "TPM": 6,
+        "REB": 418,
+        "AST": 228,
+        "STL": 146,
+        "BLK": 69,
+        "TO": 110,
+        "PTS": 721
+      },
+      "adp": 92,
+      "espnId": "4684742",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 92
+      }
+    },
+    {
+      "id": "espn-5041955",
+      "name": "Darryn Peterson",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 93,
+      "espnId": "5041955",
+      "status": "active",
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 93
+      }
+    },
+    {
+      "id": "espn-4869780",
+      "name": "Derik Queen",
+      "positions": [
+        "C",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.47326203,
+        "FT_PCT": 0.79487179,
+        "TPM": 23,
+        "REB": 572,
+        "AST": 298,
+        "STL": 84,
+        "BLK": 74,
+        "TO": 190,
+        "PTS": 948
+      },
+      "adp": 94,
+      "espnId": "4869780",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 94
+      }
+    },
+    {
+      "id": "espn-3133628",
+      "name": "Myles Turner",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.43962848,
+        "FT_PCT": 0.74011299,
+        "TPM": 147,
+        "REB": 378,
+        "AST": 103,
+        "STL": 50,
+        "BLK": 115,
+        "TO": 83,
+        "PTS": 846
+      },
+      "adp": 95,
+      "espnId": "3133628",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 95
+      }
+    },
+    {
+      "id": "espn-4701232",
+      "name": "Mark Williams",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.64383562,
+        "FT_PCT": 0.77142857,
+        "TPM": 1,
+        "REB": 477,
+        "AST": 58,
+        "STL": 55,
+        "BLK": 55,
+        "TO": 65,
+        "PTS": 700
+      },
+      "adp": 96,
+      "espnId": "4701232",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 96
+      }
     },
     {
       "id": "espn-3062679",
@@ -2274,10 +2507,88 @@
         "TO": 128,
         "PTS": 792
       },
-      "adp": 100,
+      "adp": 97,
       "espnId": "3062679",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 97
+      }
+    },
+    {
+      "id": "espn-4278067",
+      "name": "Nic Claxton",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.57118353,
+        "FT_PCT": 0.61572052,
+        "TPM": 3,
+        "REB": 478,
+        "AST": 253,
+        "STL": 45,
+        "BLK": 77,
+        "TO": 96,
+        "PTS": 810
+      },
+      "adp": 98,
+      "espnId": "4278067",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 98
+      }
+    },
+    {
+      "id": "espn-4222252",
+      "name": "Isaiah Hartenstein",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.62162162,
+        "FT_PCT": 0.60952381,
+        "TPM": 0,
+        "REB": 443,
+        "AST": 166,
+        "STL": 48,
+        "BLK": 36,
+        "TO": 82,
+        "PTS": 432
+      },
+      "adp": 99,
+      "espnId": "4222252",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 99
+      }
+    },
+    {
+      "id": "espn-4397424",
+      "name": "Neemias Queta",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.65330661,
+        "FT_PCT": 0.70285714,
+        "TPM": 1,
+        "REB": 636,
+        "AST": 126,
+        "STL": 60,
+        "BLK": 100,
+        "TO": 75,
+        "PTS": 776
+      },
+      "adp": 100,
+      "espnId": "4397424",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 100
+      }
     },
     {
       "id": "espn-4397002",
@@ -2300,51 +2611,61 @@
       "adp": 101,
       "espnId": "4397002",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 101
+      }
     },
     {
-      "id": "espn-4222252",
-      "name": "Isaiah Hartenstein",
+      "id": "espn-4432165",
+      "name": "Jalen Suggs",
       "positions": [
-        "C"
+        "PG",
+        "SG"
       ],
       "projections": {
-        "FG_PCT": 0.62162162,
-        "FT_PCT": 0.60952381,
-        "TPM": 0,
-        "REB": 443,
-        "AST": 166,
-        "STL": 48,
-        "BLK": 36,
-        "TO": 82,
-        "PTS": 432
+        "FG_PCT": 0.43451464,
+        "FT_PCT": 0.85470085,
+        "TPM": 122,
+        "REB": 220,
+        "AST": 312,
+        "STL": 105,
+        "BLK": 40,
+        "TO": 152,
+        "PTS": 786
       },
       "adp": 102,
-      "espnId": "4222252",
+      "espnId": "4432165",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 102
+      }
     },
     {
-      "id": "espn-4701232",
-      "name": "Mark Williams",
+      "id": "espn-4277847",
+      "name": "Wendell Carter Jr.",
       "positions": [
         "C"
       ],
       "projections": {
-        "FG_PCT": 0.64383562,
-        "FT_PCT": 0.77142857,
-        "TPM": 1,
-        "REB": 477,
-        "AST": 58,
-        "STL": 55,
-        "BLK": 55,
-        "TO": 65,
-        "PTS": 700
+        "FG_PCT": 0.51177394,
+        "FT_PCT": 0.792,
+        "TPM": 72,
+        "REB": 577,
+        "AST": 154,
+        "STL": 60,
+        "BLK": 49,
+        "TO": 100,
+        "PTS": 922
       },
       "adp": 103,
-      "espnId": "4701232",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "espnId": "4277847",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 103
+      }
     },
     {
       "id": "espn-4066383",
@@ -2367,7 +2688,10 @@
       "adp": 104,
       "espnId": "4066383",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 104
+      }
     },
     {
       "id": "espn-3102531",
@@ -2390,30 +2714,10 @@
       "adp": 105,
       "espnId": "3102531",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4576087",
-      "name": "Peyton Watson",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.49053356,
-        "FT_PCT": 0.73015873,
-        "TPM": 81,
-        "REB": 264,
-        "AST": 111,
-        "STL": 50,
-        "BLK": 61,
-        "TO": 93,
-        "PTS": 789
-      },
-      "adp": 106,
-      "espnId": "4576087",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 105
+      }
     },
     {
       "id": "espn-5174563",
@@ -2433,10 +2737,13 @@
         "TO": 125,
         "PTS": 710
       },
-      "adp": 107,
+      "adp": 106,
       "espnId": "5174563",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 106
+      }
     },
     {
       "id": "espn-4709138",
@@ -2456,10 +2763,13 @@
         "TO": 131,
         "PTS": 1133
       },
-      "adp": 108,
+      "adp": 107,
       "espnId": "4709138",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 107
+      }
     },
     {
       "id": "espn-4903027",
@@ -2479,10 +2789,13 @@
         "TO": 105,
         "PTS": 843
       },
-      "adp": 109,
+      "adp": 108,
       "espnId": "4903027",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 108
+      }
     },
     {
       "id": "espn-3059319",
@@ -2502,10 +2815,39 @@
         "TO": 103,
         "PTS": 1045
       },
-      "adp": 110,
+      "adp": 109,
       "espnId": "3059319",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 109
+      }
+    },
+    {
+      "id": "espn-4397140",
+      "name": "Kevin Porter Jr.",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.46498054,
+        "FT_PCT": 0.87820513,
+        "TPM": 46,
+        "REB": 198,
+        "AST": 280,
+        "STL": 83,
+        "BLK": 19,
+        "TO": 110,
+        "PTS": 661
+      },
+      "adp": 110,
+      "espnId": "4397140",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 110
+      }
     },
     {
       "id": "espn-4432639",
@@ -2528,7 +2870,10 @@
       "adp": 111,
       "espnId": "4432639",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 111
+      }
     },
     {
       "id": "espn-4278580",
@@ -2551,7 +2896,36 @@
       "adp": 112,
       "espnId": "4278580",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 112
+      }
+    },
+    {
+      "id": "espn-4576087",
+      "name": "Peyton Watson",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.49053356,
+        "FT_PCT": 0.73015873,
+        "TPM": 81,
+        "REB": 264,
+        "AST": 111,
+        "STL": 50,
+        "BLK": 61,
+        "TO": 93,
+        "PTS": 789
+      },
+      "adp": 113,
+      "espnId": "4576087",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 113
+      }
     },
     {
       "id": "espn-3102530",
@@ -2570,10 +2944,13 @@
         "TO": 101,
         "PTS": 447
       },
-      "adp": 113,
+      "adp": 114,
       "espnId": "3102530",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 114
+      }
     },
     {
       "id": "espn-2490149",
@@ -2593,10 +2970,13 @@
         "TO": 135,
         "PTS": 1424
       },
-      "adp": 114,
+      "adp": 115,
       "espnId": "2490149",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 115
+      }
     },
     {
       "id": "espn-5142620",
@@ -2615,10 +2995,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 115,
+      "adp": 116,
       "espnId": "5142620",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 116
+      }
     },
     {
       "id": "espn-4432848",
@@ -2638,10 +3021,13 @@
         "TO": 152,
         "PTS": 1152
       },
-      "adp": 116,
+      "adp": 117,
       "espnId": "4432848",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 117
+      }
     },
     {
       "id": "espn-4594327",
@@ -2661,10 +3047,13 @@
         "TO": 27,
         "PTS": 321
       },
-      "adp": 117,
+      "adp": 118,
       "espnId": "4594327",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 118
+      }
     },
     {
       "id": "espn-2991230",
@@ -2684,10 +3073,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 118,
+      "adp": 119,
       "espnId": "2991230",
       "status": "gtd",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 119
+      }
     },
     {
       "id": "espn-4431736",
@@ -2707,33 +3099,13 @@
         "TO": 144,
         "PTS": 1100
       },
-      "adp": 119,
+      "adp": 120,
       "espnId": "4431736",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4397140",
-      "name": "Kevin Porter Jr.",
-      "positions": [
-        "SG",
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.46498054,
-        "FT_PCT": 0.87820513,
-        "TPM": 46,
-        "REB": 198,
-        "AST": 280,
-        "STL": 83,
-        "BLK": 19,
-        "TO": 110,
-        "PTS": 661
-      },
-      "adp": 120,
-      "espnId": "4397140",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 120
+      }
     },
     {
       "id": "espn-3908845",
@@ -2756,7 +3128,36 @@
       "adp": 121,
       "espnId": "3908845",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 121
+      }
+    },
+    {
+      "id": "espn-3978",
+      "name": "DeMar DeRozan",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.49651741,
+        "FT_PCT": 0.86774942,
+        "TPM": 47,
+        "REB": 226,
+        "AST": 316,
+        "STL": 80,
+        "BLK": 23,
+        "TO": 96,
+        "PTS": 1419
+      },
+      "adp": 122,
+      "espnId": "3978",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 122
+      }
     },
     {
       "id": "espn-4395625",
@@ -2776,56 +3177,13 @@
         "TO": 99,
         "PTS": 1098
       },
-      "adp": 122,
+      "adp": 123,
       "espnId": "4395625",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-3064440",
-      "name": "Zach LaVine",
-      "positions": [
-        "SG",
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0.47897623,
-        "FT_PCT": 0.88028169,
-        "TPM": 99,
-        "REB": 108,
-        "AST": 89,
-        "STL": 28,
-        "BLK": 10,
-        "TO": 74,
-        "PTS": 748
-      },
-      "adp": 123,
-      "espnId": "3064440",
-      "status": "gtd",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4397136",
-      "name": "Saddiq Bey",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.45087901,
-        "FT_PCT": 0.84067797,
-        "TPM": 151,
-        "REB": 400,
-        "AST": 182,
-        "STL": 68,
-        "BLK": 7,
-        "TO": 68,
-        "PTS": 1271
-      },
-      "adp": 124,
-      "espnId": "4397136",
-      "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 123
+      }
     },
     {
       "id": "espn-4437244",
@@ -2845,10 +3203,65 @@
         "TO": 72,
         "PTS": 568
       },
-      "adp": 125,
+      "adp": 124,
       "espnId": "4437244",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 124
+      }
+    },
+    {
+      "id": "espn-3064440",
+      "name": "Zach LaVine",
+      "positions": [
+        "SG",
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.47897623,
+        "FT_PCT": 0.88028169,
+        "TPM": 99,
+        "REB": 108,
+        "AST": 89,
+        "STL": 28,
+        "BLK": 10,
+        "TO": 74,
+        "PTS": 748
+      },
+      "adp": 125,
+      "espnId": "3064440",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 125
+      }
+    },
+    {
+      "id": "espn-4397136",
+      "name": "Saddiq Bey",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.45087901,
+        "FT_PCT": 0.84067797,
+        "TPM": 151,
+        "REB": 400,
+        "AST": 182,
+        "STL": 68,
+        "BLK": 7,
+        "TO": 68,
+        "PTS": 1271
+      },
+      "adp": 126,
+      "espnId": "4397136",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 126
+      }
     },
     {
       "id": "espn-5093267",
@@ -2867,10 +3280,39 @@
         "TO": 59,
         "PTS": 484
       },
-      "adp": 127,
+      "adp": 128,
       "espnId": "5093267",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 128
+      }
+    },
+    {
+      "id": "espn-6430",
+      "name": "Jimmy Butler III",
+      "positions": [
+        "SF",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.51948052,
+        "FT_PCT": 0.8641115,
+        "TPM": 32,
+        "REB": 211,
+        "AST": 185,
+        "STL": 55,
+        "BLK": 8,
+        "TO": 60,
+        "PTS": 760
+      },
+      "adp": 129,
+      "espnId": "6430",
+      "status": "out",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 129
+      }
     },
     {
       "id": "espn-4395712",
@@ -2890,145 +3332,38 @@
         "TO": 137,
         "PTS": 966
       },
-      "adp": 128,
+      "adp": 130,
       "espnId": "4395712",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 130
+      }
     },
     {
-      "id": "espn-3995",
-      "name": "Jrue Holiday",
+      "id": "espn-4278585",
+      "name": "Collin Gillespie",
       "positions": [
-        "PG",
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0.45133992,
-        "FT_PCT": 0.83809524,
-        "TPM": 137,
-        "REB": 245,
-        "AST": 322,
-        "STL": 54,
-        "BLK": 6,
-        "TO": 146,
-        "PTS": 865
-      },
-      "adp": 129,
-      "espnId": "3995",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4278049",
-      "name": "Daniel Gafford",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.65506329,
-        "FT_PCT": 0.68322981,
-        "TPM": 0,
-        "REB": 378,
-        "AST": 58,
-        "STL": 42,
-        "BLK": 69,
-        "TO": 63,
-        "PTS": 524
-      },
-      "adp": 130,
-      "espnId": "4278049",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-5175643",
-      "name": "Egor Demin",
-      "positions": [
-        "PG",
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0.3986637,
-        "FT_PCT": 0.83076923,
-        "TPM": 124,
-        "REB": 165,
-        "AST": 173,
-        "STL": 42,
-        "BLK": 17,
-        "TO": 86,
-        "PTS": 536
-      },
-      "adp": 131,
-      "espnId": "5175643",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-3134908",
-      "name": "Jakob Poeltl",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.7,
-        "FT_PCT": 0.60204082,
-        "TPM": 0,
-        "REB": 323,
-        "AST": 93,
-        "STL": 40,
-        "BLK": 32,
-        "TO": 57,
-        "PTS": 493
-      },
-      "adp": 132,
-      "espnId": "3134908",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4711272",
-      "name": "Reed Sheppard",
-      "positions": [
-        "SG",
         "PG"
       ],
       "projections": {
-        "FG_PCT": 0.43023256,
-        "FT_PCT": 0.80232558,
-        "TPM": 227,
-        "REB": 238,
-        "AST": 277,
-        "STL": 122,
-        "BLK": 54,
-        "TO": 123,
-        "PTS": 1110
+        "FG_PCT": 0.41805226,
+        "FT_PCT": 0.87356322,
+        "TPM": 232,
+        "REB": 327,
+        "AST": 371,
+        "STL": 99,
+        "BLK": 16,
+        "TO": 124,
+        "PTS": 1012
       },
-      "adp": 133,
-      "espnId": "4711272",
+      "adp": 131,
+      "espnId": "4278585",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-3448",
-      "name": "Brook Lopez",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.42804428,
-        "FT_PCT": 0.75675676,
-        "TPM": 114,
-        "REB": 273,
-        "AST": 97,
-        "STL": 45,
-        "BLK": 87,
-        "TO": 61,
-        "PTS": 634
-      },
-      "adp": 134,
-      "espnId": "3448",
-      "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 131
+      }
     },
     {
       "id": "espn-5175737",
@@ -3048,56 +3383,140 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 135,
+      "adp": 132,
       "espnId": "5175737",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 132
+      }
     },
     {
-      "id": "espn-4397014",
-      "name": "Quentin Grimes",
+      "id": "espn-3995",
+      "name": "Jrue Holiday",
       "positions": [
-        "SG",
-        "SF"
+        "PG",
+        "SG"
       ],
       "projections": {
-        "FG_PCT": 0.45033113,
-        "FT_PCT": 0.83966245,
-        "TPM": 127,
-        "REB": 273,
-        "AST": 244,
-        "STL": 64,
-        "BLK": 28,
-        "TO": 133,
-        "PTS": 1006
+        "FG_PCT": 0.45133992,
+        "FT_PCT": 0.83809524,
+        "TPM": 137,
+        "REB": 245,
+        "AST": 322,
+        "STL": 54,
+        "BLK": 6,
+        "TO": 146,
+        "PTS": 865
+      },
+      "adp": 133,
+      "espnId": "3995",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 133
+      }
+    },
+    {
+      "id": "espn-4278049",
+      "name": "Daniel Gafford",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.65506329,
+        "FT_PCT": 0.68322981,
+        "TPM": 0,
+        "REB": 378,
+        "AST": 58,
+        "STL": 42,
+        "BLK": 69,
+        "TO": 63,
+        "PTS": 524
+      },
+      "adp": 134,
+      "espnId": "4278049",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 134
+      }
+    },
+    {
+      "id": "espn-5175643",
+      "name": "Egor Demin",
+      "positions": [
+        "PG",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.3986637,
+        "FT_PCT": 0.83076923,
+        "TPM": 124,
+        "REB": 165,
+        "AST": 173,
+        "STL": 42,
+        "BLK": 17,
+        "TO": 86,
+        "PTS": 536
+      },
+      "adp": 135,
+      "espnId": "5175643",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 135
+      }
+    },
+    {
+      "id": "espn-3134908",
+      "name": "Jakob Poeltl",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.7,
+        "FT_PCT": 0.60204082,
+        "TPM": 0,
+        "REB": 323,
+        "AST": 93,
+        "STL": 40,
+        "BLK": 32,
+        "TO": 57,
+        "PTS": 493
       },
       "adp": 136,
-      "espnId": "4397014",
+      "espnId": "3134908",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 136
+      }
     },
     {
-      "id": "espn-4278562",
-      "name": "Paul Reed",
+      "id": "espn-4278053",
+      "name": "Davion Mitchell",
       "positions": [
-        "C",
-        "PF"
+        "PG"
       ],
       "projections": {
-        "FG_PCT": 0.61651917,
-        "FT_PCT": 0.66363636,
-        "TPM": 13,
-        "REB": 294,
-        "AST": 80,
-        "STL": 57,
-        "BLK": 60,
-        "TO": 58,
-        "PTS": 504
+        "FG_PCT": 0.48968105,
+        "FT_PCT": 0.64615385,
+        "TPM": 90,
+        "REB": 187,
+        "AST": 453,
+        "STL": 68,
+        "BLK": 11,
+        "TO": 108,
+        "PTS": 654
       },
       "adp": 137,
-      "espnId": "4278562",
+      "espnId": "4278053",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 137
+      }
     },
     {
       "id": "espn-2779",
@@ -3122,50 +3541,55 @@
       "statsSeasonId": 2026
     },
     {
-      "id": "espn-3978",
-      "name": "DeMar DeRozan",
+      "id": "espn-4711272",
+      "name": "Reed Sheppard",
       "positions": [
-        "SF",
-        "PF"
+        "SG",
+        "PG"
       ],
       "projections": {
-        "FG_PCT": 0.49651741,
-        "FT_PCT": 0.86774942,
-        "TPM": 47,
-        "REB": 226,
-        "AST": 316,
-        "STL": 80,
-        "BLK": 23,
-        "TO": 96,
-        "PTS": 1419
+        "FG_PCT": 0.43023256,
+        "FT_PCT": 0.80232558,
+        "TPM": 227,
+        "REB": 238,
+        "AST": 277,
+        "STL": 122,
+        "BLK": 54,
+        "TO": 123,
+        "PTS": 1110
       },
       "adp": 138,
-      "espnId": "3978",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "espnId": "4711272",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 138
+      }
     },
     {
-      "id": "espn-4900671",
-      "name": "Ajay Mitchell",
+      "id": "espn-3448",
+      "name": "Brook Lopez",
       "positions": [
-        "PG",
-        "SG"
+        "C"
       ],
       "projections": {
-        "FG_PCT": 0.48474576,
-        "FT_PCT": 0.87037037,
-        "TPM": 61,
-        "REB": 190,
-        "AST": 206,
-        "STL": 71,
-        "BLK": 18,
-        "TO": 81,
-        "PTS": 774
+        "FG_PCT": 0.42804428,
+        "FT_PCT": 0.75675676,
+        "TPM": 114,
+        "REB": 273,
+        "AST": 97,
+        "STL": 45,
+        "BLK": 87,
+        "TO": 61,
+        "PTS": 634
       },
       "adp": 139,
-      "espnId": "4900671",
-      "status": "gtd",
-      "statsSeasonId": 2026
+      "espnId": "3448",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 139
+      }
     },
     {
       "id": "espn-3893023",
@@ -3300,8 +3724,8 @@
       "statsSeasonId": 2026
     },
     {
-      "id": "espn-3033",
-      "name": "P.J. Tucker",
+      "id": "espn-2490620",
+      "name": "Robert Covington",
       "positions": [
         "PF"
       ],
@@ -3317,7 +3741,7 @@
         "PTS": 0
       },
       "adp": 139.92,
-      "espnId": "3033",
+      "espnId": "2490620",
       "status": "active",
       "statsSeasonId": null
     },
@@ -3344,8 +3768,8 @@
       "statsSeasonId": null
     },
     {
-      "id": "espn-3078286",
-      "name": "Troy Williams",
+      "id": "espn-2579466",
+      "name": "Jonathon Simmons",
       "positions": [
         "SF"
       ],
@@ -3361,29 +3785,7 @@
         "PTS": 0
       },
       "adp": 139.92,
-      "espnId": "3078286",
-      "status": "active",
-      "statsSeasonId": null
-    },
-    {
-      "id": "espn-3064528",
-      "name": "Johnathan Williams",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 139.92,
-      "espnId": "3064528",
+      "espnId": "2579466",
       "status": "active",
       "statsSeasonId": null
     },
@@ -3410,8 +3812,8 @@
       "statsSeasonId": null
     },
     {
-      "id": "espn-2490620",
-      "name": "Robert Covington",
+      "id": "espn-3033",
+      "name": "P.J. Tucker",
       "positions": [
         "PF"
       ],
@@ -3427,13 +3829,35 @@
         "PTS": 0
       },
       "adp": 139.92,
-      "espnId": "2490620",
+      "espnId": "3033",
       "status": "active",
       "statsSeasonId": null
     },
     {
-      "id": "espn-2579466",
-      "name": "Jonathon Simmons",
+      "id": "espn-3064528",
+      "name": "Johnathan Williams",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 139.92,
+      "espnId": "3064528",
+      "status": "active",
+      "statsSeasonId": null
+    },
+    {
+      "id": "espn-3078286",
+      "name": "Troy Williams",
       "positions": [
         "SF"
       ],
@@ -3449,9 +3873,87 @@
         "PTS": 0
       },
       "adp": 139.92,
-      "espnId": "2579466",
+      "espnId": "3078286",
       "status": "active",
       "statsSeasonId": null
+    },
+    {
+      "id": "espn-4397014",
+      "name": "Quentin Grimes",
+      "positions": [
+        "SG",
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.45033113,
+        "FT_PCT": 0.83966245,
+        "TPM": 127,
+        "REB": 273,
+        "AST": 244,
+        "STL": 64,
+        "BLK": 28,
+        "TO": 133,
+        "PTS": 1006
+      },
+      "adp": 140,
+      "espnId": "4397014",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 140
+      }
+    },
+    {
+      "id": "espn-4278562",
+      "name": "Paul Reed",
+      "positions": [
+        "C",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.61651917,
+        "FT_PCT": 0.66363636,
+        "TPM": 13,
+        "REB": 294,
+        "AST": 80,
+        "STL": 57,
+        "BLK": 60,
+        "TO": 58,
+        "PTS": 504
+      },
+      "adp": 141,
+      "espnId": "4278562",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 141
+      }
+    },
+    {
+      "id": "espn-4900671",
+      "name": "Ajay Mitchell",
+      "positions": [
+        "PG",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.48474576,
+        "FT_PCT": 0.87037037,
+        "TPM": 61,
+        "REB": 190,
+        "AST": 206,
+        "STL": 71,
+        "BLK": 18,
+        "TO": 81,
+        "PTS": 774
+      },
+      "adp": 142,
+      "espnId": "4900671",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 142
+      }
     },
     {
       "id": "espn-4712849",
@@ -3471,147 +3973,13 @@
         "TO": 132,
         "PTS": 959
       },
-      "adp": 140,
+      "adp": 143,
       "espnId": "4712849",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4278053",
-      "name": "Davion Mitchell",
-      "positions": [
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.48968105,
-        "FT_PCT": 0.64615385,
-        "TPM": 90,
-        "REB": 187,
-        "AST": 453,
-        "STL": 68,
-        "BLK": 11,
-        "TO": 108,
-        "PTS": 654
-      },
-      "adp": 141,
-      "espnId": "4278053",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-3133603",
-      "name": "Kelly Oubre Jr.",
-      "positions": [
-        "SF",
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0.46691176,
-        "FT_PCT": 0.76551724,
-        "TPM": 86,
-        "REB": 252,
-        "AST": 80,
-        "STL": 68,
-        "BLK": 24,
-        "TO": 69,
-        "PTS": 705
-      },
-      "adp": 142,
-      "espnId": "3133603",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-3138196",
-      "name": "Cameron Johnson",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.83928571,
-        "TPM": 110,
-        "REB": 206,
-        "AST": 132,
-        "STL": 40,
-        "BLK": 21,
-        "TO": 47,
-        "PTS": 660
-      },
-      "adp": 143,
-      "espnId": "3138196",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-5254165",
-      "name": "Keaton Wagler",
-      "positions": [
-        "PG",
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 144,
-      "espnId": "5254165",
-      "status": "active",
-      "statsSeasonId": null
-    },
-    {
-      "id": "espn-3064482",
-      "name": "Bobby Portis",
-      "positions": [
-        "PF",
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.488,
-        "FT_PCT": 0.70588235,
-        "TPM": 135,
-        "REB": 428,
-        "AST": 105,
-        "STL": 41,
-        "BLK": 12,
-        "TO": 66,
-        "PTS": 915
-      },
-      "adp": 145,
-      "espnId": "3064482",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4592479",
-      "name": "Julian Champagnie",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.43686502,
-        "FT_PCT": 0.84444444,
-        "TPM": 195,
-        "REB": 473,
-        "AST": 127,
-        "STL": 62,
-        "BLK": 38,
-        "TO": 69,
-        "PTS": 911
-      },
-      "adp": 146,
-      "espnId": "4592479",
-      "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 143
+      }
     },
     {
       "id": "espn-4278078",
@@ -3631,395 +3999,39 @@
         "TO": 94,
         "PTS": 793
       },
-      "adp": 147,
+      "adp": 144,
       "espnId": "4278078",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 144
+      }
     },
     {
-      "id": "espn-4873138",
-      "name": "Ace Bailey",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.44282511,
-        "FT_PCT": 0.75,
-        "TPM": 137,
-        "REB": 302,
-        "AST": 131,
-        "STL": 60,
-        "BLK": 49,
-        "TO": 107,
-        "PTS": 993
-      },
-      "adp": 148,
-      "espnId": "4873138",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4873153",
-      "name": "Morez Johnson Jr.",
-      "positions": [
-        "PF",
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 149,
-      "espnId": "4873153",
-      "status": "active",
-      "statsSeasonId": null
-    },
-    {
-      "id": "espn-6589",
-      "name": "Draymond Green",
-      "positions": [
-        "PF",
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.41751527,
-        "FT_PCT": 0.70238095,
-        "TPM": 101,
-        "REB": 375,
-        "AST": 376,
-        "STL": 61,
-        "BLK": 42,
-        "TO": 181,
-        "PTS": 570
-      },
-      "adp": 150,
-      "espnId": "6589",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4683692",
-      "name": "Cason Wallace",
-      "positions": [
-        "SG",
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.43150685,
-        "FT_PCT": 0.80882353,
-        "TPM": 101,
-        "REB": 238,
-        "AST": 200,
-        "STL": 150,
-        "BLK": 28,
-        "TO": 73,
-        "PTS": 660
-      },
-      "adp": 151,
-      "espnId": "4683692",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-6430",
-      "name": "Jimmy Butler III",
+      "id": "espn-3133603",
+      "name": "Kelly Oubre Jr.",
       "positions": [
         "SF",
         "SG"
       ],
       "projections": {
-        "FG_PCT": 0.51948052,
-        "FT_PCT": 0.8641115,
-        "TPM": 32,
-        "REB": 211,
-        "AST": 185,
-        "STL": 55,
-        "BLK": 8,
-        "TO": 60,
-        "PTS": 760
+        "FG_PCT": 0.46691176,
+        "FT_PCT": 0.76551724,
+        "TPM": 86,
+        "REB": 252,
+        "AST": 80,
+        "STL": 68,
+        "BLK": 24,
+        "TO": 69,
+        "PTS": 705
       },
-      "adp": 152,
-      "espnId": "6430",
-      "status": "out",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-3064290",
-      "name": "Aaron Gordon",
-      "positions": [
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.49748744,
-        "FT_PCT": 0.76687117,
-        "TPM": 61,
-        "REB": 209,
-        "AST": 96,
-        "STL": 21,
-        "BLK": 10,
-        "TO": 38,
-        "PTS": 582
-      },
-      "adp": 153,
-      "espnId": "3064290",
-      "status": "gtd",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4278585",
-      "name": "Collin Gillespie",
-      "positions": [
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.41805226,
-        "FT_PCT": 0.87356322,
-        "TPM": 232,
-        "REB": 327,
-        "AST": 371,
-        "STL": 99,
-        "BLK": 16,
-        "TO": 124,
-        "PTS": 1012
-      },
-      "adp": 154,
-      "espnId": "4278585",
+      "adp": 145,
+      "espnId": "3133603",
       "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4433192",
-      "name": "Tari Eason",
-      "positions": [
-        "SF",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.41551724,
-        "FT_PCT": 0.7761194,
-        "TPM": 93,
-        "REB": 375,
-        "AST": 90,
-        "STL": 72,
-        "BLK": 28,
-        "TO": 81,
-        "PTS": 627
-      },
-      "adp": 155,
-      "espnId": "4433192",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-5144091",
-      "name": "Jeremiah Fears",
-      "positions": [
-        "SG",
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.43439364,
-        "FT_PCT": 0.78861789,
-        "TPM": 101,
-        "REB": 300,
-        "AST": 279,
-        "STL": 97,
-        "BLK": 30,
-        "TO": 178,
-        "PTS": 1169
-      },
-      "adp": 156,
-      "espnId": "5144091",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4278129",
-      "name": "Deandre Ayton",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.67054908,
-        "FT_PCT": 0.64539007,
-        "TPM": 0,
-        "REB": 575,
-        "AST": 59,
-        "STL": 41,
-        "BLK": 70,
-        "TO": 83,
-        "PTS": 897
-      },
-      "adp": 157,
-      "espnId": "4278129",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4395630",
-      "name": "Devin Vassell",
-      "positions": [
-        "SG",
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0.43708609,
-        "FT_PCT": 0.81538462,
-        "TPM": 166,
-        "REB": 269,
-        "AST": 167,
-        "STL": 57,
-        "BLK": 25,
-        "TO": 60,
-        "PTS": 932
-      },
-      "adp": 158,
-      "espnId": "4395630",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4683766",
-      "name": "Isaiah Collier",
-      "positions": [
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0.49514563,
-        "FT_PCT": 0.72248804,
-        "TPM": 27,
-        "REB": 150,
-        "AST": 423,
-        "STL": 66,
-        "BLK": 20,
-        "TO": 148,
-        "PTS": 688
-      },
-      "adp": 161,
-      "espnId": "4683766",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4065731",
-      "name": "Jay Huff",
-      "positions": [
-        "C"
-      ],
-      "projections": {
-        "FG_PCT": 0.47626841,
-        "FT_PCT": 0.82828283,
-        "TPM": 119,
-        "REB": 324,
-        "AST": 121,
-        "STL": 41,
-        "BLK": 154,
-        "TO": 76,
-        "PTS": 783
-      },
-      "adp": 162,
-      "espnId": "4065731",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4684793",
-      "name": "Kyle Filipowski",
-      "positions": [
-        "C",
-        "PF"
-      ],
-      "projections": {
-        "FG_PCT": 0.49162861,
-        "FT_PCT": 0.75,
-        "TPM": 74,
-        "REB": 552,
-        "AST": 198,
-        "STL": 73,
-        "BLK": 39,
-        "TO": 125,
-        "PTS": 879
-      },
-      "adp": 163,
-      "espnId": "4684793",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-5101761",
-      "name": "Mikel Brown Jr.",
-      "positions": [
-        "PG"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 164,
-      "espnId": "5101761",
-      "status": "active",
-      "statsSeasonId": null
-    },
-    {
-      "id": "espn-3155526",
-      "name": "Dillon Brooks",
-      "positions": [
-        "SF",
-        "SG"
-      ],
-      "projections": {
-        "FG_PCT": 0.43482795,
-        "FT_PCT": 0.84158416,
-        "TPM": 127,
-        "REB": 203,
-        "AST": 99,
-        "STL": 57,
-        "BLK": 9,
-        "TO": 98,
-        "PTS": 1131
-      },
-      "adp": 165,
-      "espnId": "3155526",
-      "status": "active",
-      "statsSeasonId": 2026
-    },
-    {
-      "id": "espn-4431767",
-      "name": "Christian Braun",
-      "positions": [
-        "SG",
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0.51928021,
-        "FT_PCT": 0.78217822,
-        "TPM": 43,
-        "REB": 211,
-        "AST": 120,
-        "STL": 30,
-        "BLK": 12,
-        "TO": 43,
-        "PTS": 526
-      },
-      "adp": 166,
-      "espnId": "4431767",
-      "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 145
+      }
     },
     {
       "id": "espn-4914336",
@@ -4039,10 +4051,502 @@
         "TO": 147,
         "PTS": 1042
       },
-      "adp": 167,
+      "adp": 146,
       "espnId": "4914336",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 146
+      }
+    },
+    {
+      "id": "espn-6589",
+      "name": "Draymond Green",
+      "positions": [
+        "PF",
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.41751527,
+        "FT_PCT": 0.70238095,
+        "TPM": 101,
+        "REB": 375,
+        "AST": 376,
+        "STL": 61,
+        "BLK": 42,
+        "TO": 181,
+        "PTS": 570
+      },
+      "adp": 147,
+      "espnId": "6589",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 147
+      }
+    },
+    {
+      "id": "espn-3138196",
+      "name": "Cameron Johnson",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.48,
+        "FT_PCT": 0.83928571,
+        "TPM": 110,
+        "REB": 206,
+        "AST": 132,
+        "STL": 40,
+        "BLK": 21,
+        "TO": 47,
+        "PTS": 660
+      },
+      "adp": 148,
+      "espnId": "3138196",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 148
+      }
+    },
+    {
+      "id": "espn-5254165",
+      "name": "Keaton Wagler",
+      "positions": [
+        "PG",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 149,
+      "espnId": "5254165",
+      "status": "active",
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 149
+      }
+    },
+    {
+      "id": "espn-3064482",
+      "name": "Bobby Portis",
+      "positions": [
+        "PF",
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.488,
+        "FT_PCT": 0.70588235,
+        "TPM": 135,
+        "REB": 428,
+        "AST": 105,
+        "STL": 41,
+        "BLK": 12,
+        "TO": 66,
+        "PTS": 915
+      },
+      "adp": 150,
+      "espnId": "3064482",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 150
+      }
+    },
+    {
+      "id": "espn-4592479",
+      "name": "Julian Champagnie",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.43686502,
+        "FT_PCT": 0.84444444,
+        "TPM": 195,
+        "REB": 473,
+        "AST": 127,
+        "STL": 62,
+        "BLK": 38,
+        "TO": 69,
+        "PTS": 911
+      },
+      "adp": 151,
+      "espnId": "4592479",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 151
+      }
+    },
+    {
+      "id": "espn-4873138",
+      "name": "Ace Bailey",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.44282511,
+        "FT_PCT": 0.75,
+        "TPM": 137,
+        "REB": 302,
+        "AST": 131,
+        "STL": 60,
+        "BLK": 49,
+        "TO": 107,
+        "PTS": 993
+      },
+      "adp": 152,
+      "espnId": "4873138",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 152
+      }
+    },
+    {
+      "id": "espn-4873153",
+      "name": "Morez Johnson Jr.",
+      "positions": [
+        "PF",
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 153,
+      "espnId": "4873153",
+      "status": "active",
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 153
+      }
+    },
+    {
+      "id": "espn-4683692",
+      "name": "Cason Wallace",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43150685,
+        "FT_PCT": 0.80882353,
+        "TPM": 101,
+        "REB": 238,
+        "AST": 200,
+        "STL": 150,
+        "BLK": 28,
+        "TO": 73,
+        "PTS": 660
+      },
+      "adp": 154,
+      "espnId": "4683692",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 154
+      }
+    },
+    {
+      "id": "espn-3155526",
+      "name": "Dillon Brooks",
+      "positions": [
+        "SF",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43482795,
+        "FT_PCT": 0.84158416,
+        "TPM": 127,
+        "REB": 203,
+        "AST": 99,
+        "STL": 57,
+        "BLK": 9,
+        "TO": 98,
+        "PTS": 1131
+      },
+      "adp": 155,
+      "espnId": "3155526",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 155
+      }
+    },
+    {
+      "id": "espn-3064290",
+      "name": "Aaron Gordon",
+      "positions": [
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.49748744,
+        "FT_PCT": 0.76687117,
+        "TPM": 61,
+        "REB": 209,
+        "AST": 96,
+        "STL": 21,
+        "BLK": 10,
+        "TO": 38,
+        "PTS": 582
+      },
+      "adp": 156,
+      "espnId": "3064290",
+      "status": "gtd",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 156
+      }
+    },
+    {
+      "id": "espn-4433192",
+      "name": "Tari Eason",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.41551724,
+        "FT_PCT": 0.7761194,
+        "TPM": 93,
+        "REB": 375,
+        "AST": 90,
+        "STL": 72,
+        "BLK": 28,
+        "TO": 81,
+        "PTS": 627
+      },
+      "adp": 158,
+      "espnId": "4433192",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 158
+      }
+    },
+    {
+      "id": "espn-5144091",
+      "name": "Jeremiah Fears",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43439364,
+        "FT_PCT": 0.78861789,
+        "TPM": 101,
+        "REB": 300,
+        "AST": 279,
+        "STL": 97,
+        "BLK": 30,
+        "TO": 178,
+        "PTS": 1169
+      },
+      "adp": 159,
+      "espnId": "5144091",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 159
+      }
+    },
+    {
+      "id": "espn-4278129",
+      "name": "Deandre Ayton",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.67054908,
+        "FT_PCT": 0.64539007,
+        "TPM": 0,
+        "REB": 575,
+        "AST": 59,
+        "STL": 41,
+        "BLK": 70,
+        "TO": 83,
+        "PTS": 897
+      },
+      "adp": 160,
+      "espnId": "4278129",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 160
+      }
+    },
+    {
+      "id": "espn-4395630",
+      "name": "Devin Vassell",
+      "positions": [
+        "SG",
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.43708609,
+        "FT_PCT": 0.81538462,
+        "TPM": 166,
+        "REB": 269,
+        "AST": 167,
+        "STL": 57,
+        "BLK": 25,
+        "TO": 60,
+        "PTS": 932
+      },
+      "adp": 161,
+      "espnId": "4395630",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 161
+      }
+    },
+    {
+      "id": "espn-5101761",
+      "name": "Mikel Brown Jr.",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 162,
+      "espnId": "5101761",
+      "status": "active",
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 162
+      }
+    },
+    {
+      "id": "espn-4683766",
+      "name": "Isaiah Collier",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.49514563,
+        "FT_PCT": 0.72248804,
+        "TPM": 27,
+        "REB": 150,
+        "AST": 423,
+        "STL": 66,
+        "BLK": 20,
+        "TO": 148,
+        "PTS": 688
+      },
+      "adp": 164,
+      "espnId": "4683766",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 164
+      }
+    },
+    {
+      "id": "espn-4065731",
+      "name": "Jay Huff",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.47626841,
+        "FT_PCT": 0.82828283,
+        "TPM": 119,
+        "REB": 324,
+        "AST": 121,
+        "STL": 41,
+        "BLK": 154,
+        "TO": 76,
+        "PTS": 783
+      },
+      "adp": 165,
+      "espnId": "4065731",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 165
+      }
+    },
+    {
+      "id": "espn-4684793",
+      "name": "Kyle Filipowski",
+      "positions": [
+        "C",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.49162861,
+        "FT_PCT": 0.75,
+        "TPM": 74,
+        "REB": 552,
+        "AST": 198,
+        "STL": 73,
+        "BLK": 39,
+        "TO": 125,
+        "PTS": 879
+      },
+      "adp": 166,
+      "espnId": "4684793",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 166
+      }
+    },
+    {
+      "id": "espn-4431767",
+      "name": "Christian Braun",
+      "positions": [
+        "SG",
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.51928021,
+        "FT_PCT": 0.78217822,
+        "TPM": 43,
+        "REB": 211,
+        "AST": 120,
+        "STL": 30,
+        "BLK": 12,
+        "TO": 43,
+        "PTS": 526
+      },
+      "adp": 167,
+      "espnId": "4431767",
+      "status": "active",
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 167
+      }
     },
     {
       "id": "espn-5203685",
@@ -4061,10 +4565,13 @@
         "TO": 25,
         "PTS": 139
       },
-      "adp": 169,
+      "adp": 168,
       "espnId": "5203685",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 168
+      }
     },
     {
       "id": "espn-5279133",
@@ -4083,10 +4590,13 @@
         "TO": 11,
         "PTS": 156
       },
-      "adp": 170,
+      "adp": 169,
       "espnId": "5279133",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 169
+      }
     },
     {
       "id": "espn-3135045",
@@ -4109,7 +4619,10 @@
       "adp": 171,
       "espnId": "3135045",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 171
+      }
     },
     {
       "id": "espn-2991070",
@@ -4131,7 +4644,10 @@
       "adp": 172,
       "espnId": "2991070",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 172
+      }
     },
     {
       "id": "espn-4395626",
@@ -4153,7 +4669,10 @@
       "adp": 173,
       "espnId": "4395626",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 173
+      }
     },
     {
       "id": "espn-6478",
@@ -4175,7 +4694,10 @@
       "adp": 174,
       "espnId": "6478",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 174
+      }
     },
     {
       "id": "espn-4683634",
@@ -4198,7 +4720,10 @@
       "adp": 175,
       "espnId": "4683634",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 175
+      }
     },
     {
       "id": "espn-4431785",
@@ -4221,7 +4746,10 @@
       "adp": 176,
       "espnId": "4431785",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 176
+      }
     },
     {
       "id": "espn-4433249",
@@ -4244,7 +4772,10 @@
       "adp": 177,
       "espnId": "4433249",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 177
+      }
     },
     {
       "id": "espn-4277813",
@@ -4267,7 +4798,10 @@
       "adp": 179,
       "espnId": "4277813",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 179
+      }
     },
     {
       "id": "espn-5082206",
@@ -4289,7 +4823,10 @@
       "adp": 180,
       "espnId": "5082206",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 180
+      }
     },
     {
       "id": "espn-4351851",
@@ -4312,7 +4849,10 @@
       "adp": 181,
       "espnId": "4351851",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 181
+      }
     },
     {
       "id": "espn-4997526",
@@ -4334,7 +4874,10 @@
       "adp": 182,
       "espnId": "4997526",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 182
+      }
     },
     {
       "id": "espn-6440",
@@ -4357,7 +4900,10 @@
       "adp": 183,
       "espnId": "6440",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 183
+      }
     },
     {
       "id": "espn-2528210",
@@ -4380,7 +4926,10 @@
       "adp": 184,
       "espnId": "2528210",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 184
+      }
     },
     {
       "id": "espn-5104155",
@@ -4403,7 +4952,10 @@
       "adp": 185,
       "espnId": "5104155",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 185
+      }
     },
     {
       "id": "espn-5061589",
@@ -4425,7 +4977,10 @@
       "adp": 186,
       "espnId": "5061589",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 186
+      }
     },
     {
       "id": "espn-4277811",
@@ -4448,7 +5003,10 @@
       "adp": 187,
       "espnId": "4277811",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 187
+      }
     },
     {
       "id": "espn-4351852",
@@ -4470,7 +5028,10 @@
       "adp": 188,
       "espnId": "4351852",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 188
+      }
     },
     {
       "id": "espn-5105637",
@@ -4492,7 +5053,10 @@
       "adp": 189,
       "espnId": "5105637",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 189
+      }
     },
     {
       "id": "espn-4593125",
@@ -4515,7 +5079,10 @@
       "adp": 190,
       "espnId": "4593125",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 190
+      }
     },
     {
       "id": "espn-5149077",
@@ -4538,7 +5105,10 @@
       "adp": 191,
       "espnId": "5149077",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 191
+      }
     },
     {
       "id": "espn-4432823",
@@ -4561,7 +5131,10 @@
       "adp": 193,
       "espnId": "4432823",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 193
+      }
     },
     {
       "id": "espn-4066648",
@@ -4584,7 +5157,10 @@
       "adp": 195,
       "espnId": "4066648",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 195
+      }
     },
     {
       "id": "espn-4395723",
@@ -4607,7 +5183,10 @@
       "adp": 196,
       "espnId": "4395723",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 196
+      }
     },
     {
       "id": "espn-4066262",
@@ -4630,7 +5209,10 @@
       "adp": 197,
       "espnId": "4066262",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 197
+      }
     },
     {
       "id": "espn-4396909",
@@ -4653,7 +5235,10 @@
       "adp": 199,
       "espnId": "4396909",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 199
+      }
     },
     {
       "id": "espn-4683678",
@@ -4676,7 +5261,10 @@
       "adp": 202,
       "espnId": "4683678",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 202
+      }
     },
     {
       "id": "espn-4278594",
@@ -4699,7 +5287,10 @@
       "adp": 203,
       "espnId": "4278594",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 203
+      }
     },
     {
       "id": "espn-4066436",
@@ -4722,7 +5313,10 @@
       "adp": 204,
       "espnId": "4066436",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 204
+      }
     },
     {
       "id": "espn-3157465",
@@ -4745,7 +5339,10 @@
       "adp": 205,
       "espnId": "3157465",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 205
+      }
     },
     {
       "id": "espn-4433174",
@@ -4767,7 +5364,10 @@
       "adp": 206,
       "espnId": "4433174",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 206
+      }
     },
     {
       "id": "espn-4433247",
@@ -4790,7 +5390,10 @@
       "adp": 207,
       "espnId": "4433247",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 207
+      }
     },
     {
       "id": "espn-5174983",
@@ -4812,7 +5415,10 @@
       "adp": 209,
       "espnId": "5174983",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 209
+      }
     },
     {
       "id": "espn-4593841",
@@ -4834,7 +5440,10 @@
       "adp": 210,
       "espnId": "4593841",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 210
+      }
     },
     {
       "id": "espn-4683688",
@@ -4856,7 +5465,10 @@
       "adp": 211,
       "espnId": "4683688",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 211
+      }
     },
     {
       "id": "espn-3134907",
@@ -4879,7 +5491,10 @@
       "adp": 212,
       "espnId": "3134907",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 212
+      }
     },
     {
       "id": "espn-4395702",
@@ -4901,7 +5516,10 @@
       "adp": 213,
       "espnId": "4395702",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 213
+      }
     },
     {
       "id": "espn-4702384",
@@ -4924,7 +5542,10 @@
       "adp": 214,
       "espnId": "4702384",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 214
+      }
     },
     {
       "id": "espn-5211175",
@@ -4946,7 +5567,10 @@
       "adp": 215,
       "espnId": "5211175",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 215
+      }
     },
     {
       "id": "espn-5164559",
@@ -4968,7 +5592,10 @@
       "adp": 216,
       "espnId": "5164559",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 216
+      }
     },
     {
       "id": "espn-3064560",
@@ -4990,7 +5617,10 @@
       "adp": 220,
       "espnId": "3064560",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 220
+      }
     },
     {
       "id": "espn-4277848",
@@ -5013,7 +5643,10 @@
       "adp": 221,
       "espnId": "4277848",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 221
+      }
     },
     {
       "id": "espn-4066757",
@@ -5035,7 +5668,10 @@
       "adp": 222,
       "espnId": "4066757",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 222
+      }
     },
     {
       "id": "espn-4683778",
@@ -5058,7 +5694,10 @@
       "adp": 223,
       "espnId": "4683778",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 223
+      }
     },
     {
       "id": "espn-5107199",
@@ -5080,7 +5719,10 @@
       "adp": 224,
       "espnId": "5107199",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 224
+      }
     },
     {
       "id": "espn-4702382",
@@ -5103,7 +5745,10 @@
       "adp": 225,
       "espnId": "4702382",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 225
+      }
     },
     {
       "id": "espn-4702177",
@@ -5126,7 +5771,10 @@
       "adp": 230,
       "espnId": "4702177",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 230
+      }
     },
     {
       "id": "espn-4065732",
@@ -5149,7 +5797,10 @@
       "adp": 236,
       "espnId": "4065732",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 236
+      }
     },
     {
       "id": "espn-4277956",
@@ -5172,7 +5823,10 @@
       "adp": 237,
       "espnId": "4277956",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 237
+      }
     },
     {
       "id": "espn-4601023",
@@ -5194,7 +5848,10 @@
       "adp": 239,
       "espnId": "4601023",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 239
+      }
     },
     {
       "id": "espn-4845374",
@@ -5217,7 +5874,10 @@
       "adp": 240,
       "espnId": "4845374",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 240
+      }
     },
     {
       "id": "espn-6585",
@@ -5239,7 +5899,10 @@
       "adp": 241,
       "espnId": "6585",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 241
+      }
     },
     {
       "id": "espn-2583632",
@@ -5262,7 +5925,10 @@
       "adp": 243,
       "espnId": "2583632",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 243
+      }
     },
     {
       "id": "espn-5279129",
@@ -5284,7 +5950,10 @@
       "adp": 244,
       "espnId": "5279129",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 244
+      }
     },
     {
       "id": "espn-5061568",
@@ -5306,7 +5975,10 @@
       "adp": 245,
       "espnId": "5061568",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 245
+      }
     },
     {
       "id": "espn-4065804",
@@ -5329,7 +6001,10 @@
       "adp": 246,
       "espnId": "4065804",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 246
+      }
     },
     {
       "id": "espn-2530530",
@@ -5351,7 +6026,10 @@
       "adp": 247,
       "espnId": "2530530",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 247
+      }
     },
     {
       "id": "espn-3213",
@@ -5374,7 +6052,10 @@
       "adp": 248,
       "espnId": "3213",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 248
+      }
     },
     {
       "id": "espn-3934673",
@@ -5397,7 +6078,10 @@
       "adp": 251,
       "espnId": "3934673",
       "status": "out",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 251
+      }
     },
     {
       "id": "espn-3913174",
@@ -5419,7 +6103,10 @@
       "adp": 255,
       "espnId": "3913174",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 255
+      }
     },
     {
       "id": "espn-6578",
@@ -5442,7 +6129,10 @@
       "adp": 256,
       "espnId": "6578",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 256
+      }
     },
     {
       "id": "espn-4066372",
@@ -5465,7 +6155,10 @@
       "adp": 257,
       "espnId": "4066372",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 257
+      }
     },
     {
       "id": "espn-5105839",
@@ -5488,7 +6181,10 @@
       "adp": 258,
       "espnId": "5105839",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 258
+      }
     },
     {
       "id": "espn-3468",
@@ -5510,7 +6206,10 @@
       "adp": 262,
       "espnId": "3468",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 262
+      }
     },
     {
       "id": "espn-4397020",
@@ -5533,7 +6232,10 @@
       "adp": 264,
       "espnId": "4397020",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 264
+      }
     },
     {
       "id": "espn-3032979",
@@ -5555,7 +6257,10 @@
       "adp": 269,
       "espnId": "3032979",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 269
+      }
     },
     {
       "id": "espn-4397183",
@@ -5578,7 +6283,10 @@
       "adp": 271,
       "espnId": "4397183",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 271
+      }
     },
     {
       "id": "espn-6475",
@@ -5601,7 +6309,10 @@
       "adp": 273,
       "espnId": "6475",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 273
+      }
     },
     {
       "id": "espn-4870562",
@@ -5624,7 +6335,10 @@
       "adp": 274,
       "espnId": "4870562",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 274
+      }
     },
     {
       "id": "espn-4277869",
@@ -5646,7 +6360,10 @@
       "adp": 276,
       "espnId": "4277869",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 276
+      }
     },
     {
       "id": "espn-2990992",
@@ -5669,7 +6386,10 @@
       "adp": 278,
       "espnId": "2990992",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 278
+      }
     },
     {
       "id": "espn-4712896",
@@ -5691,7 +6411,10 @@
       "adp": 279,
       "espnId": "4712896",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 279
+      }
     },
     {
       "id": "espn-2991350",
@@ -5714,7 +6437,10 @@
       "adp": 282,
       "espnId": "2991350",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 282
+      }
     },
     {
       "id": "espn-3912848",
@@ -5736,7 +6462,10 @@
       "adp": 285,
       "espnId": "3912848",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 285
+      }
     },
     {
       "id": "espn-4432822",
@@ -5759,7 +6488,10 @@
       "adp": 286,
       "espnId": "4432822",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 286
+      }
     },
     {
       "id": "espn-4888725",
@@ -5782,7 +6514,10 @@
       "adp": 287,
       "espnId": "4888725",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 287
+      }
     },
     {
       "id": "espn-2581018",
@@ -5805,7 +6540,10 @@
       "adp": 292,
       "espnId": "2581018",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 292
+      }
     },
     {
       "id": "espn-4431823",
@@ -5828,7 +6566,10 @@
       "adp": 294,
       "espnId": "4431823",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 294
+      }
     },
     {
       "id": "espn-4277951",
@@ -5850,7 +6591,10 @@
       "adp": 298,
       "espnId": "4277951",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 298
+      }
     },
     {
       "id": "espn-4683689",
@@ -5872,7 +6616,10 @@
       "adp": 299,
       "espnId": "4683689",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 299
+      }
     },
     {
       "id": "espn-4592492",
@@ -5894,7 +6641,10 @@
       "adp": 300,
       "espnId": "4592492",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 300
+      }
     },
     {
       "id": "espn-2991043",
@@ -5917,7 +6667,10 @@
       "adp": 303,
       "espnId": "2991043",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 303
+      }
     },
     {
       "id": "espn-4602025",
@@ -5939,7 +6692,10 @@
       "adp": 304,
       "espnId": "4602025",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 304
+      }
     },
     {
       "id": "espn-3195",
@@ -5961,7 +6717,10 @@
       "adp": 305,
       "espnId": "3195",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 305
+      }
     },
     {
       "id": "espn-2990984",
@@ -5984,7 +6743,10 @@
       "adp": 307,
       "espnId": "2990984",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 307
+      }
     },
     {
       "id": "espn-5106258",
@@ -6007,7 +6769,10 @@
       "adp": 313,
       "espnId": "5106258",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 313
+      }
     },
     {
       "id": "espn-3135046",
@@ -6029,7 +6794,10 @@
       "adp": 316,
       "espnId": "3135046",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 316
+      }
     },
     {
       "id": "espn-2528426",
@@ -6052,7 +6820,10 @@
       "adp": 329,
       "espnId": "2528426",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 329
+      }
     },
     {
       "id": "espn-4278355",
@@ -6074,7 +6845,10 @@
       "adp": 333,
       "espnId": "4278355",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 333
+      }
     },
     {
       "id": "espn-3133626",
@@ -6096,7 +6870,10 @@
       "adp": 339,
       "espnId": "3133626",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 339
+      }
     },
     {
       "id": "espn-3914044",
@@ -6118,7 +6895,10 @@
       "adp": 341,
       "espnId": "3914044",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 341
+      }
     },
     {
       "id": "espn-4066421",
@@ -6141,7 +6921,10 @@
       "adp": 351,
       "espnId": "4066421",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 351
+      }
     },
     {
       "id": "espn-4431752",
@@ -6163,7 +6946,10 @@
       "adp": 353,
       "espnId": "4431752",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 353
+      }
     },
     {
       "id": "espn-4997528",
@@ -6185,7 +6971,10 @@
       "adp": 379,
       "espnId": "4997528",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 379
+      }
     },
     {
       "id": "espn-4432809",
@@ -6208,7 +6997,10 @@
       "adp": 387,
       "espnId": "4432809",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 387
+      }
     },
     {
       "id": "espn-4433225",
@@ -6230,7 +7022,10 @@
       "adp": 388,
       "espnId": "4433225",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 388
+      }
     },
     {
       "id": "espn-3136776",
@@ -6253,7 +7048,10 @@
       "adp": 400,
       "espnId": "3136776",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 400
+      }
     },
     {
       "id": "espn-4432174",
@@ -6276,7 +7074,10 @@
       "adp": 405,
       "espnId": "4432174",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 405
+      }
     },
     {
       "id": "espn-4278572",
@@ -6298,7 +7099,10 @@
       "adp": 414,
       "espnId": "4278572",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 414
+      }
     },
     {
       "id": "espn-5105592",
@@ -6321,7 +7125,10 @@
       "adp": 419,
       "espnId": "5105592",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 419
+      }
     },
     {
       "id": "espn-2580365",
@@ -6343,7 +7150,10 @@
       "adp": 420,
       "espnId": "2580365",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 420
+      }
     },
     {
       "id": "espn-6580",
@@ -6366,7 +7176,10 @@
       "adp": 430,
       "espnId": "6580",
       "status": "gtd",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 430
+      }
     },
     {
       "id": "espn-4398207",
@@ -6388,7 +7201,10 @@
       "adp": 439,
       "espnId": "4398207",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 439
+      }
     },
     {
       "id": "espn-2326307",
@@ -6411,7 +7227,10 @@
       "adp": 447,
       "espnId": "2326307",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 447
+      }
     },
     {
       "id": "espn-4683774",
@@ -6434,7 +7253,10 @@
       "adp": 469,
       "espnId": "4683774",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 469
+      }
     },
     {
       "id": "espn-5159895",
@@ -6456,7 +7278,10 @@
       "adp": 492,
       "espnId": "5159895",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 492
+      }
     },
     {
       "id": "espn-3102533",
@@ -6478,7 +7303,10 @@
       "adp": 533,
       "espnId": "3102533",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 533
+      }
     },
     {
       "id": "espn-4397204",
@@ -6500,7 +7328,10 @@
       "adp": 537,
       "espnId": "4397204",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 537
+      }
     },
     {
       "id": "espn-5217746",
@@ -6522,7 +7353,10 @@
       "adp": 541,
       "espnId": "5217746",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 541
+      }
     },
     {
       "id": "espn-4432452",
@@ -6544,7 +7378,10 @@
       "adp": 586,
       "espnId": "4432452",
       "status": "active",
-      "statsSeasonId": 2026
+      "statsSeasonId": 2026,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 586
+      }
     },
     {
       "id": "espn-5106270",
@@ -6566,7 +7403,10 @@
       "adp": 602,
       "espnId": "5106270",
       "status": "gtd",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 602
+      }
     },
     {
       "id": "espn-5041953",
@@ -6588,7 +7428,10 @@
       "adp": 604,
       "espnId": "5041953",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 604
+      }
     },
     {
       "id": "espn-5041951",
@@ -6610,7 +7453,10 @@
       "adp": 605,
       "espnId": "5041951",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 605
+      }
     },
     {
       "id": "espn-5258459",
@@ -6630,10 +7476,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 616,
+      "adp": 617,
       "espnId": "5258459",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 617
+      }
     },
     {
       "id": "espn-5105809",
@@ -6652,10 +7501,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 625,
+      "adp": 626,
       "espnId": "5105809",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 626
+      }
     },
     {
       "id": "espn-5113969",
@@ -6675,10 +7527,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 627,
+      "adp": 628,
       "espnId": "5113969",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 628
+      }
     },
     {
       "id": "espn-5105462",
@@ -6697,10 +7552,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 632,
+      "adp": 633,
       "espnId": "5105462",
       "status": "out",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 633
+      }
     },
     {
       "id": "espn-4873090",
@@ -6720,10 +7578,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 637,
+      "adp": 638,
       "espnId": "4873090",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 638
+      }
     },
     {
       "id": "espn-5060701",
@@ -6742,10 +7603,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 641,
+      "adp": 642,
       "espnId": "5060701",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 642
+      }
     },
     {
       "id": "espn-5061585",
@@ -6764,10 +7628,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 646,
+      "adp": 647,
       "espnId": "5061585",
       "status": "active",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 647
+      }
     },
     {
       "id": "espn-5231919",
@@ -6786,10 +7653,13 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 647,
+      "adp": 648,
       "espnId": "5231919",
       "status": "gtd",
-      "statsSeasonId": null
+      "statsSeasonId": null,
+      "adpBySource": {
+        "yahoo_draft_analysis_rank": 648
+      }
     }
   ]
 }

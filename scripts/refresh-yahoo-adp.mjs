@@ -2,7 +2,8 @@
  * Overlay Yahoo Draft Analysis overall rank onto the local player pool JSON.
  *
  * Yahoo Current ADP (average_pick) is Plus-gated; free public API exposes
- * overall Rank (o-rank), which we store as adp.
+ * overall Rank (o-rank), which we store as adpBySource.yahoo_draft_analysis_rank
+ * and project to Primary.
  *
  * Usage:
  *   node scripts/refresh-yahoo-adp.mjs
@@ -15,6 +16,11 @@
 
 import { readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
+import {
+  applySourceRanks,
+  normalizeName,
+  projectPrimary,
+} from "./lib/adp-pool.mjs"
 
 const YAHOO_PAGE_URL =
   "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard"
@@ -40,18 +46,6 @@ const writeFixture = args["write-fixture"] === "true"
 const inPath = path.resolve(process.cwd(), inRel)
 const outPath = path.resolve(process.cwd(), outRel)
 const fixturePath = path.resolve(process.cwd(), fixtureRel)
-
-const normalizeName = (name) =>
-  name
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .replace(/\./g, "")
-    .replace(/['’]/g, "")
-    .replace(/\s+(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
 
 const flattenPlayer = (playerNode) => {
   if (!playerNode) return null
@@ -209,52 +203,27 @@ const loadRanks = async () => {
 const main = async () => {
   const { rows, source } = await loadRanks()
 
-  const rankByKey = new Map()
-  for (const row of rows) {
-    if (!rankByKey.has(row.key)) rankByKey.set(row.key, row.rank)
-  }
-
   const pool = JSON.parse(await readFile(inPath, "utf8"))
   if (!Array.isArray(pool.players)) {
     throw new Error(`Expected players[] in ${inRel}`)
   }
 
-  let matched = 0
-  let unmatched = 0
-  const unmatchedNames = []
-
-  const players = pool.players.map((player) => {
-    const key = normalizeName(player.name)
-    const rank = rankByKey.get(key)
-
-    if (rank === undefined) {
-      unmatched += 1
-      if (unmatchedNames.length < 20) unmatchedNames.push(player.name)
-      return player
-    }
-
-    matched += 1
-    return {
-      ...player,
-      adp: rank,
-    }
-  })
-
-  players.sort((a, b) => a.adp - b.adp)
-
+  const { pool: withSource, matched, unmatched } = applySourceRanks(
+    pool,
+    "yahoo_draft_analysis_rank",
+    rows.map((row) => ({ name: row.name, adp: row.rank })),
+    { url: YAHOO_PAGE_URL },
+  )
+  const projected = projectPrimary(withSource, "yahoo_draft_analysis_rank")
   const next = {
-    ...pool,
+    ...projected,
     meta: {
-      ...pool.meta,
-      adpSource: "yahoo_draft_analysis_rank",
-      adpSourceUrl: YAHOO_PAGE_URL,
-      adpUpdatedAt: new Date().toISOString(),
+      ...projected.meta,
       adpMatched: matched,
       adpUnmatched: unmatched,
       adpRankRows: rows.length,
       adpFetchSource: source,
     },
-    players,
   }
 
   await writeFile(outPath, `${JSON.stringify(next, null, 2)}\n`, "utf8")
@@ -262,11 +231,8 @@ const main = async () => {
   console.log(`Yahoo rank rows (${source}): ${rows.length}`)
   console.log(`Matched onto pool: ${matched}/${pool.players.length}`)
   console.log(`Unmatched (kept prior ADP): ${unmatched}`)
-  if (unmatchedNames.length) {
-    console.log(`Unmatched sample: ${unmatchedNames.join(", ")}`)
-  }
   console.log(
-    `Top 12: ${players
+    `Top 12: ${next.players
       .slice(0, 12)
       .map((player) => `${player.adp}. ${player.name}`)
       .join(" | ")}`,
