@@ -1,6 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import { MATCHUP_SIGMOID_SCALE } from "./constants"
+import { MATCHUP_CATEGORY_SIGMOID_SCALE } from "./constants"
 import type { CategoryOutcome, MatchupBoard } from "./types"
 
 export const categoryWinProb = (
@@ -9,7 +9,8 @@ export const categoryWinProb = (
   categoryId: CategoryId,
 ): number => {
   const delta = categoryId === "TO" ? opp - you : you - opp
-  return 1 / (1 + Math.exp(-delta / MATCHUP_SIGMOID_SCALE))
+  const scale = MATCHUP_CATEGORY_SIGMOID_SCALE[categoryId]
+  return 1 / (1 + Math.exp(-delta / scale))
 }
 
 const categoryOutcome = (

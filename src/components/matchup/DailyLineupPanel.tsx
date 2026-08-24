@@ -1,12 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import type { DailyLineups } from "@/lib/matchup/dailyLineups"
+import type {
+  DailyLineups,
+  TogglePlayerDayResult,
+} from "@/lib/matchup/dailyLineups"
 import {
   dayOpponentLabel,
   findPlayerSlotIndex,
-  playerGameDays,
 } from "@/lib/matchup/dailyLineups"
+import {
+  gameWeightForTeamDate,
+  isB2bSecondNight,
+} from "@/lib/matchup/games"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 
 type DailyLineupPanelProps = {
@@ -14,7 +20,10 @@ type DailyLineupPanelProps = {
   daily: DailyLineups
   rosterPlayers: SeasonPlayer[]
   schedule: ScheduleResponse
-  onTogglePlayerDay: (playerId: string, day: string) => "started" | "sat" | "no_game" | "full" | "missing_day"
+  onTogglePlayerDay: (
+    playerId: string,
+    day: string,
+  ) => TogglePlayerDayResult["status"]
   onReset: () => void
 }
 
@@ -48,6 +57,11 @@ export const DailyLineupPanel = ({
     const status = onTogglePlayerDay(player.id, day)
     if (status === "full") {
       setHint("No empty slot that day — sit someone first")
+      return
+    }
+
+    if (status === "ineligible") {
+      setHint(`${player.name} is not eligible for an empty slot that day`)
       return
     }
 
@@ -99,8 +113,6 @@ export const DailyLineupPanel = ({
           </thead>
           <tbody>
             {rosterPlayers.map((player) => {
-              const gameDays = playerGameDays(player, schedule)
-
               return (
                 <tr
                   className="border-t border-[var(--color-hairline)]"
@@ -118,7 +130,14 @@ export const DailyLineupPanel = ({
                     ) : null}
                   </th>
                   {days.map((day) => {
-                    const hasGame = gameDays.has(day)
+                    const teamAbbr = player.teamAbbr ?? ""
+                    const gameWeight = teamAbbr
+                      ? gameWeightForTeamDate(teamAbbr, day, schedule)
+                      : 0
+                    const hasGame = gameWeight > 0
+                    const isB2b = teamAbbr
+                      ? isB2bSecondNight(teamAbbr, day, schedule)
+                      : false
                     const started =
                       findPlayerSlotIndex(daily, day, player.id) >= 0
                     const label = dayOpponentLabel(player, day, schedule)
@@ -153,6 +172,14 @@ export const DailyLineupPanel = ({
                           type="button"
                         >
                           {shortLabel}
+                          {isB2b ? (
+                            <span
+                              className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
+                              title="B2B · ~75% expected"
+                            >
+                              B2B
+                            </span>
+                          ) : null}
                         </button>
                       </td>
                     )

@@ -7,6 +7,7 @@ const coldStarter: SeasonPlayer = {
   id: "cold-starter",
   name: "Cold Starter",
   teamAbbr: "NYK",
+  positions: ["PG"],
   projections: {
     FG_PCT: 0.4,
     FT_PCT: 0.7,
@@ -25,6 +26,7 @@ const benchStar: SeasonPlayer = {
   id: "bench-star",
   name: "Bench Star",
   teamAbbr: "BOS",
+  positions: ["C"],
   projections: {
     FG_PCT: 0.55,
     FT_PCT: 0.85,
@@ -104,6 +106,26 @@ describe("suggestSitStart", () => {
     expect(suggestions).toEqual([])
   })
 
+  it("skips a productive bench player who is ineligible for the active slot", () => {
+    const gamesMap = new Map<string, number>([
+      ["cold-starter", 0],
+      ["bench-star", 3],
+      ["opp-player", 2],
+    ])
+
+    const suggestions = suggestSitStart({
+      youEntries: [
+        { slot: "PG", playerId: "cold-starter" },
+        { slot: "BE", playerId: "bench-star" },
+      ],
+      oppEntries,
+      players,
+      gamesMap,
+    })
+
+    expect(suggestions).toEqual([])
+  })
+
   it("passes categoryIds through to buildMatchupBoard", () => {
     const gamesMap = new Map<string, number>([
       ["cold-starter", 0],
@@ -134,12 +156,16 @@ describe("applySitStartSwap", () => {
     { slot: "UTIL", playerId: "a" },
     { slot: "BE", playerId: "b" },
   ]
+  const applyPlayers: SeasonPlayer[] = [
+    { ...coldStarter, id: "a", positions: ["PG"] },
+    { ...benchStar, id: "b", positions: ["C"] },
+  ]
 
   it("swaps ids between BE and active slots", () => {
     const next = applySitStartSwap(entries, {
       benchPlayerId: "b",
       activePlayerId: "a",
-    })
+    }, applyPlayers)
 
     expect(next).not.toHaveProperty("error")
     if ("error" in next) return
@@ -156,9 +182,26 @@ describe("applySitStartSwap", () => {
 
   it("returns stale_lineup when ids missing", () => {
     expect(
-      applySitStartSwap(entries, { benchPlayerId: "x", activePlayerId: "a" }),
+      applySitStartSwap(
+        entries,
+        { benchPlayerId: "x", activePlayerId: "a" },
+        applyPlayers,
+      ),
     ).toEqual({
       error: "stale_lineup",
     })
+  })
+
+  it("returns ineligible when the bench player cannot fill the active slot", () => {
+    expect(
+      applySitStartSwap(
+        [
+          { slot: "PG", playerId: "a" },
+          { slot: "BE", playerId: "b" },
+        ],
+        { benchPlayerId: "b", activePlayerId: "a" },
+        applyPlayers,
+      ),
+    ).toEqual({ error: "ineligible" })
   })
 })

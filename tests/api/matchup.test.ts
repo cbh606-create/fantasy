@@ -1,14 +1,31 @@
 import { headers } from "next/headers"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import scheduleFixture from "../../data/fixtures/nba-matchup-schedule.json"
 import { POST as applyMatchupLineup } from "@/app/api/matchup/apply-lineup/route"
 import { GET as getMatchup } from "@/app/api/matchup/route"
 import { POST as createSeasonLeague } from "@/app/api/season-leagues/route"
 import { db } from "@/lib/db"
-import type { SeasonRosterEntry } from "@/lib/season/types"
+import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonRosterEntry,
+} from "@/lib/season/types"
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
 }))
+
+vi.mock("@/lib/matchup/scheduleLive", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/lib/matchup/scheduleLive")>()
+
+  return {
+    ...actual,
+    getMatchupSchedule: vi.fn(
+      async () => scheduleFixture as ScheduleResponse,
+    ),
+  }
+})
 
 const testUserPrefix = `matchup-api-${crypto.randomUUID()}`
 let currentUserId: string
@@ -189,7 +206,7 @@ describe("POST /api/matchup/apply-lineup", () => {
       createJsonRequest("/api/matchup/apply-lineup", {
         seasonLeagueId: league.id,
         benchPlayerId: "t3p11",
-        activePlayerId: "t3p1",
+        activePlayerId: "t3p8",
       }),
     )
     const payload = await response.json()
@@ -207,8 +224,8 @@ describe("POST /api/matchup/apply-lineup", () => {
       updated!.localLineupJson!,
     ) as SeasonRosterEntry[]
 
-    expect(entries.find((entry) => entry.slot === "PG")?.playerId).toBe("t3p11")
-    expect(entries.find((entry) => entry.slot === "BE")?.playerId).toBe("t3p1")
+    expect(entries.find((entry) => entry.slot === "UTIL")?.playerId).toBe("t3p11")
+    expect(entries.find((entry) => entry.slot === "BE")?.playerId).toBe("t3p8")
   })
 
   it("returns 409 stale_lineup when swap ids do not match current lineup", async () => {
@@ -224,5 +241,31 @@ describe("POST /api/matchup/apply-lineup", () => {
 
     expect(response.status).toBe(409)
     expect(await response.json()).toEqual({ error: "stale_lineup" })
+  })
+
+  it("returns 409 when the bench player is ineligible for the active slot", async () => {
+    const league = await createManualLeague()
+    const stored = await db.seasonLeague.findUniqueOrThrow({
+      where: { id: league.id },
+    })
+    const state = JSON.parse(stored.stateJson) as SeasonLeagueState
+    const benchPlayer = state.players.find((player) => player.id === "t3p11")
+    if (!benchPlayer) throw new Error("Expected bench player fixture")
+    benchPlayer.positions = ["C"]
+    await db.seasonLeague.update({
+      where: { id: league.id },
+      data: { stateJson: JSON.stringify(state) },
+    })
+
+    const response = await applyMatchupLineup(
+      createJsonRequest("/api/matchup/apply-lineup", {
+        seasonLeagueId: league.id,
+        benchPlayerId: "t3p11",
+        activePlayerId: "t3p1",
+      }),
+    )
+
+    expect(response.status).toBe(409)
+    expect(await response.json()).toEqual({ error: "ineligible" })
   })
 })

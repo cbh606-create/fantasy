@@ -19,6 +19,16 @@ describe("categoryWinProb", () => {
     expect(categoryWinProb(15, 20, "TO")).toBeGreaterThan(0.5)
     expect(categoryWinProb(25, 20, "TO")).toBeLessThan(0.5)
   })
+
+  it("keeps small PTS edges uncertain and FG% edges meaningful", () => {
+    const pts = categoryWinProb(100.5, 100, "PTS")
+    expect(pts).toBeGreaterThan(0.45)
+    expect(pts).toBeLessThan(0.6)
+
+    const fg = categoryWinProb(0.46, 0.45, "FG_PCT")
+    expect(fg).toBeGreaterThan(0.55)
+    expect(fg).toBeLessThan(0.75)
+  })
 })
 
 describe("buildMatchupBoard", () => {

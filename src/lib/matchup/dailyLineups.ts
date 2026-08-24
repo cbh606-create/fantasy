@@ -4,8 +4,12 @@ import type {
   ScheduleResponse,
   SeasonPlayer,
   SeasonRosterEntry,
+  SeasonSlot,
 } from "@/lib/season/types"
-import { ACTIVE_SEASON_SLOTS, isActiveSlot } from "./constants"
+import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
+import { isActiveSlot } from "./constants"
+import { activeSlotsFor, eligibleForSlot } from "./eligibility"
+import { gameWeightForTeamDate } from "./games"
 import { weeklyPlayerStats } from "./weekly"
 
 export type DailyLineups = Record<string, SeasonRosterEntry[]>
@@ -23,20 +27,28 @@ export const dailyStorageKey = (leagueId: string) => `matchup-days:${leagueId}`
 
 export const extractActiveEntries = (
   entries: SeasonRosterEntry[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): SeasonRosterEntry[] => {
-  const active = entries.filter((entry) => isActiveSlot(entry.slot))
+  const queues = new Map<SeasonSlot, Array<string | null>>()
+  for (const entry of entries) {
+    if (!isActiveSlot(entry.slot)) continue
+    const queue = queues.get(entry.slot) ?? []
+    queue.push(entry.playerId)
+    queues.set(entry.slot, queue)
+  }
 
-  return ACTIVE_SEASON_SLOTS.map((slot, index) => ({
+  return activeSlotsFor(rosterSlots).map((slot) => ({
     slot,
-    playerId: active[index]?.playerId ?? null,
+    playerId: queues.get(slot)?.shift() ?? null,
   }))
 }
 
 export const initDailyLineups = (
   days: string[],
   activeEntries: SeasonRosterEntry[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): DailyLineups => {
-  const template = extractActiveEntries(activeEntries)
+  const template = extractActiveEntries(activeEntries, rosterSlots)
 
   return Object.fromEntries(
     days.map((day) => [day, template.map((entry) => ({ ...entry }))]),
@@ -71,11 +83,13 @@ export const writeDailyLineups = (
 export const dailyLineupsMatchDays = (
   daily: DailyLineups,
   days: string[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): boolean => {
   if (days.length === 0) return false
 
+  const activeSlotCount = activeSlotsFor(rosterSlots).length
   return (
-    days.every((day) => Array.isArray(daily[day]) && daily[day].length === ACTIVE_SEASON_SLOTS.length) &&
+    days.every((day) => Array.isArray(daily[day]) && daily[day].length === activeSlotCount) &&
     Object.keys(daily).length === days.length
   )
 }
@@ -140,9 +154,13 @@ export const effectiveGamesByPlayerId = (
       const player = playersById.get(entry.playerId)
       if (!player) continue
 
-      if (!playerGameDays(player, schedule).has(day)) continue
+      const teamAbbr = player.teamAbbr
+      if (!teamAbbr) continue
 
-      counts.set(entry.playerId, (counts.get(entry.playerId) ?? 0) + 1)
+      const gameWeight = gameWeightForTeamDate(teamAbbr, day, schedule)
+      if (gameWeight === 0) continue
+
+      counts.set(entry.playerId, (counts.get(entry.playerId) ?? 0) + gameWeight)
     }
   }
 
@@ -222,7 +240,7 @@ export const setSlotPlayer = (
 
 export type TogglePlayerDayResult = {
   daily: DailyLineups
-  status: "started" | "sat" | "no_game" | "full" | "missing_day"
+  status: "started" | "sat" | "no_game" | "full" | "ineligible" | "missing_day"
 }
 
 export const findPlayerSlotIndex = (
@@ -241,6 +259,8 @@ export const togglePlayerDay = (
   day: string,
   playerId: string,
   hasGame: boolean,
+  playersById: Record<string, SeasonPlayer>,
+  rosterSlots?: SeasonSlot[],
 ): TogglePlayerDayResult => {
   const entries = daily[day]
   if (!entries) {
@@ -259,9 +279,20 @@ export const togglePlayerDay = (
     }
   }
 
-  const emptyIndex = entries.findIndex((entry) => entry.playerId === null)
-  if (emptyIndex < 0) {
+  const hasEmptySlot = entries.some((entry) => entry.playerId === null)
+  if (!hasEmptySlot) {
     return { daily, status: "full" }
+  }
+
+  const player = playersById[playerId]
+  const emptyIndex = entries.findIndex(
+    (entry) =>
+      entry.playerId === null &&
+      (!rosterSlots || rosterSlots.includes(entry.slot)) &&
+      eligibleForSlot(player, entry.slot),
+  )
+  if (emptyIndex < 0) {
+    return { daily, status: "ineligible" }
   }
 
   return {

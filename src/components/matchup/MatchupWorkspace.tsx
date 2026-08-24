@@ -23,7 +23,9 @@ import {
   writeDailyLineups,
   youTotalsFromDaily,
   type DailyLineups,
+  type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
+import { rosterSlotsFor } from "@/lib/matchup/eligibility"
 import type { MatchupAdvice, MatchupBoard as MatchupBoardData, SitStartSuggestion } from "@/lib/matchup/types"
 import type {
   ScheduleResponse,
@@ -66,13 +68,14 @@ const resolveDailyLineups = (
     (team) => team.teamIndex === state.perspectiveTeamIndex,
   )
   const activeEntries = youTeam?.entries ?? []
+  const rosterSlots = rosterSlotsFor(state)
   const stored = readDailyLineups(leagueId)
 
-  if (stored && dailyLineupsMatchDays(stored, days)) {
+  if (stored && dailyLineupsMatchDays(stored, days, rosterSlots)) {
     return stored
   }
 
-  const fresh = initDailyLineups(days, activeEntries)
+  const fresh = initDailyLineups(days, activeEntries, rosterSlots)
   writeDailyLineups(leagueId, fresh)
   return fresh
 }
@@ -125,7 +128,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         const youTeam = nextState.teams.find(
           (team) => team.teamIndex === nextState.perspectiveTeamIndex,
         )
-        const fresh = initDailyLineups(days, youTeam?.entries ?? [])
+        const fresh = initDailyLineups(
+          days,
+          youTeam?.entries ?? [],
+          rosterSlotsFor(nextState),
+        )
         writeDailyLineups(leagueId, fresh)
         setDaily(fresh)
         return
@@ -285,7 +292,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const handleTogglePlayerDay = (
     playerId: string,
     day: string,
-  ): "started" | "sat" | "no_game" | "full" | "missing_day" => {
+  ): TogglePlayerDayResult["status"] => {
     if (!daily || !matchupData) return "missing_day"
 
     const player = state?.players.find((entry) => entry.id === playerId)
@@ -298,6 +305,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       day,
       playerId,
       hasGame,
+      matchupData.playersById,
+      state?.rosterSlots,
     )
 
     if (status === "started" || status === "sat") {
@@ -415,9 +424,14 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             <h1 className="mt-1 font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
               {state.name}
             </h1>
-            <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]">
-              {matchupData.scoringPeriod.startDate} – {matchupData.scoringPeriod.endDate}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.8125rem] text-[var(--color-mute)]">
+              <span>
+                {matchupData.scoringPeriod.startDate} – {matchupData.scoringPeriod.endDate}
+              </span>
+              <span className="rounded-full bg-[var(--color-soft-cloud)] px-2 py-0.5 text-[0.6875rem]">
+                Schedule: {matchupData.schedule.source === "live" ? "live" : "fixture fallback"}
+              </span>
+            </div>
           </div>
           <OpponentPicker
             onChange={handleOpponentChange}

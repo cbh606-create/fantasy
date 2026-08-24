@@ -4,6 +4,7 @@ import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
+  SeasonPosition,
   SeasonRosterEntry,
   SeasonSlot,
   SeasonTeamRoster,
@@ -57,6 +58,8 @@ type EspnPlayer = {
   id: number
   fullName?: string
   proTeamId?: number
+  defaultPositionId?: number
+  eligibleSlots?: number[]
   stats?: EspnPlayerStats[]
 }
 
@@ -80,7 +83,12 @@ type EspnTeam = {
 export type EspnLeaguePayload = {
   id?: number
   seasonId?: number
-  settings?: { name?: string }
+  settings?: {
+    name?: string
+    rosterSettings?: {
+      lineupSlotCounts?: Record<string, number>
+    }
+  }
   teams?: EspnTeam[]
 }
 
@@ -123,6 +131,33 @@ export const mapEspnLineupSlot = (lineupSlotId: number): SeasonSlot => {
   }
 }
 
+const positionsFromEspnPlayer = (player: EspnPlayer): SeasonPosition[] => {
+  const lineupSlotIds = player.eligibleSlots?.length
+    ? player.eligibleSlots
+    : player.defaultPositionId === undefined
+      ? []
+      : [player.defaultPositionId]
+  const positions = lineupSlotIds
+    .map(mapEspnLineupSlot)
+    .filter((slot): slot is SeasonPosition =>
+      slot !== "UTIL" && slot !== "BE" && slot !== "IL")
+
+  return [...new Set(positions)]
+}
+
+const rosterSlotsFromEspnSettings = (
+  settings: EspnLeaguePayload["settings"],
+): SeasonSlot[] | undefined => {
+  const lineupSlotCounts = settings?.rosterSettings?.lineupSlotCounts
+  if (!lineupSlotCounts) return undefined
+
+  return Object.entries(lineupSlotCounts).flatMap(([lineupSlotId, count]) =>
+    Array.from(
+      { length: count },
+      () => mapEspnLineupSlot(Number(lineupSlotId)),
+    ))
+}
+
 const pickAverageStats = (
   player: EspnPlayer,
   season: number,
@@ -155,6 +190,7 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
     id: String(player.id),
     name: player.fullName?.trim() || `Player ${player.id}`,
     teamAbbr: PRO_TEAM_ABBR[player.proTeamId ?? -1],
+    positions: positionsFromEspnPlayer(player),
     projections: {
       FG_PCT: avg["19"] ?? (fga > 0 ? fgm / fga : 0),
       FT_PCT: avg["20"] ?? (fta > 0 ? ftm / fta : 0),
@@ -189,9 +225,12 @@ export const mapEspnFreeAgentPlayers = (
     }]
   })
 
-const packEntries = (raw: { slot: SeasonSlot; playerId: string }[]): SeasonRosterEntry[] => {
+const packEntries = (
+  raw: { slot: SeasonSlot; playerId: string }[],
+  rosterSlots: SeasonSlot[],
+): SeasonRosterEntry[] => {
   const queues = new Map<SeasonSlot, string[]>()
-  for (const slot of SEASON_ROSTER_SLOTS) {
+  for (const slot of rosterSlots) {
     if (!queues.has(slot)) queues.set(slot, [])
   }
 
@@ -199,7 +238,7 @@ const packEntries = (raw: { slot: SeasonSlot; playerId: string }[]): SeasonRoste
     queues.get(entry.slot)?.push(entry.playerId)
   }
 
-  return SEASON_ROSTER_SLOTS.map((slot) => ({
+  return rosterSlots.map((slot) => ({
     slot,
     playerId: queues.get(slot)?.shift() ?? null,
   }))
@@ -226,6 +265,8 @@ export const mapEspnLeagueToSeasonState = (
     throw new EspnAdapterError("ESPN_PARTIAL")
   }
 
+  const rosterSlots = rosterSlotsFromEspnSettings(payload.settings)
+  const packingSlots = rosterSlots ?? SEASON_ROSTER_SLOTS
   const playersById = new Map<string, SeasonPlayer>()
   const teams: SeasonTeamRoster[] = teamsPayload.map((team, teamIndex) => {
     const rawEntries: { slot: SeasonSlot; playerId: string }[] = []
@@ -245,13 +286,12 @@ export const mapEspnLeagueToSeasonState = (
     return {
       teamIndex,
       name: teamName(team),
-      entries: packEntries(rawEntries),
+      entries: packEntries(rawEntries, packingSlots),
     }
   })
 
   const season = payload.seasonId ?? params.season
   const name = payload.settings?.name?.trim() || `ESPN League ${params.leagueId}`
-
   return {
     id: params.leagueId,
     name,
@@ -263,6 +303,7 @@ export const mapEspnLeagueToSeasonState = (
     players: [...playersById.values()],
     availablePlayerIds: [],
     waiverOrder: teams.map((team) => team.teamIndex),
+    ...(rosterSlots ? { rosterSlots } : {}),
     source: "espn",
   }
 }

@@ -2,7 +2,7 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
 import { buildMatchupBoard } from "./board"
-import { gamesThisWeekByPlayerId } from "./games"
+import { weightedGamesThisWeekByPlayerId } from "./games"
 import { suggestSitStart } from "./sitStart"
 import { suggestStreamers } from "./streamers"
 import type { MatchupAdvice } from "./types"
@@ -31,7 +31,7 @@ export const adviseMatchup = (
     return { error: "invalid_opponent" }
   }
 
-  const gamesMap = gamesThisWeekByPlayerId(state.players, schedule)
+  const gamesMap = weightedGamesThisWeekByPlayerId(state.players, schedule)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const categoryIds = enabledCategoryIds(state)
 

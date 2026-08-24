@@ -87,7 +87,7 @@ export const POST = async (request: Request): Promise<Response> => {
   const result = applySitStartSwap(youTeam.entries, {
     benchPlayerId: body.benchPlayerId,
     activePlayerId: body.activePlayerId,
-  })
+  }, currentState.players)
 
   if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: 409 })
