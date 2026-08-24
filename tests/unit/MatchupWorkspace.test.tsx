@@ -100,6 +100,7 @@ const matchupAdvice: MatchupAdvice & {
     },
     games: [
       { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "BOS" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "MIA" },
       { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "MIA" },
     ],
   },
@@ -221,8 +222,12 @@ describe("MatchupWorkspace", () => {
     ).toBeInTheDocument()
 
     expect(screen.getByText("Using your day-by-day lineups")).toBeInTheDocument()
+    expect(screen.getByText("Schedule: fixture fallback")).toBeInTheDocument()
     expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/YOU \d+/)
     expect(screen.getByRole("heading", { name: "Daily lineup" })).toBeInTheDocument()
+    expect(
+      screen.getByTitle("B2B · ~75% expected"),
+    ).toBeInTheDocument()
     expect(
       screen.getAllByRole("button", { name: /Sit Cold Starter on/i }).length,
     ).toBeGreaterThan(0)

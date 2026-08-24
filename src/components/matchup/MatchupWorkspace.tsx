@@ -418,9 +418,14 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             <h1 className="mt-1 font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
               {state.name}
             </h1>
-            <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]">
-              {matchupData.scoringPeriod.startDate} – {matchupData.scoringPeriod.endDate}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.8125rem] text-[var(--color-mute)]">
+              <span>
+                {matchupData.scoringPeriod.startDate} – {matchupData.scoringPeriod.endDate}
+              </span>
+              <span className="rounded-full bg-[var(--color-soft-cloud)] px-2 py-0.5 text-[0.6875rem]">
+                Schedule: {matchupData.schedule.source === "live" ? "live" : "fixture fallback"}
+              </span>
+            </div>
           </div>
           <OpponentPicker
             onChange={handleOpponentChange}
