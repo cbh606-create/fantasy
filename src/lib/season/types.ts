@@ -43,7 +43,7 @@ export type ScheduleMatchup = {
 }
 
 export type ScheduleResponse = {
-  source: "live" | "fixture"
+  source: "live" | "season" | "fixture"
   matchup: ScheduleMatchup
   games: ScheduleGame[]
 }

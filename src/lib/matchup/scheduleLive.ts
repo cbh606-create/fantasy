@@ -1,5 +1,8 @@
 import scheduleFixture from "../../../data/fixtures/nba-matchup-schedule.json"
+import { buildWeekDays, formatUtcIsoDate, parseIsoDate } from "@/lib/matchup/scheduleDates"
 import type { ScheduleGame, ScheduleResponse } from "@/lib/season/types"
+
+export { buildWeekDays } from "@/lib/matchup/scheduleDates"
 
 const ESPN_SCOREBOARD_URL =
   "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard"
@@ -48,13 +51,6 @@ type CachedSchedule = {
 
 let cachedSchedule: CachedSchedule | null = null
 
-const parseIsoDate = (isoDate: string) => {
-  const [year, month, day] = isoDate.split("-").map(Number)
-  return new Date(Date.UTC(year, month - 1, day))
-}
-
-const formatUtcIsoDate = (date: Date) => date.toISOString().slice(0, 10)
-
 export const normalizeEspnTeamAbbr = (abbreviation: string): string => {
   const normalized = abbreviation.trim().toUpperCase()
   return ESPN_TEAM_ABBR_MAP[normalized] ?? normalized
@@ -69,18 +65,6 @@ const formatNewYorkIsoDate = (date: Date) => {
   }).formatToParts(date)
   const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
   return `${values.year}-${values.month}-${values.day}`
-}
-
-export const buildWeekDays = (startIso: string, endIso: string): string[] => {
-  const start = parseIsoDate(startIso)
-  const end = parseIsoDate(endIso)
-  const days: string[] = []
-
-  for (const current = start; current <= end; current.setUTCDate(current.getUTCDate() + 1)) {
-    days.push(formatUtcIsoDate(current))
-  }
-
-  return days
 }
 
 const getTeamAbbreviation = (
