@@ -233,7 +233,7 @@ describe("MatchupWorkspace", () => {
       screen.getAllByRole("button", { name: /Sit Cold Starter on/i }).length,
     ).toBeGreaterThan(0)
     expect(
-      screen.getAllByRole("button", { name: /Start Bench Star on/i }).length,
+      screen.getAllByRole("button", { name: /Sit Bench Star on/i }).length,
     ).toBeGreaterThan(0)
     expect(
       screen.getByText(
@@ -325,7 +325,7 @@ describe("MatchupWorkspace", () => {
     render(<MatchupWorkspace leagueId="season-1" />)
 
     expect(
-      await screen.findByRole("heading", { name: "Streamers" }),
+      await screen.findByRole("heading", { name: /streaming plans/i }),
     ).toBeInTheDocument()
 
     await waitFor(() => {

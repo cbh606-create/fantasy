@@ -7,7 +7,7 @@ import { InjuryAlertsPanel } from "@/components/matchup/InjuryAlertsPanel"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
-import { StreamersPanel } from "@/components/matchup/StreamersPanel"
+import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { Banner } from "@/components/ui/Banner"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
@@ -523,17 +523,17 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         />
 
         <div className="mt-8 space-y-8">
+          <InjuryAlertsPanel leagueId={leagueId} />
+          <StreamingPlansPanel
+            leagueId={leagueId}
+            playersById={matchupData.playersById}
+            plans={matchupData.streamingPlans}
+          />
           <SitStartPanel
             applyingSwapKey={applyingSwapKey}
             onApply={handleApplySwap}
             playersById={matchupData.playersById}
             suggestions={matchupData.sitStart}
-          />
-          <InjuryAlertsPanel leagueId={leagueId} />
-          <StreamersPanel
-            leagueId={leagueId}
-            playersById={matchupData.playersById}
-            streamers={matchupData.streamers}
           />
         </div>
       </div>
