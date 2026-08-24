@@ -3,15 +3,34 @@ import espnScoreboard from "../../data/fixtures/espn-nba-scoreboard-sample.json"
 import scheduleFixture from "../../data/fixtures/nba-matchup-schedule.json"
 import {
   buildWeekDays,
+  clearMatchupScheduleCache,
   getMatchupSchedule,
   normalizeEspnTeamAbbr,
   normalizeEspnScoreboard,
 } from "@/lib/matchup/scheduleLive"
 import type { ScheduleResponse } from "@/lib/season/types"
 
+const espnScoreboardFor = (isoDate: string, homeAbbr = "BOS", awayAbbr = "LAL") => ({
+  events: [
+    {
+      date: `${isoDate}T23:30Z`,
+      competitions: [
+        {
+          date: `${isoDate}T23:30Z`,
+          competitors: [
+            { homeAway: "home", team: { abbreviation: homeAbbr } },
+            { homeAway: "away", team: { abbreviation: awayAbbr } },
+          ],
+        },
+      ],
+    },
+  ],
+})
+
 describe("live matchup schedule", () => {
   afterEach(() => {
     vi.useRealTimers()
+    clearMatchupScheduleCache()
   })
 
   it("builds every ISO date in an inclusive week", () => {
@@ -45,12 +64,13 @@ describe("live matchup schedule", () => {
   })
 
   it("normalizes ESPN team abbreviations to player-map abbreviations", () => {
-    expect(["GS", "NY", "NO", "SA", "WSH"].map(normalizeEspnTeamAbbr)).toEqual([
+    expect(["GS", "NY", "NO", "SA", "WSH", "UTAH"].map(normalizeEspnTeamAbbr)).toEqual([
       "GSW",
       "NYK",
       "NOP",
       "SAS",
       "WAS",
+      "UTA",
     ])
   })
 
@@ -88,8 +108,55 @@ describe("live matchup schedule", () => {
     ])
   })
 
-  it("falls back to the fixture when the live request fails", async () => {
+  it("uses published season next week when live returns no games", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-24T16:00:00Z"))
     const schedule = await getMatchupSchedule({
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ events: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200,
+        }),
+    })
+    expect(schedule.source).toBe("season")
+    expect(schedule.matchup.startDate).toBe("2026-10-19")
+    expect(schedule.games.length).toBeGreaterThan(0)
+  })
+
+  it("uses published season when the live request fails during offseason", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-24T16:00:00Z"))
+    const schedule = await getMatchupSchedule({
+      fetchImpl: async () => {
+        throw new Error("network unavailable")
+      },
+    })
+    expect(schedule.source).toBe("season")
+    expect(schedule.matchup.startDate).toBe("2026-10-19")
+  })
+
+  it("treats lookback-only live games as empty and uses season", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-24T16:00:00Z"))
+    const fetchImpl = async (input: RequestInfo | URL) => {
+      const url = String(input)
+      const payload = url.includes("dates=20260823")
+        ? espnScoreboardFor("2026-08-23")
+        : { events: [] }
+      return new Response(JSON.stringify(payload), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      })
+    }
+
+    const schedule = await getMatchupSchedule({ fetchImpl })
+    expect(schedule.source).toBe("season")
+    expect(schedule.matchup.startDate).toBe("2026-10-19")
+  })
+
+  it("falls back to the fixture when live fails and season has no future games", async () => {
+    const schedule = await getMatchupSchedule({
+      now: new Date("2027-06-01T16:00:00Z"),
       fetchImpl: async () => {
         throw new Error("network unavailable")
       },
@@ -99,17 +166,24 @@ describe("live matchup schedule", () => {
     expect(schedule.source).toBe("fixture")
   })
 
-  it("falls back to the fixture when ESPN returns no games", async () => {
-    const schedule = await getMatchupSchedule({
-      fetchImpl: async () =>
-        new Response(JSON.stringify({ events: [] }), {
-          headers: { "Content-Type": "application/json" },
-          status: 200,
-        }),
-    })
+  it("keeps live when ESPN returns games for the current week", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-26T12:00:00Z"))
+    const fetchImpl = async () =>
+      new Response(JSON.stringify(espnScoreboardFor("2026-08-26")), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      })
 
-    expect(schedule).toEqual(scheduleFixture as ScheduleResponse)
-    expect(schedule.source).toBe("fixture")
+    const schedule = await getMatchupSchedule({ fetchImpl })
+    expect(schedule.source).toBe("live")
+    expect(schedule.games).toEqual([
+      {
+        date: "2026-08-26",
+        homeAbbr: "BOS",
+        awayAbbr: "LAL",
+      },
+    ])
   })
 
   it("fetches the New York Monday-Sunday window and caches it", async () => {
@@ -118,7 +192,7 @@ describe("live matchup schedule", () => {
     const requestedUrls: string[] = []
     const fetchImpl = async (input: RequestInfo | URL) => {
       requestedUrls.push(String(input))
-      return new Response(JSON.stringify(espnScoreboard), {
+      return new Response(JSON.stringify(espnScoreboardFor("2026-08-26")), {
         headers: { "Content-Type": "application/json" },
         status: 200,
       })

@@ -1,5 +1,7 @@
 import scheduleFixture from "../../../data/fixtures/nba-matchup-schedule.json"
+import seasonScheduleFile from "../../../data/fixtures/nba-schedule-2026-27.json"
 import { buildWeekDays, formatUtcIsoDate, parseIsoDate } from "@/lib/matchup/scheduleDates"
+import { nextWeekWithGames } from "@/lib/matchup/scheduleSeason"
 import type { ScheduleGame, ScheduleResponse } from "@/lib/season/types"
 
 export { buildWeekDays } from "@/lib/matchup/scheduleDates"
@@ -14,6 +16,7 @@ const ESPN_TEAM_ABBR_MAP: Record<string, string> = {
   NO: "NOP",
   SA: "SAS",
   WSH: "WAS",
+  UTAH: "UTA",
 }
 
 type NormalizeOptions = {
@@ -24,6 +27,7 @@ type NormalizeOptions = {
 
 type GetMatchupScheduleOptions = {
   fetchImpl?: typeof fetch
+  now?: Date
 }
 
 type EspnCompetitor = {
@@ -50,6 +54,10 @@ type CachedSchedule = {
 }
 
 let cachedSchedule: CachedSchedule | null = null
+
+export const clearMatchupScheduleCache = () => {
+  cachedSchedule = null
+}
 
 export const normalizeEspnTeamAbbr = (abbreviation: string): string => {
   const normalized = abbreviation.trim().toUpperCase()
@@ -150,8 +158,9 @@ export const getMatchupSchedule = async (
   options: GetMatchupScheduleOptions = {},
 ): Promise<ScheduleResponse> => {
   // Matchup weeks use the America/New_York local calendar date and run Monday-Sunday.
-  const { endIso, startIso } = getNewYorkWeek(new Date())
-  const cacheKey = `${startIso}:${endIso}`
+  const nowDate = options.now ?? new Date()
+  const { endIso, startIso } = getNewYorkWeek(nowDate)
+  const cacheKey = `${startIso}:${endIso}:v2`
   const now = Date.now()
   if (
     cachedSchedule &&
@@ -162,6 +171,7 @@ export const getMatchupSchedule = async (
   }
 
   const days = buildWeekDays(startIso, endIso)
+  const daySet = new Set(days)
   const lookback = parseIsoDate(startIso)
   lookback.setUTCDate(lookback.getUTCDate() - 1)
   const fetchDays = [formatUtcIsoDate(lookback), ...days]
@@ -187,13 +197,15 @@ export const getMatchupSchedule = async (
       seenGameKeys.add(key)
       return true
     })
+    const weekHasGames = uniqueGames.some((game) => daySet.has(game.date))
+    if (!weekHasGames) {
+      throw new Error("ESPN scoreboard returned no games")
+    }
+
     const schedule: ScheduleResponse = {
       games: uniqueGames,
       matchup: schedules[0].matchup,
       source: "live",
-    }
-    if (schedule.games.length === 0) {
-      throw new Error("ESPN scoreboard returned no games")
     }
 
     cachedSchedule = {
@@ -203,6 +215,15 @@ export const getMatchupSchedule = async (
     }
     return schedule
   } catch {
-    return scheduleFixture as ScheduleResponse
+    const todayIso = formatNewYorkIsoDate(nowDate)
+    const season = nextWeekWithGames(seasonScheduleFile.games, todayIso)
+    if (!season) return scheduleFixture as ScheduleResponse
+
+    cachedSchedule = {
+      expiresAt: now + CACHE_TTL_MS,
+      key: cacheKey,
+      schedule: season,
+    }
+    return season
   }
 }
