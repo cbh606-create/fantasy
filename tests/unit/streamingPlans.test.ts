@@ -110,6 +110,35 @@ const tinySchedule = (
 })
 
 describe("buildStreamingPlan", () => {
+  it("drop_add records droppedPlayerId as the previous spot occupant", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const state = tinyState([faA, faB], ["fa-a", "fa-b"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "CHI" },
+    ])
+    const board = emptyBoardLosingStl()
+
+    const plan = buildStreamingPlan({ spotCount: 1, state, schedule, board })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-a",
+      droppedPlayerId: null,
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "drop_add",
+      playerId: "fa-b",
+      droppedPlayerId: "fa-a",
+    })
+  })
+
   it("1-spot never exceeds add limit and charges 1 add for drop then add", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
     const faA = player("fa-a", "BOS", {

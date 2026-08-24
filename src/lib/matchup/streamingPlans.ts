@@ -136,6 +136,7 @@ export const buildStreamingPlan = ({
 
       let playerId: string | null = null
       let action: StreamingPlanAction = "empty"
+      let droppedPlayerId: string | null = null
 
       if (heldId) {
         playerId = heldId
@@ -145,7 +146,12 @@ export const buildStreamingPlan = ({
         const best = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
         if (best) {
           playerId = best.id
-          action = previousId ? "drop_add" : "add"
+          if (previousId) {
+            action = "drop_add"
+            droppedPlayerId = previousId
+          } else {
+            action = "add"
+          }
           addsUsed += 1
           seatedToday.add(best.id)
         } else {
@@ -160,7 +166,7 @@ export const buildStreamingPlan = ({
         spotIndex,
         playerId,
         action,
-        droppedPlayerId: null,
+        droppedPlayerId,
         rosterDropPlayerId: null,
         rosterDropKind: "none",
       })
