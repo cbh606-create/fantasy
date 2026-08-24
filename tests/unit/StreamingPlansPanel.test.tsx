@@ -64,11 +64,24 @@ describe("StreamingPlansPanel", () => {
     expect(screen.getByText(/Adds 7\/7/i)).toBeInTheDocument()
   })
 
-  it("renders day rows with Hold Add Drop→Add and waiver links for adds", () => {
+  it("renders day column headers and Drop / Add / Roster lines", () => {
+    const rostered: SeasonPlayer = {
+      id: "you-1",
+      name: "Roster Cut",
+      teamAbbr: "CHI",
+      positions: ["PF"],
+      projections,
+      shooting: { FGM: 1, FGA: 2, FTM: 1, FTA: 1 },
+    }
+
     render(
       <StreamingPlansPanel
         leagueId="lg1"
-        playersById={{ "fa-a": streamerA, "fa-b": streamerB }}
+        playersById={{
+          "fa-a": streamerA,
+          "fa-b": streamerB,
+          "you-1": rostered,
+        }}
         plans={[
           {
             spotCount: 1,
@@ -84,8 +97,8 @@ describe("StreamingPlansPanel", () => {
                     playerId: "fa-a",
                     action: "add",
                     droppedPlayerId: null,
-                    rosterDropPlayerId: null,
-                    rosterDropKind: "open_slot",
+                    rosterDropPlayerId: "you-1",
+                    rosterDropKind: "player",
                   },
                 ],
               },
@@ -109,22 +122,9 @@ describe("StreamingPlansPanel", () => {
                     spotIndex: 0,
                     playerId: "fa-b",
                     action: "drop_add",
-                    droppedPlayerId: null,
+                    droppedPlayerId: "fa-a",
                     rosterDropPlayerId: null,
-                    rosterDropKind: "none",
-                  },
-                ],
-              },
-              {
-                date: "2025-11-06",
-                cells: [
-                  {
-                    spotIndex: 0,
-                    playerId: null,
-                    action: "empty",
-                    droppedPlayerId: null,
-                    rosterDropPlayerId: null,
-                    rosterDropKind: "none",
+                    rosterDropKind: "open_slot",
                   },
                 ],
               },
@@ -136,24 +136,20 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    expect(screen.getByText("Add")).toBeInTheDocument()
-    expect(screen.getByText("Hold")).toBeInTheDocument()
-    expect(screen.getByText("Drop→Add")).toBeInTheDocument()
-    expect(screen.getByText("—")).toBeInTheDocument()
-
-    const addLink = screen.getByRole("link", { name: /Streamer A/i })
-    expect(addLink).toHaveAttribute(
-      "href",
-      "/waivers/lg1?addPlayerId=fa-a",
-    )
-
-    const dropAddLink = screen.getByRole("link", { name: /Streamer B/i })
-    expect(dropAddLink).toHaveAttribute(
-      "href",
-      "/waivers/lg1?addPlayerId=fa-b",
-    )
-
-    expect(screen.getAllByText(/SG/).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/BOS/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Mon/i)).toBeInTheDocument()
+    expect(screen.getByText(/Spot 1/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole("cell", { name: /Add Streamer A/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Drop Streamer A/i)).toBeInTheDocument()
+    expect(screen.getByText(/Roster: drop Roster Cut/i)).toBeInTheDocument()
+    expect(screen.getByText(/Roster: open slot/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: /Streamer A/i }),
+    ).toHaveAttribute("href", "/waivers/lg1?addPlayerId=fa-a")
+    expect(
+      screen.getByRole("link", { name: /Streamer B/i }),
+    ).toHaveAttribute("href", "/waivers/lg1?addPlayerId=fa-b")
+    expect(screen.getAllByRole("link", { name: /Streamer A/i })).toHaveLength(1)
   })
 })
