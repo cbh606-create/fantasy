@@ -1,14 +1,27 @@
 import { headers } from "next/headers"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import scheduleFixture from "../../data/fixtures/nba-matchup-schedule.json"
 import { POST as applyMatchupLineup } from "@/app/api/matchup/apply-lineup/route"
 import { GET as getMatchup } from "@/app/api/matchup/route"
 import { POST as createSeasonLeague } from "@/app/api/season-leagues/route"
 import { db } from "@/lib/db"
-import type { SeasonRosterEntry } from "@/lib/season/types"
+import type { ScheduleResponse, SeasonRosterEntry } from "@/lib/season/types"
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
 }))
+
+vi.mock("@/lib/matchup/scheduleLive", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/lib/matchup/scheduleLive")>()
+
+  return {
+    ...actual,
+    getMatchupSchedule: vi.fn(
+      async () => scheduleFixture as ScheduleResponse,
+    ),
+  }
+})
 
 const testUserPrefix = `matchup-api-${crypto.randomUUID()}`
 let currentUserId: string

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server"
-import scheduleFixture from "../../../../data/fixtures/nba-matchup-schedule.json"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
-import type { ScheduleResponse } from "@/lib/season/types"
+import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
 
 export const GET = async (request: Request): Promise<Response> => {
   let userId: string
@@ -26,5 +25,6 @@ export const GET = async (request: Request): Promise<Response> => {
     return NextResponse.json({ error: "not_found" }, { status: 404 })
   }
 
-  return NextResponse.json(scheduleFixture as ScheduleResponse)
+  const schedule = await getMatchupSchedule()
+  return NextResponse.json(schedule)
 }

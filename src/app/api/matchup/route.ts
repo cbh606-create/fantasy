@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
-import scheduleFixture from "../../../../data/fixtures/nba-matchup-schedule.json"
 import { requireUserId } from "@/lib/auth"
 import { adviseMatchup } from "@/lib/matchup/advise"
+import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
 import type { MatchupAdvice } from "@/lib/matchup/types"
-import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
+import type { SeasonLeagueState } from "@/lib/season/types"
 import { loadOwnedSeasonLeague } from "@/lib/waivers/loadSeasonLeague"
 
 const parseOpponentTeamIndex = (value: string | null): number | null => {
@@ -97,7 +97,7 @@ export const GET = async (request: Request): Promise<Response> => {
     }
   }
 
-  const schedule = scheduleFixture as ScheduleResponse
+  const schedule = await getMatchupSchedule()
   const advice = adviseMatchup(loaded.state, schedule, opponentTeamIndex)
 
   if ("error" in advice) {
