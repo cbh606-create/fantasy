@@ -7,6 +7,7 @@ const coldStarter: SeasonPlayer = {
   id: "cold-starter",
   name: "Cold Starter",
   teamAbbr: "NYK",
+  positions: ["PG"],
   projections: {
     FG_PCT: 0.4,
     FT_PCT: 0.7,
@@ -25,6 +26,7 @@ const benchStar: SeasonPlayer = {
   id: "bench-star",
   name: "Bench Star",
   teamAbbr: "BOS",
+  positions: ["C"],
   projections: {
     FG_PCT: 0.55,
     FT_PCT: 0.85,
@@ -96,6 +98,26 @@ describe("suggestSitStart", () => {
 
     const suggestions = suggestSitStart({
       youEntries,
+      oppEntries,
+      players,
+      gamesMap,
+    })
+
+    expect(suggestions).toEqual([])
+  })
+
+  it("skips a productive bench player who is ineligible for the active slot", () => {
+    const gamesMap = new Map<string, number>([
+      ["cold-starter", 0],
+      ["bench-star", 3],
+      ["opp-player", 2],
+    ])
+
+    const suggestions = suggestSitStart({
+      youEntries: [
+        { slot: "PG", playerId: "cold-starter" },
+        { slot: "BE", playerId: "bench-star" },
+      ],
       oppEntries,
       players,
       gamesMap,

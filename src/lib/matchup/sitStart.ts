@@ -1,5 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
+import { eligibleForSlot } from "@/lib/matchup/eligibility"
 import { buildMatchupBoard } from "./board"
 import { isActiveSlot, MAX_SIT_START } from "./constants"
 import type { SitStartSuggestion, SitStartSwap } from "./types"
@@ -89,6 +90,17 @@ export const suggestSitStart = ({
 
   for (const benchPlayerId of benchPlayerIds) {
     for (const activePlayerId of activePlayerIds) {
+      const activeEntry = youEntries.find(
+        (entry) =>
+          entry.playerId === activePlayerId && isActiveSlot(entry.slot),
+      )
+      if (!activeEntry) continue
+
+      const benchPlayer = playerMap.get(benchPlayerId)
+      const activePlayer = playerMap.get(activePlayerId)
+      if (!eligibleForSlot(benchPlayer, activeEntry.slot)) continue
+      if (!eligibleForSlot(activePlayer, "BE")) continue
+
       const swapped = swapFilledEntries(youEntries, benchPlayerId, activePlayerId)
       if (!swapped) continue
 

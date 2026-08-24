@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import type { DailyLineups } from "@/lib/matchup/dailyLineups"
+import type {
+  DailyLineups,
+  TogglePlayerDayResult,
+} from "@/lib/matchup/dailyLineups"
 import {
   dayOpponentLabel,
   findPlayerSlotIndex,
@@ -14,7 +17,10 @@ type DailyLineupPanelProps = {
   daily: DailyLineups
   rosterPlayers: SeasonPlayer[]
   schedule: ScheduleResponse
-  onTogglePlayerDay: (playerId: string, day: string) => "started" | "sat" | "no_game" | "full" | "missing_day"
+  onTogglePlayerDay: (
+    playerId: string,
+    day: string,
+  ) => TogglePlayerDayResult["status"]
   onReset: () => void
 }
 
@@ -48,6 +54,11 @@ export const DailyLineupPanel = ({
     const status = onTogglePlayerDay(player.id, day)
     if (status === "full") {
       setHint("No empty slot that day — sit someone first")
+      return
+    }
+
+    if (status === "ineligible") {
+      setHint(`${player.name} is not eligible for an empty slot that day`)
       return
     }
 

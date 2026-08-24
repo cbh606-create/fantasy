@@ -27,6 +27,7 @@ const star: SeasonPlayer = {
   id: "star",
   name: "Star",
   teamAbbr: "BOS",
+  positions: ["PG"],
   projections: {
     FG_PCT: 0.5,
     FT_PCT: 0.8,
@@ -45,6 +46,7 @@ const scrub: SeasonPlayer = {
   id: "scrub",
   name: "Scrub",
   teamAbbr: "NYK",
+  positions: ["SG"],
   projections: {
     FG_PCT: 0.4,
     FT_PCT: 0.7,
@@ -145,19 +147,33 @@ describe("setSlotPlayer", () => {
 describe("togglePlayerDay", () => {
   it("sits a starter and starts into the first empty slot", () => {
     const daily = initDailyLineups(schedule.matchup.days, activeEntries)
+    const playersById = { star, scrub }
 
-    const sat = togglePlayerDay(daily, "2025-11-03", "star", true)
+    const sat = togglePlayerDay(daily, "2025-11-03", "star", true, playersById)
     expect(sat.status).toBe("sat")
     expect(sat.daily["2025-11-03"][0].playerId).toBeNull()
 
-    const started = togglePlayerDay(sat.daily, "2025-11-03", "star", true)
+    const started = togglePlayerDay(
+      sat.daily,
+      "2025-11-03",
+      "star",
+      true,
+      playersById,
+    )
     expect(started.status).toBe("started")
     expect(started.daily["2025-11-03"][0].playerId).toBe("star")
   })
 
   it("returns no_game and full without mutating when blocked", () => {
     const daily = initDailyLineups(schedule.matchup.days, activeEntries)
-    const noGame = togglePlayerDay(daily, "2025-11-04", "star", false)
+    const playersById = { star, scrub }
+    const noGame = togglePlayerDay(
+      daily,
+      "2025-11-04",
+      "star",
+      false,
+      playersById,
+    )
     expect(noGame.status).toBe("no_game")
     expect(noGame.daily).toBe(daily)
 
@@ -166,8 +182,32 @@ describe("togglePlayerDay", () => {
       playerId: entry.playerId ?? `fill-${index}`,
     }))
     const fullDaily = { ...daily, "2025-11-03": fullEntries }
-    const blocked = togglePlayerDay(fullDaily, "2025-11-03", "extra", true)
+    const blocked = togglePlayerDay(
+      fullDaily,
+      "2025-11-03",
+      "extra",
+      true,
+      playersById,
+    )
     expect(blocked.status).toBe("full")
     expect(blocked.daily).toBe(fullDaily)
+  })
+
+  it("returns ineligible when no empty slot accepts the player", () => {
+    const center = { ...star, id: "center", positions: ["C"] as const }
+    const daily = {
+      "2025-11-03": [{ slot: "PG" as const, playerId: null }],
+    }
+
+    const result = togglePlayerDay(
+      daily,
+      "2025-11-03",
+      center.id,
+      true,
+      { center },
+    )
+
+    expect(result.status).toBe("ineligible")
+    expect(result.daily).toBe(daily)
   })
 })

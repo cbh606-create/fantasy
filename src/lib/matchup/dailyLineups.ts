@@ -4,8 +4,10 @@ import type {
   ScheduleResponse,
   SeasonPlayer,
   SeasonRosterEntry,
+  SeasonSlot,
 } from "@/lib/season/types"
 import { ACTIVE_SEASON_SLOTS, isActiveSlot } from "./constants"
+import { eligibleForSlot } from "./eligibility"
 import { gameWeightForTeamDate } from "./games"
 import { weeklyPlayerStats } from "./weekly"
 
@@ -227,7 +229,7 @@ export const setSlotPlayer = (
 
 export type TogglePlayerDayResult = {
   daily: DailyLineups
-  status: "started" | "sat" | "no_game" | "full" | "missing_day"
+  status: "started" | "sat" | "no_game" | "full" | "ineligible" | "missing_day"
 }
 
 export const findPlayerSlotIndex = (
@@ -246,6 +248,8 @@ export const togglePlayerDay = (
   day: string,
   playerId: string,
   hasGame: boolean,
+  playersById: Record<string, SeasonPlayer>,
+  rosterSlots?: SeasonSlot[],
 ): TogglePlayerDayResult => {
   const entries = daily[day]
   if (!entries) {
@@ -264,9 +268,20 @@ export const togglePlayerDay = (
     }
   }
 
-  const emptyIndex = entries.findIndex((entry) => entry.playerId === null)
-  if (emptyIndex < 0) {
+  const hasEmptySlot = entries.some((entry) => entry.playerId === null)
+  if (!hasEmptySlot) {
     return { daily, status: "full" }
+  }
+
+  const player = playersById[playerId]
+  const emptyIndex = entries.findIndex(
+    (entry) =>
+      entry.playerId === null &&
+      (!rosterSlots || rosterSlots.includes(entry.slot)) &&
+      eligibleForSlot(player, entry.slot),
+  )
+  if (emptyIndex < 0) {
+    return { daily, status: "ineligible" }
   }
 
   return {

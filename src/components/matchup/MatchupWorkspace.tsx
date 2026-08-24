@@ -23,6 +23,7 @@ import {
   writeDailyLineups,
   youTotalsFromDaily,
   type DailyLineups,
+  type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
 import type { MatchupAdvice, MatchupBoard as MatchupBoardData, SitStartSuggestion } from "@/lib/matchup/types"
 import type {
@@ -285,7 +286,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const handleTogglePlayerDay = (
     playerId: string,
     day: string,
-  ): "started" | "sat" | "no_game" | "full" | "missing_day" => {
+  ): TogglePlayerDayResult["status"] => {
     if (!daily || !matchupData) return "missing_day"
 
     const player = state?.players.find((entry) => entry.id === playerId)
@@ -298,6 +299,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       day,
       playerId,
       hasGame,
+      matchupData.playersById,
+      state?.rosterSlots,
     )
 
     if (status === "started" || status === "sat") {
