@@ -290,7 +290,7 @@ export const allowsEarlySwap = (
 }
 ```
 
-Note: export `StreamingDensityTier` from types (alias name must match — use `StreamingDensityTier` everywhere, not `StreamingDensityTier` typo). If Task 1 Interfaces said `StreamingDensityTier`, use that exact name in types.
+Export `StreamingDensityTier` from `types.ts` and use that name everywhere (helpers + blocks).
 
 - [ ] **Step 5: Run tests — expect pass**
 
