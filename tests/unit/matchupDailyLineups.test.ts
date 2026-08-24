@@ -6,6 +6,7 @@ import {
   setSlotPlayer,
   togglePlayerDay,
   youTotalsFromDaily,
+  type DailyLineups,
 } from "@/lib/matchup/dailyLineups"
 import { ASSUMED_SEASON_GAMES } from "@/lib/matchup/constants"
 import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
@@ -78,12 +79,35 @@ const activeEntries: SeasonRosterEntry[] = [
 
 describe("initDailyLineups", () => {
   it("clones active slots for each day and ignores BE", () => {
-    const daily = initDailyLineups(schedule.matchup.days, activeEntries)
+    const daily = initDailyLineups(
+      schedule.matchup.days,
+      activeEntries,
+      undefined,
+      [star, scrub],
+      schedule,
+    )
 
     expect(Object.keys(daily)).toEqual(schedule.matchup.days)
     expect(daily["2025-11-03"]).toHaveLength(10)
     expect(daily["2025-11-03"][0]).toEqual({ slot: "PG", playerId: "star" })
     expect(daily["2025-11-03"].some((entry) => entry.slot === "BE")).toBe(false)
+  })
+
+  it("clears starters who have no NBA game that day", () => {
+    const daily = initDailyLineups(
+      schedule.matchup.days,
+      activeEntries,
+      undefined,
+      [star, scrub],
+      schedule,
+    )
+
+    // scrub (NYK) only plays 2025-11-03 in this fixture
+    expect(daily["2025-11-03"][1]).toEqual({ slot: "SG", playerId: "scrub" })
+    expect(daily["2025-11-04"][0]).toEqual({ slot: "PG", playerId: null })
+    expect(daily["2025-11-04"][1]).toEqual({ slot: "SG", playerId: null })
+    expect(daily["2025-11-05"][0]).toEqual({ slot: "PG", playerId: "star" })
+    expect(daily["2025-11-05"][1]).toEqual({ slot: "SG", playerId: null })
   })
 
   it("uses custom league active slots for templates and validation", () => {
@@ -92,6 +116,8 @@ describe("initDailyLineups", () => {
       schedule.matchup.days,
       activeEntries,
       [...rosterSlots],
+      [star, scrub],
+      schedule,
     )
 
     expect(daily["2025-11-03"].map((entry) => entry.slot)).toEqual([
@@ -186,10 +212,24 @@ describe("setSlotPlayer", () => {
 
 describe("togglePlayerDay", () => {
   it("sits a starter and starts into the first empty slot", () => {
-    const daily = initDailyLineups(schedule.matchup.days, activeEntries)
+    const daily = initDailyLineups(
+      schedule.matchup.days,
+      activeEntries,
+      undefined,
+      [star, scrub],
+      schedule,
+    )
     const playersById = { star, scrub }
 
-    const sat = togglePlayerDay(daily, "2025-11-03", "star", true, playersById)
+    const sat = togglePlayerDay(
+      daily,
+      "2025-11-03",
+      "star",
+      true,
+      playersById,
+      undefined,
+      schedule,
+    )
     expect(sat.status).toBe("sat")
     expect(sat.daily["2025-11-03"][0].playerId).toBeNull()
 
@@ -199,13 +239,57 @@ describe("togglePlayerDay", () => {
       "star",
       true,
       playersById,
+      undefined,
+      schedule,
     )
     expect(started.status).toBe("started")
     expect(started.daily["2025-11-03"][0].playerId).toBe("star")
   })
 
+  it("starts into a slot held by a no-game player without requiring a manual sit", () => {
+    const benchGuard: SeasonPlayer = {
+      ...scrub,
+      id: "bench-g",
+      teamAbbr: "BOS",
+      positions: ["SG"],
+    }
+    const fullNoGameDay: DailyLineups = {
+      "2025-11-05": [
+        { slot: "PG", playerId: "star" },
+        { slot: "SG", playerId: "scrub" },
+        { slot: "SF", playerId: null },
+        { slot: "PF", playerId: null },
+        { slot: "C", playerId: null },
+        { slot: "G", playerId: null },
+        { slot: "F", playerId: null },
+        { slot: "UTIL", playerId: null },
+        { slot: "UTIL", playerId: null },
+        { slot: "UTIL", playerId: null },
+      ],
+    }
+
+    const started = togglePlayerDay(
+      fullNoGameDay,
+      "2025-11-05",
+      benchGuard.id,
+      true,
+      { star, scrub, [benchGuard.id]: benchGuard },
+      undefined,
+      schedule,
+    )
+
+    expect(started.status).toBe("started")
+    expect(started.daily["2025-11-05"][1].playerId).toBe("bench-g")
+  })
+
   it("returns no_game and full without mutating when blocked", () => {
-    const daily = initDailyLineups(schedule.matchup.days, activeEntries)
+    const daily = initDailyLineups(
+      schedule.matchup.days,
+      activeEntries,
+      undefined,
+      [star, scrub],
+      schedule,
+    )
     const playersById = { star, scrub }
     const noGame = togglePlayerDay(
       daily,
@@ -213,21 +297,39 @@ describe("togglePlayerDay", () => {
       "star",
       false,
       playersById,
+      undefined,
+      schedule,
     )
     expect(noGame.status).toBe("no_game")
     expect(noGame.daily).toBe(daily)
 
+    const playingFiller = (index: number): SeasonPlayer => ({
+      ...star,
+      id: `fill-${index}`,
+      teamAbbr: "BOS",
+      positions: ["UTIL"],
+    })
     const fullEntries = daily["2025-11-03"].map((entry, index) => ({
       ...entry,
       playerId: entry.playerId ?? `fill-${index}`,
     }))
+    const fullPlayers = Object.fromEntries(
+      fullEntries.map((entry, index) => {
+        const id = entry.playerId ?? `fill-${index}`
+        if (id === "star") return [id, star]
+        if (id === "scrub") return [id, scrub]
+        return [id, playingFiller(index)]
+      }),
+    )
     const fullDaily = { ...daily, "2025-11-03": fullEntries }
     const blocked = togglePlayerDay(
       fullDaily,
       "2025-11-03",
       "extra",
       true,
-      playersById,
+      fullPlayers,
+      undefined,
+      schedule,
     )
     expect(blocked.status).toBe("full")
     expect(blocked.daily).toBe(fullDaily)
@@ -245,6 +347,8 @@ describe("togglePlayerDay", () => {
       center.id,
       true,
       { center },
+      undefined,
+      schedule,
     )
 
     expect(result.status).toBe("ineligible")

@@ -56,12 +56,12 @@ export const DailyLineupPanel = ({
 
     const status = onTogglePlayerDay(player.id, day)
     if (status === "full") {
-      setHint("No empty slot that day — sit someone first")
+      setHint("No open slot that day — sit someone who has a game first")
       return
     }
 
     if (status === "ineligible") {
-      setHint(`${player.name} is not eligible for an empty slot that day`)
+      setHint(`${player.name} is not eligible for an open slot that day`)
       return
     }
 
