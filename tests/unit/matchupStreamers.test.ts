@@ -183,5 +183,7 @@ describe("adviseMatchup", () => {
     expect(Array.isArray(advice.board.categories)).toBe(true)
     expect(Array.isArray(advice.sitStart)).toBe(true)
     expect(Array.isArray(advice.streamers)).toBe(true)
+    expect(advice.streamingPlans).toHaveLength(3)
+    expect(advice.streamingPlans.map((p) => p.spotCount)).toEqual([1, 2, 3])
   })
 })

@@ -9,6 +9,7 @@ import {
 } from "./games"
 import { suggestSitStart } from "./sitStart"
 import { suggestStreamers } from "./streamers"
+import { buildAllStreamingPlans } from "./streamingPlans"
 import type { MatchupAdvice } from "./types"
 import { activeTeamWeeklyTotals } from "./weekly"
 
@@ -61,12 +62,14 @@ export const adviseMatchup = (
     b2bMap: streamerB2bMap,
   })
 
+  const streamingPlans = buildAllStreamingPlans({ state, schedule, board })
+
   return {
     opponentTeamIndex,
     scoringPeriod: schedule.matchup,
     board,
     sitStart,
     streamers,
-    streamingPlans: [],
+    streamingPlans,
   }
 }
