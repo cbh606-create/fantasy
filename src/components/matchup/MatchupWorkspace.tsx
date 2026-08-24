@@ -429,7 +429,12 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
                 {matchupData.scoringPeriod.startDate} – {matchupData.scoringPeriod.endDate}
               </span>
               <span className="rounded-full bg-[var(--color-soft-cloud)] px-2 py-0.5 text-[0.6875rem]">
-                Schedule: {matchupData.schedule.source === "live" ? "live" : "fixture fallback"}
+                Schedule:{" "}
+                {matchupData.schedule.source === "live"
+                  ? "live"
+                  : matchupData.schedule.source === "season"
+                    ? "published · next week with games"
+                    : "fixture fallback"}
               </span>
             </div>
           </div>

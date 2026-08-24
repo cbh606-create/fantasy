@@ -71,7 +71,7 @@ const scoringDays = ["2025-11-03", "2025-11-05"] as const
 
 const matchupAdvice: MatchupAdvice & {
   schedule: {
-    source: "fixture"
+    source: "live" | "season" | "fixture"
     matchup: {
       scoringPeriodId: number
       startDate: string
@@ -337,5 +337,43 @@ describe("MatchupWorkspace", () => {
     expect(
       screen.queryByRole("heading", { name: "Injury alerts" }),
     ).not.toBeInTheDocument()
+  })
+
+  it("labels the schedule chip for published season fallback", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input, init) => {
+      const url = String(input)
+      const method = init?.method ?? "GET"
+
+      if (url.startsWith("/api/matchup?") && !url.includes("apply-lineup")) {
+        return new Response(
+          JSON.stringify({
+            ...matchupAdvice,
+            state,
+            schedule: { ...matchupAdvice.schedule, source: "season" },
+          }),
+          { status: 200 },
+        )
+      }
+
+      if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
+        return new Response(JSON.stringify(injuryPickupsResponse), {
+          status: 200,
+        })
+      }
+
+      if (url === "/api/matchup/apply-lineup" && method === "POST") {
+        return new Response(JSON.stringify({ ok: true, entries: [] }), {
+          status: 200,
+        })
+      }
+
+      return new Response("missing", { status: 404 })
+    }))
+
+    render(<MatchupWorkspace leagueId="season-1" />)
+
+    expect(
+      await screen.findByText("Schedule: published · next week with games"),
+    ).toBeInTheDocument()
   })
 })
