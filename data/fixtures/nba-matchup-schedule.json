@@ -15,120 +15,40 @@
     ]
   },
   "games": [
-    {
-      "date": "2026-03-09",
-      "homeAbbr": "BOS",
-      "awayAbbr": "LAL"
-    },
-    {
-      "date": "2026-03-09",
-      "homeAbbr": "NYK",
-      "awayAbbr": "MIA"
-    },
-    {
-      "date": "2026-03-09",
-      "homeAbbr": "BOS",
-      "awayAbbr": "GSW"
-    },
-    {
-      "date": "2026-03-10",
-      "homeAbbr": "MIL",
-      "awayAbbr": "DEN"
-    },
-    {
-      "date": "2026-03-10",
-      "homeAbbr": "OKC",
-      "awayAbbr": "LAL"
-    },
-    {
-      "date": "2026-03-10",
-      "homeAbbr": "GSW",
-      "awayAbbr": "NYK"
-    },
-    {
-      "date": "2026-03-11",
-      "homeAbbr": "MIA",
-      "awayAbbr": "BOS"
-    },
-    {
-      "date": "2026-03-11",
-      "homeAbbr": "DEN",
-      "awayAbbr": "OKC"
-    },
-    {
-      "date": "2026-03-11",
-      "homeAbbr": "LAL",
-      "awayAbbr": "MIL"
-    },
-    {
-      "date": "2026-03-12",
-      "homeAbbr": "NYK",
-      "awayAbbr": "GSW"
-    },
-    {
-      "date": "2026-03-12",
-      "homeAbbr": "BOS",
-      "awayAbbr": "MIA"
-    },
-    {
-      "date": "2026-03-12",
-      "homeAbbr": "DEN",
-      "awayAbbr": "LAL"
-    },
-    {
-      "date": "2026-03-13",
-      "homeAbbr": "OKC",
-      "awayAbbr": "MIL"
-    },
-    {
-      "date": "2026-03-13",
-      "homeAbbr": "GSW",
-      "awayAbbr": "DEN"
-    },
-    {
-      "date": "2026-03-13",
-      "homeAbbr": "MIA",
-      "awayAbbr": "NYK"
-    },
-    {
-      "date": "2026-03-14",
-      "homeAbbr": "LAL",
-      "awayAbbr": "BOS"
-    },
-    {
-      "date": "2026-03-14",
-      "homeAbbr": "MIL",
-      "awayAbbr": "GSW"
-    },
-    {
-      "date": "2026-03-14",
-      "homeAbbr": "DEN",
-      "awayAbbr": "MIA"
-    },
-    {
-      "date": "2026-03-14",
-      "homeAbbr": "OKC",
-      "awayAbbr": "NYK"
-    },
-    {
-      "date": "2026-03-15",
-      "homeAbbr": "BOS",
-      "awayAbbr": "OKC"
-    },
-    {
-      "date": "2026-03-15",
-      "homeAbbr": "GSW",
-      "awayAbbr": "MIA"
-    },
-    {
-      "date": "2026-03-15",
-      "homeAbbr": "NYK",
-      "awayAbbr": "DEN"
-    },
-    {
-      "date": "2026-03-15",
-      "homeAbbr": "LAL",
-      "awayAbbr": "MIL"
-    }
+    { "date": "2026-03-09", "homeAbbr": "BOS", "awayAbbr": "NYK" },
+    { "date": "2026-03-09", "homeAbbr": "LAL", "awayAbbr": "DEN" },
+    { "date": "2026-03-09", "homeAbbr": "GSW", "awayAbbr": "PHX" },
+    { "date": "2026-03-09", "homeAbbr": "MIL", "awayAbbr": "CLE" },
+    { "date": "2026-03-09", "homeAbbr": "MIA", "awayAbbr": "CHI" },
+
+    { "date": "2026-03-10", "homeAbbr": "OKC", "awayAbbr": "DAL" },
+    { "date": "2026-03-10", "homeAbbr": "ATL", "awayAbbr": "MIN" },
+    { "date": "2026-03-10", "homeAbbr": "SAS", "awayAbbr": "HOU" },
+    { "date": "2026-03-10", "homeAbbr": "PHI", "awayAbbr": "TOR" },
+
+    { "date": "2026-03-11", "homeAbbr": "BOS", "awayAbbr": "MIA" },
+    { "date": "2026-03-11", "homeAbbr": "LAL", "awayAbbr": "GSW" },
+    { "date": "2026-03-11", "homeAbbr": "DEN", "awayAbbr": "PHX" },
+    { "date": "2026-03-11", "homeAbbr": "MIL", "awayAbbr": "CHI" },
+
+    { "date": "2026-03-12", "homeAbbr": "NYK", "awayAbbr": "CLE" },
+    { "date": "2026-03-12", "homeAbbr": "OKC", "awayAbbr": "ATL" },
+    { "date": "2026-03-12", "homeAbbr": "DAL", "awayAbbr": "MIN" },
+    { "date": "2026-03-12", "homeAbbr": "HOU", "awayAbbr": "PHI" },
+
+    { "date": "2026-03-13", "homeAbbr": "BOS", "awayAbbr": "DEN" },
+    { "date": "2026-03-13", "homeAbbr": "GSW", "awayAbbr": "MIL" },
+    { "date": "2026-03-13", "homeAbbr": "MIA", "awayAbbr": "SAS" },
+    { "date": "2026-03-13", "homeAbbr": "CHI", "awayAbbr": "TOR" },
+
+    { "date": "2026-03-14", "homeAbbr": "LAL", "awayAbbr": "OKC" },
+    { "date": "2026-03-14", "homeAbbr": "NYK", "awayAbbr": "PHI" },
+    { "date": "2026-03-14", "homeAbbr": "PHX", "awayAbbr": "HOU" },
+    { "date": "2026-03-14", "homeAbbr": "CLE", "awayAbbr": "ATL" },
+
+    { "date": "2026-03-15", "homeAbbr": "BOS", "awayAbbr": "CLE" },
+    { "date": "2026-03-15", "homeAbbr": "DEN", "awayAbbr": "DAL" },
+    { "date": "2026-03-15", "homeAbbr": "MIN", "awayAbbr": "SAS" },
+    { "date": "2026-03-15", "homeAbbr": "TOR", "awayAbbr": "MIA" }
   ]
 }

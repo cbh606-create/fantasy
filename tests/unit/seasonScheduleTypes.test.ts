@@ -12,4 +12,23 @@ describe("nba matchup schedule fixture", () => {
     expect(schedule.games.length).toBeGreaterThan(10)
     expect(schedule.games.every((game) => schedule.matchup.days.includes(game.date))).toBe(true)
   })
+
+  it("keeps per-team game days in a realistic 2–4 range", () => {
+    const schedule = fixture as ScheduleResponse
+    const byTeam = new Map<string, Set<string>>()
+
+    for (const game of schedule.games) {
+      for (const team of [game.homeAbbr, game.awayAbbr]) {
+        const dates = byTeam.get(team) ?? new Set<string>()
+        dates.add(game.date)
+        byTeam.set(team, dates)
+      }
+    }
+
+    expect(byTeam.size).toBeGreaterThanOrEqual(12)
+    for (const dates of byTeam.values()) {
+      expect(dates.size).toBeGreaterThanOrEqual(2)
+      expect(dates.size).toBeLessThanOrEqual(4)
+    }
+  })
 })
