@@ -4,6 +4,7 @@ import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
+  SeasonPosition,
   SeasonRosterEntry,
   SeasonSlot,
   SeasonTeamRoster,
@@ -57,6 +58,8 @@ type EspnPlayer = {
   id: number
   fullName?: string
   proTeamId?: number
+  defaultPositionId?: number
+  eligibleSlots?: number[]
   stats?: EspnPlayerStats[]
 }
 
@@ -80,7 +83,12 @@ type EspnTeam = {
 export type EspnLeaguePayload = {
   id?: number
   seasonId?: number
-  settings?: { name?: string }
+  settings?: {
+    name?: string
+    rosterSettings?: {
+      lineupSlotCounts?: Record<string, number>
+    }
+  }
   teams?: EspnTeam[]
 }
 
@@ -123,6 +131,33 @@ export const mapEspnLineupSlot = (lineupSlotId: number): SeasonSlot => {
   }
 }
 
+const positionsFromEspnPlayer = (player: EspnPlayer): SeasonPosition[] => {
+  const lineupSlotIds = player.eligibleSlots?.length
+    ? player.eligibleSlots
+    : player.defaultPositionId === undefined
+      ? []
+      : [player.defaultPositionId]
+  const positions = lineupSlotIds
+    .map(mapEspnLineupSlot)
+    .filter((slot): slot is SeasonPosition =>
+      slot !== "UTIL" && slot !== "BE" && slot !== "IL")
+
+  return [...new Set(positions)]
+}
+
+const rosterSlotsFromEspnSettings = (
+  settings: EspnLeaguePayload["settings"],
+): SeasonSlot[] | undefined => {
+  const lineupSlotCounts = settings?.rosterSettings?.lineupSlotCounts
+  if (!lineupSlotCounts) return undefined
+
+  return Object.entries(lineupSlotCounts).flatMap(([lineupSlotId, count]) =>
+    Array.from(
+      { length: count },
+      () => mapEspnLineupSlot(Number(lineupSlotId)),
+    ))
+}
+
 const pickAverageStats = (
   player: EspnPlayer,
   season: number,
@@ -155,6 +190,7 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
     id: String(player.id),
     name: player.fullName?.trim() || `Player ${player.id}`,
     teamAbbr: PRO_TEAM_ABBR[player.proTeamId ?? -1],
+    positions: positionsFromEspnPlayer(player),
     projections: {
       FG_PCT: avg["19"] ?? (fga > 0 ? fgm / fga : 0),
       FT_PCT: avg["20"] ?? (fta > 0 ? ftm / fta : 0),
@@ -251,6 +287,7 @@ export const mapEspnLeagueToSeasonState = (
 
   const season = payload.seasonId ?? params.season
   const name = payload.settings?.name?.trim() || `ESPN League ${params.leagueId}`
+  const rosterSlots = rosterSlotsFromEspnSettings(payload.settings)
 
   return {
     id: params.leagueId,
@@ -263,6 +300,7 @@ export const mapEspnLeagueToSeasonState = (
     players: [...playersById.values()],
     availablePlayerIds: [],
     waiverOrder: teams.map((team) => team.teamIndex),
+    ...(rosterSlots ? { rosterSlots } : {}),
     source: "espn",
   }
 }
