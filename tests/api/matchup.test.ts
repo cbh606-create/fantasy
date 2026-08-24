@@ -164,16 +164,36 @@ describe("GET /api/matchup", () => {
 
     const planPlayerIds = new Set<string>()
     for (const plan of payload.streamingPlans as Array<{
-      days: Array<{ cells: Array<{ playerId: string | null }> }>
+      days: Array<{
+        cells: Array<{
+          playerId: string | null
+          droppedPlayerId?: string | null
+          rosterDropPlayerId?: string | null
+        }>
+      }>
     }>) {
       for (const day of plan.days) {
         for (const cell of day.cells) {
           if (cell.playerId) planPlayerIds.add(cell.playerId)
+          if (cell.droppedPlayerId) planPlayerIds.add(cell.droppedPlayerId)
+          if (cell.rosterDropPlayerId) planPlayerIds.add(cell.rosterDropPlayerId)
         }
       }
     }
     for (const playerId of planPlayerIds) {
       expect(payload.playersById[playerId]).toMatchObject({ id: playerId })
+    }
+
+    const sample = (
+      payload.streamingPlans as Array<{
+        days: Array<{ cells: Array<Record<string, unknown>> }>
+      }>
+    )
+      .flatMap((p) => p.days.flatMap((d) => d.cells))
+      .find((c) => c.action === "add" || c.action === "drop_add")
+    if (sample) {
+      expect(sample).toHaveProperty("droppedPlayerId")
+      expect(sample).toHaveProperty("rosterDropKind")
     }
   })
 

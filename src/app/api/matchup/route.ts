@@ -58,6 +58,8 @@ const collectReferencedPlayerIds = (
     for (const day of plan.days) {
       for (const cell of day.cells) {
         if (cell.playerId) ids.add(cell.playerId)
+        if (cell.droppedPlayerId) ids.add(cell.droppedPlayerId)
+        if (cell.rosterDropPlayerId) ids.add(cell.rosterDropPlayerId)
       }
     }
   }
