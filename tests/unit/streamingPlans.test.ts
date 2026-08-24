@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
-import { buildStreamingPlan } from "@/lib/matchup/streamingPlans"
+import { buildAllStreamingPlans, buildStreamingPlan } from "@/lib/matchup/streamingPlans"
 import type { MatchupBoard } from "@/lib/matchup/types"
 import type { ScheduleResponse, SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 
@@ -151,5 +151,56 @@ describe("buildStreamingPlan", () => {
     expect(plan.days[0]!.cells[0]!.action).toBe("add")
     expect(plan.days[1]!.cells[0]).toMatchObject({ action: "hold", playerId: "fa-a" })
     expect(plan.addsUsed).toBe(1)
+  })
+
+  it("2-spot can seat two different FAs on the same day using two adds", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const state = tinyState([faA, faB], ["fa-a", "fa-b"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "MIA" },
+    ])
+    const board = emptyBoardLosingStl()
+
+    const plan = buildStreamingPlan({ spotCount: 2, state, schedule, board })
+    const day0 = plan.days[0]!.cells
+    expect(day0).toHaveLength(2)
+    expect(new Set(day0.map((c) => c.playerId)).size).toBe(2)
+    expect(plan.addsUsed).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe("buildAllStreamingPlans", () => {
+  it("buildAllStreamingPlans returns spot counts 1, 2, and 3", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const faC = player("fa-c", "MIA", {
+      projections: { ...baseProjections(), STL: 140 },
+    })
+    const state = tinyState([faA, faB, faC], ["fa-a", "fa-b", "fa-c"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ATL" },
+      { date: "2025-11-03", homeAbbr: "MIA", awayAbbr: "ORL" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "NYK" },
+    ])
+    const board = emptyBoardLosingStl()
+
+    const plans = buildAllStreamingPlans({ state, schedule, board })
+    expect(plans.map((p) => p.spotCount)).toEqual([1, 2, 3])
+    for (const plan of plans) {
+      expect(plan.addsUsed).toBeLessThanOrEqual(WEEKLY_ADD_LIMIT)
+    }
   })
 })

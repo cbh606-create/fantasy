@@ -164,3 +164,10 @@ export const buildStreamingPlan = ({
     days,
   }
 }
+
+export const buildAllStreamingPlans = (
+  input: Omit<BuildStreamingPlanInput, "spotCount">,
+): StreamingPlan[] =>
+  ([1, 2, 3] as const).map((spotCount) =>
+    buildStreamingPlan({ ...input, spotCount }),
+  )
