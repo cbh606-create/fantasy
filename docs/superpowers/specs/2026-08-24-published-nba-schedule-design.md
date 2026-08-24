@@ -1,7 +1,7 @@
 # Published NBA schedule + season roster slots
 
 **Date:** 2026-08-24  
-**Status:** Approved  
+**Status:** Implemented  
 **Base:** `feat/draft-mvp` / season matchup stack
 
 ## Problem
