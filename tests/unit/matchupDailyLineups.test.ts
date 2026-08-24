@@ -110,6 +110,44 @@ describe("initDailyLineups", () => {
     expect(daily["2025-11-05"][1]).toEqual({ slot: "SG", playerId: null })
   })
 
+  it("autostarts bench players with games into vacated active slots", () => {
+    const benchGuard: SeasonPlayer = {
+      ...scrub,
+      id: "bench-g",
+      name: "Bench Guard",
+      teamAbbr: "BOS",
+      positions: ["SG"],
+    }
+    const entries: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: "star" },
+      { slot: "SG", playerId: "scrub" },
+      { slot: "SF", playerId: null },
+      { slot: "PF", playerId: null },
+      { slot: "C", playerId: null },
+      { slot: "G", playerId: null },
+      { slot: "F", playerId: null },
+      { slot: "UTIL", playerId: null },
+      { slot: "UTIL", playerId: null },
+      { slot: "UTIL", playerId: null },
+      { slot: "BE", playerId: "bench-g" },
+      { slot: "BE", playerId: null },
+      { slot: "BE", playerId: null },
+      { slot: "IL", playerId: null },
+    ]
+
+    const daily = initDailyLineups(
+      schedule.matchup.days,
+      entries,
+      undefined,
+      [star, scrub, benchGuard],
+      schedule,
+    )
+
+    // 11-05: scrub (NYK) has no game; bench BOS guard fills SG
+    expect(daily["2025-11-05"][0].playerId).toBe("star")
+    expect(daily["2025-11-05"][1].playerId).toBe("bench-g")
+  })
+
   it("uses custom league active slots for templates and validation", () => {
     const rosterSlots = ["PG", "PG", "UTIL", "BE"] as const
     const daily = initDailyLineups(

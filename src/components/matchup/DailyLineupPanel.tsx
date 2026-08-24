@@ -74,8 +74,8 @@ export const DailyLineupPanel = ({
         <div>
           <h2 className="text-lg font-semibold">Daily lineup</h2>
           <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
-            Click a game box to start or sit. The board above updates from these
-            lineups.
+            Daily league: click a game box to start or sit anyone on your roster
+            (including bench). The board above updates from these lineups.
           </p>
         </div>
         <button
@@ -83,7 +83,7 @@ export const DailyLineupPanel = ({
           onClick={onReset}
           type="button"
         >
-          Reset week to weekly lineup
+          Reset to players with games
         </button>
       </div>
 

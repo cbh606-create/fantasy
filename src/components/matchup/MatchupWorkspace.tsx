@@ -74,7 +74,13 @@ const resolveDailyLineups = (
   const stored = readDailyLineups(leagueId)
 
   if (stored && dailyLineupsMatchDays(stored, days, rosterSlots)) {
-    const sanitized = clearNoGameActiveSlots(stored, schedule, state.players)
+    const sanitized = clearNoGameActiveSlots(
+      stored,
+      schedule,
+      state.players,
+      activeEntries,
+      rosterSlots,
+    )
     if (sanitized !== stored) {
       writeDailyLineups(leagueId, sanitized)
     }
