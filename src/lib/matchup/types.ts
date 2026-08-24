@@ -82,6 +82,9 @@ export type StreamingPlan = {
   addLimit: number
   addsUsed: number
   gameStarts: number
+  strategyMode: StreamingStrategyMode
+  suggestedStrategyMode: StreamingStrategyMode
+  summaryReasons: string[]
   days: StreamingPlanDay[]
 }
 

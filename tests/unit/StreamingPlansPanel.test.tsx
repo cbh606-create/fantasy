@@ -46,9 +46,36 @@ describe("StreamingPlansPanel", () => {
         leagueId="lg1"
         playersById={{ "fa-a": streamerA }}
         plans={[
-          { spotCount: 1, addLimit: 7, addsUsed: 3, gameStarts: 5, days: [] },
-          { spotCount: 2, addLimit: 7, addsUsed: 5, gameStarts: 8, days: [] },
-          { spotCount: 3, addLimit: 7, addsUsed: 7, gameStarts: 10, days: [] },
+          {
+            spotCount: 1,
+            addLimit: 7,
+            addsUsed: 3,
+            gameStarts: 5,
+            strategyMode: "balanced",
+            suggestedStrategyMode: "balanced",
+            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
+            days: [],
+          },
+          {
+            spotCount: 2,
+            addLimit: 7,
+            addsUsed: 5,
+            gameStarts: 8,
+            strategyMode: "balanced",
+            suggestedStrategyMode: "balanced",
+            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
+            days: [],
+          },
+          {
+            spotCount: 3,
+            addLimit: 7,
+            addsUsed: 7,
+            gameStarts: 10,
+            strategyMode: "balanced",
+            suggestedStrategyMode: "balanced",
+            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
+            days: [],
+          },
         ]}
       />,
     )
@@ -88,6 +115,9 @@ describe("StreamingPlansPanel", () => {
             addLimit: 7,
             addsUsed: 2,
             gameStarts: 3,
+            strategyMode: "balanced",
+            suggestedStrategyMode: "balanced",
+            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
             days: [
               {
                 date: "2025-11-03",
@@ -130,8 +160,26 @@ describe("StreamingPlansPanel", () => {
               },
             ],
           },
-          { spotCount: 2, addLimit: 7, addsUsed: 0, gameStarts: 0, days: [] },
-          { spotCount: 3, addLimit: 7, addsUsed: 0, gameStarts: 0, days: [] },
+          {
+            spotCount: 2,
+            addLimit: 7,
+            addsUsed: 0,
+            gameStarts: 0,
+            strategyMode: "balanced",
+            suggestedStrategyMode: "balanced",
+            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
+            days: [],
+          },
+          {
+            spotCount: 3,
+            addLimit: 7,
+            addsUsed: 0,
+            gameStarts: 0,
+            strategyMode: "balanced",
+            suggestedStrategyMode: "balanced",
+            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
+            days: [],
+          },
         ]}
       />,
     )
