@@ -174,6 +174,72 @@ describe("buildStreamingPlan", () => {
     expect(new Set(day0.map((c) => c.playerId)).size).toBe(2)
     expect(plan.addsUsed).toBeGreaterThanOrEqual(2)
   })
+
+  it("prefers remaining game volume when weak-cat scores tie", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
+    const faLowVolume = player("fa-low", "BOS", {
+      projections: { ...baseProjections(), STL: 100 },
+    })
+    const faHighVolume = player("fa-high", "NYK", {
+      projections: { ...baseProjections(), STL: 100 },
+    })
+    const state = tinyState(
+      [faLowVolume, faHighVolume],
+      ["fa-low", "fa-high"],
+    )
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ATL" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "ORL" },
+      { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "MIA" },
+    ])
+    const board = emptyBoardLosingStl()
+
+    const plan = buildStreamingPlan({ spotCount: 1, state, schedule, board })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-high",
+    })
+  })
+
+  it("leaves cells empty after the add budget is exhausted", () => {
+    const days = [
+      "2025-11-03",
+      "2025-11-04",
+      "2025-11-05",
+      "2025-11-06",
+    ]
+    const players = ["BOS", "NYK", "MIA", "ATL"].map((team, index) =>
+      player(`fa-${index}`, team, {
+        projections: { ...baseProjections(), STL: 200 - index },
+      }),
+    )
+    const state = tinyState(
+      players,
+      players.map((entry) => entry.id),
+    )
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2025-11-05", homeAbbr: "MIA", awayAbbr: "CHI" },
+      { date: "2025-11-06", homeAbbr: "ATL", awayAbbr: "CHI" },
+    ])
+    const board = emptyBoardLosingStl()
+
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board,
+      addLimit: 2,
+    })
+
+    expect(plan.addsUsed).toBe(2)
+    expect(plan.days[0]!.cells[0]!.action).toBe("add")
+    expect(plan.days[1]!.cells[0]!.action).toBe("drop_add")
+    expect(plan.days[2]!.cells[0]!.action).toBe("empty")
+    expect(plan.days[3]!.cells[0]!.action).toBe("empty")
+  })
 })
 
 describe("buildAllStreamingPlans", () => {

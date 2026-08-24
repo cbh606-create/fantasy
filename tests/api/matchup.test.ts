@@ -146,6 +146,7 @@ describe("GET /api/matchup", () => {
         losses: expect.any(Number),
       }),
       streamers: expect.any(Array),
+      streamingPlans: expect.any(Array),
       playersById: expect.any(Object),
       teams: expect.any(Array),
       schedule: expect.objectContaining({
@@ -160,6 +161,20 @@ describe("GET /api/matchup", () => {
       true,
     )
     expect(payload.state).toBeUndefined()
+
+    const planPlayerIds = new Set<string>()
+    for (const plan of payload.streamingPlans as Array<{
+      days: Array<{ cells: Array<{ playerId: string | null }> }>
+    }>) {
+      for (const day of plan.days) {
+        for (const cell of day.cells) {
+          if (cell.playerId) planPlayerIds.add(cell.playerId)
+        }
+      }
+    }
+    for (const playerId of planPlayerIds) {
+      expect(payload.playersById[playerId]).toMatchObject({ id: playerId })
+    }
   })
 
   it("resolves auto opponent and includes state when requested", async () => {

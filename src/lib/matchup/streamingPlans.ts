@@ -65,6 +65,15 @@ const playsOn = (
   })
 }
 
+const remainingGameDays = (
+  player: SeasonPlayer,
+  fromDate: string,
+  schedule: ScheduleResponse,
+): number => {
+  const remaining = schedule.matchup.days.filter((day) => day >= fromDate)
+  return remaining.filter((day) => playsOn(player, day, schedule)).length
+}
+
 const pickBestFa = (
   candidates: SeasonPlayer[],
   date: string,
@@ -78,9 +87,11 @@ const pickBestFa = (
     .map((player) => ({
       player,
       score: weakCatScore(player, weakCats),
+      volume: remainingGameDays(player, date, schedule),
     }))
     .sort((left, right) => {
       if (right.score !== left.score) return right.score - left.score
+      if (right.volume !== left.volume) return right.volume - left.volume
       return left.player.id.localeCompare(right.player.id)
     })
 

@@ -54,6 +54,14 @@ const collectReferencedPlayerIds = (
     ids.add(streamer.playerId)
   }
 
+  for (const plan of advice.streamingPlans) {
+    for (const day of plan.days) {
+      for (const cell of day.cells) {
+        if (cell.playerId) ids.add(cell.playerId)
+      }
+    }
+  }
+
   return ids
 }
 
