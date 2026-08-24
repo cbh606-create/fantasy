@@ -12,10 +12,13 @@ export type SeasonSlot =
   | "BE"
   | "IL"
 
+export type SeasonPosition = "PG" | "SG" | "SF" | "PF" | "C" | "G" | "F"
+
 export type SeasonPlayer = {
   id: string
   name: string
   teamAbbr?: string
+  positions?: SeasonPosition[]
   availability?: "fa" | "waiver"
   projections: Record<CategoryId, number>
   shooting: {
@@ -40,7 +43,7 @@ export type ScheduleMatchup = {
 }
 
 export type ScheduleResponse = {
-  source: "fixture"
+  source: "live" | "fixture"
   matchup: ScheduleMatchup
   games: ScheduleGame[]
 }
@@ -67,6 +70,7 @@ export type SeasonLeagueState = {
   players: SeasonPlayer[]
   availablePlayerIds: string[]
   waiverOrder: number[]
+  rosterSlots?: SeasonSlot[]
   source: "espn" | "manual" | "mixed"
   lastSyncedAt?: string
   localLineup?: SeasonRosterEntry[] | null
