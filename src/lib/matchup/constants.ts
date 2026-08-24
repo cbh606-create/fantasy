@@ -3,6 +3,7 @@ import type { SeasonSlot } from "@/lib/season/types"
 import type { CategoryId } from "@/lib/domain/types"
 
 export const ASSUMED_SEASON_GAMES = 82
+export const B2B_SECOND_NIGHT_PLAY_RATE = 0.75
 export const MAX_SIT_START = 5
 export const MAX_STREAMERS = 8
 export const MIN_STREAMER_GAMES = 2
