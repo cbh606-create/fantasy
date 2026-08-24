@@ -225,9 +225,12 @@ export const mapEspnFreeAgentPlayers = (
     }]
   })
 
-const packEntries = (raw: { slot: SeasonSlot; playerId: string }[]): SeasonRosterEntry[] => {
+const packEntries = (
+  raw: { slot: SeasonSlot; playerId: string }[],
+  rosterSlots: SeasonSlot[],
+): SeasonRosterEntry[] => {
   const queues = new Map<SeasonSlot, string[]>()
-  for (const slot of SEASON_ROSTER_SLOTS) {
+  for (const slot of rosterSlots) {
     if (!queues.has(slot)) queues.set(slot, [])
   }
 
@@ -235,7 +238,7 @@ const packEntries = (raw: { slot: SeasonSlot; playerId: string }[]): SeasonRoste
     queues.get(entry.slot)?.push(entry.playerId)
   }
 
-  return SEASON_ROSTER_SLOTS.map((slot) => ({
+  return rosterSlots.map((slot) => ({
     slot,
     playerId: queues.get(slot)?.shift() ?? null,
   }))
@@ -262,6 +265,8 @@ export const mapEspnLeagueToSeasonState = (
     throw new EspnAdapterError("ESPN_PARTIAL")
   }
 
+  const rosterSlots = rosterSlotsFromEspnSettings(payload.settings)
+  const packingSlots = rosterSlots ?? SEASON_ROSTER_SLOTS
   const playersById = new Map<string, SeasonPlayer>()
   const teams: SeasonTeamRoster[] = teamsPayload.map((team, teamIndex) => {
     const rawEntries: { slot: SeasonSlot; playerId: string }[] = []
@@ -281,14 +286,12 @@ export const mapEspnLeagueToSeasonState = (
     return {
       teamIndex,
       name: teamName(team),
-      entries: packEntries(rawEntries),
+      entries: packEntries(rawEntries, packingSlots),
     }
   })
 
   const season = payload.seasonId ?? params.season
   const name = payload.settings?.name?.trim() || `ESPN League ${params.leagueId}`
-  const rosterSlots = rosterSlotsFromEspnSettings(payload.settings)
-
   return {
     id: params.leagueId,
     name,

@@ -4,6 +4,7 @@ import scheduleFixture from "../../data/fixtures/nba-matchup-schedule.json"
 import {
   buildWeekDays,
   getMatchupSchedule,
+  normalizeEspnTeamAbbr,
   normalizeEspnScoreboard,
 } from "@/lib/matchup/scheduleLive"
 import type { ScheduleResponse } from "@/lib/season/types"
@@ -43,11 +44,68 @@ describe("live matchup schedule", () => {
     ])
   })
 
+  it("normalizes ESPN team abbreviations to player-map abbreviations", () => {
+    expect(["GS", "NY", "NO", "SA", "WSH"].map(normalizeEspnTeamAbbr)).toEqual([
+      "GSW",
+      "NYK",
+      "NOP",
+      "SAS",
+      "WAS",
+    ])
+  })
+
+  it("applies abbreviation mapping when building live games", () => {
+    const schedule = normalizeEspnScoreboard(
+      {
+        events: [
+          {
+            date: "2026-03-09T23:30Z",
+            competitions: [
+              {
+                date: "2026-03-09T23:30Z",
+                competitors: [
+                  { homeAway: "home", team: { abbreviation: "GS" } },
+                  { homeAway: "away", team: { abbreviation: "NY" } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        scoringPeriodId: 1,
+        startIso: "2026-03-09",
+        endIso: "2026-03-15",
+      },
+    )
+
+    expect(schedule.games).toEqual([
+      {
+        date: "2026-03-09",
+        homeAbbr: "GSW",
+        awayAbbr: "NYK",
+      },
+    ])
+  })
+
   it("falls back to the fixture when the live request fails", async () => {
     const schedule = await getMatchupSchedule({
       fetchImpl: async () => {
         throw new Error("network unavailable")
       },
+    })
+
+    expect(schedule).toEqual(scheduleFixture as ScheduleResponse)
+    expect(schedule.source).toBe("fixture")
+  })
+
+  it("falls back to the fixture when ESPN returns no games", async () => {
+    const schedule = await getMatchupSchedule({
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ events: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200,
+        }),
     })
 
     expect(schedule).toEqual(scheduleFixture as ScheduleResponse)
@@ -60,7 +118,7 @@ describe("live matchup schedule", () => {
     const requestedUrls: string[] = []
     const fetchImpl = async (input: RequestInfo | URL) => {
       requestedUrls.push(String(input))
-      return new Response(JSON.stringify({ events: [] }), {
+      return new Response(JSON.stringify(espnScoreboard), {
         headers: { "Content-Type": "application/json" },
         status: 200,
       })
@@ -79,9 +137,10 @@ describe("live matchup schedule", () => {
       "2026-08-29",
       "2026-08-30",
     ])
-    expect(requestedUrls).toHaveLength(7)
-    expect(requestedUrls[0]).toContain("dates=20260824")
-    expect(requestedUrls[6]).toContain("dates=20260830")
+    expect(requestedUrls).toHaveLength(8)
+    expect(requestedUrls[0]).toContain("dates=20260823")
+    expect(requestedUrls[1]).toContain("dates=20260824")
+    expect(requestedUrls[7]).toContain("dates=20260830")
     expect(second).toBe(first)
   })
 })

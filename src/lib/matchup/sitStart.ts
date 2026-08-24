@@ -136,7 +136,19 @@ export const suggestSitStart = ({
 export const applySitStartSwap = (
   entries: SeasonRosterEntry[],
   swap: SitStartSwap,
-): SeasonRosterEntry[] | { error: "stale_lineup" } => {
+  players: SeasonPlayer[],
+): SeasonRosterEntry[] | { error: "stale_lineup" | "ineligible" } => {
+  const activeEntry = entries.find(
+    (entry) =>
+      entry.playerId === swap.activePlayerId && isActiveSlot(entry.slot),
+  )
+  const benchPlayer = players.find(
+    (player) => player.id === swap.benchPlayerId,
+  )
+  if (activeEntry && !eligibleForSlot(benchPlayer, activeEntry.slot)) {
+    return { error: "ineligible" }
+  }
+
   const next = swapFilledEntries(entries, swap.benchPlayerId, swap.activePlayerId)
   if (!next) return { error: "stale_lineup" }
   return next

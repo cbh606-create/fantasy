@@ -83,6 +83,30 @@ describe("mapEspnLeagueToSeasonState", () => {
     })
   })
 
+  it("packs team entries using custom ESPN roster slot counts", () => {
+    const customPayload = structuredClone(sample) as EspnLeaguePayload
+    customPayload.settings!.rosterSettings = {
+      lineupSlotCounts: {
+        "0": 2,
+        "12": 1,
+      },
+    }
+
+    const state = mapEspnLeagueToSeasonState(customPayload, {
+      leagueId: "120853513",
+      season: 2026,
+      teamId: 9,
+    })
+
+    expect(state.rosterSlots).toEqual(["PG", "PG", "BE"])
+    expect(state.teams[1].entries).toHaveLength(3)
+    expect(state.teams[1].entries.map((entry) => entry.slot)).toEqual([
+      "PG",
+      "PG",
+      "BE",
+    ])
+  })
+
   it("throws when teamId is missing from the payload", () => {
     expect(() =>
       mapEspnLeagueToSeasonState(sample as EspnLeaguePayload, {

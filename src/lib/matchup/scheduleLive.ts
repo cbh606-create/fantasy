@@ -5,6 +5,13 @@ const ESPN_SCOREBOARD_URL =
   "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard"
 const CACHE_TTL_MS = 20 * 60 * 1000
 const NEW_YORK_TIME_ZONE = "America/New_York"
+const ESPN_TEAM_ABBR_MAP: Record<string, string> = {
+  GS: "GSW",
+  NY: "NYK",
+  NO: "NOP",
+  SA: "SAS",
+  WSH: "WAS",
+}
 
 type NormalizeOptions = {
   scoringPeriodId: number
@@ -48,6 +55,11 @@ const parseIsoDate = (isoDate: string) => {
 
 const formatUtcIsoDate = (date: Date) => date.toISOString().slice(0, 10)
 
+export const normalizeEspnTeamAbbr = (abbreviation: string): string => {
+  const normalized = abbreviation.trim().toUpperCase()
+  return ESPN_TEAM_ABBR_MAP[normalized] ?? normalized
+}
+
 const formatNewYorkIsoDate = (date: Date) => {
   const parts = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
@@ -77,7 +89,9 @@ const getTeamAbbreviation = (
 ) => {
   const competitor = competitors.find((entry) => entry.homeAway === homeAway)
   const abbreviation = competitor?.team?.abbreviation
-  return typeof abbreviation === "string" ? abbreviation : null
+  return typeof abbreviation === "string"
+    ? normalizeEspnTeamAbbr(abbreviation)
+    : null
 }
 
 const normalizeCompetition = (
@@ -164,11 +178,14 @@ export const getMatchupSchedule = async (
   }
 
   const days = buildWeekDays(startIso, endIso)
+  const lookback = parseIsoDate(startIso)
+  lookback.setUTCDate(lookback.getUTCDate() - 1)
+  const fetchDays = [formatUtcIsoDate(lookback), ...days]
   const fetchImpl = options.fetchImpl ?? fetch
 
   try {
     const payloads = await Promise.all(
-      days.map(async (day) => {
+      fetchDays.map(async (day) => {
         const date = day.replaceAll("-", "")
         const response = await fetchImpl(`${ESPN_SCOREBOARD_URL}?dates=${date}`)
         if (!response.ok) throw new Error(`ESPN scoreboard request failed: ${response.status}`)
@@ -183,6 +200,9 @@ export const getMatchupSchedule = async (
       games: schedules.flatMap((entry) => entry.games),
       matchup: schedules[0].matchup,
       source: "live",
+    }
+    if (schedule.games.length === 0) {
+      throw new Error("ESPN scoreboard returned no games")
     }
 
     cachedSchedule = {

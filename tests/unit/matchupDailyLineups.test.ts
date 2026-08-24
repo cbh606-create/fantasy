@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  dailyLineupsMatchDays,
   effectiveGamesByPlayerId,
   initDailyLineups,
   setSlotPlayer,
@@ -84,6 +85,24 @@ describe("initDailyLineups", () => {
     expect(daily["2025-11-03"][0]).toEqual({ slot: "PG", playerId: "star" })
     expect(daily["2025-11-03"].some((entry) => entry.slot === "BE")).toBe(false)
   })
+
+  it("uses custom league active slots for templates and validation", () => {
+    const rosterSlots = ["PG", "PG", "UTIL", "BE"] as const
+    const daily = initDailyLineups(
+      schedule.matchup.days,
+      activeEntries,
+      [...rosterSlots],
+    )
+
+    expect(daily["2025-11-03"].map((entry) => entry.slot)).toEqual([
+      "PG",
+      "PG",
+      "UTIL",
+    ])
+    expect(
+      dailyLineupsMatchDays(daily, schedule.matchup.days, [...rosterSlots]),
+    ).toBe(true)
+  })
 })
 
 describe("effectiveGamesByPlayerId", () => {
@@ -116,6 +135,27 @@ describe("effectiveGamesByPlayerId", () => {
     daily = setSlotPlayer(daily, "2025-11-03", 0, null)
 
     const games = effectiveGamesByPlayerId(daily, [star], backToBackSchedule)
+
+    expect(games.get("star")).toBeCloseTo(0.75)
+  })
+
+  it("weights a Monday start after a Sunday game as 0.75 games", () => {
+    const mondaySchedule: ScheduleResponse = {
+      source: "live",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2026-03-09",
+        endDate: "2026-03-15",
+        days: ["2026-03-09"],
+      },
+      games: [
+        { date: "2026-03-08", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: "2026-03-09", homeAbbr: "MIA", awayAbbr: "BOS" },
+      ],
+    }
+    const daily = initDailyLineups(mondaySchedule.matchup.days, activeEntries)
+
+    const games = effectiveGamesByPlayerId(daily, [star], mondaySchedule)
 
     expect(games.get("star")).toBeCloseTo(0.75)
   })

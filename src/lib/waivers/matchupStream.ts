@@ -363,7 +363,7 @@ export const recommendMatchupStream = (
   const playersById = playersByIdFrom(state)
   const needCategories = resolveNeedCategories(state)
   const addIds = capAdds(
-    state.availablePlayerIds.filter((playerId) => (gamesMap.get(playerId) ?? 0) >= 1),
+    state.availablePlayerIds.filter((playerId) => (gamesMap.get(playerId) ?? 0) > 0),
     playersById,
     gamesMap,
     needCategories,

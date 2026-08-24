@@ -6,8 +6,9 @@ import type {
   SeasonRosterEntry,
   SeasonSlot,
 } from "@/lib/season/types"
-import { ACTIVE_SEASON_SLOTS, isActiveSlot } from "./constants"
-import { eligibleForSlot } from "./eligibility"
+import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
+import { isActiveSlot } from "./constants"
+import { activeSlotsFor, eligibleForSlot } from "./eligibility"
 import { gameWeightForTeamDate } from "./games"
 import { weeklyPlayerStats } from "./weekly"
 
@@ -26,20 +27,28 @@ export const dailyStorageKey = (leagueId: string) => `matchup-days:${leagueId}`
 
 export const extractActiveEntries = (
   entries: SeasonRosterEntry[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): SeasonRosterEntry[] => {
-  const active = entries.filter((entry) => isActiveSlot(entry.slot))
+  const queues = new Map<SeasonSlot, Array<string | null>>()
+  for (const entry of entries) {
+    if (!isActiveSlot(entry.slot)) continue
+    const queue = queues.get(entry.slot) ?? []
+    queue.push(entry.playerId)
+    queues.set(entry.slot, queue)
+  }
 
-  return ACTIVE_SEASON_SLOTS.map((slot, index) => ({
+  return activeSlotsFor(rosterSlots).map((slot) => ({
     slot,
-    playerId: active[index]?.playerId ?? null,
+    playerId: queues.get(slot)?.shift() ?? null,
   }))
 }
 
 export const initDailyLineups = (
   days: string[],
   activeEntries: SeasonRosterEntry[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): DailyLineups => {
-  const template = extractActiveEntries(activeEntries)
+  const template = extractActiveEntries(activeEntries, rosterSlots)
 
   return Object.fromEntries(
     days.map((day) => [day, template.map((entry) => ({ ...entry }))]),
@@ -74,11 +83,13 @@ export const writeDailyLineups = (
 export const dailyLineupsMatchDays = (
   daily: DailyLineups,
   days: string[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): boolean => {
   if (days.length === 0) return false
 
+  const activeSlotCount = activeSlotsFor(rosterSlots).length
   return (
-    days.every((day) => Array.isArray(daily[day]) && daily[day].length === ACTIVE_SEASON_SLOTS.length) &&
+    days.every((day) => Array.isArray(daily[day]) && daily[day].length === activeSlotCount) &&
     Object.keys(daily).length === days.length
   )
 }

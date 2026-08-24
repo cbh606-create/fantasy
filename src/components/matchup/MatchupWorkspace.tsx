@@ -25,6 +25,7 @@ import {
   type DailyLineups,
   type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
+import { rosterSlotsFor } from "@/lib/matchup/eligibility"
 import type { MatchupAdvice, MatchupBoard as MatchupBoardData, SitStartSuggestion } from "@/lib/matchup/types"
 import type {
   ScheduleResponse,
@@ -67,13 +68,14 @@ const resolveDailyLineups = (
     (team) => team.teamIndex === state.perspectiveTeamIndex,
   )
   const activeEntries = youTeam?.entries ?? []
+  const rosterSlots = rosterSlotsFor(state)
   const stored = readDailyLineups(leagueId)
 
-  if (stored && dailyLineupsMatchDays(stored, days)) {
+  if (stored && dailyLineupsMatchDays(stored, days, rosterSlots)) {
     return stored
   }
 
-  const fresh = initDailyLineups(days, activeEntries)
+  const fresh = initDailyLineups(days, activeEntries, rosterSlots)
   writeDailyLineups(leagueId, fresh)
   return fresh
 }
@@ -126,7 +128,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         const youTeam = nextState.teams.find(
           (team) => team.teamIndex === nextState.perspectiveTeamIndex,
         )
-        const fresh = initDailyLineups(days, youTeam?.entries ?? [])
+        const fresh = initDailyLineups(
+          days,
+          youTeam?.entries ?? [],
+          rosterSlotsFor(nextState),
+        )
         writeDailyLineups(leagueId, fresh)
         setDaily(fresh)
         return
