@@ -1,6 +1,6 @@
 import type { CategoryId } from "@/lib/domain/types"
 import { buildMatchupBoard } from "@/lib/matchup/board"
-import { gamesInDaysByPlayerId } from "@/lib/matchup/games"
+import { weightedGamesInDaysByPlayerId } from "@/lib/matchup/games"
 import type { MatchupBoard } from "@/lib/matchup/types"
 import { activeTeamWeeklyTotals, weeklyPlayerStats } from "@/lib/matchup/weekly"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
@@ -350,7 +350,7 @@ export const recommendMatchupStream = (
 ): MatchupStreamResult => {
   const { state, schedule, opponentTeamIndex: requestedOpponent, dayCount } = input
   const windowDays = resolveWindowDays(schedule, dayCount)
-  const gamesMap = gamesInDaysByPlayerId(state.players, schedule, windowDays)
+  const gamesMap = weightedGamesInDaysByPlayerId(state.players, schedule, windowDays)
   const { mode, opponentTeamIndex } = resolveStreamMode(state, requestedOpponent)
   const youTeam = state.teams.find(
     (team) => team.teamIndex === state.perspectiveTeamIndex,
@@ -478,7 +478,7 @@ export const previewMatchupStream = (
     dayCount,
   } = input
   const windowDays = resolveWindowDays(schedule, dayCount)
-  const gamesMap = gamesInDaysByPlayerId(state.players, schedule, windowDays)
+  const gamesMap = weightedGamesInDaysByPlayerId(state.players, schedule, windowDays)
   const { mode, opponentTeamIndex } = resolveStreamMode(state, requestedOpponent)
   const applied = applyAddDrop(state, { addPlayerId, dropPlayerId })
 

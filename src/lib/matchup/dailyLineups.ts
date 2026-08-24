@@ -6,6 +6,7 @@ import type {
   SeasonRosterEntry,
 } from "@/lib/season/types"
 import { ACTIVE_SEASON_SLOTS, isActiveSlot } from "./constants"
+import { gameWeightForTeamDate } from "./games"
 import { weeklyPlayerStats } from "./weekly"
 
 export type DailyLineups = Record<string, SeasonRosterEntry[]>
@@ -140,9 +141,13 @@ export const effectiveGamesByPlayerId = (
       const player = playersById.get(entry.playerId)
       if (!player) continue
 
-      if (!playerGameDays(player, schedule).has(day)) continue
+      const teamAbbr = player.teamAbbr
+      if (!teamAbbr) continue
 
-      counts.set(entry.playerId, (counts.get(entry.playerId) ?? 0) + 1)
+      const gameWeight = gameWeightForTeamDate(teamAbbr, day, schedule)
+      if (gameWeight === 0) continue
+
+      counts.set(entry.playerId, (counts.get(entry.playerId) ?? 0) + gameWeight)
     }
   }
 

@@ -95,6 +95,28 @@ describe("effectiveGamesByPlayerId", () => {
     expect(games.get("star")).toBe(1)
     expect(games.get("scrub")).toBe(1)
   })
+
+  it("weights a start on the second night of a back-to-back as 0.75 games", () => {
+    const backToBackSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2025-11-03",
+        endDate: "2025-11-04",
+        days: ["2025-11-03", "2025-11-04"],
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: "2025-11-04", homeAbbr: "MIA", awayAbbr: "BOS" },
+      ],
+    }
+    let daily = initDailyLineups(backToBackSchedule.matchup.days, activeEntries)
+    daily = setSlotPlayer(daily, "2025-11-03", 0, null)
+
+    const games = effectiveGamesByPlayerId(daily, [star], backToBackSchedule)
+
+    expect(games.get("star")).toBeCloseTo(0.75)
+  })
 })
 
 describe("youTotalsFromDaily", () => {
