@@ -2,13 +2,27 @@ import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
 import { buildAllStreamingPlans, buildStreamingPlan } from "@/lib/matchup/streamingPlans"
-import type { MatchupBoard } from "@/lib/matchup/types"
+import type { MatchupBoard, StreamingPlanDayCell } from "@/lib/matchup/types"
 import type { ScheduleResponse, SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
+
+const assertCellShape = (cell: StreamingPlanDayCell) => cell
 
 describe("WEEKLY_ADD_LIMIT", () => {
   it("is 7 ESPN-style weekly acquisitions", () => {
     expect(WEEKLY_ADD_LIMIT).toBe(7)
   })
+})
+
+it("StreamingPlanDayCell requires drop fields", () => {
+  const cell = assertCellShape({
+    spotIndex: 0,
+    playerId: "fa-a",
+    action: "add",
+    droppedPlayerId: null,
+    rosterDropPlayerId: null,
+    rosterDropKind: "open_slot",
+  })
+  expect(cell.rosterDropKind).toBe("open_slot")
 })
 
 const baseProjections = (): SeasonPlayer["projections"] => ({

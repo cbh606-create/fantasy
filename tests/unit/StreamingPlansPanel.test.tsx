@@ -78,19 +78,55 @@ describe("StreamingPlansPanel", () => {
             days: [
               {
                 date: "2025-11-03",
-                cells: [{ spotIndex: 0, playerId: "fa-a", action: "add" }],
+                cells: [
+                  {
+                    spotIndex: 0,
+                    playerId: "fa-a",
+                    action: "add",
+                    droppedPlayerId: null,
+                    rosterDropPlayerId: null,
+                    rosterDropKind: "open_slot",
+                  },
+                ],
               },
               {
                 date: "2025-11-04",
-                cells: [{ spotIndex: 0, playerId: "fa-a", action: "hold" }],
+                cells: [
+                  {
+                    spotIndex: 0,
+                    playerId: "fa-a",
+                    action: "hold",
+                    droppedPlayerId: null,
+                    rosterDropPlayerId: null,
+                    rosterDropKind: "none",
+                  },
+                ],
               },
               {
                 date: "2025-11-05",
-                cells: [{ spotIndex: 0, playerId: "fa-b", action: "drop_add" }],
+                cells: [
+                  {
+                    spotIndex: 0,
+                    playerId: "fa-b",
+                    action: "drop_add",
+                    droppedPlayerId: null,
+                    rosterDropPlayerId: null,
+                    rosterDropKind: "none",
+                  },
+                ],
               },
               {
                 date: "2025-11-06",
-                cells: [{ spotIndex: 0, playerId: null, action: "empty" }],
+                cells: [
+                  {
+                    spotIndex: 0,
+                    playerId: null,
+                    action: "empty",
+                    droppedPlayerId: null,
+                    rosterDropPlayerId: null,
+                    rosterDropKind: "none",
+                  },
+                ],
               },
             ],
           },

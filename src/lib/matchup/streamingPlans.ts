@@ -156,7 +156,14 @@ export const buildStreamingPlan = ({
       }
 
       occupants[spotIndex] = playerId
-      cells.push({ spotIndex, playerId, action })
+      cells.push({
+        spotIndex,
+        playerId,
+        action,
+        droppedPlayerId: null,
+        rosterDropPlayerId: null,
+        rosterDropKind: "none",
+      })
 
       if (playerId) {
         const player = playersById.get(playerId)

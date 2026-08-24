@@ -54,10 +54,15 @@ export type StreamingPlanSpotCount = 1 | 2 | 3
 
 export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
 
+export type StreamingPlanRosterDropKind = "player" | "open_slot" | "none"
+
 export type StreamingPlanDayCell = {
   spotIndex: number
   playerId: string | null
   action: StreamingPlanAction
+  droppedPlayerId: string | null
+  rosterDropPlayerId: string | null
+  rosterDropKind: StreamingPlanRosterDropKind
 }
 
 export type StreamingPlanDay = {
