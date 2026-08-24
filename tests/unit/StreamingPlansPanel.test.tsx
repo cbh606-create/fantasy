@@ -1,9 +1,15 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest"
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it } from "vitest"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
-import type { SeasonPlayer } from "@/lib/season/types"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import type { MatchupBoard } from "@/lib/matchup/types"
+import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonPlayer,
+} from "@/lib/season/types"
 
 const projections: SeasonPlayer["projections"] = {
   FG_PCT: 0.5,
@@ -17,13 +23,15 @@ const projections: SeasonPlayer["projections"] = {
   PTS: 16,
 }
 
+const shooting = { FGM: 1, FGA: 2, FTM: 1, FTA: 1 }
+
 const streamerA: SeasonPlayer = {
   id: "fa-a",
   name: "Streamer A",
   teamAbbr: "BOS",
   positions: ["SG"],
-  projections,
-  shooting: { FGM: 1, FGA: 2, FTM: 1, FTA: 1 },
+  projections: { ...projections, STL: 180 },
+  shooting,
 }
 
 const streamerB: SeasonPlayer = {
@@ -31,8 +39,72 @@ const streamerB: SeasonPlayer = {
   name: "Streamer B",
   teamAbbr: "NYK",
   positions: ["PG"],
+  projections: { ...projections, STL: 160 },
+  shooting,
+}
+
+const rostered: SeasonPlayer = {
+  id: "you-1",
+  name: "Roster Cut",
+  teamAbbr: "CHI",
+  positions: ["PF"],
   projections,
-  shooting: { FGM: 1, FGA: 2, FTM: 1, FTA: 1 },
+  shooting,
+}
+
+const board: MatchupBoard = {
+  categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+    categoryId,
+    you: categoryId === "STL" ? 1 : 10,
+    opp: categoryId === "STL" ? 5 : 8,
+    outcome: categoryId === "STL" ? "L" : "W",
+    winProb: categoryId === "STL" ? 0.2 : 0.8,
+  })),
+  wins: 8,
+  losses: 1,
+  ties: 0,
+  projectedCatWins: 7,
+}
+
+const schedule: ScheduleResponse = {
+  source: "fixture",
+  matchup: {
+    scoringPeriodId: 1,
+    startDate: "2025-11-03",
+    endDate: "2025-11-05",
+    days: ["2025-11-03", "2025-11-04", "2025-11-05"],
+  },
+  games: [
+    { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+    { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "ORL" },
+    { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "MIA" },
+  ],
+}
+
+const state: SeasonLeagueState = {
+  name: "Test",
+  season: 2025,
+  categories: ALL_CATEGORY_IDS.map((id) => ({ id, enabled: true, weight: 1 })),
+  perspectiveTeamIndex: 0,
+  teams: [
+    {
+      teamIndex: 0,
+      name: "You",
+      entries: [
+        { slot: "UTIL", playerId: "you-1" },
+        { slot: "BE", playerId: null },
+      ],
+    },
+    {
+      teamIndex: 1,
+      name: "Them",
+      entries: [{ slot: "UTIL", playerId: null }],
+    },
+  ],
+  players: [streamerA, streamerB, rostered],
+  availablePlayerIds: ["fa-a", "fa-b"],
+  waiverOrder: [0, 1],
+  source: "manual",
 }
 
 describe("StreamingPlansPanel", () => {
@@ -40,164 +112,127 @@ describe("StreamingPlansPanel", () => {
     cleanup()
   })
 
-  it("renders 1-spot 2-spot and 3-spot plan headings with add summary", () => {
+  it("renders 1-spot 2-spot and 3-spot plan headings with add budget control", () => {
     render(
       <StreamingPlansPanel
+        board={board}
         leagueId="lg1"
-        playersById={{ "fa-a": streamerA }}
-        plans={[
-          {
-            spotCount: 1,
-            addLimit: 7,
-            addsUsed: 3,
-            gameStarts: 5,
-            strategyMode: "balanced",
-            suggestedStrategyMode: "balanced",
-            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
-            days: [],
-          },
-          {
-            spotCount: 2,
-            addLimit: 7,
-            addsUsed: 5,
-            gameStarts: 8,
-            strategyMode: "balanced",
-            suggestedStrategyMode: "balanced",
-            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
-            days: [],
-          },
-          {
-            spotCount: 3,
-            addLimit: 7,
-            addsUsed: 7,
-            gameStarts: 10,
-            strategyMode: "balanced",
-            suggestedStrategyMode: "balanced",
-            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
-            days: [],
-          },
-        ]}
+        playersById={{}}
+        schedule={schedule}
+        state={state}
       />,
     )
 
     expect(
       screen.getByRole("heading", { name: /streaming plans/i }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/1-spot/i)).toBeInTheDocument()
-    expect(screen.getByText(/2-spot/i)).toBeInTheDocument()
-    expect(screen.getByText(/3-spot/i)).toBeInTheDocument()
-    expect(screen.getByText(/Adds 3\/7/i)).toBeInTheDocument()
-    expect(screen.getByText(/Adds 5\/7/i)).toBeInTheDocument()
-    expect(screen.getByText(/Adds 7\/7/i)).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /^1-spot$/i })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /^2-spot$/i })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: /^3-spot$/i })).toBeInTheDocument()
+    expect(screen.getByRole("spinbutton", { name: /weekly add budget/i })).toHaveValue(7)
+    expect(screen.getAllByText(/Adds \d+\/7/).length).toBeGreaterThan(0)
   })
 
-  it("renders day column headers and Drop / Add / Roster lines", () => {
-    const rostered: SeasonPlayer = {
-      id: "you-1",
-      name: "Roster Cut",
-      teamAbbr: "CHI",
-      positions: ["PF"],
-      projections,
-      shooting: { FGM: 1, FGA: 2, FTM: 1, FTA: 1 },
-    }
-
+  it("rebuilds plans when weekly add budget changes", () => {
     render(
       <StreamingPlansPanel
+        board={board}
         leagueId="lg1"
-        playersById={{
-          "fa-a": streamerA,
-          "fa-b": streamerB,
-          "you-1": rostered,
-        }}
-        plans={[
-          {
-            spotCount: 1,
-            addLimit: 7,
-            addsUsed: 2,
-            gameStarts: 3,
-            strategyMode: "balanced",
-            suggestedStrategyMode: "balanced",
-            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
-            days: [
-              {
-                date: "2025-11-03",
-                cells: [
-                  {
-                    spotIndex: 0,
-                    playerId: "fa-a",
-                    action: "add",
-                    droppedPlayerId: null,
-                    rosterDropPlayerId: "you-1",
-                    rosterDropKind: "player",
-                  },
-                ],
-              },
-              {
-                date: "2025-11-04",
-                cells: [
-                  {
-                    spotIndex: 0,
-                    playerId: "fa-a",
-                    action: "hold",
-                    droppedPlayerId: null,
-                    rosterDropPlayerId: null,
-                    rosterDropKind: "none",
-                  },
-                ],
-              },
-              {
-                date: "2025-11-05",
-                cells: [
-                  {
-                    spotIndex: 0,
-                    playerId: "fa-b",
-                    action: "drop_add",
-                    droppedPlayerId: "fa-a",
-                    rosterDropPlayerId: null,
-                    rosterDropKind: "open_slot",
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            spotCount: 2,
-            addLimit: 7,
-            addsUsed: 0,
-            gameStarts: 0,
-            strategyMode: "balanced",
-            suggestedStrategyMode: "balanced",
-            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
-            days: [],
-          },
-          {
-            spotCount: 3,
-            addLimit: 7,
-            addsUsed: 0,
-            gameStarts: 0,
-            strategyMode: "balanced",
-            suggestedStrategyMode: "balanced",
-            summaryReasons: ["Prioritized 3-in-4 / B2B blocks"],
-            days: [],
-          },
-        ]}
+        playersById={{}}
+        schedule={schedule}
+        state={state}
       />,
     )
 
-    expect(screen.getByText(/Mon/i)).toBeInTheDocument()
-    expect(screen.getByText(/Spot 1/i)).toBeInTheDocument()
+    const budget = screen.getByRole("spinbutton", { name: /weekly add budget/i })
+    fireEvent.click(screen.getByRole("button", { name: /decrease weekly add budget/i }))
+    expect(budget).toHaveValue(6)
+    expect(screen.getAllByText(/Adds \d+\/6/).length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole("button", { name: /increase weekly add budget/i }))
+    fireEvent.click(screen.getByRole("button", { name: /increase weekly add budget/i }))
+    expect(budget).toHaveValue(8)
+    expect(screen.getAllByText(/Adds \d+\/8/).length).toBeGreaterThan(0)
+  })
+
+  it("renders Add and Drop rows for built plans", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    expect(screen.getAllByText(/Mon,/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole("rowheader", { name: /^Add$/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole("rowheader", { name: /^Drop$/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole("link", { name: /Streamer A/i })[0]).toHaveAttribute(
+      "href",
+      "/waivers/lg1?addPlayerId=fa-a",
+    )
+  })
+
+  it("tints multi-spot and 1-spot rows", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    const spot1Add = screen.getAllByRole("rowheader", { name: /Spot 1 Add/i })[0]
+    const addRow = screen.getAllByRole("rowheader", { name: /^Add$/i })[0]
+    expect(spot1Add?.closest("tr")?.className).toMatch(
+      /border-l-\[var\(--color-success\)\]/,
+    )
+    expect(addRow?.closest("tr")?.className).toMatch(
+      /border-l-\[var\(--color-success\)\]/,
+    )
+  })
+
+  it("defaults strategy to board suggestion and rebuilds on toggle", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Conservative" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+    expect(screen.getByRole("button", { name: "Aggressive" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    expect(screen.getByText("Suggested: Conservative")).toBeInTheDocument()
+  })
+
+  it("shows summary reasons under a plan header", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
     expect(
-      screen.getByRole("cell", { name: /Add Streamer A/i }),
-    ).toBeInTheDocument()
-    expect(screen.getByText(/Drop Streamer A/i)).toBeInTheDocument()
-    expect(screen.getByText(/Roster: drop Roster Cut/i)).toBeInTheDocument()
-    expect(screen.getByText(/Roster: open slot/i)).toBeInTheDocument()
-    expect(
-      screen.getByRole("link", { name: /Streamer A/i }),
-    ).toHaveAttribute("href", "/waivers/lg1?addPlayerId=fa-a")
-    expect(
-      screen.getByRole("link", { name: /Streamer B/i }),
-    ).toHaveAttribute("href", "/waivers/lg1?addPlayerId=fa-b")
-    expect(screen.getAllByRole("link", { name: /Streamer A/i })).toHaveLength(1)
+      screen.getAllByText(/Prioritized 3-in-4|blocks|Skipped thin|Board/i).length,
+    ).toBeGreaterThan(0)
   })
 })

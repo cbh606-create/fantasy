@@ -1,14 +1,37 @@
+"use client"
+
 import Link from "next/link"
+import { Fragment, useState } from "react"
 import { formatPlayerPositions } from "@/lib/season/slotLabels"
-import type { SeasonPlayer } from "@/lib/season/types"
 import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonPlayer,
+} from "@/lib/season/types"
+import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
+import { buildAllStreamingPlans } from "@/lib/matchup/streamingPlans"
+import { suggestStreamingStrategyMode } from "@/lib/matchup/streamingStrategy"
+import type {
+  MatchupBoard,
   StreamingPlan,
   StreamingPlanDayCell,
+  StreamingStrategyMode,
 } from "@/lib/matchup/types"
+
+const MIN_ADD_BUDGET = 1
+const MAX_ADD_BUDGET = 14
+
+const STRATEGY_OPTIONS: { id: StreamingStrategyMode; label: string }[] = [
+  { id: "aggressive", label: "Aggressive" },
+  { id: "balanced", label: "Balanced" },
+  { id: "conservative", label: "Conservative" },
+]
 
 type StreamingPlansPanelProps = {
   leagueId: string
-  plans: StreamingPlan[]
+  state: SeasonLeagueState
+  schedule: ScheduleResponse
+  board: MatchupBoard
   playersById: Record<string, SeasonPlayer>
 }
 
@@ -22,7 +45,7 @@ const formatDayLabel = (day: string) => {
 }
 
 const playerName = (
-  playerId: string | null,
+  playerId: string | null | undefined,
   playersById: Record<string, SeasonPlayer>,
 ) => {
   if (!playerId) return "—"
@@ -32,19 +55,54 @@ const playerName = (
 const isAddAction = (action: StreamingPlanDayCell["action"]) =>
   action === "add" || action === "drop_add"
 
-const rosterCopy = (
-  cell: StreamingPlanDayCell,
-  playersById: Record<string, SeasonPlayer>,
-) => {
-  if (!isAddAction(cell.action)) return null
-  if (cell.rosterDropKind === "open_slot") return "Roster: open slot"
-  if (cell.rosterDropKind === "player") {
-    return `Roster: drop ${playerName(cell.rosterDropPlayerId, playersById)}`
+/** Soft row tints for spot 1…3 (including 1-spot plans). */
+const SPOT_ROW_CLASS = [
+  "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] border-l-[3px] border-l-[var(--color-success)]",
+  "bg-[color-mix(in_srgb,#b45309_10%,transparent)] border-l-[3px] border-l-[#b45309]",
+  "bg-[color-mix(in_srgb,#0369a1_10%,transparent)] border-l-[3px] border-l-[#0369a1]",
+] as const
+
+const spotRowClass = (spotIndex: number) => SPOT_ROW_CLASS[spotIndex] ?? ""
+
+const countAddsBySpot = (plan: StreamingPlan): number[] => {
+  const counts = Array.from({ length: plan.spotCount }, () => 0)
+  for (const day of plan.days) {
+    for (const cell of day.cells) {
+      if (cell.action === "add" || cell.action === "drop_add") {
+        counts[cell.spotIndex] = (counts[cell.spotIndex] ?? 0) + 1
+      }
+    }
   }
-  return "Roster: —"
+  return counts
 }
 
-const PlanCell = ({
+const cellFor = (
+  plan: StreamingPlan,
+  date: string,
+  spotIndex: number,
+): StreamingPlanDayCell | undefined =>
+  plan.days
+    .find((day) => day.date === date)
+    ?.cells.find((cell) => cell.spotIndex === spotIndex)
+
+const dropLabel = (
+  cell: StreamingPlanDayCell | undefined,
+  playersById: Record<string, SeasonPlayer>,
+): string => {
+  if (!cell) return "—"
+  if (cell.action === "drop_add") {
+    return playerName(cell.droppedPlayerId, playersById)
+  }
+  if (cell.action === "add") {
+    if (cell.rosterDropKind === "open_slot") return "open slot"
+    if (cell.rosterDropKind === "player") {
+      return playerName(cell.rosterDropPlayerId, playersById)
+    }
+  }
+  return "—"
+}
+
+const AddCell = ({
   cell,
   leagueId,
   playersById,
@@ -53,139 +111,264 @@ const PlanCell = ({
   leagueId: string
   playersById: Record<string, SeasonPlayer>
 }) => {
-  if (!cell || cell.action === "empty" || (!cell.playerId && !isAddAction(cell.action))) {
+  if (!cell || cell.action === "empty" || !cell.playerId) {
     return <span className="text-[var(--color-mute)]">—</span>
   }
 
-  const faName = playerName(cell.playerId, playersById)
-  const droppedName = playerName(cell.droppedPlayerId, playersById)
-  const seated = cell.playerId ? playersById[cell.playerId] : undefined
-  const roster = rosterCopy(cell, playersById)
-  const addLink = isAddAction(cell.action) && cell.playerId
+  const seated = playersById[cell.playerId]
+  const name = playerName(cell.playerId, playersById)
+  const meta = (
+    <span className="ml-1 text-[var(--color-mute)]">
+      {formatPlayerPositions(seated)}
+      {seated?.teamAbbr ? ` · ${seated.teamAbbr}` : ""}
+    </span>
+  )
+
+  if (isAddAction(cell.action)) {
+    return (
+      <span>
+        <Link
+          className="font-medium text-[var(--color-ink)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+          href={`/waivers/${leagueId}?addPlayerId=${cell.playerId}`}
+        >
+          {name}
+        </Link>
+        {meta}
+      </span>
+    )
+  }
 
   return (
-    <div className="flex flex-col gap-0.5">
-      {cell.action === "drop_add" ? (
-        <div>
-          Drop {droppedName}
-        </div>
-      ) : null}
-      {isAddAction(cell.action) ? (
-        <div>
-          Add{" "}
-          {addLink ? (
-            <Link
-              className="font-medium text-[var(--color-ink)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-              href={`/waivers/${leagueId}?addPlayerId=${cell.playerId}`}
-            >
-              {faName}
-            </Link>
-          ) : (
-            <span className="font-medium">{faName}</span>
-          )}
-        </div>
-      ) : null}
-      {cell.action === "hold" ? (
-        <div>
-          <span className="font-medium">{faName}</span>
-          <span className="ml-1 text-[var(--color-mute)]">
-            {formatPlayerPositions(seated)}
-            {seated?.teamAbbr ? ` · ${seated.teamAbbr}` : ""}
-          </span>
-        </div>
-      ) : null}
-      {roster ? (
-        <div className="text-[var(--color-mute)]">{roster}</div>
-      ) : null}
-    </div>
+    <span>
+      <span className="font-medium">{name}</span>
+      {meta}
+    </span>
   )
 }
 
+const clampBudget = (value: number) =>
+  Math.min(MAX_ADD_BUDGET, Math.max(MIN_ADD_BUDGET, value))
+
 export const StreamingPlansPanel = ({
   leagueId,
-  plans,
+  state,
+  schedule,
+  board,
   playersById,
-}: StreamingPlansPanelProps) => (
-  <section>
-    <h2 className="text-lg font-semibold">Streaming plans</h2>
-    <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
-      Weekly add budget 7; drops are free.
-    </p>
+}: StreamingPlansPanelProps) => {
+  const suggested = suggestStreamingStrategyMode(board)
+  const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
+  const [strategyMode, setStrategyMode] =
+    useState<StreamingStrategyMode>(suggested)
 
-    <div className="mt-3 space-y-5">
-      {plans.map((plan) => {
-        const dates = plan.days.map((day) => day.date)
+  const plans = buildAllStreamingPlans({
+    state,
+    schedule,
+    board,
+    addLimit: addBudget,
+    strategyMode,
+  })
 
-        return (
-          <div key={plan.spotCount}>
-            <h3 className="text-[0.8125rem] font-semibold">
-              {plan.spotCount}-spot
-            </h3>
-            <p className="mt-0.5 text-[0.75rem] text-[var(--color-mute)]">
-              Adds {plan.addsUsed}/{plan.addLimit} · {plan.gameStarts} starts
-            </p>
+  const resolvedPlayers: Record<string, SeasonPlayer> = {
+    ...Object.fromEntries(state.players.map((player) => [player.id, player])),
+    ...playersById,
+  }
 
-            {dates.length > 0 ? (
-              <div className="mt-2 overflow-x-auto">
-                <table className="w-full border-collapse text-left text-[0.75rem] leading-snug">
-                  <thead>
-                    <tr className="border-t border-[var(--color-hairline)]">
-                      <th
-                        className="w-[4.5rem] py-1.5 pr-2 font-medium text-[var(--color-mute)]"
-                        scope="col"
-                      >
-                        Spot
-                      </th>
-                      {dates.map((date) => (
-                        <th
-                          className="min-w-[5.5rem] py-1.5 pr-3 font-medium text-[var(--color-mute)]"
-                          key={date}
-                          scope="col"
-                        >
-                          {formatDayLabel(date)}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.from({ length: plan.spotCount }, (_, spotIndex) => (
-                      <tr
-                        className="border-t border-[var(--color-hairline)]"
-                        key={spotIndex}
-                      >
-                        <th
-                          className="py-1.5 pr-2 font-medium text-[var(--color-mute)]"
-                          scope="row"
-                        >
-                          Spot {spotIndex + 1}
-                        </th>
-                        {dates.map((date) => {
-                          const cell = plan.days
-                            .find((day) => day.date === date)
-                            ?.cells.find((c) => c.spotIndex === spotIndex)
+  const softCaps = [1, 2, 3].map((spotCount) =>
+    Math.ceil(addBudget / spotCount),
+  )
 
-                          return (
-                            <td
-                              className="py-1.5 pr-3 align-top"
-                              key={`${date}-${spotIndex}`}
-                            >
-                              <PlanCell
-                                cell={cell}
-                                leagueId={leagueId}
-                                playersById={playersById}
-                              />
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+  return (
+    <section>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Streaming plans</h2>
+          <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
+            Drops are free. Prefer dense schedules and hold through off nights
+            when more games remain. Adds stay even across spots (max{" "}
+            {softCaps[1]}/spot on 2-spot, {softCaps[2]}/spot on 3-spot).
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-[0.8125rem]">
+            <label
+              className="text-[var(--color-mute)]"
+              htmlFor="streaming-add-budget"
+            >
+              Weekly add budget
+            </label>
+            <button
+              aria-label="Decrease weekly add budget"
+              className="rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:opacity-40"
+              disabled={addBudget <= MIN_ADD_BUDGET}
+              onClick={() => setAddBudget((value) => clampBudget(value - 1))}
+              type="button"
+            >
+              −
+            </button>
+            <input
+              className="w-12 rounded-md border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-1 text-center tabular-nums text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+              id="streaming-add-budget"
+              inputMode="numeric"
+              max={MAX_ADD_BUDGET}
+              min={MIN_ADD_BUDGET}
+              onChange={(event) => {
+                const parsed = Number.parseInt(event.target.value, 10)
+                if (Number.isInteger(parsed)) setAddBudget(clampBudget(parsed))
+              }}
+              type="number"
+              value={addBudget}
+            />
+            <button
+              aria-label="Increase weekly add budget"
+              className="rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:opacity-40"
+              disabled={addBudget >= MAX_ADD_BUDGET}
+              onClick={() => setAddBudget((value) => clampBudget(value + 1))}
+              type="button"
+            >
+              +
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
+            <span className="text-[var(--color-mute)]">Strategy</span>
+            {STRATEGY_OPTIONS.map((option) => (
+              <button
+                aria-pressed={strategyMode === option.id}
+                className={
+                  strategyMode === option.id
+                    ? "rounded-full border border-[var(--color-ink)] px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                    : "rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                }
+                key={option.id}
+                onClick={() => setStrategyMode(option.id)}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+            {strategyMode !== suggested ? (
+              <span className="text-[var(--color-mute)]">
+                Suggested:{" "}
+                {STRATEGY_OPTIONS.find((option) => option.id === suggested)
+                  ?.label ?? suggested}
+              </span>
             ) : null}
           </div>
-        )
-      })}
-    </div>
-  </section>
-)
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-5">
+        {plans.map((plan) => {
+          const dates = plan.days.map((day) => day.date)
+          const addsBySpot = countAddsBySpot(plan)
+
+          return (
+            <div key={plan.spotCount}>
+              <h3 className="text-[0.8125rem] font-semibold">
+                {plan.spotCount}-spot
+              </h3>
+              <p className="mt-0.5 text-[0.75rem] text-[var(--color-mute)]">
+                Adds {plan.addsUsed}/{plan.addLimit} · {plan.gameStarts} starts
+                {plan.spotCount > 1
+                  ? ` · ${addsBySpot
+                      .map((count, index) => `S${index + 1}: ${count}`)
+                      .join(" · ")}`
+                  : ""}
+              </p>
+              {plan.summaryReasons.length > 0 ? (
+                <p className="mt-0.5 text-[0.75rem] text-[var(--color-mute)]">
+                  {plan.summaryReasons.join(" · ")}
+                </p>
+              ) : null}
+
+              {dates.length > 0 ? (
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-[0.75rem] leading-snug">
+                    <thead>
+                      <tr className="border-t border-[var(--color-hairline)]">
+                        <th
+                          className="w-[5.5rem] py-1.5 pr-2 font-medium text-[var(--color-mute)]"
+                          scope="col"
+                        >
+                          Move
+                        </th>
+                        {dates.map((date) => (
+                          <th
+                            className="min-w-[5.5rem] py-1.5 pr-3 font-medium text-[var(--color-mute)]"
+                            key={date}
+                            scope="col"
+                          >
+                            {formatDayLabel(date)}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from({ length: plan.spotCount }, (_, spotIndex) => {
+                        const rowTone = spotRowClass(spotIndex)
+
+                        return (
+                          <Fragment key={spotIndex}>
+                            <tr
+                              className={`border-t border-[var(--color-hairline)] ${rowTone}`}
+                            >
+                              <th
+                                className="py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]"
+                                scope="row"
+                              >
+                                {plan.spotCount > 1
+                                  ? `Spot ${spotIndex + 1} Add`
+                                  : "Add"}
+                              </th>
+                              {dates.map((date) => (
+                                <td
+                                  className="py-1.5 pr-3 align-top"
+                                  key={`${date}-add-${spotIndex}`}
+                                >
+                                  <AddCell
+                                    cell={cellFor(plan, date, spotIndex)}
+                                    leagueId={leagueId}
+                                    playersById={resolvedPlayers}
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                            <tr
+                              className={`border-t border-[var(--color-hairline)] ${rowTone}`}
+                            >
+                              <th
+                                className="py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]"
+                                scope="row"
+                              >
+                                {plan.spotCount > 1
+                                  ? `Spot ${spotIndex + 1} Drop`
+                                  : "Drop"}
+                              </th>
+                              {dates.map((date) => {
+                                const cell = cellFor(plan, date, spotIndex)
+                                const label = dropLabel(cell, resolvedPlayers)
+
+                                return (
+                                  <td
+                                    className="py-1.5 pr-3 align-top text-[var(--color-mute)]"
+                                    key={`${date}-drop-${spotIndex}`}
+                                  >
+                                    {label}
+                                  </td>
+                                )
+                              })}
+                            </tr>
+                          </Fragment>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}

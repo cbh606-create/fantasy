@@ -525,9 +525,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         <div className="mt-8 space-y-8">
           <InjuryAlertsPanel leagueId={leagueId} />
           <StreamingPlansPanel
+            board={matchupData.board}
             leagueId={leagueId}
             playersById={matchupData.playersById}
-            plans={matchupData.streamingPlans}
+            schedule={matchupData.schedule}
+            state={state}
           />
           <SitStartPanel
             applyingSwapKey={applyingSwapKey}
