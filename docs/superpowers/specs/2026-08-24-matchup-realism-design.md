@@ -1,7 +1,7 @@
 # Matchup Realism: Live Schedule, Positions, Board Scales, B2B — Design Spec
 
 **Date:** 2026-08-24  
-**Status:** Approved for implementation planning  
+**Status:** Implemented  
 **Product:** Make Matchup Advisor schedules, H2H margins, and lineup eligibility feel realistic  
 **Related:** [Matchup Advisor](./2026-08-12-matchup-advisor-design.md), [Daily Lineup](./2026-08-12-matchup-daily-lineup-design.md), [ESPN live roadmap](./2026-08-19-espn-season-live-data-roadmap-design.md)
 
