@@ -50,6 +50,13 @@ export type StreamerSuggestion = {
   reasons: string[]
 }
 
+export type StreamingStrategyMode =
+  | "aggressive"
+  | "balanced"
+  | "conservative"
+
+export type StreamingDensityTier = "elite" | "strong" | "ok" | "thin"
+
 export type StreamingPlanSpotCount = 1 | 2 | 3
 
 export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
