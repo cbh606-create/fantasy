@@ -55,5 +55,6 @@ export const adviseMatchup = (
     board,
     sitStart,
     streamers,
+    streamingPlans: [],
   }
 }

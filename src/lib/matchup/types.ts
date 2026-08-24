@@ -46,7 +46,31 @@ export type StreamerSuggestion = {
   playerId: string
   score: number
   gamesThisWeek: number
+  b2bNights: number
   reasons: string[]
+}
+
+export type StreamingPlanSpotCount = 1 | 2 | 3
+
+export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
+
+export type StreamingPlanDayCell = {
+  spotIndex: number
+  playerId: string | null
+  action: StreamingPlanAction
+}
+
+export type StreamingPlanDay = {
+  date: string
+  cells: StreamingPlanDayCell[]
+}
+
+export type StreamingPlan = {
+  spotCount: StreamingPlanSpotCount
+  addLimit: number
+  addsUsed: number
+  gameStarts: number
+  days: StreamingPlanDay[]
 }
 
 export type MatchupAdvice = {
@@ -60,4 +84,5 @@ export type MatchupAdvice = {
   board: MatchupBoard
   sitStart: SitStartSuggestion[]
   streamers: StreamerSuggestion[]
+  streamingPlans: StreamingPlan[]
 }
