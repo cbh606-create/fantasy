@@ -214,6 +214,12 @@ describe("PATCH /api/season-leagues/:id/lineup", () => {
     const state = manualToSeasonLeagueState(
       fixture as ManualSeasonLeagueInput,
     )
+    state.players = state.players.map((player) => ({
+      ...player,
+      positions: player.positions?.length
+        ? player.positions
+        : ["PG", "SG", "SF", "PF", "C", "G", "F"],
+    }))
     const entries = state.teams[2].entries.map((entry, index) => ({
       ...entry,
       playerId: index === 0 ? "t3p2" : entry.playerId,
@@ -250,6 +256,43 @@ describe("PATCH /api/season-leagues/:id/lineup", () => {
       localLineupJson: JSON.stringify(entries),
       source: "mixed",
     })
+  })
+
+  it("rejects an ineligible position assignment", async () => {
+    const state = manualToSeasonLeagueState(
+      fixture as ManualSeasonLeagueInput,
+    )
+    state.players = state.players.map((player) =>
+      player.id === "t3p2"
+        ? { ...player, positions: ["C"] }
+        : player,
+    )
+    const entries = state.teams[2].entries.map((entry, index) => ({
+      ...entry,
+      playerId: index === 0 ? "t3p2" : entry.playerId,
+    }))
+    const league = await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: state.name,
+        season: state.season,
+        perspectiveTeamIndex: state.perspectiveTeamIndex,
+        source: "manual",
+        stateJson: JSON.stringify(state),
+      },
+    })
+
+    const response = await updateSeasonLeagueLineup(
+      createRequest(
+        `/api/season-leagues/${league.id}/lineup`,
+        { entries },
+        "PATCH",
+      ),
+      routeContext(league.id),
+    )
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: "ineligible" })
   })
 
   it("rejects a lineup with players outside the league state", async () => {

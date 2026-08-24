@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { rosterSlotsFor } from "@/lib/matchup/eligibility"
+import { eligibleForSlot, rosterSlotsFor } from "@/lib/matchup/eligibility"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
@@ -95,6 +95,16 @@ export const PATCH = async (
     )
   ) {
     return NextResponse.json({ error: "validation" }, { status: 400 })
+  }
+
+  const playersById = new Map(state.players.map((player) => [player.id, player]))
+  if (
+    body.entries.some((entry) => {
+      if (!entry.playerId) return false
+      return !eligibleForSlot(playersById.get(entry.playerId), entry.slot)
+    })
+  ) {
+    return NextResponse.json({ error: "ineligible" }, { status: 400 })
   }
 
   const effectiveState = applyLocalLineup(state, body.entries)

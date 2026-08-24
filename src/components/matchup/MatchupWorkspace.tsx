@@ -8,6 +8,7 @@ import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
 import { StreamersPanel } from "@/components/matchup/StreamersPanel"
+import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { Banner } from "@/components/ui/Banner"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
@@ -26,12 +27,14 @@ import {
   type DailyLineups,
   type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
-import { rosterSlotsFor } from "@/lib/matchup/eligibility"
+import { eligibleForSlot, rosterSlotsFor } from "@/lib/matchup/eligibility"
 import type { MatchupAdvice, MatchupBoard as MatchupBoardData, SitStartSuggestion } from "@/lib/matchup/types"
+import { slotDisplayLabel } from "@/lib/season/slotLabels"
 import type {
   ScheduleResponse,
   SeasonLeagueState,
   SeasonPlayer,
+  SeasonRosterEntry,
 } from "@/lib/season/types"
 
 type MatchupWorkspaceProps = {
@@ -138,6 +141,10 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [applyingSwapKey, setApplyingSwapKey] = useState<string | null>(null)
+  const [lineupDraft, setLineupDraft] = useState<SeasonRosterEntry[] | null>(null)
+  const [isLineupEditing, setIsLineupEditing] = useState(false)
+  const [isLineupSaving, setIsLineupSaving] = useState(false)
+  const [lineupError, setLineupError] = useState("")
   const opponentFetchRef = useRef<AbortController | null>(null)
 
   const syncDailyFromState = useCallback(
@@ -355,6 +362,99 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     )
   }
 
+  const handleStartLineupEdit = () => {
+    if (!state) return
+    const team = state.teams.find(
+      (entry) => entry.teamIndex === state.perspectiveTeamIndex,
+    )
+    if (!team) return
+    setLineupDraft(team.entries.map((entry) => ({ ...entry })))
+    setIsLineupEditing(true)
+    setLineupError("")
+  }
+
+  const handleCancelLineupEdit = () => {
+    setLineupDraft(null)
+    setIsLineupEditing(false)
+    setLineupError("")
+  }
+
+  const handleWeeklyPlayerChange = (
+    entryIndex: number,
+    playerId: string | null,
+  ) => {
+    setLineupDraft((entries) => {
+      if (!entries) return entries
+
+      const nextEntries = entries.map((entry) => ({ ...entry }))
+      const existingIndex = playerId
+        ? nextEntries.findIndex((entry) => entry.playerId === playerId)
+        : -1
+      const previousPlayerId = nextEntries[entryIndex].playerId
+
+      nextEntries[entryIndex].playerId = playerId
+      if (existingIndex >= 0 && existingIndex !== entryIndex) {
+        nextEntries[existingIndex].playerId = previousPlayerId
+      }
+
+      return nextEntries
+    })
+  }
+
+  const handleSaveWeeklyLineup = async () => {
+    if (!lineupDraft || !state) return
+
+    const playersById = new Map(state.players.map((player) => [player.id, player]))
+    for (const entry of lineupDraft) {
+      if (!entry.playerId) continue
+      const player = playersById.get(entry.playerId)
+      if (!eligibleForSlot(player, entry.slot)) {
+        setLineupError(
+          `${player?.name ?? "Player"} cannot fill ${slotDisplayLabel(entry.slot)}`,
+        )
+        return
+      }
+    }
+
+    setLineupError("")
+    setIsLineupSaving(true)
+
+    try {
+      const response = await fetch(`/api/season-leagues/${leagueId}/lineup`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ entries: lineupDraft }),
+      })
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as {
+          error?: string
+        }
+        throw new Error(payload.error ?? "Unable to save weekly lineup")
+      }
+
+      const payload = (await response.json()) as { state: SeasonLeagueState }
+      setState(payload.state)
+      setLineupDraft(null)
+      setIsLineupEditing(false)
+      setSuccessMessage("Weekly lineup saved")
+
+      await fetchMatchup(opponentTeamIndex ?? "auto", {
+        includeState: true,
+        applyState: true,
+        resetDaily: true,
+      })
+    } catch (requestError) {
+      setLineupError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to save weekly lineup",
+      )
+    } finally {
+      setIsLineupSaving(false)
+    }
+  }
+
   const handleApplySwap = async (suggestion: SitStartSuggestion) => {
     const key = swapKey(suggestion)
     setApplyingSwapKey(key)
@@ -512,6 +612,62 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           Using your day-by-day lineups
         </p>
         <MatchupBoard board={liveBoard} />
+
+        <section aria-label="Weekly lineup" className="mt-10">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Weekly lineup</h2>
+              <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
+                Set PG–IR slots. Daily starts below can still promote bench with
+                games.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {isLineupEditing ? (
+                <>
+                  <button
+                    className="rounded-full border border-[var(--color-hairline)] px-4 py-1.5 text-[0.8125rem] font-medium transition-colors hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                    disabled={isLineupSaving}
+                    onClick={handleCancelLineupEdit}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="rounded-full border border-[var(--color-ink)] bg-[var(--color-ink)] px-4 py-1.5 text-[0.8125rem] font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:opacity-60"
+                    disabled={isLineupSaving}
+                    onClick={() => void handleSaveWeeklyLineup()}
+                    type="button"
+                  >
+                    {isLineupSaving ? "Saving…" : "Save lineup"}
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="rounded-full border border-[var(--color-hairline)] px-4 py-1.5 text-[0.8125rem] font-medium transition-colors hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                  onClick={handleStartLineupEdit}
+                  type="button"
+                >
+                  Edit lineup
+                </button>
+              )}
+            </div>
+          </div>
+          {lineupError ? (
+            <Banner className="mb-4" tone="danger">
+              {lineupError}
+            </Banner>
+          ) : null}
+          <PlayerRosterTable
+            compact
+            entries={lineupDraft ?? youTeam?.entries ?? []}
+            isEditing={isLineupEditing}
+            onPlayerChange={handleWeeklyPlayerChange}
+            players={rosterPlayers}
+            subtitle="Slot assignment"
+            title="PG through IR"
+          />
+        </section>
 
         <DailyLineupPanel
           daily={daily}

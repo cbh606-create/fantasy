@@ -12,6 +12,7 @@ import {
   analyzeSeasonLeague,
   type SeasonAnalysis,
 } from "@/lib/season/analysis"
+import { eligibleForSlot } from "@/lib/matchup/eligibility"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import { buildPlayerMatchupSchedule } from "@/lib/season/schedule"
 import type {
@@ -194,7 +195,19 @@ export const SeasonRosterWorkspace = ({
   }
 
   const handleSaveLineup = async () => {
-    if (!draftEntries) return
+    if (!draftEntries || !data) return
+
+    const playersById = new Map(data.state.players.map((player) => [player.id, player]))
+    for (const entry of draftEntries) {
+      if (!entry.playerId) continue
+      const player = playersById.get(entry.playerId)
+      if (!eligibleForSlot(player, entry.slot)) {
+        setError(
+          `${player?.name ?? "Player"} cannot fill ${entry.slot === "IL" ? "IR" : entry.slot}`,
+        )
+        return
+      }
+    }
 
     setError("")
     setIsSaving(true)

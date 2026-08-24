@@ -13,6 +13,7 @@ import {
   gameWeightForTeamDate,
   isB2bSecondNight,
 } from "@/lib/matchup/games"
+import { formatPlayerPositions } from "@/lib/season/slotLabels"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 
 type DailyLineupPanelProps = {
@@ -128,6 +129,9 @@ export const DailyLineupPanel = ({
                         {player.teamAbbr}
                       </span>
                     ) : null}
+                    <span className="mt-0.5 block text-[0.7rem] font-normal text-[var(--color-mute)]">
+                      {formatPlayerPositions(player)}
+                    </span>
                   </th>
                   {days.map((day) => {
                     const teamAbbr = player.teamAbbr ?? ""
