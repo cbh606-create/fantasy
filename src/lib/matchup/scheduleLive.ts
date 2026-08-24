@@ -196,8 +196,15 @@ export const getMatchupSchedule = async (
     const schedules = payloads.map((payload) =>
       normalizeEspnScoreboard(payload, { endIso, scoringPeriodId, startIso }),
     )
+    const seenGameKeys = new Set<string>()
+    const uniqueGames = schedules.flatMap((entry) => entry.games).filter((game) => {
+      const key = `${game.date}|${game.homeAbbr}|${game.awayAbbr}`
+      if (seenGameKeys.has(key)) return false
+      seenGameKeys.add(key)
+      return true
+    })
     const schedule: ScheduleResponse = {
-      games: schedules.flatMap((entry) => entry.games),
+      games: uniqueGames,
       matchup: schedules[0].matchup,
       source: "live",
     }
