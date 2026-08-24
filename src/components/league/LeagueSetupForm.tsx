@@ -1,0 +1,442 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { Button } from "@/components/ui/Button"
+import { Chip } from "@/components/ui/Chip"
+import { defaultCategorySettings } from "@/lib/domain/categories"
+import {
+  DEFAULT_TEAMS,
+  ESPN_TEAM_COUNTS,
+} from "@/lib/domain/leagueSize"
+import { DEFAULT_DRAFT_ROUNDS } from "@/lib/domain/snake"
+import type { CategoryId, CategorySetting } from "@/lib/domain/types"
+
+const MIN_WEIGHT = 0.5
+const MAX_WEIGHT = 2
+const WEIGHT_STEP = 0.5
+
+const CATEGORY_LABELS: Record<CategoryId, string> = {
+  FG_PCT: "FG%",
+  FT_PCT: "FT%",
+  TPM: "3PM",
+  REB: "REB",
+  AST: "AST",
+  STL: "STL",
+  BLK: "BLK",
+  TO: "TO",
+  PTS: "PTS",
+}
+
+type LeagueResponse = {
+  id?: string
+  message?: string
+}
+
+type Strategy = "punt" | "focus"
+
+export const LeagueSetupForm = () => {
+  const router = useRouter()
+  const [leagueName, setLeagueName] = useState("My League")
+  const [espnLeagueId, setEspnLeagueId] = useState("")
+  const [season, setSeason] = useState(new Date().getFullYear())
+  const [teams, setTeams] = useState(DEFAULT_TEAMS)
+  const [pickSlot, setPickSlot] = useState(1)
+  const [categories, setCategories] = useState<CategorySetting[]>(
+    defaultCategorySettings,
+  )
+  const [puntCategoryIds, setPuntCategoryIds] = useState<CategoryId[]>([])
+  const [focusCategoryIds, setFocusCategoryIds] = useState<CategoryId[]>([])
+  const [pendingAction, setPendingAction] = useState<"espn" | "manual" | null>(
+    null,
+  )
+  const [error, setError] = useState("")
+
+  const pickSlots = Array.from({ length: teams }, (_, index) => index + 1)
+
+  const handleTeamsChange = (nextTeams: number) => {
+    setTeams(nextTeams)
+    setPickSlot((currentSlot) =>
+      currentSlot > nextTeams ? nextTeams : currentSlot,
+    )
+  }
+
+  const handleCategoryToggle = (categoryId: CategoryId) => {
+    setCategories((currentCategories) =>
+      currentCategories.map((category) =>
+        category.id === categoryId
+          ? { ...category, enabled: !category.enabled }
+          : category,
+      ),
+    )
+  }
+
+  const handleWeightChange = (categoryId: CategoryId, change: number) => {
+    setCategories((currentCategories) =>
+      currentCategories.map((category) => {
+        if (category.id !== categoryId) return category
+
+        const weight = Math.min(
+          MAX_WEIGHT,
+          Math.max(MIN_WEIGHT, category.weight + change),
+        )
+        return { ...category, weight }
+      }),
+    )
+  }
+
+  const handleStrategyToggle = (
+    strategy: Strategy,
+    categoryId: CategoryId,
+  ) => {
+    if (strategy === "punt") {
+      setPuntCategoryIds((currentIds) =>
+        currentIds.includes(categoryId)
+          ? currentIds.filter((id) => id !== categoryId)
+          : [...currentIds, categoryId],
+      )
+      setFocusCategoryIds((currentIds) =>
+        currentIds.filter((id) => id !== categoryId),
+      )
+      return
+    }
+
+    setFocusCategoryIds((currentIds) =>
+      currentIds.includes(categoryId)
+        ? currentIds.filter((id) => id !== categoryId)
+        : [...currentIds, categoryId],
+    )
+    setPuntCategoryIds((currentIds) =>
+      currentIds.filter((id) => id !== categoryId),
+    )
+  }
+
+  const createLeague = async (
+    endpoint: string,
+    body: Record<string, unknown>,
+    draftTab: "prep" | "mock" | "live" = "prep",
+  ) => {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    })
+    const rawText = await response.text()
+    let result: LeagueResponse & {
+      error?: string
+      errorCode?: string
+      message?: string
+    } = {}
+
+    if (rawText) {
+      try {
+        result = JSON.parse(rawText) as typeof result
+      } catch {
+        throw new Error(
+          `Server returned a non-JSON response (${response.status}). Try again or use Start mock draft.`,
+        )
+      }
+    }
+
+    if (!response.ok || !result.id) {
+      const detail =
+        result.message ||
+        result.errorCode ||
+        result.error ||
+        (response.status ? `HTTP ${response.status}` : "")
+      throw new Error(detail || "Unable to create your league")
+    }
+
+    const tabQuery = draftTab === "prep" ? "" : `?tab=${draftTab}`
+    router.push(`/leagues/${result.id}/draft${tabQuery}`)
+  }
+
+  const handleEspnImport = async () => {
+    setError("")
+
+    if (!espnLeagueId.trim()) {
+      setError("Enter an ESPN league ID to import, or use Start mock draft.")
+      return
+    }
+
+    setPendingAction("espn")
+
+    try {
+      await createLeague(
+        "/api/espn/import",
+        {
+          name: leagueName,
+          leagueId: espnLeagueId.trim(),
+          season,
+          teams,
+          userPickSlot: pickSlot,
+        },
+        "live",
+      )
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to import your ESPN league",
+      )
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  const handleStartMockDraft = async () => {
+    setError("")
+    setPendingAction("manual")
+
+    try {
+      await createLeague(
+        "/api/leagues",
+        {
+          name: leagueName.trim() || "Mock Draft",
+          manualInput: {
+            teams,
+            userPickSlot: pickSlot,
+            categories,
+            puntCategoryIds,
+            focusCategoryIds,
+            rounds: DEFAULT_DRAFT_ROUNDS,
+            playerPoolSource: "proj_2026_27",
+          },
+        },
+        "mock",
+      )
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to start mock draft",
+      )
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  const isPending = pendingAction !== null
+
+  return (
+    <div className="space-y-12">
+      <section className="grid gap-6 sm:grid-cols-2">
+        <label className="space-y-2 text-sm font-medium">
+          <span>League name</span>
+          <input
+            className="h-12 w-full rounded-full bg-[var(--color-soft-cloud)] px-5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]"
+            onChange={(event) => setLeagueName(event.target.value)}
+            required
+            value={leagueName}
+          />
+        </label>
+        <div className="rounded-3xl bg-[var(--color-soft-cloud)] px-6 py-4">
+          <p className="text-xs tracking-[0.16em] text-[var(--color-mute)] uppercase">
+            League format
+          </p>
+          <p className="mt-1 font-medium">
+            {teams}-team snake · {DEFAULT_DRAFT_ROUNDS} rounds
+          </p>
+          <p className="mt-1 text-xs text-[var(--color-mute)]">
+            ESPN Fantasy Basketball allows 4–20 teams
+          </p>
+        </div>
+      </section>
+
+      <fieldset>
+        <legend className="text-xl font-semibold">Number of teams</legend>
+        <p className="mt-1 text-sm text-[var(--color-mute)]">
+          Match your ESPN league size (4–20).
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {ESPN_TEAM_COUNTS.map((teamCount) => (
+            <Chip
+              aria-label={`${teamCount} teams`}
+              key={teamCount}
+              onClick={() => handleTeamsChange(teamCount)}
+              variant={teams === teamCount ? "active" : "default"}
+            >
+              {teamCount}
+            </Chip>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-xl font-semibold">Your pick slot</legend>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {pickSlots.map((slot) => (
+            <Chip
+              aria-label={`Pick slot ${slot}`}
+              key={slot}
+              onClick={() => setPickSlot(slot)}
+              variant={pickSlot === slot ? "active" : "default"}
+            >
+              {slot}
+            </Chip>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-xl font-semibold">Scoring categories</legend>
+        <p className="mt-1 text-sm text-[var(--color-mute)]">
+          Turn categories on or off, then tune their importance.
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((category) => {
+            const label = CATEGORY_LABELS[category.id]
+
+            return (
+              <div
+                className="flex items-center justify-between rounded-3xl border border-[var(--color-hairline)] p-3"
+                key={category.id}
+              >
+                <Chip
+                  aria-label={`${category.enabled ? "Disable" : "Enable"} ${label}`}
+                  onClick={() => handleCategoryToggle(category.id)}
+                  variant={category.enabled ? "active" : "default"}
+                >
+                  {label}
+                </Chip>
+                <div className="flex items-center gap-2">
+                  <button
+                    aria-label={`Decrease ${label} weight`}
+                    className="size-8 rounded-full bg-[var(--color-soft-cloud)] disabled:opacity-40"
+                    disabled={
+                      !category.enabled || category.weight === MIN_WEIGHT
+                    }
+                    onClick={() =>
+                      handleWeightChange(category.id, -WEIGHT_STEP)
+                    }
+                    type="button"
+                  >
+                    −
+                  </button>
+                  <span
+                    className="w-16 text-center text-sm tabular-nums"
+                    aria-live="polite"
+                  >
+                    {label} weight {category.weight}
+                  </span>
+                  <button
+                    aria-label={`Increase ${label} weight`}
+                    className="size-8 rounded-full bg-[var(--color-soft-cloud)] disabled:opacity-40"
+                    disabled={
+                      !category.enabled || category.weight === MAX_WEIGHT
+                    }
+                    onClick={() =>
+                      handleWeightChange(category.id, WEIGHT_STEP)
+                    }
+                    type="button"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </fieldset>
+
+      {(["punt", "focus"] as const).map((strategy) => (
+        <fieldset key={strategy}>
+          <legend className="text-xl font-semibold capitalize">
+            {strategy} categories
+          </legend>
+          <p className="mt-1 text-sm text-[var(--color-mute)]">
+            {strategy === "punt"
+              ? "Deprioritize categories you plan to concede."
+              : "Boost categories you want to dominate."}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {categories.map((category) => {
+              const selectedIds =
+                strategy === "punt" ? puntCategoryIds : focusCategoryIds
+              const label = CATEGORY_LABELS[category.id]
+
+              return (
+                <Chip
+                  aria-label={`${strategy === "punt" ? "Punt" : "Focus"} ${label}`}
+                  disabled={!category.enabled}
+                  key={category.id}
+                  onClick={() =>
+                    handleStrategyToggle(strategy, category.id)
+                  }
+                  variant={
+                    selectedIds.includes(category.id) ? "active" : "default"
+                  }
+                >
+                  {label}
+                </Chip>
+              )
+            })}
+          </div>
+        </fieldset>
+      ))}
+
+      <section className="rounded-[2rem] bg-[var(--color-soft-cloud)] p-6 sm:p-8">
+        <div className="mb-6">
+          <p className="text-sm font-medium">Practice without ESPN</p>
+          <p className="mt-1 text-sm text-[var(--color-mute)]">
+            Mock draft uses the shared player pool. No ESPN league ID needed.
+          </p>
+          <Button
+            aria-label="Start mock draft"
+            className="mt-4 w-full sm:w-auto"
+            disabled={isPending}
+            onClick={handleStartMockDraft}
+            type="button"
+          >
+            {pendingAction === "manual" ? "Starting…" : "Start mock draft"}
+          </Button>
+        </div>
+
+        <div className="border-t border-[var(--color-hairline)] pt-6">
+          <p className="text-sm font-medium">Or import a live ESPN league</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label className="space-y-2 text-sm font-medium">
+              <span>ESPN league ID</span>
+              <input
+                className="h-12 w-full rounded-full bg-white px-5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]"
+                inputMode="numeric"
+                onChange={(event) => setEspnLeagueId(event.target.value)}
+                placeholder="Optional — only for ESPN import"
+                value={espnLeagueId}
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium">
+              <span>Season</span>
+              <input
+                className="h-12 w-full rounded-full bg-white px-5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink)]"
+                min="2000"
+                onChange={(event) => setSeason(Number(event.target.value))}
+                type="number"
+                value={season}
+              />
+            </label>
+          </div>
+          <Button
+            aria-label="Import from ESPN"
+            className="mt-4 w-full sm:w-auto"
+            disabled={isPending}
+            onClick={handleEspnImport}
+            type="button"
+            variant="secondary"
+          >
+            {pendingAction === "espn" ? "Importing…" : "Import from ESPN"}
+          </Button>
+        </div>
+        {error ? (
+          <p
+            aria-label="Setup error"
+            className="mt-4 text-sm text-[var(--color-sale)]"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
+      </section>
+    </div>
+  )
+}

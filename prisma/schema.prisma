@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model League {
+  id           String   @id @default(cuid())
+  clerkUserId  String
+  name         String
+  espnLeagueId String?
+  season       Int?
+  settingsJson String
+  stateJson    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([clerkUserId])
+}
+
+model SeasonLeague {
+  id                   String   @id @default(cuid())
+  clerkUserId          String
+  name                 String
+  espnLeagueId         String?
+  season               Int
+  perspectiveTeamIndex Int
+  source               String
+  stateJson            String
+  localLineupJson      String?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([clerkUserId])
+}
+
+model EspnCredential {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  espnS2      String
+  swid        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EspnConnectSession {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  status      String
+  errorCode   String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clerkUserId])
+}
