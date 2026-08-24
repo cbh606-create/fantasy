@@ -2,7 +2,11 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
 import { buildMatchupBoard } from "./board"
-import { weightedGamesThisWeekByPlayerId } from "./games"
+import {
+  b2bSecondNightsThisWeekByPlayerId,
+  gamesThisWeekByPlayerId,
+  weightedGamesThisWeekByPlayerId,
+} from "./games"
 import { suggestSitStart } from "./sitStart"
 import { suggestStreamers } from "./streamers"
 import type { MatchupAdvice } from "./types"
@@ -32,6 +36,8 @@ export const adviseMatchup = (
   }
 
   const gamesMap = weightedGamesThisWeekByPlayerId(state.players, schedule)
+  const streamerGamesMap = gamesThisWeekByPlayerId(state.players, schedule)
+  const streamerB2bMap = b2bSecondNightsThisWeekByPlayerId(state.players, schedule)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const categoryIds = enabledCategoryIds(state)
 
@@ -47,7 +53,13 @@ export const adviseMatchup = (
     categoryIds,
   })
 
-  const streamers = suggestStreamers({ state, board, gamesMap })
+  // Streamers: integer game-days + separate B2B count (not 0.75 weighting).
+  const streamers = suggestStreamers({
+    state,
+    board,
+    gamesMap: streamerGamesMap,
+    b2bMap: streamerB2bMap,
+  })
 
   return {
     opponentTeamIndex,

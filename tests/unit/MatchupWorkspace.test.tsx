@@ -136,6 +136,7 @@ const matchupAdvice: MatchupAdvice & {
     },
   ],
   streamers: [],
+  streamingPlans: [],
   playersById: {
     "bench-1": state.players[0],
     "active-1": state.players[1],

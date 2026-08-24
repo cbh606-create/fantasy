@@ -18,6 +18,7 @@ type SuggestStreamersInput = {
   state: SeasonLeagueState
   board: MatchupBoard
   gamesMap: Map<string, number>
+  b2bMap?: Map<string, number>
 }
 
 const weakCategories = (board: MatchupBoard): CategoryId[] =>
@@ -60,21 +61,31 @@ const helpedCategories = (
     .sort((left, right) => right.contribution - left.contribution)
     .map(({ categoryId }) => categoryId)
 
+export const formatStreamerGamesLabel = (
+  games: number,
+  b2bNights: number,
+): string => {
+  const gameDays = Number.isInteger(games) ? games : Math.round(games)
+  if (b2bNights <= 0) return `${gameDays} games`
+  if (b2bNights === 1) return `${gameDays} games · 1 B2B`
+  return `${gameDays} games · ${b2bNights} B2B`
+}
+
 const buildReasons = (
   helped: CategoryId[],
   games: number,
+  b2bNights: number,
 ): string[] => {
-  if (helped.length === 0) {
-    return [`${games} games`]
-  }
-
-  return [`Helps ${helped[0]} · ${games} games`]
+  const gamesLabel = formatStreamerGamesLabel(games, b2bNights)
+  if (helped.length === 0) return [gamesLabel]
+  return [`Helps ${helped[0]} · ${gamesLabel}`]
 }
 
 export const suggestStreamers = ({
   state,
   board,
   gamesMap,
+  b2bMap = new Map(),
 }: SuggestStreamersInput): StreamerSuggestion[] => {
   const weakCats = weakCategories(board)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
@@ -88,6 +99,7 @@ export const suggestStreamers = ({
         const gamesThisWeek = gamesMap.get(playerId) ?? 0
         if (gamesThisWeek < minGames) return []
 
+        const b2bNights = b2bMap.get(playerId) ?? 0
         const score = streamerScore(player, gamesThisWeek, weakCats)
         const helped = helpedCategories(player, gamesThisWeek, weakCats)
 
@@ -96,7 +108,8 @@ export const suggestStreamers = ({
             playerId,
             score,
             gamesThisWeek,
-            reasons: buildReasons(helped, gamesThisWeek),
+            b2bNights,
+            reasons: buildReasons(helped, gamesThisWeek, b2bNights),
           },
         ]
       })

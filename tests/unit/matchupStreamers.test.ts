@@ -136,8 +136,23 @@ describe("suggestStreamers", () => {
     expect(suggestions.length).toBeGreaterThan(0)
     expect(suggestions[0]?.playerId).toBe("stl-specialist")
     expect(suggestions[0]?.gamesThisWeek).toBe(3)
+    expect(suggestions[0]?.b2bNights).toBe(0)
     expect(suggestions[0]?.reasons[0]).toMatch(/Helps STL · 3 games/)
     expect(suggestions[0]?.score).toBeGreaterThan(0)
+  })
+
+  it("labels integer games with a B2B note when present", () => {
+    const gamesMap = new Map<string, number>([["stl-specialist", 3]])
+    const b2bMap = new Map<string, number>([["stl-specialist", 1]])
+
+    const suggestions = suggestStreamers({
+      state,
+      board: boardWithStlLoss(),
+      gamesMap,
+      b2bMap,
+    })
+
+    expect(suggestions[0]?.reasons[0]).toBe("Helps STL · 3 games · 1 B2B")
   })
 })
 
