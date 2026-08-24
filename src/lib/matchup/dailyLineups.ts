@@ -43,70 +43,12 @@ export const extractActiveEntries = (
   }))
 }
 
-export const initDailyLineups = (
-  days: string[],
-  activeEntries: SeasonRosterEntry[],
-  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
-  players: SeasonPlayer[] = [],
-  schedule?: ScheduleResponse,
-): DailyLineups => {
-  const template = extractActiveEntries(activeEntries, rosterSlots)
-  const playersById = new Map(players.map((player) => [player.id, player]))
-
-  const daily = Object.fromEntries(
-    days.map((day) => [
-      day,
-      template.map((entry) => {
-        if (!entry.playerId) return { ...entry }
-        if (!schedule) return { ...entry }
-
-        const player = playersById.get(entry.playerId)
-        const teamAbbr = player?.teamAbbr
-        if (
-          !teamAbbr ||
-          gameWeightForTeamDate(teamAbbr, day, schedule) === 0
-        ) {
-          return { ...entry, playerId: null }
-        }
-
-        return { ...entry }
-      }),
-    ]),
-  )
-
-  if (!schedule || players.length === 0) return daily
-
-  return autofillOpenSlotsFromRoster(
-    daily,
-    schedule,
-    players,
-    activeEntries,
-    rosterSlots,
-  )
-}
-
-const rosterPlayerIdsInOrder = (
-  teamEntries: SeasonRosterEntry[],
-): string[] => {
+const rosteredPlayerIds = (teamEntries: SeasonRosterEntry[]): string[] => {
   const ids: string[] = []
   const seen = new Set<string>()
 
-  // Bench first so daily leagues promote BE into vacated active slots.
   for (const entry of teamEntries) {
-    if (entry.slot !== "BE" || !entry.playerId || seen.has(entry.playerId)) {
-      continue
-    }
-    seen.add(entry.playerId)
-    ids.push(entry.playerId)
-  }
-
-  for (const entry of teamEntries) {
-    if (
-      entry.slot === "BE" ||
-      entry.slot === "IL" ||
-      !entry.playerId ||
-      seen.has(entry.playerId)
-    ) {
+    if (entry.slot === "IL" || !entry.playerId || seen.has(entry.playerId)) {
       continue
     }
     seen.add(entry.playerId)
@@ -116,6 +58,105 @@ const rosterPlayerIdsInOrder = (
   return ids
 }
 
+const eligibleActiveSlotCount = (
+  player: SeasonPlayer,
+  activeSlots: SeasonSlot[],
+): number =>
+  activeSlots.filter((slot) => eligibleForSlot(player, slot)).length
+
+/** Pack roster players who have a game into as many active slots as eligibility allows. */
+export const buildDayLineupFromRoster = (
+  day: string,
+  teamEntries: SeasonRosterEntry[],
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
+): SeasonRosterEntry[] => {
+  const activeSlots = activeSlotsFor(rosterSlots)
+  const playersById = new Map(players.map((player) => [player.id, player]))
+  const available = rosteredPlayerIds(teamEntries)
+    .map((playerId) => playersById.get(playerId))
+    .filter((player): player is SeasonPlayer => {
+      if (!player?.teamAbbr) return false
+      return gameWeightForTeamDate(player.teamAbbr, day, schedule) > 0
+    })
+    .sort(
+      (left, right) =>
+        eligibleActiveSlotCount(left, activeSlots) -
+        eligibleActiveSlotCount(right, activeSlots),
+    )
+
+  const nextEntries: SeasonRosterEntry[] = activeSlots.map((slot) => ({
+    slot,
+    playerId: null,
+  }))
+  const started = new Set<string>()
+
+  for (const player of available) {
+    if (started.has(player.id)) continue
+
+    const exactIndex = nextEntries.findIndex((entry) => {
+      if (entry.playerId !== null || !eligibleForSlot(player, entry.slot)) {
+        return false
+      }
+      if (
+        entry.slot === "UTIL" ||
+        entry.slot === "G" ||
+        entry.slot === "F"
+      ) {
+        return false
+      }
+      return Boolean(
+        player.positions?.some((position) => position === entry.slot),
+      )
+    })
+    const openIndex =
+      exactIndex >= 0
+        ? exactIndex
+        : nextEntries.findIndex(
+            (entry) =>
+              entry.playerId === null && eligibleForSlot(player, entry.slot),
+          )
+    if (openIndex < 0) continue
+
+    nextEntries[openIndex] = {
+      ...nextEntries[openIndex],
+      playerId: player.id,
+    }
+    started.add(player.id)
+  }
+
+  return nextEntries
+}
+
+export const initDailyLineups = (
+  days: string[],
+  teamEntries: SeasonRosterEntry[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
+  players: SeasonPlayer[] = [],
+  schedule?: ScheduleResponse,
+): DailyLineups => {
+  if (!schedule || players.length === 0) {
+    const template = extractActiveEntries(teamEntries, rosterSlots)
+    return Object.fromEntries(
+      days.map((day) => [day, template.map((entry) => ({ ...entry }))]),
+    )
+  }
+
+  return Object.fromEntries(
+    days.map((day) => [
+      day,
+      buildDayLineupFromRoster(
+        day,
+        teamEntries,
+        players,
+        schedule,
+        rosterSlots,
+      ),
+    ]),
+  )
+}
+
 export const autofillOpenSlotsFromRoster = (
   daily: DailyLineups,
   schedule: ScheduleResponse,
@@ -123,49 +164,29 @@ export const autofillOpenSlotsFromRoster = (
   teamEntries: SeasonRosterEntry[],
   rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): DailyLineups => {
-  const playersById = new Map(players.map((player) => [player.id, player]))
-  const candidates = rosterPlayerIdsInOrder(teamEntries)
   let changed = false
-
   const next = Object.fromEntries(
-    Object.entries(daily).map(([day, entries]) => {
-      const nextEntries = entries.map((entry) => ({ ...entry }))
-      const started = new Set(
-        nextEntries
-          .map((entry) => entry.playerId)
-          .filter((playerId): playerId is string => Boolean(playerId)),
+    Object.entries(daily).map(([day]) => {
+      const rebuilt = buildDayLineupFromRoster(
+        day,
+        teamEntries,
+        players,
+        schedule,
+        rosterSlots,
       )
-
-      for (const playerId of candidates) {
-        if (started.has(playerId)) continue
-
-        const player = playersById.get(playerId)
-        const teamAbbr = player?.teamAbbr
-        if (
-          !player ||
-          !teamAbbr ||
-          gameWeightForTeamDate(teamAbbr, day, schedule) === 0
-        ) {
-          continue
-        }
-
-        const openIndex = nextEntries.findIndex(
-          (entry) =>
-            entry.playerId === null &&
-            rosterSlots.includes(entry.slot) &&
-            eligibleForSlot(player, entry.slot),
+      const previous = daily[day]
+      if (
+        !previous ||
+        previous.length !== rebuilt.length ||
+        previous.some(
+          (entry, index) =>
+            entry.playerId !== rebuilt[index]?.playerId ||
+            entry.slot !== rebuilt[index]?.slot,
         )
-        if (openIndex < 0) continue
-
-        nextEntries[openIndex] = {
-          ...nextEntries[openIndex],
-          playerId,
-        }
-        started.add(playerId)
+      ) {
         changed = true
       }
-
-      return [day, nextEntries]
+      return [day, rebuilt]
     }),
   )
 
@@ -179,43 +200,37 @@ export const clearNoGameActiveSlots = (
   teamEntries: SeasonRosterEntry[] = [],
   rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
 ): DailyLineups => {
-  const playersById = new Map(players.map((player) => [player.id, player]))
-  let changed = false
-
-  const cleared = Object.fromEntries(
-    Object.entries(daily).map(([day, entries]) => {
-      const nextEntries = entries.map((entry) => {
-        if (!entry.playerId) return entry
-
-        const player = playersById.get(entry.playerId)
-        const teamAbbr = player?.teamAbbr
-        if (
-          !teamAbbr ||
-          gameWeightForTeamDate(teamAbbr, day, schedule) === 0
-        ) {
-          changed = true
-          return { ...entry, playerId: null }
-        }
-
-        return entry
-      })
-
-      return [day, nextEntries]
-    }),
-  )
-
   if (teamEntries.length === 0) {
+    const playersById = new Map(players.map((player) => [player.id, player]))
+    let changed = false
+    const cleared = Object.fromEntries(
+      Object.entries(daily).map(([day, entries]) => [
+        day,
+        entries.map((entry) => {
+          if (!entry.playerId) return entry
+          const player = playersById.get(entry.playerId)
+          const teamAbbr = player?.teamAbbr
+          if (
+            !teamAbbr ||
+            gameWeightForTeamDate(teamAbbr, day, schedule) === 0
+          ) {
+            changed = true
+            return { ...entry, playerId: null }
+          }
+          return entry
+        }),
+      ]),
+    )
     return changed ? cleared : daily
   }
 
-  const filled = autofillOpenSlotsFromRoster(
-    cleared,
+  return autofillOpenSlotsFromRoster(
+    daily,
     schedule,
     players,
     teamEntries,
     rosterSlots,
   )
-  return filled !== cleared || changed ? filled : daily
 }
 
 export const readDailyLineups = (leagueId: string): DailyLineups | null => {

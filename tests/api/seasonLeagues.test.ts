@@ -214,12 +214,19 @@ describe("PATCH /api/season-leagues/:id/lineup", () => {
     const state = manualToSeasonLeagueState(
       fixture as ManualSeasonLeagueInput,
     )
-    state.players = state.players.map((player) => ({
-      ...player,
-      positions: player.positions?.length
-        ? player.positions
-        : ["PG", "SG", "SF", "PF", "C", "G", "F"],
-    }))
+    state.players = state.players.map((player) =>
+      player.id === "t3p2"
+        ? {
+            ...player,
+            positions: ["PG", "SG", "G"],
+          }
+        : player.positions?.length
+          ? player
+          : {
+              ...player,
+              positions: ["PG", "SG", "SF", "PF", "C", "G", "F"],
+            },
+    )
     const entries = state.teams[2].entries.map((entry, index) => ({
       ...entry,
       playerId: index === 0 ? "t3p2" : entry.playerId,

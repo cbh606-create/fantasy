@@ -13,7 +13,7 @@ import {
   gameWeightForTeamDate,
   isB2bSecondNight,
 } from "@/lib/matchup/games"
-import { formatPlayerPositions } from "@/lib/season/slotLabels"
+import { formatPlayerPositions, slotDisplayLabel } from "@/lib/season/slotLabels"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 
 type DailyLineupPanelProps = {
@@ -142,12 +142,22 @@ export const DailyLineupPanel = ({
                     const isB2b = teamAbbr
                       ? isB2bSecondNight(teamAbbr, day, schedule)
                       : false
-                    const started =
-                      findPlayerSlotIndex(daily, day, player.id) >= 0
+                    const startedIndex = findPlayerSlotIndex(
+                      daily,
+                      day,
+                      player.id,
+                    )
+                    const started = startedIndex >= 0
+                    const startedSlot =
+                      startedIndex >= 0
+                        ? daily[day]?.[startedIndex]?.slot
+                        : null
                     const label = dayOpponentLabel(player, day, schedule)
                     const shortLabel = shortOpponentLabel(label)
                     const action = started ? "Sit" : "Start"
-                    const ariaLabel = `${action} ${player.name} on ${formatDayLabel(day)}`
+                    const ariaLabel = startedSlot
+                      ? `${action} ${player.name} on ${formatDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
+                      : `${action} ${player.name} on ${formatDayLabel(day)}`
 
                     if (!hasGame) {
                       return (
@@ -175,6 +185,11 @@ export const DailyLineupPanel = ({
                           onClick={() => handleToggle(player, day, hasGame)}
                           type="button"
                         >
+                          {startedSlot ? (
+                            <span className="mr-1 font-semibold tracking-wide">
+                              {slotDisplayLabel(startedSlot)}
+                            </span>
+                          ) : null}
                           {shortLabel}
                           {isB2b ? (
                             <span

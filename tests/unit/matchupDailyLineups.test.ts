@@ -102,12 +102,17 @@ describe("initDailyLineups", () => {
       schedule,
     )
 
-    // scrub (NYK) only plays 2025-11-03 in this fixture
-    expect(daily["2025-11-03"][1]).toEqual({ slot: "SG", playerId: "scrub" })
-    expect(daily["2025-11-04"][0]).toEqual({ slot: "PG", playerId: null })
-    expect(daily["2025-11-04"][1]).toEqual({ slot: "SG", playerId: null })
-    expect(daily["2025-11-05"][0]).toEqual({ slot: "PG", playerId: "star" })
-    expect(daily["2025-11-05"][1]).toEqual({ slot: "SG", playerId: null })
+    // scrub (NYK) only plays 2025-11-03; star (BOS) plays 03 and 05
+    expect(daily["2025-11-03"].map((entry) => entry.playerId).filter(Boolean).sort()).toEqual([
+      "scrub",
+      "star",
+    ])
+    expect(daily["2025-11-04"].every((entry) => entry.playerId === null)).toBe(
+      true,
+    )
+    expect(daily["2025-11-05"].map((entry) => entry.playerId).filter(Boolean)).toEqual([
+      "star",
+    ])
   })
 
   it("autostarts bench players with games into vacated active slots", () => {
@@ -116,7 +121,7 @@ describe("initDailyLineups", () => {
       id: "bench-g",
       name: "Bench Guard",
       teamAbbr: "BOS",
-      positions: ["SG"],
+      positions: ["SG", "G"],
     }
     const entries: SeasonRosterEntry[] = [
       { slot: "PG", playerId: "star" },
@@ -143,9 +148,73 @@ describe("initDailyLineups", () => {
       schedule,
     )
 
-    // 11-05: scrub (NYK) has no game; bench BOS guard fills SG
-    expect(daily["2025-11-05"][0].playerId).toBe("star")
-    expect(daily["2025-11-05"][1].playerId).toBe("bench-g")
+    // 11-05: scrub (NYK) has no game; star + bench BOS fill active slots
+    const day = daily["2025-11-05"]
+    const started = day.map((entry) => entry.playerId).filter(Boolean)
+    expect(started).toContain("star")
+    expect(started).toContain("bench-g")
+    expect(started).not.toContain("scrub")
+    expect(started).toHaveLength(2)
+  })
+
+  it("fills up to 10 actives when enough rostered players have games", () => {
+    const makers = Array.from({ length: 12 }, (_, index) => {
+      const id = `p${index}`
+      return {
+        player: {
+          ...star,
+          id,
+          name: `P${index}`,
+          teamAbbr: "BOS",
+          positions: ["PG", "SG", "SF", "PF", "C", "G", "F"] as const,
+        },
+        entrySlot:
+          (
+            [
+              "PG",
+              "SG",
+              "SF",
+              "PF",
+              "C",
+              "G",
+              "F",
+              "UTIL",
+              "UTIL",
+              "UTIL",
+              "BE",
+              "BE",
+            ] as const
+          )[index],
+      }
+    })
+    const entries: SeasonRosterEntry[] = [
+      ...makers.map(({ player, entrySlot }) => ({
+        slot: entrySlot,
+        playerId: player.id,
+      })),
+      { slot: "BE" as const, playerId: null },
+      { slot: "IL" as const, playerId: null },
+    ]
+    const bosDay: ScheduleResponse = {
+      ...schedule,
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "CHI" },
+      ],
+    }
+
+    const daily = initDailyLineups(
+      bosDay.matchup.days,
+      entries,
+      undefined,
+      makers.map(({ player }) => player),
+      bosDay,
+    )
+
+    expect(
+      daily["2025-11-03"].filter((entry) => entry.playerId).length,
+    ).toBe(10)
   })
 
   it("uses custom league active slots for templates and validation", () => {
