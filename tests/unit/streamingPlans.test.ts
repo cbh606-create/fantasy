@@ -283,6 +283,77 @@ describe("buildStreamingPlan", () => {
     expect(plan.days[2]!.cells[0]!.action).toBe("empty")
     expect(plan.days[3]!.cells[0]!.action).toBe("empty")
   })
+
+  it("uses open_slot when perspective roster has an empty non-IL slot", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const rostered = player("you-1", "LAL", {
+      projections: { ...baseProjections(), STL: 10 },
+    })
+    const state = tinyState([faA, rostered], ["fa-a"])
+    state.teams[0]!.entries = [
+      { slot: "UTIL", playerId: "you-1" },
+      { slot: "BE", playerId: null },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      rosterDropKind: "open_slot",
+      rosterDropPlayerId: null,
+    })
+  })
+
+  it("picks roster drop by no-game then volume then weak-cat; no same-day reuse", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const noGameHighStl = player("you-idle", "CHI", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const playsLowStl = player("you-play", "ATL", {
+      projections: { ...baseProjections(), STL: 5 },
+    })
+    const state = tinyState(
+      [faA, faB, noGameHighStl, playsLowStl],
+      ["fa-a", "fa-b"],
+    )
+    state.teams[0]!.entries = [
+      { slot: "UTIL", playerId: "you-idle" },
+      { slot: "BE", playerId: "you-play" },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "MIA" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 2,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+    })
+    const drops = plan.days[0]!.cells.map((c) => c.rosterDropPlayerId)
+    expect(drops[0]).toBe("you-idle")
+    expect(drops[1]).toBe("you-play")
+    expect(new Set(drops).size).toBe(2)
+    expect(plan.days[0]!.cells.every((c) => c.rosterDropKind === "player")).toBe(
+      true,
+    )
+  })
 })
 
 describe("buildAllStreamingPlans", () => {

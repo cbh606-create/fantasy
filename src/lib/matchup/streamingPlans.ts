@@ -1,5 +1,10 @@
 import type { CategoryId } from "@/lib/domain/types"
-import type { ScheduleResponse, SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
+import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonPlayer,
+  SeasonRosterEntry,
+} from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "./constants"
 import type {
   MatchupBoard,
@@ -7,6 +12,7 @@ import type {
   StreamingPlanAction,
   StreamingPlanDay,
   StreamingPlanDayCell,
+  StreamingPlanRosterDropKind,
   StreamingPlanSpotCount,
 } from "./types"
 import { weeklyPlayerStats } from "./weekly"
@@ -98,6 +104,56 @@ const pickBestFa = (
   return eligible[0]?.player ?? null
 }
 
+const isIlSlot = (slot: SeasonRosterEntry["slot"]) => slot === "IL"
+
+const hasOpenNonIlSlot = (entries: SeasonRosterEntry[]) =>
+  entries.some((entry) => !isIlSlot(entry.slot) && entry.playerId === null)
+
+const weakCatScoreForGames = (
+  player: SeasonPlayer,
+  games: number,
+  weakCats: CategoryId[],
+) =>
+  weakCats.reduce((sum, categoryId) => {
+    if (!STREAMER_COUNTING_CATEGORIES.includes(categoryId)) return sum
+    return sum + categoryContribution(player, games, categoryId)
+  }, 0)
+
+const pickRosterDrop = (
+  entries: SeasonRosterEntry[],
+  playersById: Map<string, SeasonPlayer>,
+  date: string,
+  schedule: ScheduleResponse,
+  weakCats: CategoryId[],
+  alreadyDropped: Set<string>,
+): { kind: StreamingPlanRosterDropKind; playerId: string | null } => {
+  if (hasOpenNonIlSlot(entries)) {
+    return { kind: "open_slot", playerId: null }
+  }
+
+  const candidates = entries
+    .filter((entry) => !isIlSlot(entry.slot) && entry.playerId)
+    .map((entry) => playersById.get(entry.playerId!))
+    .filter((p): p is SeasonPlayer => Boolean(p))
+    .filter((p) => !alreadyDropped.has(p.id))
+    .map((p) => ({
+      player: p,
+      noGame: playsOn(p, date, schedule) ? 0 : 1,
+      volume: remainingGameDays(p, date, schedule),
+      weak: weakCatScoreForGames(p, 1, weakCats),
+    }))
+    .sort((left, right) => {
+      if (right.noGame !== left.noGame) return right.noGame - left.noGame
+      if (left.volume !== right.volume) return left.volume - right.volume
+      if (left.weak !== right.weak) return left.weak - right.weak
+      return left.player.id.localeCompare(right.player.id)
+    })
+
+  const best = candidates[0]
+  if (!best) return { kind: "none", playerId: null }
+  return { kind: "player", playerId: best.player.id }
+}
+
 export const buildStreamingPlan = ({
   spotCount,
   state,
@@ -119,6 +175,7 @@ export const buildStreamingPlan = ({
   for (const date of schedule.matchup.days) {
     const cells: StreamingPlanDayCell[] = []
     const seatedToday = new Set<string>()
+    const rosterDroppedToday = new Set<string>()
 
     // Pass 1: hold players who play; free spots whose occupant has no game
     const afterDrop: (string | null)[] = occupants.map((playerId) => {
@@ -137,6 +194,8 @@ export const buildStreamingPlan = ({
       let playerId: string | null = null
       let action: StreamingPlanAction = "empty"
       let droppedPlayerId: string | null = null
+      let rosterDropKind: StreamingPlanRosterDropKind = "none"
+      let rosterDropPlayerId: string | null = null
 
       if (heldId) {
         playerId = heldId
@@ -161,14 +220,30 @@ export const buildStreamingPlan = ({
         action = "empty"
       }
 
+      if (action === "add" || action === "drop_add") {
+        const rosterDrop = pickRosterDrop(
+          state.teams[state.perspectiveTeamIndex]!.entries,
+          playersById,
+          date,
+          schedule,
+          weakCats,
+          rosterDroppedToday,
+        )
+        rosterDropKind = rosterDrop.kind
+        rosterDropPlayerId = rosterDrop.playerId
+        if (rosterDrop.kind === "player" && rosterDrop.playerId) {
+          rosterDroppedToday.add(rosterDrop.playerId)
+        }
+      }
+
       occupants[spotIndex] = playerId
       cells.push({
         spotIndex,
         playerId,
         action,
         droppedPlayerId,
-        rosterDropPlayerId: null,
-        rosterDropKind: "none",
+        rosterDropPlayerId,
+        rosterDropKind,
       })
 
       if (playerId) {
