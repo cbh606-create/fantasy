@@ -751,5355 +751,4943 @@
   "players": [
     {
       "id": "t1p1",
-      "name": "Player 1",
+      "name": "Jamal Murray",
+      "teamAbbr": "DEN",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.73,
-        "TPM": 1.2,
-        "REB": 3.2,
-        "AST": 1.8,
-        "STL": 0.55,
-        "BLK": 0.38,
-        "TO": 1.15,
-        "PTS": 8.3
+        "FG_PCT": 0.48308824,
+        "FT_PCT": 0.88717949,
+        "TPM": 245,
+        "REB": 330,
+        "AST": 535,
+        "STL": 66,
+        "BLK": 29,
+        "TO": 171,
+        "PTS": 1905
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "ATL",
-      "positions": [
-        "PG",
-        "G"
-      ]
+        "FGM": 723.9,
+        "FGA": 1498.4840036677356,
+        "FTM": 342.9,
+        "FTA": 386.5057791180452
+      }
     },
     {
       "id": "t1p2",
-      "name": "Player 2",
-      "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.74,
-        "TPM": 1.6,
-        "REB": 3.9,
-        "AST": 2.4,
-        "STL": 0.7,
-        "BLK": 0.56,
-        "TO": 1.5,
-        "PTS": 9.6
-      },
-      "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "BOS",
+      "name": "Austin Reaves",
+      "teamAbbr": "LAL",
       "positions": [
         "SG",
-        "G"
-      ]
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.48950131,
+        "FT_PCT": 0.87061995,
+        "TPM": 118,
+        "REB": 240,
+        "AST": 280,
+        "STL": 56,
+        "BLK": 20,
+        "TO": 151,
+        "PTS": 1187
+      },
+      "shooting": {
+        "FGM": 451.06,
+        "FGA": 921.4684226279189,
+        "FTM": 213.66,
+        "FTA": 245.4113301676581
+      }
     },
     {
       "id": "t1p3",
-      "name": "Player 3",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.75,
-        "TPM": 2,
-        "REB": 4.6,
-        "AST": 3,
-        "STL": 0.85,
-        "BLK": 0.74,
-        "TO": 1.85,
-        "PTS": 10.9
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "BKN",
+      "name": "Amen Thompson",
+      "teamAbbr": "HOU",
       "positions": [
         "SF",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.5335249,
+        "FT_PCT": 0.77948718,
+        "TPM": 25,
+        "REB": 614,
+        "AST": 420,
+        "STL": 119,
+        "BLK": 48,
+        "TO": 190,
+        "PTS": 1443
+      },
+      "shooting": {
+        "FGM": 548.34,
+        "FGA": 1027.7683384599295,
+        "FTM": 259.74,
+        "FTA": 333.2190787281454
+      }
     },
     {
       "id": "t1p4",
-      "name": "Player 4",
+      "name": "Chet Holmgren",
+      "teamAbbr": "OKC",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.76,
-        "TPM": 2.4,
-        "REB": 5.3,
-        "AST": 3.6,
-        "STL": 1,
-        "BLK": 0.92,
-        "TO": 2.2,
-        "PTS": 12.2
+        "FG_PCT": 0.55712452,
+        "FT_PCT": 0.79225352,
+        "TPM": 88,
+        "REB": 614,
+        "AST": 115,
+        "STL": 43,
+        "BLK": 131,
+        "TO": 107,
+        "PTS": 1181
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "CHA",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 448.78000000000003,
+        "FGA": 805.5290763364715,
+        "FTM": 212.57999999999998,
+        "FTA": 268.3232003816152
+      }
     },
     {
       "id": "t1p5",
-      "name": "Player 5",
-      "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.77,
-        "TPM": 2.8,
-        "REB": 6,
-        "AST": 4.2,
-        "STL": 1.15,
-        "BLK": 1.1,
-        "TO": 2.55,
-        "PTS": 13.5
-      },
-      "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "CHI",
+      "name": "Jalen Duren",
+      "teamAbbr": "DET",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.65006227,
+        "FT_PCT": 0.74651163,
+        "TPM": 0,
+        "REB": 737,
+        "AST": 138,
+        "STL": 57,
+        "BLK": 59,
+        "TO": 130,
+        "PTS": 1365
+      },
+      "shooting": {
+        "FGM": 518.7,
+        "FGA": 797.9235589230552,
+        "FTM": 245.7,
+        "FTA": 329.1308401986986
+      }
     },
     {
       "id": "t1p6",
-      "name": "Player 6",
+      "name": "LaMelo Ball",
+      "teamAbbr": "MIN",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.78,
-        "TPM": 3.2,
-        "REB": 6.7,
-        "AST": 4.8,
-        "STL": 1.3,
-        "BLK": 1.28,
-        "TO": 2.9,
-        "PTS": 14.8
+        "FG_PCT": 0.40675241,
+        "FT_PCT": 0.89944134,
+        "TPM": 272,
+        "REB": 347,
+        "AST": 514,
+        "STL": 87,
+        "BLK": 18,
+        "TO": 202,
+        "PTS": 1445
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "CLE",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
+        "FGM": 549.1,
+        "FGA": 1349.9612700512334,
+        "FTM": 260.09999999999997,
+        "FTA": 289.17950335705046
+      }
     },
     {
       "id": "t1p7",
-      "name": "Player 7",
+      "name": "Evan Mobley",
+      "teamAbbr": "CLE",
+      "positions": [
+        "PF",
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.79,
-        "TPM": 3.6,
-        "REB": 7.4,
-        "AST": 5.4,
-        "STL": 1.45,
-        "BLK": 0.2,
-        "TO": 3.25,
-        "PTS": 16.1
+        "FG_PCT": 0.5459837,
+        "FT_PCT": 0.60606061,
+        "TPM": 62,
+        "REB": 586,
+        "AST": 234,
+        "STL": 48,
+        "BLK": 113,
+        "TO": 122,
+        "PTS": 1180
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "DAL",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 448.4,
+        "FGA": 821.2699390109998,
+        "FTM": 212.4,
+        "FTA": 350.45999772201003
+      }
     },
     {
       "id": "t1p8",
-      "name": "Player 8",
+      "name": "Stephen Curry",
+      "teamAbbr": "GSW",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.8,
-        "TPM": 4,
-        "REB": 8.1,
-        "AST": 6,
-        "STL": 0.4,
-        "BLK": 0.38,
-        "TO": 0.8,
-        "PTS": 17.4
+        "FG_PCT": 0.46808511,
+        "FT_PCT": 0.92307692,
+        "TPM": 190,
+        "REB": 154,
+        "AST": 203,
+        "STL": 49,
+        "BLK": 17,
+        "TO": 121,
+        "PTS": 1142
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "DEN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 433.96,
+        "FGA": 927.0963564724372,
+        "FTM": 205.56,
+        "FTA": 222.69000074230001
+      }
     },
     {
       "id": "t1p9",
-      "name": "Player 9",
-      "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.81,
-        "TPM": 0.8,
-        "REB": 8.8,
-        "AST": 6.6,
-        "STL": 0.55,
-        "BLK": 0.56,
-        "TO": 1.15,
-        "PTS": 18.7
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "DET",
+      "name": "Devin Booker",
+      "teamAbbr": "PHX",
       "positions": [
         "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.4557596,
+        "FT_PCT": 0.87307692,
+        "TPM": 122,
+        "REB": 248,
+        "AST": 386,
+        "STL": 51,
+        "BLK": 18,
+        "TO": 202,
+        "PTS": 1668
+      },
+      "shooting": {
+        "FGM": 633.84,
+        "FGA": 1390.7331847754826,
+        "FTM": 300.24,
+        "FTA": 343.88722588154087
+      }
     },
     {
       "id": "t1p10",
-      "name": "Player 10",
+      "name": "Kon Knueppel",
+      "teamAbbr": "CHA",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.82,
-        "TPM": 1.2,
-        "REB": 9.5,
-        "AST": 1.2,
-        "STL": 0.7,
-        "BLK": 0.74,
-        "TO": 1.5,
-        "PTS": 20
+        "FG_PCT": 0.47509225,
+        "FT_PCT": 0.86283186,
+        "TPM": 273,
+        "REB": 432,
+        "AST": 274,
+        "STL": 57,
+        "BLK": 19,
+        "TO": 161,
+        "PTS": 1498
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "GSW",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 569.24,
+        "FGA": 1198.1673032974122,
+        "FTM": 269.64,
+        "FTA": 312.5058455769123
+      }
     },
     {
       "id": "t1p11",
-      "name": "Player 11",
+      "name": "Donovan Clingan",
+      "teamAbbr": "POR",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.83,
-        "TPM": 1.6,
-        "REB": 2.5,
-        "AST": 1.8,
-        "STL": 0.85,
-        "BLK": 0.92,
-        "TO": 1.85,
-        "PTS": 21.3
+        "FG_PCT": 0.52046784,
+        "FT_PCT": 0.67980296,
+        "TPM": 84,
+        "REB": 892,
+        "AST": 162,
+        "STL": 44,
+        "BLK": 130,
+        "TO": 95,
+        "PTS": 934
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "HOU",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 354.92,
+        "FGA": 681.9249389164949,
+        "FTM": 168.12,
+        "FTA": 247.3069549447093
+      }
     },
     {
       "id": "t1p12",
-      "name": "Player 12",
+      "name": "Derrick White",
+      "teamAbbr": "BOS",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.84,
-        "TPM": 2,
-        "REB": 3.2,
-        "AST": 2.4,
-        "STL": 1,
-        "BLK": 1.1,
-        "TO": 2.2,
-        "PTS": 22.6
+        "FG_PCT": 0.39440433,
+        "FT_PCT": 0.90196078,
+        "TPM": 209,
+        "REB": 339,
+        "AST": 414,
+        "STL": 88,
+        "BLK": 98,
+        "TO": 134,
+        "PTS": 1267
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "IND",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 481.46,
+        "FGA": 1220.7269631142233,
+        "FTM": 228.06,
+        "FTA": 252.84913164406106
+      }
     },
     {
       "id": "t1p13",
-      "name": "Player 13",
+      "name": "Jaylen Brown",
+      "teamAbbr": "PHI",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.85,
-        "TPM": 2.4,
-        "REB": 3.9,
-        "AST": 3,
-        "STL": 1.15,
-        "BLK": 1.28,
-        "TO": 2.55,
-        "PTS": 23.9
+        "FG_PCT": 0.47699287,
+        "FT_PCT": 0.79477612,
+        "TPM": 140,
+        "REB": 492,
+        "AST": 364,
+        "STL": 72,
+        "BLK": 27,
+        "TO": 259,
+        "PTS": 2038
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "LAC",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 774.44,
+        "FGA": 1623.5882100292192,
+        "FTM": 366.84,
+        "FTA": 461.5639433152571
+      }
     },
     {
       "id": "t1p14",
-      "name": "Player 14",
+      "name": "Lauri Markkanen",
+      "teamAbbr": "UTA",
+      "positions": [
+        "PF",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.86,
-        "TPM": 2.8,
-        "REB": 4.6,
-        "AST": 3.6,
-        "STL": 1.3,
-        "BLK": 0.2,
-        "TO": 2.9,
-        "PTS": 25.2
+        "FG_PCT": 0.47701863,
+        "FT_PCT": 0.89552239,
+        "TPM": 115,
+        "REB": 289,
+        "AST": 89,
+        "STL": 42,
+        "BLK": 21,
+        "TO": 63,
+        "PTS": 1123
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "LAL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 426.74,
+        "FGA": 894.5981837229292,
+        "FTM": 202.14,
+        "FTA": 225.72299951093348
+      }
     },
     {
       "id": "t2p1",
-      "name": "Player 15",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.87,
-        "TPM": 3.2,
-        "REB": 5.3,
-        "AST": 4.2,
-        "STL": 1.45,
-        "BLK": 0.38,
-        "TO": 3.25,
-        "PTS": 7
-      },
-      "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "MEM",
+      "name": "James Harden",
+      "teamAbbr": "CLE",
       "positions": [
         "PG",
-        "G"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43365984,
+        "FT_PCT": 0.88358779,
+        "TPM": 215,
+        "REB": 336,
+        "AST": 557,
+        "STL": 79,
+        "BLK": 28,
+        "TO": 245,
+        "PTS": 1652
+      },
+      "shooting": {
+        "FGM": 627.76,
+        "FGA": 1447.5862002808467,
+        "FTM": 297.36,
+        "FTA": 336.5370180137958
+      }
     },
     {
       "id": "t2p2",
-      "name": "Player 16",
+      "name": "Keyonte George",
+      "teamAbbr": "UTA",
+      "positions": [
+        "PG",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.72,
-        "TPM": 3.6,
-        "REB": 6,
-        "AST": 4.8,
-        "STL": 0.4,
-        "BLK": 0.56,
-        "TO": 0.8,
-        "PTS": 8.3
+        "FG_PCT": 0.45629966,
+        "FT_PCT": 0.89153439,
+        "TPM": 134,
+        "REB": 199,
+        "AST": 332,
+        "STL": 58,
+        "BLK": 14,
+        "TO": 166,
+        "PTS": 1275
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "MIA",
-      "positions": [
-        "SG",
-        "G"
-      ]
+        "FGM": 484.5,
+        "FGA": 1061.8022375909725,
+        "FTM": 229.5,
+        "FTA": 257.42136542820293
+      }
     },
     {
       "id": "t2p3",
-      "name": "Player 17",
-      "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.73,
-        "TPM": 4,
-        "REB": 6.7,
-        "AST": 5.4,
-        "STL": 0.55,
-        "BLK": 0.74,
-        "TO": 1.15,
-        "PTS": 9.6
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "MIL",
+      "name": "Deni Avdija",
+      "teamAbbr": "POR",
       "positions": [
         "SF",
-        "F"
-      ]
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.46240602,
+        "FT_PCT": 0.80163934,
+        "TPM": 125,
+        "REB": 454,
+        "AST": 442,
+        "STL": 51,
+        "BLK": 41,
+        "TO": 253,
+        "PTS": 1598
+      },
+      "shooting": {
+        "FGM": 607.24,
+        "FGA": 1313.2181972890405,
+        "FTM": 287.64,
+        "FTA": 358.8147258341887
+      }
     },
     {
       "id": "t2p4",
-      "name": "Player 18",
+      "name": "LeBron James",
+      "teamAbbr": "PHI",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.74,
-        "TPM": 0.8,
-        "REB": 7.4,
-        "AST": 6,
-        "STL": 0.7,
-        "BLK": 0.92,
-        "TO": 1.5,
-        "PTS": 10.9
+        "FG_PCT": 0.51468988,
+        "FT_PCT": 0.73734177,
+        "TPM": 77,
+        "REB": 364,
+        "AST": 432,
+        "STL": 72,
+        "BLK": 35,
+        "TO": 179,
+        "PTS": 1256
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "MIN",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 477.28000000000003,
+        "FGA": 927.3156876525336,
+        "FTM": 226.07999999999998,
+        "FTA": 306.61493651715944
+      }
     },
     {
       "id": "t2p5",
-      "name": "Player 19",
-      "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.75,
-        "TPM": 1.2,
-        "REB": 8.1,
-        "AST": 6.6,
-        "STL": 0.85,
-        "BLK": 1.1,
-        "TO": 1.85,
-        "PTS": 12.2
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "NOP",
+      "name": "Alperen Sengun",
+      "teamAbbr": "HOU",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.51914515,
+        "FT_PCT": 0.69148936,
+        "TPM": 40,
+        "REB": 641,
+        "AST": 445,
+        "STL": 85,
+        "BLK": 77,
+        "TO": 227,
+        "PTS": 1466
+      },
+      "shooting": {
+        "FGM": 557.08,
+        "FGA": 1073.0717603737605,
+        "FTM": 263.88,
+        "FTA": 381.61107786242724
+      }
     },
     {
       "id": "t2p6",
-      "name": "Player 20",
+      "name": "Desmond Bane",
+      "teamAbbr": "ORL",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.76,
-        "TPM": 1.6,
-        "REB": 8.8,
-        "AST": 1.2,
-        "STL": 1,
-        "BLK": 1.28,
-        "TO": 2.2,
-        "PTS": 13.5
+        "FG_PCT": 0.48381743,
+        "FT_PCT": 0.90751445,
+        "TPM": 167,
+        "REB": 338,
+        "AST": 338,
+        "STL": 86,
+        "BLK": 37,
+        "TO": 164,
+        "PTS": 1647
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "NYK",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
+        "FGM": 625.86,
+        "FGA": 1293.587128516639,
+        "FTM": 296.46,
+        "FTA": 326.67248438854057
+      }
     },
     {
       "id": "t2p7",
-      "name": "Player 21",
+      "name": "Pascal Siakam",
+      "teamAbbr": "IND",
+      "positions": [
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.77,
-        "TPM": 2,
-        "REB": 9.5,
-        "AST": 1.8,
-        "STL": 1.15,
-        "BLK": 0.2,
-        "TO": 2.55,
-        "PTS": 14.8
+        "FG_PCT": 0.48398268,
+        "FT_PCT": 0.69312169,
+        "TPM": 105,
+        "REB": 411,
+        "AST": 236,
+        "STL": 69,
+        "BLK": 25,
+        "TO": 138,
+        "PTS": 1485
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "OKC",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 564.3,
+        "FGA": 1165.9508146035307,
+        "FTM": 267.3,
+        "FTA": 385.6465666223777
+      }
     },
     {
       "id": "t2p8",
-      "name": "Player 22",
+      "name": "Walker Kessler",
+      "teamAbbr": "LAL",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.78,
-        "TPM": 2.4,
-        "REB": 2.5,
-        "AST": 2.4,
-        "STL": 1.3,
-        "BLK": 0.38,
-        "TO": 2.9,
-        "PTS": 16.1
+        "FG_PCT": 0.7027027,
+        "FT_PCT": 0.7,
+        "TPM": 6,
+        "REB": 54,
+        "AST": 15,
+        "STL": 7,
+        "BLK": 9,
+        "TO": 16,
+        "PTS": 72
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "ORL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 27.36,
+        "FGA": 38.93538476513609,
+        "FTM": 12.959999999999999,
+        "FTA": 18.514285714285712
+      }
     },
     {
       "id": "t2p9",
-      "name": "Player 23",
+      "name": "Darius Garland",
+      "teamAbbr": "LAC",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.79,
-        "TPM": 2.8,
-        "REB": 3.2,
-        "AST": 3,
-        "STL": 1.45,
-        "BLK": 0.56,
-        "TO": 3.25,
-        "PTS": 17.4
+        "FG_PCT": 0.45982143,
+        "FT_PCT": 0.86065574,
+        "TPM": 122,
+        "REB": 107,
+        "AST": 301,
+        "STL": 43,
+        "BLK": 8,
+        "TO": 130,
+        "PTS": 845
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "PHI",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 321.1,
+        "FGA": 698.3145609372752,
+        "FTM": 152.1,
+        "FTA": 176.7257138144457
+      }
     },
     {
       "id": "t2p10",
-      "name": "Player 24",
+      "name": "Nickeil Alexander-Walker",
+      "teamAbbr": "ATL",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.8,
-        "TPM": 3.2,
-        "REB": 3.9,
-        "AST": 3.6,
-        "STL": 0.4,
-        "BLK": 0.74,
-        "TO": 0.8,
-        "PTS": 18.7
+        "FG_PCT": 0.45857741,
+        "FT_PCT": 0.90228013,
+        "TPM": 251,
+        "REB": 268,
+        "AST": 286,
+        "STL": 102,
+        "BLK": 42,
+        "TO": 162,
+        "PTS": 1624
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "PHX",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 617.12,
+        "FGA": 1345.7269951435244,
+        "FTM": 292.32,
+        "FTA": 323.9792058814373
+      }
     },
     {
       "id": "t2p11",
-      "name": "Player 25",
+      "name": "Dejounte Murray",
+      "teamAbbr": "NOP",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.81,
-        "TPM": 3.6,
-        "REB": 4.6,
-        "AST": 4.2,
-        "STL": 0.55,
-        "BLK": 0.92,
-        "TO": 1.15,
-        "PTS": 20
+        "FG_PCT": 0.48351648,
+        "FT_PCT": 0.86666667,
+        "TPM": 19,
+        "REB": 75,
+        "AST": 89,
+        "STL": 23,
+        "BLK": 3,
+        "TO": 47,
+        "PTS": 234
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "POR",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 88.92,
+        "FGA": 183.90272861020165,
+        "FTM": 42.12,
+        "FTA": 48.59999981307692
+      }
     },
     {
       "id": "t2p12",
-      "name": "Player 26",
+      "name": "OG Anunoby",
+      "teamAbbr": "NYK",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.82,
-        "TPM": 4,
-        "REB": 5.3,
-        "AST": 4.8,
-        "STL": 0.7,
-        "BLK": 1.1,
-        "TO": 1.5,
-        "PTS": 21.3
+        "FG_PCT": 0.48383085,
+        "FT_PCT": 0.8280543,
+        "TPM": 157,
+        "REB": 351,
+        "AST": 145,
+        "STL": 104,
+        "BLK": 48,
+        "TO": 123,
+        "PTS": 1118
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "SAC",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 424.84000000000003,
+        "FGA": 878.0754679037107,
+        "FTM": 201.23999999999998,
+        "FTA": 243.0275405852007
+      }
     },
     {
       "id": "t2p13",
-      "name": "Player 27",
+      "name": "Naz Reid",
+      "teamAbbr": "CHA",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.83,
-        "TPM": 0.8,
-        "REB": 6,
-        "AST": 5.4,
-        "STL": 0.85,
-        "BLK": 1.28,
-        "TO": 1.85,
-        "PTS": 22.6
+        "FG_PCT": 0.45579793,
+        "FT_PCT": 0.73170732,
+        "TPM": 162,
+        "REB": 477,
+        "AST": 170,
+        "STL": 76,
+        "BLK": 78,
+        "TO": 126,
+        "PTS": 1046
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "SAS",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 397.48,
+        "FGA": 872.0531047606995,
+        "FTM": 188.28,
+        "FTA": 257.31599897073596
+      }
     },
     {
       "id": "t2p14",
-      "name": "Player 28",
+      "name": "Julius Randle",
+      "teamAbbr": "BKN",
+      "positions": [
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.84,
-        "TPM": 1.2,
-        "REB": 6.7,
-        "AST": 6,
-        "STL": 1,
-        "BLK": 0.2,
-        "TO": 2.2,
-        "PTS": 23.9
+        "FG_PCT": 0.48053024,
+        "FT_PCT": 0.80241935,
+        "TPM": 109,
+        "REB": 532,
+        "AST": 398,
+        "STL": 86,
+        "BLK": 18,
+        "TO": 217,
+        "PTS": 1667
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "TOR",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 633.46,
+        "FGA": 1318.2521041755874,
+        "FTM": 300.06,
+        "FTA": 373.94412285795454
+      }
     },
     {
       "id": "t3p1",
-      "name": "Player 29",
+      "name": "Luka Doncic",
+      "teamAbbr": "LAL",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.85,
-        "TPM": 1.6,
-        "REB": 7.4,
-        "AST": 6.6,
-        "STL": 1.15,
-        "BLK": 0.38,
-        "TO": 2.55,
-        "PTS": 25.2
+        "FG_PCT": 0.47563487,
+        "FT_PCT": 0.77984496,
+        "TPM": 254,
+        "REB": 495,
+        "AST": 530,
+        "STL": 105,
+        "BLK": 34,
+        "TO": 255,
+        "PTS": 2143
       },
       "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "BOS",
-      "positions": [
-        "PG",
-        "G"
-      ]
+        "FGM": 814.34,
+        "FGA": 1712.1116456411198,
+        "FTM": 385.74,
+        "FTA": 494.63678011075433
+      }
     },
     {
       "id": "t3p2",
-      "name": "Player 30",
+      "name": "Tyrese Maxey",
+      "teamAbbr": "PHI",
+      "positions": [
+        "PG",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.86,
-        "TPM": 2,
-        "REB": 8.1,
-        "AST": 1.2,
-        "STL": 1.3,
-        "BLK": 0.56,
-        "TO": 2.9,
-        "PTS": 7
+        "FG_PCT": 0.46235843,
+        "FT_PCT": 0.89208633,
+        "TPM": 220,
+        "REB": 289,
+        "AST": 461,
+        "STL": 130,
+        "BLK": 55,
+        "TO": 171,
+        "PTS": 1980
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "LAL",
-      "positions": [
-        "SG",
-        "G"
-      ]
+        "FGM": 752.4,
+        "FGA": 1627.3089256748276,
+        "FTM": 356.4,
+        "FTA": 399.5129036446506
+      }
     },
     {
       "id": "t3p3",
-      "name": "Player 31",
+      "name": "Anthony Edwards",
+      "teamAbbr": "MIN",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.87,
-        "TPM": 2.4,
-        "REB": 8.8,
-        "AST": 1.8,
-        "STL": 1.45,
-        "BLK": 0.74,
-        "TO": 3.25,
-        "PTS": 8.3
+        "FG_PCT": 0.48903331,
+        "FT_PCT": 0.79633867,
+        "TPM": 205,
+        "REB": 302,
+        "AST": 226,
+        "STL": 83,
+        "BLK": 49,
+        "TO": 174,
+        "PTS": 1757
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "NYK",
-      "positions": [
-        "SF",
-        "F"
-      ]
+        "FGM": 667.66,
+        "FGA": 1365.2648732659948,
+        "FTM": 316.26,
+        "FTA": 397.1425875877659
+      }
     },
     {
       "id": "t3p4",
-      "name": "Player 32",
+      "name": "Jalen Johnson",
+      "teamAbbr": "ATL",
+      "positions": [
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.72,
-        "TPM": 2.8,
-        "REB": 9.5,
-        "AST": 2.4,
-        "STL": 0.4,
-        "BLK": 0.92,
-        "TO": 0.8,
-        "PTS": 9.6
+        "FG_PCT": 0.48859935,
+        "FT_PCT": 0.78795812,
+        "TPM": 120,
+        "REB": 740,
+        "AST": 566,
+        "STL": 89,
+        "BLK": 31,
+        "TO": 244,
+        "PTS": 1621
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "MIA",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 615.98,
+        "FGA": 1260.705729551216,
+        "FTM": 291.78,
+        "FTA": 370.2988681682727
+      }
     },
     {
       "id": "t3p5",
-      "name": "Player 33",
-      "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.73,
-        "TPM": 3.2,
-        "REB": 2.5,
-        "AST": 3,
-        "STL": 0.55,
-        "BLK": 1.1,
-        "TO": 1.15,
-        "PTS": 10.9
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "MIL",
+      "name": "Victor Wembanyama",
+      "teamAbbr": "SAS",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.51203704,
+        "FT_PCT": 0.82666667,
+        "TPM": 122,
+        "REB": 736,
+        "AST": 199,
+        "STL": 66,
+        "BLK": 197,
+        "TO": 155,
+        "PTS": 1600
+      },
+      "shooting": {
+        "FGM": 608,
+        "FGA": 1187.4140980113468,
+        "FTM": 288,
+        "FTA": 348.38709536940684
+      }
     },
     {
       "id": "t3p6",
-      "name": "Player 34",
+      "name": "Shai Gilgeous-Alexander",
+      "teamAbbr": "OKC",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.74,
-        "TPM": 3.6,
-        "REB": 3.2,
-        "AST": 3.6,
-        "STL": 0.7,
-        "BLK": 1.28,
-        "TO": 1.5,
-        "PTS": 12.2
+        "FG_PCT": 0.55336866,
+        "FT_PCT": 0.87947883,
+        "TPM": 115,
+        "REB": 292,
+        "AST": 448,
+        "STL": 95,
+        "BLK": 52,
+        "TO": 151,
+        "PTS": 2117
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "DEN",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
+        "FGM": 804.46,
+        "FGA": 1453.7505611539332,
+        "FTM": 381.06,
+        "FTA": 433.27933203349534
+      }
     },
     {
       "id": "t3p7",
-      "name": "Player 35",
-      "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.75,
-        "TPM": 4,
-        "REB": 3.9,
-        "AST": 4.2,
-        "STL": 0.85,
-        "BLK": 0.2,
-        "TO": 1.85,
-        "PTS": 13.5
-      },
-      "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "GSW",
+      "name": "Cooper Flagg",
+      "teamAbbr": "DAL",
       "positions": [
         "SF",
-        "PF",
-        "F"
-      ]
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.4681742,
+        "FT_PCT": 0.82748538,
+        "TPM": 72,
+        "REB": 466,
+        "AST": 316,
+        "STL": 84,
+        "BLK": 64,
+        "TO": 161,
+        "PTS": 1473
+      },
+      "shooting": {
+        "FGM": 559.74,
+        "FGA": 1195.5806193506605,
+        "FTM": 265.14,
+        "FTA": 320.416537147762
+      }
     },
     {
       "id": "t3p8",
-      "name": "Player 36",
+      "name": "Trey Murphy III",
+      "teamAbbr": "NOP",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.76,
-        "TPM": 0.8,
-        "REB": 4.6,
-        "AST": 4.8,
-        "STL": 1,
-        "BLK": 0.38,
-        "TO": 2.2,
-        "PTS": 14.8
+        "FG_PCT": 0.47047619,
+        "FT_PCT": 0.88617886,
+        "TPM": 214,
+        "REB": 377,
+        "AST": 250,
+        "STL": 99,
+        "BLK": 24,
+        "TO": 120,
+        "PTS": 1420
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "OKC",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 539.6,
+        "FGA": 1146.9230780839302,
+        "FTM": 255.6,
+        "FTA": 288.4293583803161
+      }
     },
     {
       "id": "t3p9",
-      "name": "Player 37",
+      "name": "Nikola Jokic",
+      "teamAbbr": "DEN",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.77,
-        "TPM": 1.2,
-        "REB": 5.3,
-        "AST": 5.4,
-        "STL": 1.15,
-        "BLK": 0.56,
-        "TO": 2.55,
-        "PTS": 16.1
+        "FG_PCT": 0.56890459,
+        "FT_PCT": 0.83125,
+        "TPM": 112,
+        "REB": 836,
+        "AST": 697,
+        "STL": 92,
+        "BLK": 53,
+        "TO": 243,
+        "PTS": 1799
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "PHX",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 683.62,
+        "FGA": 1201.6426163831793,
+        "FTM": 323.82,
+        "FTA": 389.55789473684206
+      }
     },
     {
       "id": "t3p10",
-      "name": "Player 38",
+      "name": "Cade Cunningham",
+      "teamAbbr": "DET",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.78,
-        "TPM": 1.6,
-        "REB": 6,
-        "AST": 6,
-        "STL": 1.3,
-        "BLK": 0.74,
-        "TO": 2.9,
-        "PTS": 17.4
+        "FG_PCT": 0.46089151,
+        "FT_PCT": 0.81151832,
+        "TPM": 125,
+        "REB": 355,
+        "AST": 634,
+        "STL": 92,
+        "BLK": 54,
+        "TO": 236,
+        "PTS": 1531
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "DAL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 581.78,
+        "FGA": 1262.292724810661,
+        "FTM": 275.58,
+        "FTA": 339.58567934732514
+      }
     },
     {
       "id": "t3p11",
-      "name": "Player 39",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.79,
-        "TPM": 2,
-        "REB": 6.7,
-        "AST": 6.6,
-        "STL": 1.45,
-        "BLK": 0.92,
-        "TO": 3.25,
-        "PTS": 18.7
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
+      "name": "Donovan Mitchell",
       "teamAbbr": "CLE",
       "positions": [
-        "PG",
         "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.48325018,
+        "FT_PCT": 0.86511628,
+        "TPM": 224,
+        "REB": 316,
+        "AST": 398,
+        "STL": 104,
+        "BLK": 20,
+        "TO": 198,
+        "PTS": 1952
+      },
+      "shooting": {
+        "FGM": 741.76,
+        "FGA": 1534.939935252585,
+        "FTM": 351.36,
+        "FTA": 406.1419350471592
+      }
     },
     {
       "id": "t3p12",
-      "name": "Player 40",
+      "name": "Scottie Barnes",
+      "teamAbbr": "TOR",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.8,
-        "TPM": 2.4,
-        "REB": 7.4,
-        "AST": 1.2,
-        "STL": 0.4,
-        "BLK": 1.1,
-        "TO": 0.8,
-        "PTS": 20
+        "FG_PCT": 0.50667854,
+        "FT_PCT": 0.81481481,
+        "TPM": 68,
+        "REB": 600,
+        "AST": 474,
+        "STL": 114,
+        "BLK": 116,
+        "TO": 210,
+        "PTS": 1448
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "MIN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 550.24,
+        "FGA": 1085.9745510437447,
+        "FTM": 260.64,
+        "FTA": 319.87636552654214
+      }
     },
     {
       "id": "t3p13",
-      "name": "Player 41",
+      "name": "Karl-Anthony Towns",
+      "teamAbbr": "NYK",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.81,
-        "TPM": 2.8,
-        "REB": 8.1,
-        "AST": 1.8,
-        "STL": 0.55,
-        "BLK": 1.28,
-        "TO": 1.15,
-        "PTS": 21.3
+        "FG_PCT": 0.50096899,
+        "FT_PCT": 0.85817308,
+        "TPM": 113,
+        "REB": 889,
+        "AST": 226,
+        "STL": 65,
+        "BLK": 40,
+        "TO": 187,
+        "PTS": 1504
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "PHI",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 571.52,
+        "FGA": 1140.8290960284787,
+        "FTM": 270.71999999999997,
+        "FTA": 315.46083920507033
+      }
     },
     {
       "id": "t3p14",
-      "name": "Player 42",
+      "name": "Kawhi Leonard",
+      "teamAbbr": "LAC",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.82,
-        "TPM": 3.2,
-        "REB": 8.8,
-        "AST": 2.4,
-        "STL": 0.7,
-        "BLK": 0.2,
-        "TO": 1.5,
-        "PTS": 22.6
+        "FG_PCT": 0.50476948,
+        "FT_PCT": 0.89182692,
+        "TPM": 172,
+        "REB": 413,
+        "AST": 234,
+        "STL": 122,
+        "BLK": 27,
+        "TO": 133,
+        "PTS": 1813
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "ATL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 688.94,
+        "FGA": 1364.8606488649039,
+        "FTM": 326.34,
+        "FTA": 365.92302013040825
+      }
     },
     {
       "id": "t4p1",
-      "name": "Player 43",
+      "name": "Dyson Daniels",
+      "teamAbbr": "ATL",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.83,
-        "TPM": 3.6,
-        "REB": 9.5,
-        "AST": 3,
-        "STL": 0.85,
-        "BLK": 0.38,
-        "TO": 1.85,
-        "PTS": 23.9
+        "FG_PCT": 0.51737452,
+        "FT_PCT": 0.6147541,
+        "TPM": 22,
+        "REB": 520,
+        "AST": 449,
+        "STL": 149,
+        "BLK": 31,
+        "TO": 135,
+        "PTS": 901
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "LAC",
-      "positions": [
-        "PG",
-        "G"
-      ]
+        "FGM": 342.38,
+        "FGA": 661.764325000002,
+        "FTM": 162.18,
+        "FTA": 263.81279929649924
+      }
     },
     {
       "id": "t4p2",
-      "name": "Player 44",
-      "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.84,
-        "TPM": 4,
-        "REB": 2.5,
-        "AST": 3.6,
-        "STL": 1,
-        "BLK": 0.56,
-        "TO": 2.2,
-        "PTS": 25.2
-      },
-      "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "LAL",
+      "name": "Ryan Rollins",
+      "teamAbbr": "MIL",
       "positions": [
         "SG",
-        "G"
-      ]
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.47184466,
+        "FT_PCT": 0.79617834,
+        "TPM": 184,
+        "REB": 338,
+        "AST": 414,
+        "STL": 110,
+        "BLK": 31,
+        "TO": 201,
+        "PTS": 1281
+      },
+      "shooting": {
+        "FGM": 486.78000000000003,
+        "FGA": 1031.6530868443017,
+        "FTM": 230.57999999999998,
+        "FTA": 289.6084814364581
+      }
     },
     {
       "id": "t4p3",
-      "name": "Player 45",
+      "name": "Paolo Banchero",
+      "teamAbbr": "ORL",
+      "positions": [
+        "PF",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.85,
-        "TPM": 0.8,
-        "REB": 3.2,
-        "AST": 4.2,
-        "STL": 1.15,
-        "BLK": 0.74,
-        "TO": 2.55,
-        "PTS": 7
+        "FG_PCT": 0.45920139,
+        "FT_PCT": 0.77457627,
+        "TPM": 84,
+        "REB": 604,
+        "AST": 373,
+        "STL": 51,
+        "BLK": 40,
+        "TO": 222,
+        "PTS": 1599
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "MEM",
-      "positions": [
-        "SF",
-        "F"
-      ]
+        "FGM": 607.62,
+        "FGA": 1323.2102803521566,
+        "FTM": 287.82,
+        "FTA": 371.5838080089905
+      }
     },
     {
       "id": "t4p4",
-      "name": "Player 46",
+      "name": "Cameron Boozer",
+      "teamAbbr": "MEM",
+      "positions": [
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.86,
-        "TPM": 1.2,
-        "REB": 3.9,
-        "AST": 4.8,
-        "STL": 1.3,
-        "BLK": 0.92,
-        "TO": 2.9,
-        "PTS": 8.3
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "MIA",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t4p5",
-      "name": "Player 47",
-      "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.87,
-        "TPM": 1.6,
-        "REB": 4.6,
-        "AST": 5.4,
-        "STL": 1.45,
-        "BLK": 1.1,
-        "TO": 3.25,
-        "PTS": 9.6
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "MIL",
+      "name": "Joel Embiid",
+      "teamAbbr": "PHI",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.4892396,
+        "FT_PCT": 0.85373134,
+        "TPM": 53,
+        "REB": 293,
+        "AST": 150,
+        "STL": 21,
+        "BLK": 46,
+        "TO": 109,
+        "PTS": 1021
+      },
+      "shooting": {
+        "FGM": 387.98,
+        "FGA": 793.0265661242468,
+        "FTM": 183.78,
+        "FTA": 215.2667840447324
+      }
     },
     {
       "id": "t4p6",
-      "name": "Player 48",
-      "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.72,
-        "TPM": 2,
-        "REB": 5.3,
-        "AST": 6,
-        "STL": 0.4,
-        "BLK": 1.28,
-        "TO": 0.8,
-        "PTS": 10.9
-      },
-      "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "MIN",
+      "name": "Stephon Castle",
+      "teamAbbr": "SAS",
       "positions": [
         "PG",
-        "SG",
-        "G"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.47058824,
+        "FT_PCT": 0.734375,
+        "TPM": 81,
+        "REB": 361,
+        "AST": 502,
+        "STL": 78,
+        "BLK": 19,
+        "TO": 217,
+        "PTS": 1131
+      },
+      "shooting": {
+        "FGM": 429.78000000000003,
+        "FGA": 913.2824908671752,
+        "FTM": 203.57999999999998,
+        "FTA": 277.21531914893615
+      }
     },
     {
       "id": "t4p7",
-      "name": "Player 49",
-      "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.73,
-        "TPM": 2.4,
-        "REB": 6,
-        "AST": 6.6,
-        "STL": 0.55,
-        "BLK": 0.2,
-        "TO": 1.15,
-        "PTS": 12.2
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "NOP",
+      "name": "Michael Porter Jr.",
+      "teamAbbr": "BKN",
       "positions": [
         "SF",
-        "PF",
-        "F"
-      ]
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.46346555,
+        "FT_PCT": 0.85903084,
+        "TPM": 176,
+        "REB": 367,
+        "AST": 158,
+        "STL": 55,
+        "BLK": 13,
+        "TO": 122,
+        "PTS": 1259
+      },
+      "shooting": {
+        "FGM": 478.42,
+        "FGA": 1032.2665837838433,
+        "FTM": 226.62,
+        "FTA": 263.808922156974
+      }
     },
     {
       "id": "t4p8",
-      "name": "Player 50",
+      "name": "Ivica Zubac",
+      "teamAbbr": "IND",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.74,
-        "TPM": 2.8,
-        "REB": 6.7,
-        "AST": 1.2,
-        "STL": 0.7,
-        "BLK": 0.38,
-        "TO": 1.5,
-        "PTS": 13.5
+        "FG_PCT": 0.59751037,
+        "FT_PCT": 0.71126761,
+        "TPM": 0,
+        "REB": 509,
+        "AST": 105,
+        "STL": 18,
+        "BLK": 40,
+        "TO": 86,
+        "PTS": 677
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "NYK",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 257.26,
+        "FGA": 430.5531969261053,
+        "FTM": 121.86,
+        "FTA": 171.32791974036326
+      }
     },
     {
       "id": "t4p9",
-      "name": "Player 51",
+      "name": "Zion Williamson",
+      "teamAbbr": "NOP",
+      "positions": [
+        "PF",
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.75,
-        "TPM": 3.2,
-        "REB": 7.4,
-        "AST": 1.8,
-        "STL": 0.85,
-        "BLK": 0.56,
-        "TO": 1.85,
-        "PTS": 14.8
+        "FG_PCT": 0.59975217,
+        "FT_PCT": 0.71612903,
+        "TPM": 1,
+        "REB": 353,
+        "AST": 199,
+        "STL": 60,
+        "BLK": 34,
+        "TO": 126,
+        "PTS": 1302
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "OKC",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 494.76,
+        "FGA": 824.9407417733894,
+        "FTM": 234.35999999999999,
+        "FTA": 327.2594604913586
+      }
     },
     {
       "id": "t4p10",
-      "name": "Player 52",
+      "name": "Mikal Bridges",
+      "teamAbbr": "NYK",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.76,
-        "TPM": 3.6,
-        "REB": 8.1,
-        "AST": 2.4,
-        "STL": 1,
-        "BLK": 0.74,
-        "TO": 2.2,
-        "PTS": 16.1
+        "FG_PCT": 0.49013499,
+        "FT_PCT": 0.82653061,
+        "TPM": 156,
+        "REB": 312,
+        "AST": 304,
+        "STL": 107,
+        "BLK": 62,
+        "TO": 83,
+        "PTS": 1181
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "ORL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 448.78000000000003,
+        "FGA": 915.625305591833,
+        "FTM": 212.57999999999998,
+        "FTA": 257.19555625411135
+      }
     },
     {
       "id": "t4p11",
-      "name": "Player 53",
+      "name": "Jaden McDaniels",
+      "teamAbbr": "MIN",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.77,
-        "TPM": 4,
-        "REB": 8.8,
-        "AST": 3,
-        "STL": 1.15,
-        "BLK": 0.92,
-        "TO": 2.55,
-        "PTS": 17.4
+        "FG_PCT": 0.51545117,
+        "FT_PCT": 0.83522727,
+        "TPM": 103,
+        "REB": 310,
+        "AST": 199,
+        "STL": 81,
+        "BLK": 73,
+        "TO": 131,
+        "PTS": 1084
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "PHI",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 411.92,
+        "FGA": 799.1445630048721,
+        "FTM": 195.12,
+        "FTA": 233.613061987308
+      }
     },
     {
       "id": "t4p12",
-      "name": "Player 54",
+      "name": "Paul George",
+      "teamAbbr": "BOS",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.78,
-        "TPM": 0.8,
-        "REB": 9.5,
-        "AST": 3.6,
-        "STL": 1.3,
-        "BLK": 1.1,
-        "TO": 2.9,
-        "PTS": 18.7
+        "FG_PCT": 0.43859649,
+        "FT_PCT": 0.81981982,
+        "TPM": 100,
+        "REB": 197,
+        "AST": 133,
+        "STL": 62,
+        "BLK": 16,
+        "TO": 64,
+        "PTS": 641
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "PHX",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 243.58,
+        "FGA": 555.3624015550148,
+        "FTM": 115.38,
+        "FTA": 140.73824172731028
+      }
     },
     {
       "id": "t4p13",
-      "name": "Player 55",
+      "name": "Jarrett Allen",
+      "teamAbbr": "CLE",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.79,
-        "TPM": 1.2,
-        "REB": 2.5,
-        "AST": 4.2,
-        "STL": 1.45,
-        "BLK": 1.28,
-        "TO": 3.25,
-        "PTS": 20
+        "FG_PCT": 0.63825758,
+        "FT_PCT": 0.70881226,
+        "TPM": 1,
+        "REB": 476,
+        "AST": 100,
+        "STL": 55,
+        "BLK": 47,
+        "TO": 75,
+        "PTS": 860
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "POR",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 326.8,
+        "FGA": 512.0189876945919,
+        "FTM": 154.79999999999998,
+        "FTA": 218.39351367878427
+      }
     },
     {
       "id": "t4p14",
-      "name": "Player 56",
+      "name": "Caleb Wilson",
+      "teamAbbr": "CHI",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.8,
-        "TPM": 1.6,
-        "REB": 3.2,
-        "AST": 4.8,
-        "STL": 0.4,
-        "BLK": 0.2,
-        "TO": 0.8,
-        "PTS": 21.3
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "SAC",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t5p1",
-      "name": "Player 57",
-      "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.81,
-        "TPM": 2,
-        "REB": 3.9,
-        "AST": 5.4,
-        "STL": 0.55,
-        "BLK": 0.38,
-        "TO": 1.15,
-        "PTS": 22.6
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
+      "name": "Dylan Harper",
       "teamAbbr": "SAS",
       "positions": [
         "PG",
-        "G"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.50457317,
+        "FT_PCT": 0.75630252,
+        "TPM": 61,
+        "REB": 234,
+        "AST": 266,
+        "STL": 54,
+        "BLK": 24,
+        "TO": 99,
+        "PTS": 813
+      },
+      "shooting": {
+        "FGM": 308.94,
+        "FGA": 612.2798800419769,
+        "FTM": 146.34,
+        "FTA": 193.494000257992
+      }
     },
     {
       "id": "t5p2",
-      "name": "Player 58",
+      "name": "VJ Edgecombe",
+      "teamAbbr": "PHI",
+      "positions": [
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.82,
-        "TPM": 2.4,
-        "REB": 4.6,
-        "AST": 6,
-        "STL": 0.7,
-        "BLK": 0.56,
-        "TO": 1.5,
-        "PTS": 23.9
+        "FG_PCT": 0.43786408,
+        "FT_PCT": 0.81767956,
+        "TPM": 149,
+        "REB": 423,
+        "AST": 315,
+        "STL": 107,
+        "BLK": 39,
+        "TO": 137,
+        "PTS": 1199
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "TOR",
-      "positions": [
-        "SG",
-        "G"
-      ]
+        "FGM": 455.62,
+        "FGA": 1040.5512139748937,
+        "FTM": 215.82,
+        "FTA": 263.9420263850059
+      }
     },
     {
       "id": "t5p3",
-      "name": "Player 59",
-      "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.83,
-        "TPM": 2.8,
-        "REB": 5.3,
-        "AST": 6.6,
-        "STL": 0.85,
-        "BLK": 0.74,
-        "TO": 1.85,
-        "PTS": 25.2
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "UTA",
+      "name": "Matas Buzelis",
+      "teamAbbr": "CHI",
       "positions": [
         "SF",
-        "F"
-      ]
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.46313603,
+        "FT_PCT": 0.78571429,
+        "TPM": 173,
+        "REB": 448,
+        "AST": 158,
+        "STL": 54,
+        "BLK": 116,
+        "TO": 159,
+        "PTS": 1252
+      },
+      "shooting": {
+        "FGM": 475.76,
+        "FGA": 1027.2575856385001,
+        "FTM": 225.35999999999999,
+        "FTA": 286.8218166173355
+      }
     },
     {
       "id": "t5p4",
-      "name": "Player 60",
+      "name": "Ausar Thompson",
+      "teamAbbr": "DET",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.84,
-        "TPM": 3.2,
-        "REB": 6,
-        "AST": 1.2,
-        "STL": 1,
-        "BLK": 0.92,
-        "TO": 2.2,
-        "PTS": 7
+        "FG_PCT": 0.52512998,
+        "FT_PCT": 0.57068063,
+        "TPM": 6,
+        "REB": 418,
+        "AST": 228,
+        "STL": 146,
+        "BLK": 69,
+        "TO": 110,
+        "PTS": 721
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "WAS",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 273.98,
+        "FGA": 521.7374944009101,
+        "FTM": 129.78,
+        "FTA": 227.41265986196166
+      }
     },
     {
       "id": "t5p5",
-      "name": "Player 61",
-      "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.85,
-        "TPM": 3.6,
-        "REB": 6.7,
-        "AST": 1.8,
-        "STL": 1.15,
-        "BLK": 1.1,
-        "TO": 2.55,
-        "PTS": 8.3
-      },
-      "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
+      "name": "Onyeka Okongwu",
       "teamAbbr": "ATL",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.48023256,
+        "FT_PCT": 0.75742574,
+        "TPM": 144,
+        "REB": 562,
+        "AST": 231,
+        "STL": 82,
+        "BLK": 79,
+        "TO": 127,
+        "PTS": 1123
+      },
+      "shooting": {
+        "FGM": 426.74,
+        "FGA": 888.6111345719667,
+        "FTM": 202.14,
+        "FTA": 266.87764796585867
+      }
     },
     {
       "id": "t5p6",
-      "name": "Player 62",
-      "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.86,
-        "TPM": 4,
-        "REB": 7.4,
-        "AST": 2.4,
-        "STL": 1.3,
-        "BLK": 1.28,
-        "TO": 2.9,
-        "PTS": 9.6
-      },
-      "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
+      "name": "Payton Pritchard",
       "teamAbbr": "BOS",
       "positions": [
         "PG",
-        "SG",
-        "G"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.46379468,
+        "FT_PCT": 0.88970588,
+        "TPM": 212,
+        "REB": 312,
+        "AST": 408,
+        "STL": 58,
+        "BLK": 10,
+        "TO": 109,
+        "PTS": 1345
+      },
+      "shooting": {
+        "FGM": 511.1,
+        "FGA": 1101.9962540320644,
+        "FTM": 242.1,
+        "FTA": 272.112397413851
+      }
     },
     {
       "id": "t5p7",
-      "name": "Player 63",
+      "name": "AJ Dybantsa",
+      "teamAbbr": "WAS",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.87,
-        "TPM": 0.8,
-        "REB": 8.1,
-        "AST": 3,
-        "STL": 1.45,
-        "BLK": 0.2,
-        "TO": 3.25,
-        "PTS": 10.9
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "BKN",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t5p8",
-      "name": "Player 64",
+      "name": "Rudy Gobert",
+      "teamAbbr": "MIN",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.72,
-        "TPM": 1.2,
-        "REB": 8.8,
-        "AST": 3.6,
-        "STL": 0.4,
-        "BLK": 0.38,
-        "TO": 0.8,
-        "PTS": 12.2
+        "FG_PCT": 0.68228106,
+        "FT_PCT": 0.52649007,
+        "TPM": 0,
+        "REB": 872,
+        "AST": 128,
+        "STL": 58,
+        "BLK": 124,
+        "TO": 106,
+        "PTS": 829
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "CHA",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 315.02,
+        "FGA": 461.71587996301696,
+        "FTM": 149.22,
+        "FTA": 283.4241489112985
+      }
     },
     {
       "id": "t5p9",
-      "name": "Player 65",
+      "name": "Kel'el Ware",
+      "teamAbbr": "MIL",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.73,
-        "TPM": 1.6,
-        "REB": 9.5,
-        "AST": 4.2,
-        "STL": 0.55,
-        "BLK": 0.56,
-        "TO": 1.15,
-        "PTS": 13.5
+        "FG_PCT": 0.53004622,
+        "FT_PCT": 0.73958333,
+        "TPM": 92,
+        "REB": 694,
+        "AST": 56,
+        "STL": 59,
+        "BLK": 84,
+        "TO": 62,
+        "PTS": 851
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "CHI",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 323.38,
+        "FGA": 610.0977382689381,
+        "FTM": 153.18,
+        "FTA": 207.11662065179323
+      }
     },
     {
       "id": "t5p10",
-      "name": "Player 66",
-      "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.74,
-        "TPM": 2,
-        "REB": 2.5,
-        "AST": 4.8,
-        "STL": 0.7,
-        "BLK": 0.74,
-        "TO": 1.5,
-        "PTS": 14.8
-      },
-      "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "CLE",
+      "name": "Coby White",
+      "teamAbbr": "CHA",
       "positions": [
         "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.44622793,
+        "FT_PCT": 0.81742739,
+        "TPM": 115,
+        "REB": 170,
+        "AST": 200,
+        "STL": 25,
+        "BLK": 5,
+        "TO": 128,
+        "PTS": 868
+      },
+      "shooting": {
+        "FGM": 329.84000000000003,
+        "FGA": 739.1738119126699,
+        "FTM": 156.23999999999998,
+        "FTA": 191.13624269428993
+      }
     },
     {
       "id": "t5p11",
-      "name": "Player 67",
+      "name": "Ty Jerome",
+      "teamAbbr": "MEM",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.75,
-        "TPM": 2.4,
-        "REB": 3.2,
-        "AST": 5.4,
-        "STL": 0.85,
-        "BLK": 0.92,
-        "TO": 1.85,
-        "PTS": 16.1
+        "FG_PCT": 0.4744186,
+        "FT_PCT": 0.875,
+        "TPM": 42,
+        "REB": 42,
+        "AST": 85,
+        "STL": 16,
+        "BLK": 4,
+        "TO": 27,
+        "PTS": 295
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "DAL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 112.1,
+        "FGA": 236.28921800283544,
+        "FTM": 53.1,
+        "FTA": 60.68571428571429
+      }
     },
     {
       "id": "t5p12",
-      "name": "Player 68",
+      "name": "Day'Ron Sharpe",
+      "teamAbbr": "BKN",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.76,
-        "TPM": 2.8,
-        "REB": 3.9,
-        "AST": 6,
-        "STL": 1,
-        "BLK": 1.1,
-        "TO": 2.2,
-        "PTS": 17.4
+        "FG_PCT": 0.6011236,
+        "FT_PCT": 0.67763158,
+        "TPM": 9,
+        "REB": 413,
+        "AST": 145,
+        "STL": 67,
+        "BLK": 26,
+        "TO": 106,
+        "PTS": 540
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "DEN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 205.2,
+        "FGA": 341.36074511132153,
+        "FTM": 97.2,
+        "FTA": 143.4407764762085
+      }
     },
     {
       "id": "t5p13",
-      "name": "Player 69",
+      "name": "Darryn Peterson",
+      "teamAbbr": "UTA",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.77,
-        "TPM": 3.2,
-        "REB": 4.6,
-        "AST": 6.6,
-        "STL": 1.15,
-        "BLK": 1.28,
-        "TO": 2.55,
-        "PTS": 18.7
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "DET",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t5p14",
-      "name": "Player 70",
+      "name": "Derik Queen",
+      "teamAbbr": "NOP",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.78,
-        "TPM": 3.6,
-        "REB": 5.3,
-        "AST": 1.2,
-        "STL": 1.3,
-        "BLK": 0.2,
-        "TO": 2.9,
-        "PTS": 20
+        "FG_PCT": 0.47326203,
+        "FT_PCT": 0.79487179,
+        "TPM": 23,
+        "REB": 572,
+        "AST": 298,
+        "STL": 84,
+        "BLK": 74,
+        "TO": 190,
+        "PTS": 948
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "GSW",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 360.24,
+        "FGA": 761.1850881001377,
+        "FTM": 170.64,
+        "FTA": 214.676130348015
+      }
     },
     {
       "id": "t6p1",
-      "name": "Player 71",
-      "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.79,
-        "TPM": 4,
-        "REB": 6,
-        "AST": 1.8,
-        "STL": 1.45,
-        "BLK": 0.38,
-        "TO": 3.25,
-        "PTS": 21.3
-      },
-      "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "HOU",
+      "name": "De'Aaron Fox",
+      "teamAbbr": "SAS",
       "positions": [
         "PG",
-        "G"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.48615091,
+        "FT_PCT": 0.7601626,
+        "TPM": 131,
+        "REB": 270,
+        "AST": 445,
+        "STL": 89,
+        "BLK": 19,
+        "TO": 164,
+        "PTS": 1336
+      },
+      "shooting": {
+        "FGM": 507.68,
+        "FGA": 1044.2847880301201,
+        "FTM": 240.48,
+        "FTA": 316.3533696606489
+      }
     },
     {
       "id": "t6p2",
-      "name": "Player 72",
-      "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.8,
-        "TPM": 0.8,
-        "REB": 6.7,
-        "AST": 2.4,
-        "STL": 0.4,
-        "BLK": 0.56,
-        "TO": 0.8,
-        "PTS": 22.6
-      },
-      "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "IND",
+      "name": "Norman Powell",
+      "teamAbbr": "CHI",
       "positions": [
         "SG",
-        "G"
-      ]
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.47039106,
+        "FT_PCT": 0.82704403,
+        "TPM": 156,
+        "REB": 202,
+        "AST": 143,
+        "STL": 64,
+        "BLK": 14,
+        "TO": 111,
+        "PTS": 1261
+      },
+      "shooting": {
+        "FGM": 479.18,
+        "FGA": 1018.684326185961,
+        "FTM": 226.98,
+        "FTA": 274.4472987731983
+      }
     },
     {
       "id": "t6p3",
-      "name": "Player 73",
-      "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.81,
-        "TPM": 1.2,
-        "REB": 7.4,
-        "AST": 3,
-        "STL": 0.55,
-        "BLK": 0.74,
-        "TO": 1.15,
-        "PTS": 23.9
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "LAC",
+      "name": "Josh Hart",
+      "teamAbbr": "NYK",
       "positions": [
         "SF",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.50844595,
+        "FT_PCT": 0.72,
+        "TPM": 100,
+        "REB": 486,
+        "AST": 317,
+        "STL": 75,
+        "BLK": 17,
+        "TO": 128,
+        "PTS": 792
+      },
+      "shooting": {
+        "FGM": 300.96,
+        "FGA": 591.9213241840159,
+        "FTM": 142.56,
+        "FTA": 198
+      }
     },
     {
       "id": "t6p4",
-      "name": "Player 74",
+      "name": "Miles Bridges",
+      "teamAbbr": "PHX",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.82,
-        "TPM": 1.6,
-        "REB": 8.1,
-        "AST": 3.6,
-        "STL": 0.7,
-        "BLK": 0.92,
-        "TO": 1.5,
-        "PTS": 25.2
+        "FG_PCT": 0.4596929,
+        "FT_PCT": 0.82213439,
+        "TPM": 148,
+        "REB": 450,
+        "AST": 246,
+        "STL": 46,
+        "BLK": 34,
+        "TO": 107,
+        "PTS": 1314
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "LAL",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 499.32,
+        "FGA": 1086.203419717816,
+        "FTM": 236.51999999999998,
+        "FTA": 287.69019138099793
+      }
     },
     {
       "id": "t6p5",
-      "name": "Player 75",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.83,
-        "TPM": 2,
-        "REB": 8.8,
-        "AST": 4.2,
-        "STL": 0.85,
-        "BLK": 1.1,
-        "TO": 1.85,
-        "PTS": 7
-      },
-      "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "MEM",
+      "name": "Myles Turner",
+      "teamAbbr": "MIL",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.43962848,
+        "FT_PCT": 0.74011299,
+        "TPM": 147,
+        "REB": 378,
+        "AST": 103,
+        "STL": 50,
+        "BLK": 115,
+        "TO": 83,
+        "PTS": 846
+      },
+      "shooting": {
+        "FGM": 321.48,
+        "FGA": 731.2538077605892,
+        "FTM": 152.28,
+        "FTA": 205.7523676215979
+      }
     },
     {
       "id": "t6p6",
-      "name": "Player 76",
+      "name": "Ayo Dosunmu",
+      "teamAbbr": "MIN",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.84,
-        "TPM": 2.4,
-        "REB": 9.5,
-        "AST": 4.8,
-        "STL": 1,
-        "BLK": 1.28,
-        "TO": 2.2,
-        "PTS": 8.3
+        "FG_PCT": 0.5167336,
+        "FT_PCT": 0.87586207,
+        "TPM": 123,
+        "REB": 237,
+        "AST": 249,
+        "STL": 58,
+        "BLK": 18,
+        "TO": 96,
+        "PTS": 1022
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "MIA",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
+        "FGM": 388.36,
+        "FGA": 751.5671518167195,
+        "FTM": 183.95999999999998,
+        "FTA": 210.03307061807115
+      }
     },
     {
       "id": "t6p7",
-      "name": "Player 77",
+      "name": "Kristaps Porzingis",
+      "teamAbbr": "GSW",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.85,
-        "TPM": 2.8,
-        "REB": 2.5,
-        "AST": 5.4,
-        "STL": 1.15,
-        "BLK": 0.2,
-        "TO": 2.55,
-        "PTS": 9.6
+        "FG_PCT": 0.44587629,
+        "FT_PCT": 0.84177215,
+        "TPM": 54,
+        "REB": 167,
+        "AST": 81,
+        "STL": 18,
+        "BLK": 38,
+        "TO": 41,
+        "PTS": 533
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "MIL",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 202.54,
+        "FGA": 454.2515593282612,
+        "FTM": 95.94,
+        "FTA": 113.97383484355
+      }
     },
     {
       "id": "t6p8",
-      "name": "Player 78",
+      "name": "Isaiah Hartenstein",
+      "teamAbbr": "OKC",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.86,
-        "TPM": 3.2,
-        "REB": 3.2,
-        "AST": 6,
-        "STL": 1.3,
-        "BLK": 0.38,
-        "TO": 2.9,
-        "PTS": 10.9
+        "FG_PCT": 0.62162162,
+        "FT_PCT": 0.60952381,
+        "TPM": 0,
+        "REB": 443,
+        "AST": 166,
+        "STL": 48,
+        "BLK": 36,
+        "TO": 82,
+        "PTS": 432
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "MIN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 164.16,
+        "FGA": 264.083478949783,
+        "FTM": 77.75999999999999,
+        "FTA": 127.57499990033202
+      }
     },
     {
       "id": "t6p9",
-      "name": "Player 79",
+      "name": "Neemias Queta",
+      "teamAbbr": "BOS",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.87,
-        "TPM": 3.6,
-        "REB": 3.9,
-        "AST": 6.6,
-        "STL": 1.45,
-        "BLK": 0.56,
-        "TO": 3.25,
-        "PTS": 12.2
+        "FG_PCT": 0.65330661,
+        "FT_PCT": 0.70285714,
+        "TPM": 1,
+        "REB": 636,
+        "AST": 126,
+        "STL": 60,
+        "BLK": 100,
+        "TO": 75,
+        "PTS": 776
       },
       "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "NOP",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 294.88,
+        "FGA": 451.365401002142,
+        "FTM": 139.68,
+        "FTA": 198.73170812492566
+      }
     },
     {
       "id": "t6p10",
-      "name": "Player 80",
-      "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.72,
-        "TPM": 4,
-        "REB": 4.6,
-        "AST": 1.2,
-        "STL": 0.4,
-        "BLK": 0.74,
-        "TO": 0.8,
-        "PTS": 13.5
-      },
-      "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "NYK",
+      "name": "Jalen Suggs",
+      "teamAbbr": "ORL",
       "positions": [
         "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43451464,
+        "FT_PCT": 0.85470085,
+        "TPM": 122,
+        "REB": 220,
+        "AST": 312,
+        "STL": 105,
+        "BLK": 40,
+        "TO": 152,
+        "PTS": 786
+      },
+      "shooting": {
+        "FGM": 298.68,
+        "FGA": 687.3876562594071,
+        "FTM": 141.48,
+        "FTA": 165.5316009104238
+      }
     },
     {
       "id": "t6p11",
-      "name": "Player 81",
+      "name": "Kyshawn George",
+      "teamAbbr": "WAS",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.73,
-        "TPM": 0.8,
-        "REB": 5.3,
-        "AST": 1.8,
-        "STL": 0.55,
-        "BLK": 0.92,
-        "TO": 1.15,
-        "PTS": 14.8
+        "FG_PCT": 0.43847487,
+        "FT_PCT": 0.80152672,
+        "TPM": 99,
+        "REB": 245,
+        "AST": 214,
+        "STL": 48,
+        "BLK": 43,
+        "TO": 125,
+        "PTS": 710
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "OKC",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 269.8,
+        "FGA": 615.3146245302496,
+        "FTM": 127.8,
+        "FTA": 159.44571379978447
+      }
     },
     {
       "id": "t6p12",
-      "name": "Player 82",
+      "name": "Cedric Coward",
+      "teamAbbr": "MEM",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.74,
-        "TPM": 1.2,
-        "REB": 6,
-        "AST": 2.4,
-        "STL": 0.7,
-        "BLK": 1.1,
-        "TO": 1.5,
-        "PTS": 16.1
+        "FG_PCT": 0.47067901,
+        "FT_PCT": 0.84337349,
+        "TPM": 93,
+        "REB": 364,
+        "AST": 171,
+        "STL": 40,
+        "BLK": 27,
+        "TO": 105,
+        "PTS": 843
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "ORL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 320.34000000000003,
+        "FGA": 680.591216506553,
+        "FTM": 151.73999999999998,
+        "FTA": 179.92028656248135
+      }
     },
     {
       "id": "t6p13",
-      "name": "Player 83",
+      "name": "Andrew Wiggins",
+      "teamAbbr": "MIA",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.75,
-        "TPM": 1.6,
-        "REB": 6.7,
-        "AST": 3,
-        "STL": 0.85,
-        "BLK": 1.28,
-        "TO": 1.85,
-        "PTS": 17.4
+        "FG_PCT": 0.47503045,
+        "FT_PCT": 0.78395062,
+        "TPM": 138,
+        "REB": 329,
+        "AST": 182,
+        "STL": 76,
+        "BLK": 69,
+        "TO": 103,
+        "PTS": 1045
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "PHI",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 397.1,
+        "FGA": 835.9464114353091,
+        "FTM": 188.1,
+        "FTA": 239.93858184588206
+      }
     },
     {
       "id": "t6p14",
-      "name": "Player 84",
+      "name": "Jabari Smith Jr.",
+      "teamAbbr": "HOU",
+      "positions": [
+        "PF",
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.76,
-        "TPM": 2,
-        "REB": 7.4,
-        "AST": 3.6,
-        "STL": 1,
-        "BLK": 0.2,
-        "TO": 2.2,
-        "PTS": 18.7
+        "FG_PCT": 0.44923077,
+        "FT_PCT": 0.77511962,
+        "TPM": 177,
+        "REB": 529,
+        "AST": 143,
+        "STL": 56,
+        "BLK": 71,
+        "TO": 105,
+        "PTS": 1215
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "PHX",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 461.7,
+        "FGA": 1027.756847555211,
+        "FTM": 218.7,
+        "FTA": 282.1499989898333
+      }
     },
     {
       "id": "t7p1",
-      "name": "Player 85",
+      "name": "Brandin Podziemski",
+      "teamAbbr": "GSW",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.77,
-        "TPM": 2.4,
-        "REB": 8.1,
-        "AST": 4.2,
-        "STL": 1.15,
-        "BLK": 0.38,
-        "TO": 2.55,
-        "PTS": 20
+        "FG_PCT": 0.45496536,
+        "FT_PCT": 0.7966805,
+        "TPM": 153,
+        "REB": 419,
+        "AST": 304,
+        "STL": 88,
+        "BLK": 15,
+        "TO": 131,
+        "PTS": 1133
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "POR",
-      "positions": [
-        "PG",
-        "G"
-      ]
+        "FGM": 430.54,
+        "FGA": 946.3138028794104,
+        "FTM": 203.94,
+        "FTA": 255.9871868333667
+      }
     },
     {
       "id": "t7p2",
-      "name": "Player 86",
-      "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.78,
-        "TPM": 2.8,
-        "REB": 8.8,
-        "AST": 4.8,
-        "STL": 1.3,
-        "BLK": 0.56,
-        "TO": 2.9,
-        "PTS": 21.3
-      },
-      "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "SAC",
+      "name": "CJ McCollum",
+      "teamAbbr": "ATL",
       "positions": [
         "SG",
-        "G"
-      ]
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.45493934,
+        "FT_PCT": 0.7721519,
+        "TPM": 191,
+        "REB": 252,
+        "AST": 293,
+        "STL": 64,
+        "BLK": 35,
+        "TO": 135,
+        "PTS": 1424
+      },
+      "shooting": {
+        "FGM": 541.12,
+        "FGA": 1189.4332989536583,
+        "FTM": 256.32,
+        "FTA": 331.9554092918764
+      }
     },
     {
       "id": "t7p3",
-      "name": "Player 87",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.79,
-        "TPM": 3.2,
-        "REB": 9.5,
-        "AST": 5.4,
-        "STL": 1.45,
-        "BLK": 0.74,
-        "TO": 3.25,
-        "PTS": 22.6
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "SAS",
+      "name": "Jaime Jaquez Jr.",
+      "teamAbbr": "MIL",
       "positions": [
         "SF",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.50710383,
+        "FT_PCT": 0.76851852,
+        "TPM": 58,
+        "REB": 375,
+        "AST": 352,
+        "STL": 51,
+        "BLK": 21,
+        "TO": 152,
+        "PTS": 1152
+      },
+      "shooting": {
+        "FGM": 437.76,
+        "FGA": 863.2551641347295,
+        "FTM": 207.35999999999999,
+        "FTA": 269.81783080517044
+      }
     },
     {
       "id": "t7p4",
-      "name": "Player 88",
+      "name": "Sandro Mamukelashvili",
+      "teamAbbr": "LAL",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.8,
-        "TPM": 3.6,
-        "REB": 2.5,
-        "AST": 6,
-        "STL": 0.4,
-        "BLK": 0.92,
-        "TO": 0.8,
-        "PTS": 23.9
+        "FG_PCT": 0.5229794,
+        "FT_PCT": 0.74683544,
+        "TPM": 115,
+        "REB": 395,
+        "AST": 151,
+        "STL": 64,
+        "BLK": 41,
+        "TO": 67,
+        "PTS": 893
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "TOR",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 339.34000000000003,
+        "FGA": 648.8592093684762,
+        "FTM": 160.73999999999998,
+        "FTA": 215.22813646872459
+      }
     },
     {
       "id": "t7p5",
-      "name": "Player 89",
-      "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.81,
-        "TPM": 4,
-        "REB": 3.2,
-        "AST": 6.6,
-        "STL": 0.55,
-        "BLK": 1.1,
-        "TO": 1.15,
-        "PTS": 25.2
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "UTA",
+      "name": "Nic Claxton",
+      "teamAbbr": "CHI",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.57118353,
+        "FT_PCT": 0.61572052,
+        "TPM": 3,
+        "REB": 478,
+        "AST": 253,
+        "STL": 45,
+        "BLK": 77,
+        "TO": 96,
+        "PTS": 810
+      },
+      "shooting": {
+        "FGM": 307.8,
+        "FGA": 538.8810843337867,
+        "FTM": 145.79999999999998,
+        "FTA": 236.7957462259013
+      }
     },
     {
       "id": "t7p6",
-      "name": "Player 90",
+      "name": "Darius Acuff Jr.",
+      "teamAbbr": "SAC",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.82,
-        "TPM": 0.8,
-        "REB": 3.9,
-        "AST": 1.2,
-        "STL": 0.7,
-        "BLK": 1.28,
-        "TO": 1.5,
-        "PTS": 7
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "WAS",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t7p7",
-      "name": "Player 91",
+      "name": "Toumani Camara",
+      "teamAbbr": "POR",
+      "positions": [
+        "PF",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.83,
-        "TPM": 1.2,
-        "REB": 4.6,
-        "AST": 1.8,
-        "STL": 0.85,
-        "BLK": 0.2,
-        "TO": 1.85,
-        "PTS": 8.3
+        "FG_PCT": 0.43995511,
+        "FT_PCT": 0.7080292,
+        "TPM": 219,
+        "REB": 421,
+        "AST": 201,
+        "STL": 94,
+        "BLK": 35,
+        "TO": 144,
+        "PTS": 1100
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "ATL",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 418,
+        "FGA": 950.0969314801231,
+        "FTM": 198,
+        "FTA": 279.6494833828887
+      }
     },
     {
       "id": "t7p8",
-      "name": "Player 92",
+      "name": "Wendell Carter Jr.",
+      "teamAbbr": "ORL",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.84,
-        "TPM": 1.6,
-        "REB": 5.3,
-        "AST": 2.4,
-        "STL": 1,
-        "BLK": 0.38,
-        "TO": 2.2,
-        "PTS": 9.6
+        "FG_PCT": 0.51177394,
+        "FT_PCT": 0.792,
+        "TPM": 72,
+        "REB": 577,
+        "AST": 154,
+        "STL": 60,
+        "BLK": 49,
+        "TO": 100,
+        "PTS": 922
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "BOS",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 350.36,
+        "FGA": 684.599141566294,
+        "FTM": 165.96,
+        "FTA": 209.54545454545453
+      }
     },
     {
       "id": "t7p9",
-      "name": "Player 93",
+      "name": "John Collins",
+      "teamAbbr": "DET",
+      "positions": [
+        "PF",
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.85,
-        "TPM": 2,
-        "REB": 6,
-        "AST": 3,
-        "STL": 1.15,
-        "BLK": 0.56,
-        "TO": 2.55,
-        "PTS": 10.9
+        "FG_PCT": 0.55235205,
+        "FT_PCT": 0.76623377,
+        "TPM": 89,
+        "REB": 367,
+        "AST": 70,
+        "STL": 60,
+        "BLK": 51,
+        "TO": 95,
+        "PTS": 935
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "BKN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 355.3,
+        "FGA": 643.2491741453662,
+        "FTM": 168.29999999999998,
+        "FTA": 219.64576163224962
+      }
     },
     {
       "id": "t7p10",
-      "name": "Player 94",
+      "name": "RJ Barrett",
+      "teamAbbr": "TOR",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.86,
-        "TPM": 2.4,
-        "REB": 6.7,
-        "AST": 3.6,
-        "STL": 1.3,
-        "BLK": 0.74,
-        "TO": 2.9,
-        "PTS": 12.2
+        "FG_PCT": 0.49142157,
+        "FT_PCT": 0.71684588,
+        "TPM": 96,
+        "REB": 300,
+        "AST": 189,
+        "STL": 42,
+        "BLK": 19,
+        "TO": 99,
+        "PTS": 1098
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "CHA",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 417.24,
+        "FGA": 849.0469801722379,
+        "FTM": 197.64,
+        "FTA": 275.70779928315966
+      }
     },
     {
       "id": "t7p11",
-      "name": "Player 95",
+      "name": "Jalen Green",
+      "teamAbbr": "PHX",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.87,
-        "TPM": 2.8,
-        "REB": 7.4,
-        "AST": 4.2,
-        "STL": 1.45,
-        "BLK": 0.92,
-        "TO": 3.25,
-        "PTS": 13.5
+        "FG_PCT": 0.421875,
+        "FT_PCT": 0.74712644,
+        "TPM": 71,
+        "REB": 116,
+        "AST": 91,
+        "STL": 34,
+        "BLK": 8,
+        "TO": 72,
+        "PTS": 568
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "CHI",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 215.84,
+        "FGA": 511.62074074074076,
+        "FTM": 102.24,
+        "FTA": 136.84430710282453
+      }
     },
     {
       "id": "t7p12",
-      "name": "Player 96",
+      "name": "Saddiq Bey",
+      "teamAbbr": "NOP",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.72,
-        "TPM": 3.2,
-        "REB": 8.1,
-        "AST": 4.8,
-        "STL": 0.4,
-        "BLK": 1.1,
-        "TO": 0.8,
-        "PTS": 14.8
+        "FG_PCT": 0.45087901,
+        "FT_PCT": 0.84067797,
+        "TPM": 151,
+        "REB": 400,
+        "AST": 182,
+        "STL": 68,
+        "BLK": 7,
+        "TO": 68,
+        "PTS": 1271
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "CLE",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 482.98,
+        "FGA": 1071.1964613300584,
+        "FTM": 228.78,
+        "FTA": 272.1374987380721
+      }
     },
     {
       "id": "t7p13",
-      "name": "Player 97",
-      "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.73,
-        "TPM": 3.6,
-        "REB": 8.8,
-        "AST": 5.4,
-        "STL": 0.55,
-        "BLK": 1.28,
-        "TO": 1.15,
-        "PTS": 16.1
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "DAL",
+      "name": "Andrew Nembhard",
+      "teamAbbr": "IND",
       "positions": [
         "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.44223108,
+        "FT_PCT": 0.82478632,
+        "TPM": 107,
+        "REB": 160,
+        "AST": 437,
+        "STL": 51,
+        "BLK": 8,
+        "TO": 137,
+        "PTS": 966
+      },
+      "shooting": {
+        "FGM": 367.08,
+        "FGA": 830.0637757074876,
+        "FTM": 173.88,
+        "FTA": 210.8182395653701
+      }
     },
     {
       "id": "t7p14",
-      "name": "Player 98",
+      "name": "Daniel Gafford",
+      "teamAbbr": "DAL",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.74,
-        "TPM": 4,
-        "REB": 9.5,
-        "AST": 6,
-        "STL": 0.7,
-        "BLK": 0.2,
-        "TO": 1.5,
-        "PTS": 17.4
+        "FG_PCT": 0.65506329,
+        "FT_PCT": 0.68322981,
+        "TPM": 0,
+        "REB": 378,
+        "AST": 58,
+        "STL": 42,
+        "BLK": 69,
+        "TO": 63,
+        "PTS": 524
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "DEN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 199.12,
+        "FGA": 303.97062854796826,
+        "FTM": 94.32,
+        "FTA": 138.05018255863277
+      }
     },
     {
       "id": "t8p1",
-      "name": "Player 99",
+      "name": "Collin Gillespie",
+      "teamAbbr": "PHX",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.75,
-        "TPM": 0.8,
-        "REB": 2.5,
-        "AST": 6.6,
-        "STL": 0.85,
-        "BLK": 0.38,
-        "TO": 1.85,
-        "PTS": 18.7
+        "FG_PCT": 0.41805226,
+        "FT_PCT": 0.87356322,
+        "TPM": 232,
+        "REB": 327,
+        "AST": 371,
+        "STL": 99,
+        "BLK": 16,
+        "TO": 124,
+        "PTS": 1012
       },
       "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "DET",
-      "positions": [
-        "PG",
-        "G"
-      ]
+        "FGM": 384.56,
+        "FGA": 919.8849923691358,
+        "FTM": 182.16,
+        "FTA": 208.52526277376924
+      }
     },
     {
       "id": "t8p2",
-      "name": "Player 100",
+      "name": "Jrue Holiday",
+      "teamAbbr": "POR",
+      "positions": [
+        "PG",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.76,
-        "TPM": 1.2,
-        "REB": 3.2,
-        "AST": 1.2,
-        "STL": 1,
-        "BLK": 0.56,
-        "TO": 2.2,
-        "PTS": 20
+        "FG_PCT": 0.45133992,
+        "FT_PCT": 0.83809524,
+        "TPM": 137,
+        "REB": 245,
+        "AST": 322,
+        "STL": 54,
+        "BLK": 6,
+        "TO": 146,
+        "PTS": 865
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "GSW",
-      "positions": [
-        "SG",
-        "G"
-      ]
+        "FGM": 328.7,
+        "FGA": 728.2759300351717,
+        "FTM": 155.7,
+        "FTA": 185.77840866868542
+      }
     },
     {
       "id": "t8p3",
-      "name": "Player 101",
-      "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.77,
-        "TPM": 1.6,
-        "REB": 3.9,
-        "AST": 1.8,
-        "STL": 1.15,
-        "BLK": 0.74,
-        "TO": 2.55,
-        "PTS": 21.3
-      },
-      "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "HOU",
+      "name": "Yaxel Lendeborg",
+      "teamAbbr": "GSW",
       "positions": [
         "SF",
-        "F"
-      ]
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "shooting": {
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t8p4",
-      "name": "Player 102",
+      "name": "Moses Wright",
+      "teamAbbr": "DAL",
+      "positions": [
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.78,
-        "TPM": 2,
-        "REB": 4.6,
-        "AST": 2.4,
-        "STL": 1.3,
-        "BLK": 0.92,
-        "TO": 2.9,
-        "PTS": 22.6
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "IND",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t8p5",
-      "name": "Player 103",
-      "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.79,
-        "TPM": 2.4,
-        "REB": 5.3,
-        "AST": 3,
-        "STL": 1.45,
-        "BLK": 1.1,
-        "TO": 3.25,
-        "PTS": 23.9
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "LAC",
+      "name": "Jakob Poeltl",
+      "teamAbbr": "TOR",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.7,
+        "FT_PCT": 0.60204082,
+        "TPM": 0,
+        "REB": 323,
+        "AST": 93,
+        "STL": 40,
+        "BLK": 32,
+        "TO": 57,
+        "PTS": 493
+      },
+      "shooting": {
+        "FGM": 187.34,
+        "FGA": 267.62857142857143,
+        "FTM": 88.74,
+        "FTA": 147.39864316841505
+      }
     },
     {
       "id": "t8p6",
-      "name": "Player 104",
-      "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.8,
-        "TPM": 2.8,
-        "REB": 6,
-        "AST": 3.6,
-        "STL": 0.4,
-        "BLK": 1.28,
-        "TO": 0.8,
-        "PTS": 25.2
-      },
-      "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "LAL",
+      "name": "Egor Demin",
+      "teamAbbr": "BKN",
       "positions": [
         "PG",
-        "SG",
-        "G"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.3986637,
+        "FT_PCT": 0.83076923,
+        "TPM": 124,
+        "REB": 165,
+        "AST": 173,
+        "STL": 42,
+        "BLK": 17,
+        "TO": 86,
+        "PTS": 536
+      },
+      "shooting": {
+        "FGM": 203.68,
+        "FGA": 510.9068119319617,
+        "FTM": 96.47999999999999,
+        "FTA": 116.13333344086418
+      }
     },
     {
       "id": "t8p7",
-      "name": "Player 105",
+      "name": "Paul Zipser",
+      "teamAbbr": "CHI",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.81,
-        "TPM": 3.2,
-        "REB": 6.7,
-        "AST": 4.2,
-        "STL": 0.55,
-        "BLK": 0.2,
-        "TO": 1.15,
-        "PTS": 7
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "MEM",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t8p8",
-      "name": "Player 106",
-      "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.82,
-        "TPM": 3.6,
-        "REB": 7.4,
-        "AST": 4.8,
-        "STL": 0.7,
-        "BLK": 0.38,
-        "TO": 1.5,
-        "PTS": 8.3
-      },
-      "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
+      "name": "Davion Mitchell",
       "teamAbbr": "MIA",
       "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.48968105,
+        "FT_PCT": 0.64615385,
+        "TPM": 90,
+        "REB": 187,
+        "AST": 453,
+        "STL": 68,
+        "BLK": 11,
+        "TO": 108,
+        "PTS": 654
+      },
+      "shooting": {
+        "FGM": 248.52,
+        "FGA": 507.51402366908013,
+        "FTM": 117.72,
+        "FTA": 182.18571320127552
+      }
     },
     {
       "id": "t8p9",
-      "name": "Player 107",
+      "name": "Reed Sheppard",
+      "teamAbbr": "HOU",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.83,
-        "TPM": 4,
-        "REB": 8.1,
-        "AST": 5.4,
-        "STL": 0.85,
-        "BLK": 0.56,
-        "TO": 1.85,
-        "PTS": 9.6
+        "FG_PCT": 0.43023256,
+        "FT_PCT": 0.80232558,
+        "TPM": 227,
+        "REB": 238,
+        "AST": 277,
+        "STL": 122,
+        "BLK": 54,
+        "TO": 123,
+        "PTS": 1110
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "MIL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 421.8,
+        "FGA": 980.3999957604325,
+        "FTM": 199.79999999999998,
+        "FTA": 249.02608738961058
+      }
     },
     {
       "id": "t8p10",
-      "name": "Player 108",
+      "name": "Brook Lopez",
+      "teamAbbr": "LAC",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.84,
-        "TPM": 0.8,
-        "REB": 8.8,
-        "AST": 6,
-        "STL": 1,
-        "BLK": 0.74,
-        "TO": 2.2,
-        "PTS": 10.9
+        "FG_PCT": 0.42804428,
+        "FT_PCT": 0.75675676,
+        "TPM": 114,
+        "REB": 273,
+        "AST": 97,
+        "STL": 45,
+        "BLK": 87,
+        "TO": 61,
+        "PTS": 634
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "MIN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 240.92000000000002,
+        "FGA": 562.8389660994886,
+        "FTM": 114.11999999999999,
+        "FTA": 150.80142792513672
+      }
     },
     {
       "id": "t8p11",
-      "name": "Player 109",
+      "name": "Joe Young",
+      "teamAbbr": "IND",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.85,
-        "TPM": 1.2,
-        "REB": 9.5,
-        "AST": 6.6,
-        "STL": 1.15,
-        "BLK": 0.92,
-        "TO": 2.55,
-        "PTS": 12.2
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "NOP",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t8p12",
-      "name": "Player 110",
+      "name": "Isaiah Wong",
+      "teamAbbr": "CHA",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.86,
-        "TPM": 1.6,
-        "REB": 2.5,
-        "AST": 1.2,
-        "STL": 1.3,
-        "BLK": 1.1,
-        "TO": 2.9,
-        "PTS": 13.5
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "NYK",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t8p13",
-      "name": "Player 111",
+      "name": "Kyle Lowry",
+      "teamAbbr": "PHI",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.87,
-        "TPM": 2,
-        "REB": 3.2,
-        "AST": 1.8,
-        "STL": 1.45,
-        "BLK": 1.28,
-        "TO": 3.25,
-        "PTS": 14.8
+        "FG_PCT": 0.16,
+        "FT_PCT": 0.83333333,
+        "TPM": 4,
+        "REB": 9,
+        "AST": 11,
+        "STL": 2,
+        "BLK": 2,
+        "TO": 4,
+        "PTS": 17
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "OKC",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 6.46,
+        "FGA": 40.375,
+        "FTM": 3.06,
+        "FTA": 3.6720000146880003
+      }
     },
     {
       "id": "t8p14",
-      "name": "Player 112",
+      "name": "Jonathon Simmons",
+      "teamAbbr": "WAS",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.72,
-        "TPM": 2.4,
-        "REB": 3.9,
-        "AST": 2.4,
-        "STL": 0.4,
-        "BLK": 0.2,
-        "TO": 0.8,
-        "PTS": 16.1
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "ORL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t9p1",
-      "name": "Player 113",
-      "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.73,
-        "TPM": 2.8,
-        "REB": 4.6,
-        "AST": 3,
-        "STL": 0.55,
-        "BLK": 0.38,
-        "TO": 1.15,
-        "PTS": 17.4
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "PHI",
+      "name": "Anthony Black",
+      "teamAbbr": "ORL",
       "positions": [
         "PG",
-        "G"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.44631307,
+        "FT_PCT": 0.73160173,
+        "TPM": 100,
+        "REB": 244,
+        "AST": 236,
+        "STL": 91,
+        "BLK": 45,
+        "TO": 132,
+        "PTS": 959
+      },
+      "shooting": {
+        "FGM": 364.42,
+        "FGA": 816.5120506105726,
+        "FTM": 172.62,
+        "FTA": 235.94804785385077
+      }
     },
     {
       "id": "t9p2",
-      "name": "Player 114",
+      "name": "Ron Baker",
+      "teamAbbr": "WAS",
+      "positions": [
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.74,
-        "TPM": 3.2,
-        "REB": 5.3,
-        "AST": 3.6,
-        "STL": 0.7,
-        "BLK": 0.56,
-        "TO": 1.5,
-        "PTS": 18.7
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "PHX",
-      "positions": [
-        "SG",
-        "G"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t9p3",
-      "name": "Player 115",
+      "name": "Anthony Brown",
+      "teamAbbr": "PHI",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.75,
-        "TPM": 3.6,
-        "REB": 6,
-        "AST": 4.2,
-        "STL": 0.85,
-        "BLK": 0.74,
-        "TO": 1.85,
-        "PTS": 20
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "POR",
-      "positions": [
-        "SF",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t9p4",
-      "name": "Player 116",
+      "name": "Paul Reed",
+      "teamAbbr": "DET",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.76,
-        "TPM": 4,
-        "REB": 6.7,
-        "AST": 4.8,
-        "STL": 1,
-        "BLK": 0.92,
-        "TO": 2.2,
-        "PTS": 21.3
+        "FG_PCT": 0.61651917,
+        "FT_PCT": 0.66363636,
+        "TPM": 13,
+        "REB": 294,
+        "AST": 80,
+        "STL": 57,
+        "BLK": 60,
+        "TO": 58,
+        "PTS": 504
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "SAC",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 191.52,
+        "FGA": 310.6472747635731,
+        "FTM": 90.72,
+        "FTA": 136.7013706120623
+      }
     },
     {
       "id": "t9p5",
-      "name": "Player 117",
+      "name": "Draymond Green",
+      "teamAbbr": "GSW",
+      "positions": [
+        "PF",
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.77,
-        "TPM": 0.8,
-        "REB": 7.4,
-        "AST": 5.4,
-        "STL": 1.15,
-        "BLK": 1.1,
-        "TO": 2.55,
-        "PTS": 22.6
+        "FG_PCT": 0.41751527,
+        "FT_PCT": 0.70238095,
+        "TPM": 101,
+        "REB": 375,
+        "AST": 376,
+        "STL": 61,
+        "BLK": 42,
+        "TO": 181,
+        "PTS": 570
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "SAS",
-      "positions": [
-        "C"
-      ]
+        "FGM": 216.6,
+        "FGA": 518.7834207836279,
+        "FTM": 102.6,
+        "FTA": 146.07457676635448
+      }
     },
     {
       "id": "t9p6",
-      "name": "Player 118",
+      "name": "Quentin Grimes",
+      "teamAbbr": "LAL",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.78,
-        "TPM": 1.2,
-        "REB": 8.1,
-        "AST": 6,
-        "STL": 1.3,
-        "BLK": 1.28,
-        "TO": 2.9,
-        "PTS": 23.9
+        "FG_PCT": 0.45033113,
+        "FT_PCT": 0.83966245,
+        "TPM": 127,
+        "REB": 273,
+        "AST": 244,
+        "STL": 64,
+        "BLK": 28,
+        "TO": 133,
+        "PTS": 1006
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "TOR",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
+        "FGM": 382.28000000000003,
+        "FGA": 848.8864627235519,
+        "FTM": 181.07999999999998,
+        "FTA": 215.65808974785045
+      }
     },
     {
       "id": "t9p7",
-      "name": "Player 119",
+      "name": "Troy Williams",
+      "teamAbbr": "SAC",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.79,
-        "TPM": 1.6,
-        "REB": 8.8,
-        "AST": 6.6,
-        "STL": 1.45,
-        "BLK": 0.2,
-        "TO": 3.25,
-        "PTS": 25.2
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "UTA",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t9p8",
-      "name": "Player 120",
+      "name": "P.J. Washington",
+      "teamAbbr": "DAL",
+      "positions": [
+        "PF",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.8,
-        "TPM": 2,
-        "REB": 9.5,
-        "AST": 1.2,
-        "STL": 0.4,
-        "BLK": 0.38,
-        "TO": 0.8,
-        "PTS": 7
+        "FG_PCT": 0.44984802,
+        "FT_PCT": 0.68681319,
+        "TPM": 76,
+        "REB": 394,
+        "AST": 98,
+        "STL": 55,
+        "BLK": 60,
+        "TO": 94,
+        "PTS": 793
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "WAS",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 301.34000000000003,
+        "FGA": 669.8706821028134,
+        "FTM": 142.73999999999998,
+        "FTA": 207.82943903567138
+      }
     },
     {
       "id": "t9p9",
-      "name": "Player 121",
+      "name": "Kelly Oubre Jr.",
+      "teamAbbr": "IND",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.81,
-        "TPM": 2.4,
-        "REB": 2.5,
-        "AST": 1.8,
-        "STL": 0.55,
-        "BLK": 0.56,
-        "TO": 1.15,
-        "PTS": 8.3
+        "FG_PCT": 0.46691176,
+        "FT_PCT": 0.76551724,
+        "TPM": 86,
+        "REB": 252,
+        "AST": 80,
+        "STL": 68,
+        "BLK": 24,
+        "TO": 69,
+        "PTS": 705
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "ATL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 267.9,
+        "FGA": 573.770084523037,
+        "FTM": 126.89999999999999,
+        "FTA": 165.77027056895543
+      }
     },
     {
       "id": "t9p10",
-      "name": "Player 122",
+      "name": "Shaedon Sharpe",
+      "teamAbbr": "POR",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.82,
-        "TPM": 2.8,
-        "REB": 3.2,
-        "AST": 2.4,
-        "STL": 0.7,
-        "BLK": 0.74,
-        "TO": 1.5,
-        "PTS": 9.6
+        "FG_PCT": 0.4516129,
+        "FT_PCT": 0.78680203,
+        "TPM": 103,
+        "REB": 217,
+        "AST": 132,
+        "STL": 70,
+        "BLK": 6,
+        "TO": 147,
+        "PTS": 1042
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "BOS",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 395.96,
+        "FGA": 876.7685776912041,
+        "FTM": 187.56,
+        "FTA": 238.3827098158351
+      }
     },
     {
       "id": "t9p11",
-      "name": "Player 123",
+      "name": "Cameron Johnson",
+      "teamAbbr": "DEN",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.83,
-        "TPM": 3.2,
-        "REB": 3.9,
-        "AST": 3,
-        "STL": 0.85,
-        "BLK": 0.92,
-        "TO": 1.85,
-        "PTS": 10.9
+        "FG_PCT": 0.48,
+        "FT_PCT": 0.83928571,
+        "TPM": 110,
+        "REB": 206,
+        "AST": 132,
+        "STL": 40,
+        "BLK": 21,
+        "TO": 47,
+        "PTS": 660
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "BKN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 250.8,
+        "FGA": 522.5,
+        "FTM": 118.8,
+        "FTA": 141.54893689301585
+      }
     },
     {
       "id": "t9p12",
-      "name": "Player 124",
-      "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.84,
-        "TPM": 3.6,
-        "REB": 4.6,
-        "AST": 3.6,
-        "STL": 1,
-        "BLK": 1.1,
-        "TO": 2.2,
-        "PTS": 12.2
-      },
-      "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "CHA",
+      "name": "Keaton Wagler",
+      "teamAbbr": "LAC",
       "positions": [
         "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "shooting": {
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t9p13",
-      "name": "Player 125",
+      "name": "Bobby Portis",
+      "teamAbbr": "MIA",
+      "positions": [
+        "PF",
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.85,
-        "TPM": 4,
-        "REB": 5.3,
-        "AST": 4.2,
-        "STL": 1.15,
-        "BLK": 1.28,
-        "TO": 2.55,
-        "PTS": 13.5
+        "FG_PCT": 0.488,
+        "FT_PCT": 0.70588235,
+        "TPM": 135,
+        "REB": 428,
+        "AST": 105,
+        "STL": 41,
+        "BLK": 12,
+        "TO": 66,
+        "PTS": 915
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "CHI",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 347.7,
+        "FGA": 712.5,
+        "FTM": 164.7,
+        "FTA": 233.3250009721875
+      }
     },
     {
       "id": "t9p14",
-      "name": "Player 126",
-      "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.86,
-        "TPM": 0.8,
-        "REB": 6,
-        "AST": 4.8,
-        "STL": 1.3,
-        "BLK": 0.2,
-        "TO": 2.9,
-        "PTS": 14.8
-      },
-      "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "CLE",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p1",
-      "name": "Player 127",
-      "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.87,
-        "TPM": 1.2,
-        "REB": 6.7,
-        "AST": 5.4,
-        "STL": 1.45,
-        "BLK": 0.38,
-        "TO": 3.25,
-        "PTS": 16.1
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "DAL",
-      "positions": [
-        "PG",
-        "G"
-      ]
-    },
-    {
-      "id": "t10p2",
-      "name": "Player 128",
-      "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.72,
-        "TPM": 1.6,
-        "REB": 7.4,
-        "AST": 6,
-        "STL": 0.4,
-        "BLK": 0.56,
-        "TO": 0.8,
-        "PTS": 17.4
-      },
-      "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "DEN",
-      "positions": [
-        "SG",
-        "G"
-      ]
-    },
-    {
-      "id": "t10p3",
-      "name": "Player 129",
-      "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.73,
-        "TPM": 2,
-        "REB": 8.1,
-        "AST": 6.6,
-        "STL": 0.55,
-        "BLK": 0.74,
-        "TO": 1.15,
-        "PTS": 18.7
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "DET",
-      "positions": [
-        "SF",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p4",
-      "name": "Player 130",
-      "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.74,
-        "TPM": 2.4,
-        "REB": 8.8,
-        "AST": 1.2,
-        "STL": 0.7,
-        "BLK": 0.92,
-        "TO": 1.5,
-        "PTS": 20
-      },
-      "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "GSW",
-      "positions": [
-        "PF",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p5",
-      "name": "Player 131",
-      "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.75,
-        "TPM": 2.8,
-        "REB": 9.5,
-        "AST": 1.8,
-        "STL": 0.85,
-        "BLK": 1.1,
-        "TO": 1.85,
-        "PTS": 21.3
-      },
-      "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "HOU",
-      "positions": [
-        "C"
-      ]
-    },
-    {
-      "id": "t10p6",
-      "name": "Player 132",
-      "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.76,
-        "TPM": 3.2,
-        "REB": 2.5,
-        "AST": 2.4,
-        "STL": 1,
-        "BLK": 1.28,
-        "TO": 2.2,
-        "PTS": 22.6
-      },
-      "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "IND",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
-    },
-    {
-      "id": "t10p7",
-      "name": "Player 133",
-      "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.77,
-        "TPM": 3.6,
-        "REB": 3.2,
-        "AST": 3,
-        "STL": 1.15,
-        "BLK": 0.2,
-        "TO": 2.55,
-        "PTS": 23.9
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "LAC",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p8",
-      "name": "Player 134",
-      "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.78,
-        "TPM": 4,
-        "REB": 3.9,
-        "AST": 3.6,
-        "STL": 1.3,
-        "BLK": 0.38,
-        "TO": 2.9,
-        "PTS": 25.2
-      },
-      "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "LAL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p9",
-      "name": "Player 135",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.79,
-        "TPM": 0.8,
-        "REB": 4.6,
-        "AST": 4.2,
-        "STL": 1.45,
-        "BLK": 0.56,
-        "TO": 3.25,
-        "PTS": 7
-      },
-      "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "MEM",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p10",
-      "name": "Player 136",
-      "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.8,
-        "TPM": 1.2,
-        "REB": 5.3,
-        "AST": 4.8,
-        "STL": 0.4,
-        "BLK": 0.74,
-        "TO": 0.8,
-        "PTS": 8.3
-      },
-      "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "MIA",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p11",
-      "name": "Player 137",
-      "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.81,
-        "TPM": 1.6,
-        "REB": 6,
-        "AST": 5.4,
-        "STL": 0.55,
-        "BLK": 0.92,
-        "TO": 1.15,
-        "PTS": 9.6
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "MIL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p12",
-      "name": "Player 138",
-      "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.82,
-        "TPM": 2,
-        "REB": 6.7,
-        "AST": 6,
-        "STL": 0.7,
-        "BLK": 1.1,
-        "TO": 1.5,
-        "PTS": 10.9
-      },
-      "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "MIN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p13",
-      "name": "Player 139",
-      "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.83,
-        "TPM": 2.4,
-        "REB": 7.4,
-        "AST": 6.6,
-        "STL": 0.85,
-        "BLK": 1.28,
-        "TO": 1.85,
-        "PTS": 12.2
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "NOP",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t10p14",
-      "name": "Player 140",
-      "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.84,
-        "TPM": 2.8,
-        "REB": 8.1,
-        "AST": 1.2,
-        "STL": 1,
-        "BLK": 0.2,
-        "TO": 2.2,
-        "PTS": 13.5
-      },
-      "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "NYK",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
-    },
-    {
-      "id": "t11p1",
-      "name": "Player 141",
-      "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.85,
-        "TPM": 3.2,
-        "REB": 8.8,
-        "AST": 1.8,
-        "STL": 1.15,
-        "BLK": 0.38,
-        "TO": 2.55,
-        "PTS": 14.8
-      },
-      "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "OKC",
-      "positions": [
-        "PG",
-        "G"
-      ]
-    },
-    {
-      "id": "t11p2",
-      "name": "Player 142",
-      "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.86,
-        "TPM": 3.6,
-        "REB": 9.5,
-        "AST": 2.4,
-        "STL": 1.3,
-        "BLK": 0.56,
-        "TO": 2.9,
-        "PTS": 16.1
-      },
-      "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "ORL",
-      "positions": [
-        "SG",
-        "G"
-      ]
-    },
-    {
-      "id": "t11p3",
-      "name": "Player 143",
-      "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.87,
-        "TPM": 4,
-        "REB": 2.5,
-        "AST": 3,
-        "STL": 1.45,
-        "BLK": 0.74,
-        "TO": 3.25,
-        "PTS": 17.4
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "PHI",
-      "positions": [
-        "SF",
-        "F"
-      ]
-    },
-    {
-      "id": "t11p4",
-      "name": "Player 144",
-      "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.72,
-        "TPM": 0.8,
-        "REB": 3.2,
-        "AST": 3.6,
-        "STL": 0.4,
-        "BLK": 0.92,
-        "TO": 0.8,
-        "PTS": 18.7
-      },
-      "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "PHX",
-      "positions": [
-        "PF",
-        "F"
-      ]
-    },
-    {
-      "id": "t11p5",
-      "name": "Player 145",
-      "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.73,
-        "TPM": 1.2,
-        "REB": 3.9,
-        "AST": 4.2,
-        "STL": 0.55,
-        "BLK": 1.1,
-        "TO": 1.15,
-        "PTS": 20
-      },
-      "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "POR",
-      "positions": [
-        "C"
-      ]
-    },
-    {
-      "id": "t11p6",
-      "name": "Player 146",
-      "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.74,
-        "TPM": 1.6,
-        "REB": 4.6,
-        "AST": 4.8,
-        "STL": 0.7,
-        "BLK": 1.28,
-        "TO": 1.5,
-        "PTS": 21.3
-      },
-      "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "SAC",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
-    },
-    {
-      "id": "t11p7",
-      "name": "Player 147",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.75,
-        "TPM": 2,
-        "REB": 5.3,
-        "AST": 5.4,
-        "STL": 0.85,
-        "BLK": 0.2,
-        "TO": 1.85,
-        "PTS": 22.6
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
+      "name": "Julian Champagnie",
       "teamAbbr": "SAS",
       "positions": [
         "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.43686502,
+        "FT_PCT": 0.84444444,
+        "TPM": 195,
+        "REB": 473,
+        "AST": 127,
+        "STL": 62,
+        "BLK": 38,
+        "TO": 69,
+        "PTS": 911
+      },
+      "shooting": {
+        "FGM": 346.18,
+        "FGA": 792.4186743081422,
+        "FTM": 163.98,
+        "FTA": 194.18684312729917
+      }
+    },
+    {
+      "id": "t10p1",
+      "name": "Cason Wallace",
+      "teamAbbr": "OKC",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43150685,
+        "FT_PCT": 0.80882353,
+        "TPM": 101,
+        "REB": 238,
+        "AST": 200,
+        "STL": 150,
+        "BLK": 28,
+        "TO": 73,
+        "PTS": 660
+      },
+      "shooting": {
+        "FGM": 250.8,
+        "FGA": 581.2190466964778,
+        "FTM": 118.8,
+        "FTA": 146.8799998931782
+      }
+    },
+    {
+      "id": "t10p2",
+      "name": "Dillon Brooks",
+      "teamAbbr": "PHX",
+      "positions": [
+        "SF",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43482795,
+        "FT_PCT": 0.84158416,
+        "TPM": 127,
+        "REB": 203,
+        "AST": 99,
+        "STL": 57,
+        "BLK": 9,
+        "TO": 98,
+        "PTS": 1131
+      },
+      "shooting": {
+        "FGM": 429.78000000000003,
+        "FGA": 988.3909256523184,
+        "FTM": 203.57999999999998,
+        "FTA": 241.90094072112763
+      }
+    },
+    {
+      "id": "t10p3",
+      "name": "Ace Bailey",
+      "teamAbbr": "UTA",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.44282511,
+        "FT_PCT": 0.75,
+        "TPM": 137,
+        "REB": 302,
+        "AST": 131,
+        "STL": 60,
+        "BLK": 49,
+        "TO": 107,
+        "PTS": 993
+      },
+      "shooting": {
+        "FGM": 377.34000000000003,
+        "FGA": 852.11970025819,
+        "FTM": 178.73999999999998,
+        "FTA": 238.31999999999996
+      }
+    },
+    {
+      "id": "t10p4",
+      "name": "Morez Johnson Jr.",
+      "teamAbbr": "DAL",
+      "positions": [
         "PF",
-        "F"
-      ]
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "shooting": {
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
+    },
+    {
+      "id": "t10p5",
+      "name": "Johnathan Williams",
+      "teamAbbr": "WAS",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "shooting": {
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
+    },
+    {
+      "id": "t10p6",
+      "name": "Jeremiah Fears",
+      "teamAbbr": "NOP",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.43439364,
+        "FT_PCT": 0.78861789,
+        "TPM": 101,
+        "REB": 300,
+        "AST": 279,
+        "STL": 97,
+        "BLK": 30,
+        "TO": 178,
+        "PTS": 1169
+      },
+      "shooting": {
+        "FGM": 444.22,
+        "FGA": 1022.6208652594453,
+        "FTM": 210.42,
+        "FTA": 266.82123582055686
+      }
+    },
+    {
+      "id": "t10p7",
+      "name": "Tari Eason",
+      "teamAbbr": "HOU",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.41551724,
+        "FT_PCT": 0.7761194,
+        "TPM": 93,
+        "REB": 375,
+        "AST": 90,
+        "STL": 72,
+        "BLK": 28,
+        "TO": 81,
+        "PTS": 627
+      },
+      "shooting": {
+        "FGM": 238.26,
+        "FGA": 573.4058110320525,
+        "FTM": 112.86,
+        "FTA": 145.41576979006064
+      }
+    },
+    {
+      "id": "t10p8",
+      "name": "Devin Vassell",
+      "teamAbbr": "SAS",
+      "positions": [
+        "SG",
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.43708609,
+        "FT_PCT": 0.81538462,
+        "TPM": 166,
+        "REB": 269,
+        "AST": 167,
+        "STL": 57,
+        "BLK": 25,
+        "TO": 60,
+        "PTS": 932
+      },
+      "shooting": {
+        "FGM": 354.16,
+        "FGA": 810.2751565486791,
+        "FTM": 167.76,
+        "FTA": 205.74339506182983
+      }
+    },
+    {
+      "id": "t10p9",
+      "name": "Mikel Brown Jr.",
+      "teamAbbr": "BKN",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "shooting": {
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
+    },
+    {
+      "id": "t10p10",
+      "name": "Jay Huff",
+      "teamAbbr": "IND",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.47626841,
+        "FT_PCT": 0.82828283,
+        "TPM": 119,
+        "REB": 324,
+        "AST": 121,
+        "STL": 41,
+        "BLK": 154,
+        "TO": 76,
+        "PTS": 783
+      },
+      "shooting": {
+        "FGM": 297.54,
+        "FGA": 624.731755776118,
+        "FTM": 140.94,
+        "FTA": 170.15926793991372
+      }
+    },
+    {
+      "id": "t10p11",
+      "name": "Christian Braun",
+      "teamAbbr": "DEN",
+      "positions": [
+        "SG",
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.51928021,
+        "FT_PCT": 0.78217822,
+        "TPM": 43,
+        "REB": 211,
+        "AST": 120,
+        "STL": 30,
+        "BLK": 12,
+        "TO": 43,
+        "PTS": 526
+      },
+      "shooting": {
+        "FGM": 199.88,
+        "FGA": 384.9174225222255,
+        "FTM": 94.67999999999999,
+        "FTA": 121.04658194138925
+      }
+    },
+    {
+      "id": "t10p12",
+      "name": "Joan Beringer",
+      "teamAbbr": "MIN",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.66326531,
+        "FT_PCT": 0.7027027,
+        "TPM": 0,
+        "REB": 92,
+        "AST": 12,
+        "STL": 7,
+        "BLK": 26,
+        "TO": 11,
+        "PTS": 156
+      },
+      "shooting": {
+        "FGM": 59.28,
+        "FGA": 89.37599947749416,
+        "FTM": 28.08,
+        "FTA": 39.960000153692306
+      }
+    },
+    {
+      "id": "t10p13",
+      "name": "Grayson Allen",
+      "teamAbbr": "CHA",
+      "positions": [
+        "SG",
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.40329835,
+        "FT_PCT": 0.85714286,
+        "TPM": 159,
+        "REB": 155,
+        "AST": 195,
+        "STL": 69,
+        "BLK": 13,
+        "TO": 83,
+        "PTS": 841
+      },
+      "shooting": {
+        "FGM": 319.58,
+        "FGA": 792.4158380514077,
+        "FTM": 151.38,
+        "FTA": 176.6099994113
+      }
+    },
+    {
+      "id": "t10p14",
+      "name": "Jerami Grant",
+      "teamAbbr": "MEM",
+      "positions": [
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.45342466,
+        "FT_PCT": 0.8136646,
+        "TPM": 136,
+        "REB": 199,
+        "AST": 122,
+        "STL": 42,
+        "BLK": 36,
+        "TO": 119,
+        "PTS": 1060
+      },
+      "shooting": {
+        "FGM": 402.8,
+        "FGA": 888.3504483412967,
+        "FTM": 190.79999999999998,
+        "FTA": 234.4946554145283
+      }
+    },
+    {
+      "id": "t11p1",
+      "name": "Isaiah Collier",
+      "teamAbbr": "UTA",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.49514563,
+        "FT_PCT": 0.72248804,
+        "TPM": 27,
+        "REB": 150,
+        "AST": 423,
+        "STL": 66,
+        "BLK": 20,
+        "TO": 148,
+        "PTS": 688
+      },
+      "shooting": {
+        "FGM": 261.44,
+        "FGA": 528.006275648641,
+        "FTM": 123.83999999999999,
+        "FTA": 171.4076817105512
+      }
+    },
+    {
+      "id": "t11p2",
+      "name": "Bennedict Mathurin",
+      "teamAbbr": "LAC",
+      "positions": [
+        "SF",
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.42983752,
+        "FT_PCT": 0.86904762,
+        "TPM": 75,
+        "REB": 293,
+        "AST": 129,
+        "STL": 43,
+        "BLK": 13,
+        "TO": 118,
+        "PTS": 949
+      },
+      "shooting": {
+        "FGM": 360.62,
+        "FGA": 838.9681756957839,
+        "FTM": 170.82,
+        "FTA": 196.55999978459178
+      }
+    },
+    {
+      "id": "t11p3",
+      "name": "Herbert Jones",
+      "teamAbbr": "NOP",
+      "positions": [
+        "SF",
+        "PF"
+      ],
+      "projections": {
+        "FG_PCT": 0.38284519,
+        "FT_PCT": 0.80645161,
+        "TPM": 80,
+        "REB": 190,
+        "AST": 155,
+        "STL": 88,
+        "BLK": 27,
+        "TO": 73,
+        "PTS": 496
+      },
+      "shooting": {
+        "FGM": 188.48,
+        "FGA": 492.3138775754241,
+        "FTM": 89.28,
+        "FTA": 110.70720039854592
+      }
+    },
+    {
+      "id": "t11p4",
+      "name": "Moussa Diabate",
+      "teamAbbr": "CHA",
+      "positions": [
+        "PF",
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.63085399,
+        "FT_PCT": 0.65909091,
+        "TPM": 1,
+        "REB": 635,
+        "AST": 141,
+        "STL": 56,
+        "BLK": 72,
+        "TO": 73,
+        "PTS": 575
+      },
+      "shooting": {
+        "FGM": 218.5,
+        "FGA": 346.35589766183455,
+        "FTM": 103.5,
+        "FTA": 157.0344825420214
+      }
+    },
+    {
+      "id": "t11p5",
+      "name": "Deandre Ayton",
+      "teamAbbr": "WAS",
+      "positions": [
+        "C"
+      ],
+      "projections": {
+        "FG_PCT": 0.67054908,
+        "FT_PCT": 0.64539007,
+        "TPM": 0,
+        "REB": 575,
+        "AST": 59,
+        "STL": 41,
+        "BLK": 70,
+        "TO": 83,
+        "PTS": 897
+      },
+      "shooting": {
+        "FGM": 340.86,
+        "FGA": 508.3296811025376,
+        "FTM": 161.46,
+        "FTA": 250.17428607167756
+      }
+    },
+    {
+      "id": "t11p6",
+      "name": "Tre Jones",
+      "teamAbbr": "CHI",
+      "positions": [
+        "PG"
+      ],
+      "projections": {
+        "FG_PCT": 0.55267423,
+        "FT_PCT": 0.84140969,
+        "TPM": 41,
+        "REB": 204,
+        "AST": 350,
+        "STL": 76,
+        "BLK": 11,
+        "TO": 92,
+        "PTS": 914
+      },
+      "shooting": {
+        "FGM": 347.32,
+        "FGA": 628.4353080837512,
+        "FTM": 164.51999999999998,
+        "FTA": 195.52900561437554
+      }
+    },
+    {
+      "id": "t11p7",
+      "name": "Ousmane Dieng",
+      "teamAbbr": "MIL",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.42211055,
+        "FT_PCT": 0.71111111,
+        "TPM": 63,
+        "REB": 180,
+        "AST": 136,
+        "STL": 25,
+        "BLK": 17,
+        "TO": 75,
+        "PTS": 431
+      },
+      "shooting": {
+        "FGM": 163.78,
+        "FGA": 388.00262158811245,
+        "FTM": 77.58,
+        "FTA": 109.09687517046386
+      }
     },
     {
       "id": "t11p8",
-      "name": "Player 148",
+      "name": "Khaman Maluach",
+      "teamAbbr": "PHX",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.76,
-        "TPM": 2.4,
-        "REB": 6,
+        "FG_PCT": 0.53333333,
+        "FT_PCT": 0.70967742,
+        "TPM": 5,
+        "REB": 133,
         "AST": 6,
-        "STL": 1,
-        "BLK": 0.38,
-        "TO": 2.2,
-        "PTS": 23.9
+        "STL": 5,
+        "BLK": 33,
+        "TO": 25,
+        "PTS": 139
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "TOR",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 52.82,
+        "FGA": 99.03750061898437,
+        "FTM": 25.02,
+        "FTA": 35.25545451340413
+      }
     },
     {
       "id": "t11p9",
-      "name": "Player 149",
+      "name": "Nikola Vucevic",
+      "teamAbbr": "ORL",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.77,
-        "TPM": 2.8,
-        "REB": 6.7,
-        "AST": 6.6,
-        "STL": 1.15,
-        "BLK": 0.56,
-        "TO": 2.55,
-        "PTS": 25.2
+        "FG_PCT": 0.4931164,
+        "FT_PCT": 0.82795699,
+        "TPM": 100,
+        "REB": 537,
+        "AST": 213,
+        "STL": 39,
+        "BLK": 41,
+        "TO": 85,
+        "PTS": 965
       },
       "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "UTA",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 366.7,
+        "FGA": 743.637810464223,
+        "FTM": 173.7,
+        "FTA": 209.79350630278512
+      }
     },
     {
       "id": "t11p10",
-      "name": "Player 150",
+      "name": "Anfernee Simons",
+      "teamAbbr": "PHI",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.78,
-        "TPM": 3.2,
-        "REB": 7.4,
-        "AST": 1.2,
-        "STL": 1.3,
-        "BLK": 0.74,
-        "TO": 2.9,
-        "PTS": 7
+        "FG_PCT": 0.43981481,
+        "FT_PCT": 0.8961039,
+        "TPM": 146,
+        "REB": 135,
+        "AST": 134,
+        "STL": 27,
+        "BLK": 8,
+        "TO": 68,
+        "PTS": 785
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "WAS",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 298.3,
+        "FGA": 678.2400074249433,
+        "FTM": 141.29999999999998,
+        "FTA": 157.6826080100756
+      }
     },
     {
       "id": "t11p11",
-      "name": "Player 151",
+      "name": "Tobias Harris",
+      "teamAbbr": "SAS",
+      "positions": [
+        "PF",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.79,
-        "TPM": 3.6,
-        "REB": 8.1,
-        "AST": 1.8,
-        "STL": 1.45,
-        "BLK": 0.92,
-        "TO": 3.25,
-        "PTS": 8.3
+        "FG_PCT": 0.46889226,
+        "FT_PCT": 0.86624204,
+        "TPM": 82,
+        "REB": 323,
+        "AST": 157,
+        "STL": 58,
+        "BLK": 26,
+        "TO": 63,
+        "PTS": 836
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "ATL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 317.68,
+        "FGA": 677.5117166574684,
+        "FTM": 150.48,
+        "FTA": 173.7158819952908
+      }
     },
     {
       "id": "t11p12",
-      "name": "Player 152",
+      "name": "Tim Hardaway Jr.",
+      "teamAbbr": "MIA",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.8,
-        "TPM": 4,
-        "REB": 8.8,
-        "AST": 2.4,
-        "STL": 0.4,
-        "BLK": 1.1,
-        "TO": 0.8,
-        "PTS": 9.6
+        "FG_PCT": 0.44672657,
+        "FT_PCT": 0.81122449,
+        "TPM": 224,
+        "REB": 206,
+        "AST": 108,
+        "STL": 42,
+        "BLK": 10,
+        "TO": 43,
+        "PTS": 1079
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "BOS",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 410.02,
+        "FGA": 917.8321316325554,
+        "FTM": 194.22,
+        "FTA": 239.41584899637337
+      }
     },
     {
       "id": "t11p13",
-      "name": "Player 153",
+      "name": "Collin Sexton",
+      "teamAbbr": "LAL",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.81,
-        "TPM": 0.8,
-        "REB": 9.5,
-        "AST": 3,
-        "STL": 0.55,
-        "BLK": 1.28,
-        "TO": 1.15,
-        "PTS": 10.9
+        "FG_PCT": 0.4851752,
+        "FT_PCT": 0.85490196,
+        "TPM": 112,
+        "REB": 155,
+        "AST": 223,
+        "STL": 76,
+        "BLK": 10,
+        "TO": 141,
+        "PTS": 1050
       },
       "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "BKN",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 399,
+        "FGA": 822.3833369883704,
+        "FTM": 189,
+        "FTA": 221.0779818542
+      }
     },
     {
       "id": "t11p14",
-      "name": "Player 154",
+      "name": "Mitchell Robinson",
+      "teamAbbr": "BOS",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.82,
-        "TPM": 1.2,
-        "REB": 2.5,
-        "AST": 3.6,
-        "STL": 0.7,
-        "BLK": 0.2,
-        "TO": 1.5,
-        "PTS": 12.2
+        "FG_PCT": 0.72330097,
+        "FT_PCT": 0.40776699,
+        "TPM": 0,
+        "REB": 525,
+        "AST": 52,
+        "STL": 56,
+        "BLK": 70,
+        "TO": 41,
+        "PTS": 340
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "CHA",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 129.2,
+        "FGA": 178.62550357149388,
+        "FTM": 61.199999999999996,
+        "FTA": 150.08571439291836
+      }
     },
     {
       "id": "t12p1",
-      "name": "Player 155",
+      "name": "Kingston Flemings",
+      "teamAbbr": "ATL",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.83,
-        "TPM": 1.6,
-        "REB": 3.2,
-        "AST": 4.2,
-        "STL": 0.85,
-        "BLK": 0.38,
-        "TO": 1.85,
-        "PTS": 13.5
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
-      "teamAbbr": "CHI",
-      "positions": [
-        "PG",
-        "G"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t12p2",
-      "name": "Player 156",
+      "name": "Brayden Burries",
+      "teamAbbr": "MIL",
+      "positions": [
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.84,
-        "TPM": 2,
-        "REB": 3.9,
-        "AST": 4.8,
-        "STL": 1,
-        "BLK": 0.56,
-        "TO": 2.2,
-        "PTS": 14.8
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "CLE",
-      "positions": [
-        "SG",
-        "G"
-      ]
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      }
     },
     {
       "id": "t12p3",
-      "name": "Player 157",
-      "projections": {
-        "FG_PCT": 0.43,
-        "FT_PCT": 0.85,
-        "TPM": 2.4,
-        "REB": 4.6,
-        "AST": 5.4,
-        "STL": 1.15,
-        "BLK": 0.74,
-        "TO": 2.55,
-        "PTS": 16.1
-      },
-      "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "DAL",
+      "name": "Bilal Coulibaly",
+      "teamAbbr": "WAS",
       "positions": [
         "SF",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.42513863,
+        "FT_PCT": 0.74576271,
+        "TPM": 65,
+        "REB": 243,
+        "AST": 145,
+        "STL": 75,
+        "BLK": 54,
+        "TO": 81,
+        "PTS": 657
+      },
+      "shooting": {
+        "FGM": 249.66,
+        "FGA": 587.2437421177182,
+        "FTM": 118.25999999999999,
+        "FTA": 158.57590948734884
+      }
     },
     {
       "id": "t12p4",
-      "name": "Player 158",
+      "name": "Kyle Filipowski",
+      "teamAbbr": "UTA",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.44,
-        "FT_PCT": 0.86,
-        "TPM": 2.8,
-        "REB": 5.3,
-        "AST": 6,
-        "STL": 1.3,
-        "BLK": 0.92,
-        "TO": 2.9,
-        "PTS": 17.4
+        "FG_PCT": 0.49162861,
+        "FT_PCT": 0.75,
+        "TPM": 74,
+        "REB": 552,
+        "AST": 198,
+        "STL": 73,
+        "BLK": 39,
+        "TO": 125,
+        "PTS": 879
       },
       "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "DEN",
-      "positions": [
-        "PF",
-        "F"
-      ]
+        "FGM": 334.02,
+        "FGA": 679.4153009118,
+        "FTM": 158.22,
+        "FTA": 210.96
+      }
     },
     {
       "id": "t12p5",
-      "name": "Player 159",
-      "projections": {
-        "FG_PCT": 0.45,
-        "FT_PCT": 0.87,
-        "TPM": 3.2,
-        "REB": 6,
-        "AST": 6.6,
-        "STL": 1.45,
-        "BLK": 1.1,
-        "TO": 3.25,
-        "PTS": 18.7
-      },
-      "shooting": {
-        "FGM": 6.55,
-        "FGA": 13.2,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "DET",
+      "name": "Yves Missi",
+      "teamAbbr": "NOP",
       "positions": [
         "C"
-      ]
+      ],
+      "projections": {
+        "FG_PCT": 0.54421769,
+        "FT_PCT": 0.55882353,
+        "TPM": 0,
+        "REB": 385,
+        "AST": 84,
+        "STL": 20,
+        "BLK": 101,
+        "TO": 54,
+        "PTS": 377
+      },
+      "shooting": {
+        "FGM": 143.26,
+        "FGA": 263.24024858508363,
+        "FTM": 67.86,
+        "FTA": 121.43368408270139
+      }
     },
     {
       "id": "t12p6",
-      "name": "Player 160",
+      "name": "Malik Monk",
+      "teamAbbr": "SAC",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.72,
-        "TPM": 3.6,
-        "REB": 6.7,
-        "AST": 1.2,
-        "STL": 0.4,
-        "BLK": 1.28,
-        "TO": 0.8,
-        "PTS": 20
+        "FG_PCT": 0.43829114,
+        "FT_PCT": 0.87850467,
+        "TPM": 124,
+        "REB": 117,
+        "AST": 185,
+        "STL": 37,
+        "BLK": 24,
+        "TO": 91,
+        "PTS": 772
       },
       "shooting": {
-        "FGM": 2.5,
-        "FGA": 6,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "GSW",
-      "positions": [
-        "PG",
-        "SG",
-        "G"
-      ]
+        "FGM": 293.36,
+        "FGA": 669.3267858437658,
+        "FTM": 138.96,
+        "FTA": 158.177872862076
+      }
     },
     {
       "id": "t12p7",
-      "name": "Player 161",
+      "name": "Jaylin Williams",
+      "teamAbbr": "OKC",
+      "positions": [
+        "C",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.47,
-        "FT_PCT": 0.73,
-        "TPM": 4,
-        "REB": 7.4,
-        "AST": 1.8,
-        "STL": 0.55,
-        "BLK": 0.2,
-        "TO": 1.15,
-        "PTS": 21.3
+        "FG_PCT": 0.42329545,
+        "FT_PCT": 0.79347826,
+        "TPM": 98,
+        "REB": 358,
+        "AST": 158,
+        "STL": 31,
+        "BLK": 42,
+        "TO": 67,
+        "PTS": 469
       },
       "shooting": {
-        "FGM": 2.95,
-        "FGA": 6.8,
-        "FTM": 1.3,
-        "FTA": 1.8
-      },
-      "teamAbbr": "HOU",
-      "positions": [
-        "SF",
-        "PF",
-        "F"
-      ]
+        "FGM": 178.22,
+        "FGA": 421.0298031788435,
+        "FTM": 84.42,
+        "FTA": 106.39232888371762
+      }
     },
     {
       "id": "t12p8",
-      "name": "Player 162",
+      "name": "Adem Bona",
+      "teamAbbr": "PHI",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.74,
-        "TPM": 0.8,
-        "REB": 8.1,
-        "AST": 2.4,
-        "STL": 0.7,
-        "BLK": 0.38,
-        "TO": 1.5,
-        "PTS": 22.6
+        "FG_PCT": 0.59545455,
+        "FT_PCT": 0.7079646,
+        "TPM": 2,
+        "REB": 307,
+        "AST": 32,
+        "STL": 30,
+        "BLK": 82,
+        "TO": 56,
+        "PTS": 344
       },
       "shooting": {
-        "FGM": 3.4,
-        "FGA": 7.6,
-        "FTM": 1.6,
-        "FTA": 2.2
-      },
-      "teamAbbr": "IND",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 130.72,
+        "FGA": 219.52976931656664,
+        "FTM": 61.919999999999995,
+        "FTA": 87.46200021865499
+      }
     },
     {
       "id": "t12p9",
-      "name": "Player 163",
-      "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.75,
-        "TPM": 1.2,
-        "REB": 8.8,
-        "AST": 3,
-        "STL": 0.85,
-        "BLK": 0.56,
-        "TO": 1.85,
-        "PTS": 23.9
-      },
-      "shooting": {
-        "FGM": 3.85,
-        "FGA": 8.4,
-        "FTM": 1.9,
-        "FTA": 2.6
-      },
+      "name": "Rui Hachimura",
       "teamAbbr": "LAC",
       "positions": [
-        "PG",
-        "SG",
-        "SF",
         "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0.51423786,
+        "FT_PCT": 0.69444444,
+        "TPM": 116,
+        "REB": 226,
+        "AST": 56,
+        "STL": 39,
+        "BLK": 21,
+        "TO": 42,
+        "PTS": 780
+      },
+      "shooting": {
+        "FGM": 296.4,
+        "FGA": 576.3869661405326,
+        "FTM": 140.4,
+        "FTA": 202.1760012939264
+      }
     },
     {
       "id": "t12p10",
-      "name": "Player 164",
+      "name": "Keldon Johnson",
+      "teamAbbr": "SAS",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.76,
-        "TPM": 1.6,
-        "REB": 9.5,
-        "AST": 3.6,
-        "STL": 1,
-        "BLK": 0.74,
-        "TO": 2.2,
-        "PTS": 25.2
+        "FG_PCT": 0.51944793,
+        "FT_PCT": 0.79381443,
+        "TPM": 99,
+        "REB": 440,
+        "AST": 111,
+        "STL": 46,
+        "BLK": 11,
+        "TO": 70,
+        "PTS": 1081
       },
       "shooting": {
-        "FGM": 4.3,
-        "FGA": 9.2,
-        "FTM": 2.2,
-        "FTA": 3
-      },
-      "teamAbbr": "LAL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 410.78000000000003,
+        "FGA": 790.8011107099802,
+        "FTM": 194.57999999999998,
+        "FTA": 245.12026066343992
+      }
     },
     {
       "id": "t12p11",
-      "name": "Player 165",
+      "name": "Aaron Nesmith",
+      "teamAbbr": "IND",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.77,
-        "TPM": 2,
-        "REB": 2.5,
-        "AST": 4.2,
-        "STL": 1.15,
-        "BLK": 0.92,
-        "TO": 2.55,
-        "PTS": 7
+        "FG_PCT": 0.4140625,
+        "FT_PCT": 0.82882883,
+        "TPM": 105,
+        "REB": 187,
+        "AST": 86,
+        "STL": 26,
+        "BLK": 23,
+        "TO": 63,
+        "PTS": 621
       },
       "shooting": {
-        "FGM": 4.75,
-        "FGA": 10,
-        "FTM": 2.5,
-        "FTA": 3.4
-      },
-      "teamAbbr": "MEM",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 235.98,
+        "FGA": 569.9139622641509,
+        "FTM": 111.78,
+        "FTA": 134.8649998094299
+      }
     },
     {
       "id": "t12p12",
-      "name": "Player 166",
-      "projections": {
-        "FG_PCT": 0.52,
-        "FT_PCT": 0.78,
-        "TPM": 2.4,
-        "REB": 3.2,
-        "AST": 4.8,
-        "STL": 1.3,
-        "BLK": 1.1,
-        "TO": 2.9,
-        "PTS": 8.3
-      },
-      "shooting": {
-        "FGM": 5.2,
-        "FGA": 10.8,
-        "FTM": 2.8,
-        "FTA": 3.8
-      },
-      "teamAbbr": "MIA",
+      "name": "Scoot Henderson",
+      "teamAbbr": "POR",
       "positions": [
         "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.41812865,
+        "FT_PCT": 0.84,
+        "TPM": 57,
+        "REB": 80,
+        "AST": 112,
+        "STL": 27,
+        "BLK": 9,
+        "TO": 73,
+        "PTS": 427
+      },
+      "shooting": {
+        "FGM": 162.26,
+        "FGA": 388.06238223570665,
+        "FTM": 76.86,
+        "FTA": 91.5
+      }
     },
     {
       "id": "t12p13",
-      "name": "Player 167",
+      "name": "Naji Marshall",
+      "teamAbbr": "DAL",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.53,
-        "FT_PCT": 0.79,
-        "TPM": 2.8,
-        "REB": 3.9,
-        "AST": 5.4,
-        "STL": 1.45,
-        "BLK": 1.28,
-        "TO": 3.25,
-        "PTS": 9.6
+        "FG_PCT": 0.51035323,
+        "FT_PCT": 0.76,
+        "TPM": 62,
+        "REB": 348,
+        "AST": 241,
+        "STL": 82,
+        "BLK": 6,
+        "TO": 119,
+        "PTS": 1128
       },
       "shooting": {
-        "FGM": 5.65,
-        "FGA": 11.6,
-        "FTM": 3.1,
-        "FTA": 4.2
-      },
-      "teamAbbr": "MIL",
-      "positions": [
-        "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "FGM": 428.64,
+        "FGA": 839.8888746133731,
+        "FTM": 203.04,
+        "FTA": 267.1578947368421
+      }
     },
     {
       "id": "t12p14",
-      "name": "Player 168",
-      "projections": {
-        "FG_PCT": 0.42,
-        "FT_PCT": 0.8,
-        "TPM": 3.2,
-        "REB": 4.6,
-        "AST": 6,
-        "STL": 0.4,
-        "BLK": 0.2,
-        "TO": 0.8,
-        "PTS": 10.9
-      },
-      "shooting": {
-        "FGM": 6.1,
-        "FGA": 12.4,
-        "FTM": 1,
-        "FTA": 1.4
-      },
-      "teamAbbr": "MIN",
+      "name": "De'Anthony Melton",
+      "teamAbbr": "GSW",
       "positions": [
         "PG",
-        "SG",
-        "SF",
-        "PF",
-        "C",
-        "G",
-        "F"
-      ]
+        "SG"
+      ],
+      "projections": {
+        "FG_PCT": 0.40719697,
+        "FT_PCT": 0.82644628,
+        "TPM": 72,
+        "REB": 158,
+        "AST": 125,
+        "STL": 77,
+        "BLK": 20,
+        "TO": 91,
+        "PTS": 602
+      },
+      "shooting": {
+        "FGM": 228.76,
+        "FGA": 561.7919995819223,
+        "FTM": 108.36,
+        "FTA": 131.11560015733872
+      }
     },
     {
       "id": "fa1",
-      "name": "Free Agent 1",
-      "teamAbbr": "ATL",
-      "availability": "fa",
+      "name": "Duncan Robinson",
+      "teamAbbr": "DET",
+      "positions": [
+        "SF",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.429,
-        "FT_PCT": 0.697,
-        "TPM": 1.12,
-        "REB": 3.21,
-        "AST": 1.93,
-        "STL": 0.58,
-        "BLK": 0.32,
-        "TO": 0.98,
-        "PTS": 6.87
+        "FG_PCT": 0.45558739,
+        "FT_PCT": 0.75454545,
+        "TPM": 220,
+        "REB": 205,
+        "AST": 159,
+        "STL": 44,
+        "BLK": 22,
+        "TO": 54,
+        "PTS": 939
       },
       "shooting": {
-        "FGM": 2.57,
-        "FGA": 5.99,
-        "FTM": 1.31,
-        "FTA": 1.88
-      }
+        "FGM": 356.82,
+        "FGA": 783.2086836292814,
+        "FTM": 169.01999999999998,
+        "FTA": 224.00241098796633
+      },
+      "availability": "fa"
     },
     {
       "id": "fa2",
-      "name": "Free Agent 2",
-      "teamAbbr": "BOS",
-      "availability": "fa",
+      "name": "Dylan Cardwell",
+      "teamAbbr": "SAC",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.436,
-        "FT_PCT": 0.688,
-        "TPM": 1.54,
-        "REB": 3.82,
-        "AST": 2.46,
-        "STL": 0.71,
-        "BLK": 0.44,
-        "TO": 1.16,
-        "PTS": 7.84
+        "FG_PCT": 0.58659218,
+        "FT_PCT": 0.50980392,
+        "TPM": 2,
+        "REB": 333,
+        "AST": 62,
+        "STL": 30,
+        "BLK": 67,
+        "TO": 39,
+        "PTS": 238
       },
       "shooting": {
-        "FGM": 2.74,
-        "FGA": 6.28,
-        "FTM": 1.52,
-        "FTA": 2.21
-      }
+        "FGM": 90.44,
+        "FGA": 154.17866634362565,
+        "FTM": 42.839999999999996,
+        "FTA": 84.03230795086864
+      },
+      "availability": "fa"
     },
     {
       "id": "fa3",
-      "name": "Free Agent 3",
-      "teamAbbr": "BKN",
-      "availability": "fa",
+      "name": "Aday Mara",
+      "teamAbbr": "OKC",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.443,
-        "FT_PCT": 0.794,
-        "TPM": 1.96,
-        "REB": 4.43,
-        "AST": 2.99,
-        "STL": 0.84,
-        "BLK": 0.56,
-        "TO": 1.34,
-        "PTS": 8.81
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 2.91,
-        "FGA": 6.57,
-        "FTM": 1.73,
-        "FTA": 2.18
-      }
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      },
+      "availability": "fa"
     },
     {
       "id": "fa4",
-      "name": "Free Agent 4",
-      "teamAbbr": "CHA",
-      "availability": "fa",
+      "name": "Baylor Scheierman",
+      "teamAbbr": "BOS",
+      "positions": [
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.449,
-        "FT_PCT": 0.773,
-        "TPM": 2.38,
-        "REB": 5.04,
-        "AST": 3.52,
-        "STL": 0.97,
-        "BLK": 0.68,
-        "TO": 1.52,
-        "PTS": 9.78
+        "FG_PCT": 0.45345345,
+        "FT_PCT": 0.90322581,
+        "TPM": 97,
+        "REB": 269,
+        "AST": 116,
+        "STL": 42,
+        "BLK": 6,
+        "TO": 46,
+        "PTS": 427
       },
       "shooting": {
-        "FGM": 3.08,
-        "FGA": 6.86,
-        "FTM": 1.94,
-        "FTA": 2.51
-      }
+        "FGM": 162.26,
+        "FGA": 357.83165835434704,
+        "FTM": 76.86,
+        "FTA": 85.09499966569821
+      },
+      "availability": "fa"
     },
     {
       "id": "fa5",
-      "name": "Free Agent 5",
-      "teamAbbr": "CHI",
-      "availability": "fa",
+      "name": "Kyle Kuzma",
+      "teamAbbr": "MIL",
+      "positions": [
+        "PF",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.455,
-        "FT_PCT": 0.757,
-        "TPM": 2.8,
-        "REB": 5.65,
-        "AST": 4.05,
-        "STL": 0.45,
-        "BLK": 0.8,
-        "TO": 1.7,
-        "PTS": 10.75
+        "FG_PCT": 0.49201742,
+        "FT_PCT": 0.72580645,
+        "TPM": 83,
+        "REB": 313,
+        "AST": 184,
+        "STL": 46,
+        "BLK": 28,
+        "TO": 119,
+        "PTS": 896
       },
       "shooting": {
-        "FGM": 3.25,
-        "FGA": 7.15,
-        "FTM": 2.15,
-        "FTA": 2.84
-      }
+        "FGM": 340.48,
+        "FGA": 692.0080187404748,
+        "FTM": 161.28,
+        "FTA": 222.20800049379557
+      },
+      "availability": "fa"
     },
     {
       "id": "fa6",
-      "name": "Free Agent 6",
-      "teamAbbr": "CLE",
-      "availability": "fa",
+      "name": "Isaiah Joe",
+      "teamAbbr": "DET",
+      "positions": [
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.46,
-        "FT_PCT": 0.84,
-        "TPM": 0.7,
-        "REB": 6.26,
-        "AST": 4.58,
-        "STL": 0.58,
-        "BLK": 0.92,
-        "TO": 0.8,
-        "PTS": 9.2
+        "FG_PCT": 0.45488029,
+        "FT_PCT": 0.89430894,
+        "TPM": 181,
+        "REB": 181,
+        "AST": 94,
+        "STL": 50,
+        "BLK": 11,
+        "TO": 45,
+        "PTS": 785
       },
       "shooting": {
-        "FGM": 3.42,
-        "FGA": 7.44,
-        "FTM": 2.36,
-        "FTA": 2.81
-      }
+        "FGM": 298.3,
+        "FGA": 655.7769297939905,
+        "FTM": 141.29999999999998,
+        "FTA": 157.99909145490594
+      },
+      "availability": "fa"
     },
     {
       "id": "fa7",
-      "name": "Free Agent 7",
-      "teamAbbr": "DAL",
-      "availability": "fa",
+      "name": "Nique Clifford",
+      "teamAbbr": "SAC",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.464,
-        "FT_PCT": 0.659,
-        "TPM": 1.12,
-        "REB": 6.87,
-        "AST": 5.11,
-        "STL": 0.71,
-        "BLK": 0.2,
-        "TO": 0.98,
-        "PTS": 8.7
+        "FG_PCT": 0.41778523,
+        "FT_PCT": 0.72164948,
+        "TPM": 77,
+        "REB": 282,
+        "AST": 179,
+        "STL": 68,
+        "BLK": 24,
+        "TO": 116,
+        "PTS": 645
       },
       "shooting": {
-        "FGM": 3.59,
-        "FGA": 7.73,
-        "FTM": 1.1,
-        "FTA": 1.67
-      }
+        "FGM": 245.1,
+        "FGA": 586.6650671207309,
+        "FTM": 116.1,
+        "FTA": 160.88142958268327
+      },
+      "availability": "fa"
     },
     {
       "id": "fa8",
-      "name": "Free Agent 8",
-      "teamAbbr": "DEN",
-      "availability": "fa",
+      "name": "Zaccharie Risacher",
+      "teamAbbr": "DAL",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.469,
-        "FT_PCT": 0.655,
-        "TPM": 1.54,
-        "REB": 2.6,
-        "AST": 5.64,
-        "STL": 0.84,
-        "BLK": 0.32,
-        "TO": 1.16,
-        "PTS": 9.67
+        "FG_PCT": 0.45522388,
+        "FT_PCT": 0.64444444,
+        "TPM": 95,
+        "REB": 257,
+        "AST": 76,
+        "STL": 59,
+        "BLK": 36,
+        "TO": 58,
+        "PTS": 641
       },
       "shooting": {
-        "FGM": 3.76,
-        "FGA": 8.02,
-        "FTM": 1.31,
-        "FTA": 2
-      }
+        "FGM": 243.58,
+        "FGA": 535.0773777509212,
+        "FTM": 115.38,
+        "FTA": 179.0379322692271
+      },
+      "availability": "fa"
     },
     {
       "id": "fa9",
-      "name": "Free Agent 9",
-      "teamAbbr": "DET",
-      "availability": "fa",
+      "name": "Nate Ament",
+      "teamAbbr": "MIL",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.473,
-        "FT_PCT": 0.772,
-        "TPM": 1.96,
-        "REB": 3.21,
-        "AST": 1.4,
-        "STL": 0.97,
-        "BLK": 0.44,
-        "TO": 1.34,
-        "PTS": 10.64
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 3.93,
-        "FGA": 8.31,
-        "FTM": 1.52,
-        "FTA": 1.97
-      }
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      },
+      "availability": "fa"
     },
     {
       "id": "fa10",
-      "name": "Free Agent 10",
-      "teamAbbr": "GSW",
-      "availability": "fa",
+      "name": "Luke Kornet",
+      "teamAbbr": "SAS",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.477,
-        "FT_PCT": 0.752,
-        "TPM": 2.38,
-        "REB": 3.82,
-        "AST": 1.93,
-        "STL": 0.45,
-        "BLK": 0.56,
-        "TO": 1.52,
-        "PTS": 11.61
+        "FG_PCT": 0.64338235,
+        "FT_PCT": 0.8245614,
+        "TPM": 0,
+        "REB": 414,
+        "AST": 126,
+        "STL": 32,
+        "BLK": 65,
+        "TO": 28,
+        "PTS": 444
       },
       "shooting": {
-        "FGM": 4.1,
-        "FGA": 8.6,
-        "FTM": 1.73,
-        "FTA": 2.3
-      }
+        "FGM": 168.72,
+        "FGA": 262.239086913093,
+        "FTM": 79.92,
+        "FTA": 96.92425573159258
+      },
+      "availability": "fa"
     },
     {
       "id": "fa11",
-      "name": "Free Agent 11",
-      "teamAbbr": "HOU",
-      "availability": "fa",
+      "name": "Marvin Bagley III",
+      "teamAbbr": "DEN",
+      "positions": [
+        "PF",
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.48,
-        "FT_PCT": 0.738,
-        "TPM": 2.8,
-        "REB": 4.43,
-        "AST": 2.46,
-        "STL": 0.58,
-        "BLK": 0.68,
-        "TO": 1.7,
-        "PTS": 12.58
+        "FG_PCT": 0.61800487,
+        "FT_PCT": 0.65972222,
+        "TPM": 24,
+        "REB": 366,
+        "AST": 85,
+        "STL": 28,
+        "BLK": 43,
+        "TO": 61,
+        "PTS": 627
       },
       "shooting": {
-        "FGM": 4.27,
-        "FGA": 8.89,
-        "FTM": 1.94,
-        "FTA": 2.63
-      }
+        "FGM": 238.26,
+        "FGA": 385.5309424988835,
+        "FTM": 112.86,
+        "FTA": 171.07200057624252
+      },
+      "availability": "fa"
     },
     {
       "id": "fa12",
-      "name": "Free Agent 12",
-      "teamAbbr": "IND",
-      "availability": "fa",
+      "name": "Sam Merrill",
+      "teamAbbr": "CLE",
+      "positions": [
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.484,
-        "FT_PCT": 0.827,
-        "TPM": 0.7,
-        "REB": 5.04,
-        "AST": 2.99,
-        "STL": 0.71,
-        "BLK": 0.8,
-        "TO": 0.8,
-        "PTS": 11.03
+        "FG_PCT": 0.4607438,
+        "FT_PCT": 0.85507246,
+        "TPM": 158,
+        "REB": 133,
+        "AST": 125,
+        "STL": 33,
+        "BLK": 7,
+        "TO": 42,
+        "PTS": 663
       },
       "shooting": {
-        "FGM": 4.44,
-        "FGA": 9.18,
-        "FTM": 2.15,
-        "FTA": 2.6
-      }
+        "FGM": 251.94,
+        "FGA": 546.8114817822834,
+        "FTM": 119.33999999999999,
+        "FTA": 139.56711925910932
+      },
+      "availability": "fa"
     },
     {
       "id": "fa13",
-      "name": "Free Agent 13",
-      "teamAbbr": "LAC",
-      "availability": "waiver",
+      "name": "Jared McCain",
+      "teamAbbr": "OKC",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.487,
-        "FT_PCT": 0.805,
-        "TPM": 1.12,
-        "REB": 5.65,
-        "AST": 3.52,
-        "STL": 0.84,
-        "BLK": 0.92,
-        "TO": 0.98,
-        "PTS": 12
+        "FG_PCT": 0.425,
+        "FT_PCT": 0.86440678,
+        "TPM": 99,
+        "REB": 137,
+        "AST": 90,
+        "STL": 35,
+        "BLK": 5,
+        "TO": 56,
+        "PTS": 558
       },
       "shooting": {
-        "FGM": 4.61,
-        "FGA": 9.47,
-        "FTM": 2.36,
-        "FTA": 2.93
-      }
+        "FGM": 212.04,
+        "FGA": 498.91764705882355,
+        "FTM": 100.44,
+        "FTA": 116.19529407208027
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa14",
-      "name": "Free Agent 14",
-      "teamAbbr": "LAL",
-      "availability": "waiver",
+      "name": "Daniss Jenkins",
+      "teamAbbr": "DET",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.49,
-        "FT_PCT": 0.615,
-        "TPM": 1.54,
-        "REB": 6.26,
-        "AST": 4.05,
-        "STL": 0.97,
-        "BLK": 0.2,
-        "TO": 1.16,
-        "PTS": 11.5
+        "FG_PCT": 0.4084507,
+        "FT_PCT": 0.83229814,
+        "TPM": 73,
+        "REB": 166,
+        "AST": 278,
+        "STL": 64,
+        "BLK": 15,
+        "TO": 115,
+        "PTS": 671
       },
       "shooting": {
-        "FGM": 4.78,
-        "FGA": 9.76,
-        "FTM": 1.1,
-        "FTA": 1.79
-      }
+        "FGM": 254.98,
+        "FGA": 624.2613857682212,
+        "FTM": 120.78,
+        "FTA": 145.1162680719195
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa15",
-      "name": "Free Agent 15",
-      "teamAbbr": "MEM",
-      "availability": "waiver",
+      "name": "Tristan da Silva",
+      "teamAbbr": "ORL",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.493,
-        "FT_PCT": 0.744,
-        "TPM": 1.96,
-        "REB": 6.87,
-        "AST": 4.58,
-        "STL": 0.45,
-        "BLK": 0.32,
-        "TO": 1.34,
-        "PTS": 12.47
+        "FG_PCT": 0.45,
+        "FT_PCT": 0.88421053,
+        "TPM": 120,
+        "REB": 284,
+        "AST": 124,
+        "STL": 68,
+        "BLK": 25,
+        "TO": 69,
+        "PTS": 762
       },
       "shooting": {
-        "FGM": 4.95,
-        "FGA": 10.05,
-        "FTM": 1.31,
-        "FTA": 1.76
-      }
+        "FGM": 289.56,
+        "FGA": 643.4666666666667,
+        "FTM": 137.16,
+        "FTA": 155.12142792508928
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa16",
-      "name": "Free Agent 16",
-      "teamAbbr": "MIA",
-      "availability": "waiver",
+      "name": "Keon Ellis",
+      "teamAbbr": "BKN",
+      "positions": [
+        "SG",
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.495,
-        "FT_PCT": 0.727,
-        "TPM": 2.38,
-        "REB": 2.6,
-        "AST": 5.11,
-        "STL": 0.58,
-        "BLK": 0.44,
-        "TO": 1.52,
-        "PTS": 13.44
+        "FG_PCT": 0.44010417,
+        "FT_PCT": 0.72857143,
+        "TPM": 91,
+        "REB": 135,
+        "AST": 72,
+        "STL": 83,
+        "BLK": 46,
+        "TO": 41,
+        "PTS": 480
       },
       "shooting": {
-        "FGM": 5.12,
-        "FGA": 10.34,
-        "FTM": 1.52,
-        "FTA": 2.09
-      }
+        "FGM": 182.4,
+        "FGA": 414.4473341390971,
+        "FTM": 86.39999999999999,
+        "FTA": 118.58823506159167
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa17",
-      "name": "Free Agent 17",
-      "teamAbbr": "MIL",
-      "availability": "waiver",
+      "name": "Jordan Poole",
+      "teamAbbr": "NOP",
+      "positions": [
+        "SG",
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.498,
-        "FT_PCT": 0.715,
-        "TPM": 2.8,
-        "REB": 3.21,
-        "AST": 5.64,
-        "STL": 0.71,
-        "BLK": 0.56,
-        "TO": 1.7,
-        "PTS": 14.41
+        "FG_PCT": 0.37162162,
+        "FT_PCT": 0.85964912,
+        "TPM": 96,
+        "REB": 77,
+        "AST": 119,
+        "STL": 22,
+        "BLK": 15,
+        "TO": 69,
+        "PTS": 524
       },
       "shooting": {
-        "FGM": 5.29,
-        "FGA": 10.63,
-        "FTM": 1.73,
-        "FTA": 2.42
-      }
+        "FGM": 199.12,
+        "FGA": 535.8138205199149,
+        "FTM": 94.32,
+        "FTA": 109.71918403173609
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa18",
-      "name": "Free Agent 18",
-      "teamAbbr": "MIN",
-      "availability": "waiver",
+      "name": "Oso Ighodaro",
+      "teamAbbr": "PHX",
+      "positions": [
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.5,
-        "FT_PCT": 0.812,
-        "TPM": 0.7,
-        "REB": 3.82,
-        "AST": 1.4,
-        "STL": 0.84,
-        "BLK": 0.68,
-        "TO": 0.8,
-        "PTS": 12.86
+        "FG_PCT": 0.65300546,
+        "FT_PCT": 0.45299145,
+        "TPM": 0,
+        "REB": 418,
+        "AST": 185,
+        "STL": 73,
+        "BLK": 57,
+        "TO": 101,
+        "PTS": 531
       },
       "shooting": {
-        "FGM": 5.46,
-        "FGA": 10.92,
-        "FTM": 1.94,
-        "FTA": 2.39
-      }
+        "FGM": 201.78,
+        "FGA": 309.00201048854933,
+        "FTM": 95.58,
+        "FTA": 210.99735988394482
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa19",
-      "name": "Free Agent 19",
-      "teamAbbr": "NOP",
-      "availability": "waiver",
+      "name": "Bub Carrington",
+      "teamAbbr": "WAS",
+      "positions": [
+        "PG",
+        "SG"
+      ],
       "projections": {
-        "FG_PCT": 0.502,
-        "FT_PCT": 0.79,
-        "TPM": 1.12,
-        "REB": 4.43,
-        "AST": 1.93,
-        "STL": 0.97,
-        "BLK": 0.8,
-        "TO": 0.98,
-        "PTS": 13.83
+        "FG_PCT": 0.42375169,
+        "FT_PCT": 0.72972973,
+        "TPM": 169,
+        "REB": 276,
+        "AST": 381,
+        "STL": 52,
+        "BLK": 17,
+        "TO": 191,
+        "PTS": 878
       },
       "shooting": {
-        "FGM": 5.63,
-        "FGA": 11.21,
-        "FTM": 2.15,
-        "FTA": 2.72
-      }
+        "FGM": 333.64,
+        "FGA": 787.3478923470487,
+        "FTM": 158.04,
+        "FTA": 216.57333325312098
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa20",
-      "name": "Free Agent 20",
+      "name": "Andre Drummond",
       "teamAbbr": "NYK",
-      "availability": "waiver",
+      "positions": [
+        "C"
+      ],
       "projections": {
-        "FG_PCT": 0.504,
-        "FT_PCT": 0.774,
-        "TPM": 1.54,
-        "REB": 5.04,
-        "AST": 2.46,
-        "STL": 0.45,
-        "BLK": 0.92,
-        "TO": 1.16,
-        "PTS": 14.8
+        "FG_PCT": 0.47181009,
+        "FT_PCT": 0.63095238,
+        "TPM": 32,
+        "REB": 532,
+        "AST": 80,
+        "STL": 38,
+        "BLK": 49,
+        "TO": 61,
+        "PTS": 403
       },
       "shooting": {
-        "FGM": 5.8,
-        "FGA": 11.5,
-        "FTM": 2.36,
-        "FTA": 3.05
-      }
+        "FGM": 153.14000000000001,
+        "FGA": 324.5797477540169,
+        "FTM": 72.53999999999999,
+        "FTA": 114.96905677731178
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa21",
-      "name": "Free Agent 21",
-      "teamAbbr": "OKC",
-      "availability": "waiver",
+      "name": "Royce O'Neale",
+      "teamAbbr": "CHA",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.506,
-        "FT_PCT": 0.71,
-        "TPM": 1.96,
-        "REB": 5.65,
-        "AST": 2.99,
-        "STL": 0.58,
-        "BLK": 0.2,
-        "TO": 1.34,
-        "PTS": 14.3
+        "FG_PCT": 0.4208,
+        "FT_PCT": 0.71052632,
+        "TPM": 212,
+        "REB": 372,
+        "AST": 208,
+        "STL": 84,
+        "BLK": 32,
+        "TO": 103,
+        "PTS": 765
       },
       "shooting": {
-        "FGM": 5.97,
-        "FGA": 11.79,
-        "FTM": 1.1,
-        "FTA": 1.55
-      }
+        "FGM": 290.7,
+        "FGA": 690.8269961977186,
+        "FTM": 137.7,
+        "FTA": 193.79999885155553
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa22",
-      "name": "Free Agent 22",
-      "teamAbbr": "ORL",
-      "availability": "waiver",
+      "name": "Sergio de Larrea",
+      "teamAbbr": "DAL",
+      "positions": [
+        "PG"
+      ],
       "projections": {
-        "FG_PCT": 0.508,
-        "FT_PCT": 0.697,
-        "TPM": 2.38,
-        "REB": 6.26,
-        "AST": 3.52,
-        "STL": 0.71,
-        "BLK": 0.32,
-        "TO": 1.52,
-        "PTS": 15.27
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
       },
       "shooting": {
-        "FGM": 6.14,
-        "FGA": 12.08,
-        "FTM": 1.31,
-        "FTA": 1.88
-      }
+        "FGM": 0,
+        "FGA": 0,
+        "FTM": 0,
+        "FTA": 0
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa23",
-      "name": "Free Agent 23",
-      "teamAbbr": "PHI",
-      "availability": "waiver",
+      "name": "Carter Bryant",
+      "teamAbbr": "SAS",
+      "positions": [
+        "SF"
+      ],
       "projections": {
-        "FG_PCT": 0.51,
-        "FT_PCT": 0.688,
-        "TPM": 2.8,
-        "REB": 6.87,
-        "AST": 4.05,
-        "STL": 0.84,
-        "BLK": 0.44,
-        "TO": 1.7,
-        "PTS": 16.24
+        "FG_PCT": 0.40754717,
+        "FT_PCT": 0.71428571,
+        "TPM": 52,
+        "REB": 178,
+        "AST": 47,
+        "STL": 16,
+        "BLK": 23,
+        "TO": 33,
+        "PTS": 298
       },
       "shooting": {
-        "FGM": 6.31,
-        "FGA": 12.37,
-        "FTM": 1.52,
-        "FTA": 2.21
-      }
+        "FGM": 113.24,
+        "FGA": 277.8574072787697,
+        "FTM": 53.64,
+        "FTA": 75.09600045057601
+      },
+      "availability": "waiver"
     },
     {
       "id": "fa24",
-      "name": "Free Agent 24",
-      "teamAbbr": "PHX",
-      "availability": "waiver",
+      "name": "Sam Hauser",
+      "teamAbbr": "BOS",
+      "positions": [
+        "SF",
+        "PF"
+      ],
       "projections": {
-        "FG_PCT": 0.512,
-        "FT_PCT": 0.794,
-        "TPM": 0.7,
-        "REB": 2.6,
-        "AST": 4.58,
-        "STL": 0.97,
-        "BLK": 0.56,
-        "TO": 0.8,
-        "PTS": 14.69
+        "FG_PCT": 0.41930116,
+        "FT_PCT": 0.85,
+        "TPM": 198,
+        "REB": 300,
+        "AST": 114,
+        "STL": 38,
+        "BLK": 23,
+        "TO": 35,
+        "PTS": 719
       },
       "shooting": {
-        "FGM": 6.48,
-        "FGA": 12.66,
-        "FTM": 1.73,
-        "FTA": 2.18
-      }
+        "FGM": 273.22,
+        "FGA": 651.6080232165349,
+        "FTM": 129.42,
+        "FTA": 152.25882352941176
+      },
+      "availability": "waiver"
     }
   ],
   "availablePlayerIds": [

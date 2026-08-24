@@ -124,14 +124,14 @@ export const DailyLineupPanel = ({
                     scope="row"
                   >
                     <span>{player.name}</span>
+                    <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                      {formatPlayerPositions(player)}
+                    </span>
                     {player.teamAbbr ? (
                       <span className="ml-1.5 font-normal text-[var(--color-mute)]">
                         {player.teamAbbr}
                       </span>
                     ) : null}
-                    <span className="mt-0.5 block text-[0.7rem] font-normal text-[var(--color-mute)]">
-                      {formatPlayerPositions(player)}
-                    </span>
                   </th>
                   {days.map((day) => {
                     const teamAbbr = player.teamAbbr ?? ""

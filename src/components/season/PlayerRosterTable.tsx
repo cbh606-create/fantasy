@@ -154,7 +154,12 @@ export const PlayerRosterTable = ({
                           })}
                         </select>
                       ) : player ? (
-                        player.name
+                        <>
+                          <span>{player.name}</span>
+                          <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                            {formatPlayerPositions(player)}
+                          </span>
+                        </>
                       ) : (
                         <span className="text-[var(--color-mute)]">Empty</span>
                       )}
