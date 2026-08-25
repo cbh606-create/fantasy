@@ -24,9 +24,9 @@ const twoDaySchedule: ScheduleResponse = {
   ],
 }
 
-const star: SeasonPlayer = {
-  id: "star",
-  name: "Star",
+const anchor: SeasonPlayer = {
+  id: "anchor",
+  name: "Anchor",
   teamAbbr: "BOS",
   positions: ["PG"],
   projections: {
@@ -38,7 +38,7 @@ const star: SeasonPlayer = {
     STL: 0,
     BLK: 0,
     TO: 0,
-    PTS: 1640,
+    PTS: 200,
   },
   shooting: { FGM: 900, FGA: 1640, FTM: 400, FTA: 470 },
 }
@@ -62,6 +62,25 @@ const brick: SeasonPlayer = {
   shooting: { FGM: 70, FGA: 200, FTM: 30, FTA: 50 },
 }
 
+const scorer: SeasonPlayer = {
+  id: "scorer",
+  name: "Scorer",
+  teamAbbr: "BOS",
+  positions: ["SF"],
+  projections: {
+    FG_PCT: 0.38,
+    FT_PCT: 0.7,
+    TPM: 0,
+    REB: 0,
+    AST: 0,
+    STL: 0,
+    BLK: 0,
+    TO: 0,
+    PTS: 1800,
+  },
+  shooting: { FGM: 300, FGA: 800, FTM: 200, FTA: 280 },
+}
+
 const emptyDay = (): DailyLineups[string] => [
   { slot: "PG", playerId: null },
   { slot: "SG", playerId: null },
@@ -77,16 +96,19 @@ const emptyDay = (): DailyLineups[string] => [
 
 const ratioSitDaily = (): DailyLineups => ({
   "2025-11-03": emptyDay().map((entry, index) => {
-    if (index === 0) return { ...entry, playerId: "star" }
+    if (index === 0) return { ...entry, playerId: "anchor" }
     if (index === 1) return { ...entry, playerId: "brick" }
+    if (index === 2) return { ...entry, playerId: "scorer" }
     return entry
   }),
-  "2025-11-04": emptyDay().map((entry, index) =>
-    index === 0 ? { ...entry, playerId: "star" } : entry,
-  ),
+  "2025-11-04": emptyDay().map((entry, index) => {
+    if (index === 0) return { ...entry, playerId: "anchor" }
+    if (index === 2) return { ...entry, playerId: "scorer" }
+    return entry
+  }),
 })
 
-const ratioSitPlayers = [star, brick]
+const ratioSitPlayers = [anchor, brick, scorer]
 
 const ratioSitOppTotals = (): Record<CategoryId, number> => {
   const you = youTotalsFromDaily(ratioSitDaily(), ratioSitPlayers, twoDaySchedule)
@@ -117,6 +139,17 @@ const assertBaselineBoard = (
   return board
 }
 
+const clearPlayerOnDay = (
+  daily: DailyLineups,
+  date: string,
+  playerId: string,
+): DailyLineups => ({
+  ...daily,
+  [date]: (daily[date] ?? []).map((entry) =>
+    entry.playerId === playerId ? { ...entry, playerId: null } : entry,
+  ),
+})
+
 describe("suggestRatioSits", () => {
   it("suggests sitting the brick on day1 for FG% while preserving PTS W", () => {
     const oppTotals = ratioSitOppTotals()
@@ -141,12 +174,37 @@ describe("suggestRatioSits", () => {
     expect(brickDay1?.reason).toMatch(/counting W preserved/)
   })
 
-  it("does not suggest sitting the star when it would flip PTS W to L", () => {
+  it("does not suggest sitting the scorer when it would flip PTS W to L", () => {
+    const daily = ratioSitDaily()
     const oppTotals = ratioSitOppTotals()
-    assertBaselineBoard(oppTotals)
+    const baselineBoard = assertBaselineBoard(oppTotals)
+
+    const withoutScorerDaily = clearPlayerOnDay(daily, "2025-11-03", "scorer")
+    const withoutScorerYou = youTotalsFromDaily(
+      withoutScorerDaily,
+      ratioSitPlayers,
+      twoDaySchedule,
+    )
+    const withoutScorerBoard = buildMatchupBoard(
+      withoutScorerYou,
+      oppTotals,
+      ALL_CATEGORY_IDS,
+    )
+    const baselineFg = baselineBoard.categories.find(
+      (row) => row.categoryId === "FG_PCT",
+    )
+    const withoutScorerFg = withoutScorerBoard.categories.find(
+      (row) => row.categoryId === "FG_PCT",
+    )
+    const withoutScorerPts = withoutScorerBoard.categories.find(
+      (row) => row.categoryId === "PTS",
+    )
+
+    expect(withoutScorerFg?.winProb).toBeGreaterThan(baselineFg?.winProb ?? 0)
+    expect(withoutScorerPts?.outcome).toBe("L")
 
     const suggestions = suggestRatioSits({
-      daily: ratioSitDaily(),
+      daily,
       players: ratioSitPlayers,
       schedule: twoDaySchedule,
       oppTotals,
@@ -156,7 +214,7 @@ describe("suggestRatioSits", () => {
     expect(
       suggestions.some(
         (suggestion) =>
-          suggestion.playerId === "star" && suggestion.date === "2025-11-03",
+          suggestion.playerId === "scorer" && suggestion.date === "2025-11-03",
       ),
     ).toBe(false)
   })

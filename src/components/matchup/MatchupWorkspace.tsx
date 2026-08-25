@@ -135,9 +135,6 @@ const hasIncompleteActiveLineup = (state: SeasonLeagueState): boolean => {
 const swapKey = (suggestion: SitStartSuggestion) =>
   `${suggestion.benchPlayerId}:${suggestion.activePlayerId}`
 
-const ratioSitKey = (suggestion: RatioSitSuggestion) =>
-  `${suggestion.playerId}:${suggestion.date}`
-
 const previewStreamerIds = (plan: StreamingPlan | null): Set<string> => {
   const ids = new Set<string>()
   if (!plan) return ids
@@ -231,9 +228,6 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [applyingSwapKey, setApplyingSwapKey] = useState<string | null>(null)
-  const [applyingRatioSitKey, setApplyingRatioSitKey] = useState<string | null>(
-    null,
-  )
   const opponentFetchRef = useRef<AbortController | null>(null)
 
   const syncDailyFromState = useCallback(
@@ -496,37 +490,15 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   }
 
   const handleApplyRatioSit = (suggestion: RatioSitSuggestion) => {
-    if (!daily || !matchupData || !state) return
-
-    const playersMap: Record<string, SeasonPlayer> = {
-      ...Object.fromEntries(state.players.map((player) => [player.id, player])),
-      ...matchupData.playersById,
-    }
-    const sourceDaily =
-      previewPlan != null
-        ? applyStreamingPlanPreview(
-            daily,
-            previewPlan,
-            playersMap,
-            matchupData.schedule,
-            { omitSeats: previewSatSeats },
-          )
-        : daily
+    if (!daily) return
 
     if (
-      findPlayerSlotIndex(
-        sourceDaily,
-        suggestion.date,
-        suggestion.playerId,
-      ) < 0
+      findPlayerSlotIndex(daily, suggestion.date, suggestion.playerId) < 0
     ) {
       return
     }
 
-    const key = ratioSitKey(suggestion)
-    setApplyingRatioSitKey(key)
     handleTogglePlayerDay(suggestion.playerId, suggestion.date)
-    setApplyingRatioSitKey(null)
   }
 
   const handleApplySwap = async (suggestion: SitStartSuggestion) => {
@@ -768,7 +740,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           />
           {previewPlan == null ? (
             <RatioSitsPanel
-              applyingKey={applyingRatioSitKey}
+              applyingKey={null}
               onApply={handleApplyRatioSit}
               playersById={playersMap}
               suggestions={ratioSits}
