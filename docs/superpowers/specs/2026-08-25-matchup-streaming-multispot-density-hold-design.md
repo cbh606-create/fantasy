@@ -17,7 +17,7 @@ Extend off-night behavior beyond 1-spot without copying 1-spot’s **always thin
 - **1-spot:** unchanged always-cover on off nights.
 - **2-spot / 3-spot:** default **hold** through off nights while `remainingGameDays(held) > 0`.
 - **2/3-spot off-night upgrade** only when a candidate block starting today has density tier **`ok` or better** (`ok` = 2 games no B2B, `strong` = 2 + B2B, `elite` = ≥3 in window), and `addsUsed < addLimit`.
-- **Late week leftover:** if no dense today block and `allowsThinFill(strategy, dayIndex, dayCount)`, allow thin / `pickBestFa` cover on 2/3-spot off nights (same spirit as needFill thin unlock).
+- **Late week leftover:** if no dense today block and `dayIndex >= max(0, dayCount - 3)` (`isLateWeek`), allow thin / `pickBestFa` cover on 2/3-spot off nights. Do **not** use bare `allowsThinFill` here — Aggressive unlocks thin every day and would collapse into always-cover.
 - Empty-spot fills still prefer `pickTodayBlock` (density-first); prefer spots with fewer adds when choosing which spot to fill/cover.
 - Game days: hold unless existing density `allowsEarlySwap`.
 
@@ -49,7 +49,7 @@ Then:
 
 1. `todayBlock = pickTodayBlock(...)` (already tier-gates by strategy).
 2. If `todayBlock` and `densityTierRank(todayBlock.tier) >= densityTierRank("ok")` → `drop_add`.
-3. Else if `allowsThinFill(strategyMode, dayIndex, dayCount)` → `pickBestFa` (or thin block) if plays today → `drop_add`.
+3. Else if `isLateWeek` (`dayIndex >= max(0, dayCount - 3)`) → `pickBestFa` (or thin block) if plays today → `drop_add`.
 4. Else stay `hold`.
 
 Do **not** require `upgradeRemaining > heldRemaining` for multi-spot (density/timing is the gate).
