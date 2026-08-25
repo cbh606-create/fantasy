@@ -6,6 +6,7 @@ import { DailyLineupPanel } from "@/components/matchup/DailyLineupPanel"
 import { InjuryAlertsPanel } from "@/components/matchup/InjuryAlertsPanel"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
+import { RatioSitsPanel } from "@/components/matchup/RatioSitsPanel"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { SeasonToolShell } from "@/components/season/SeasonToolShell"
@@ -18,6 +19,7 @@ import { isActiveSlot } from "@/lib/matchup/constants"
 import {
   clearNoGameActiveSlots,
   dailyLineupsMatchDays,
+  findPlayerSlotIndex,
   initDailyLineups,
   playerGameDays,
   readDailyLineups,
@@ -27,11 +29,13 @@ import {
   type DailyLineups,
   type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
+import { suggestRatioSits } from "@/lib/matchup/ratioSits"
 import { applyStreamingPlanPreview, previewSeatKey } from "@/lib/matchup/applyStreamingPlanPreview"
 import { rosterSlotsFor } from "@/lib/matchup/eligibility"
 import type {
   MatchupAdvice,
   MatchupBoard as MatchupBoardData,
+  RatioSitSuggestion,
   SitStartSuggestion,
   StreamingPlan,
 } from "@/lib/matchup/types"
@@ -131,6 +135,9 @@ const hasIncompleteActiveLineup = (state: SeasonLeagueState): boolean => {
 const swapKey = (suggestion: SitStartSuggestion) =>
   `${suggestion.benchPlayerId}:${suggestion.activePlayerId}`
 
+const ratioSitKey = (suggestion: RatioSitSuggestion) =>
+  `${suggestion.playerId}:${suggestion.date}`
+
 const previewStreamerIds = (plan: StreamingPlan | null): Set<string> => {
   const ids = new Set<string>()
   if (!plan) return ids
@@ -224,6 +231,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [applyingSwapKey, setApplyingSwapKey] = useState<string | null>(null)
+  const [applyingRatioSitKey, setApplyingRatioSitKey] = useState<string | null>(
+    null,
+  )
   const opponentFetchRef = useRef<AbortController | null>(null)
 
   const syncDailyFromState = useCallback(
@@ -485,6 +495,40 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     )
   }
 
+  const handleApplyRatioSit = (suggestion: RatioSitSuggestion) => {
+    if (!daily || !matchupData || !state) return
+
+    const playersMap: Record<string, SeasonPlayer> = {
+      ...Object.fromEntries(state.players.map((player) => [player.id, player])),
+      ...matchupData.playersById,
+    }
+    const sourceDaily =
+      previewPlan != null
+        ? applyStreamingPlanPreview(
+            daily,
+            previewPlan,
+            playersMap,
+            matchupData.schedule,
+            { omitSeats: previewSatSeats },
+          )
+        : daily
+
+    if (
+      findPlayerSlotIndex(
+        sourceDaily,
+        suggestion.date,
+        suggestion.playerId,
+      ) < 0
+    ) {
+      return
+    }
+
+    const key = ratioSitKey(suggestion)
+    setApplyingRatioSitKey(key)
+    handleTogglePlayerDay(suggestion.playerId, suggestion.date)
+    setApplyingRatioSitKey(null)
+  }
+
   const handleApplySwap = async (suggestion: SitStartSuggestion) => {
     const key = swapKey(suggestion)
     setApplyingSwapKey(key)
@@ -597,6 +641,17 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     oppTotalsFromBoard(matchupData.board),
     enabledCategoryIds(state),
   )
+
+  const ratioSits =
+    previewPlan != null
+      ? []
+      : suggestRatioSits({
+          daily: displayDaily,
+          players: playersForTotals,
+          schedule: matchupData.schedule,
+          oppTotals: oppTotalsFromBoard(matchupData.board),
+          categoryIds: liveBoard.categories.map((row) => row.categoryId),
+        })
 
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
@@ -711,6 +766,14 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             playersById={matchupData.playersById}
             suggestions={matchupData.sitStart}
           />
+          {previewPlan == null ? (
+            <RatioSitsPanel
+              applyingKey={applyingRatioSitKey}
+              onApply={handleApplyRatioSit}
+              playersById={playersMap}
+              suggestions={ratioSits}
+            />
+          ) : null}
         </div>
       </div>
     </main>
