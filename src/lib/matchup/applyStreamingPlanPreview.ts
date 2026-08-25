@@ -59,6 +59,16 @@ const seatPlayer = (
         occupantHasNoGame(entry.playerId, date, playersById, schedule),
     )
   }
+  // Preview must still show streamers when the day is full of game-day
+  // starters (common after autofill, especially if roster drop is "none").
+  if (index < 0) {
+    for (let i = entries.length - 1; i >= 0; i -= 1) {
+      if (entries[i]?.playerId) {
+        index = i
+        break
+      }
+    }
+  }
   if (index < 0) return
 
   const slot = entries[index]
@@ -66,14 +76,24 @@ const seatPlayer = (
   entries[index] = { ...slot, playerId }
 }
 
+export type ApplyStreamingPlanPreviewOptions = {
+  /** `${date}:${playerId}` — skip seating these streamers (user sat them in preview). */
+  omitSeats?: ReadonlySet<string>
+}
+
+export const previewSeatKey = (date: string, playerId: string) =>
+  `${date}:${playerId}`
+
 export const applyStreamingPlanPreview = (
   baseDaily: DailyLineups,
   plan: StreamingPlan,
   playersById: Map<string, SeasonPlayer> | Record<string, SeasonPlayer>,
   schedule: ScheduleResponse,
+  options: ApplyStreamingPlanPreviewOptions = {},
 ): DailyLineups => {
   const next = cloneDaily(baseDaily)
   const matchupDays = Object.keys(next).sort()
+  const omitSeats = options.omitSeats
 
   for (const day of plan.days) {
     const date = day.date
@@ -90,6 +110,7 @@ export const applyStreamingPlanPreview = (
     }
     for (const cell of day.cells) {
       if (!cell.playerId || cell.action === "empty") continue
+      if (omitSeats?.has(previewSeatKey(date, cell.playerId))) continue
       const player = resolvePlayer(playersById, cell.playerId)
       if (!player?.teamAbbr) continue
       if (gameWeightForTeamDate(player.teamAbbr, date, schedule) === 0) continue

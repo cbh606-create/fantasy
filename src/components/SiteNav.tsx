@@ -1,5 +1,6 @@
 "use client"
 
+import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useContext, type ChangeEvent } from "react"
@@ -57,6 +58,7 @@ const EMPTY_ACTIVE_LEAGUE = {
 export const SiteNav = () => {
   const pathname = usePathname()
   const router = useRouter()
+  const { isSignedIn } = useAuth()
   // Optional context: Fast Refresh can remount SiteNav before the provider
   // for one frame; throwing here surfaces as Internal Server Error.
   const leagueContext = useContext(ActiveSeasonLeagueContext) ?? EMPTY_ACTIVE_LEAGUE
@@ -127,6 +129,21 @@ export const SiteNav = () => {
               </Link>
             )
           })}
+          {isSignedIn ? (
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "size-8",
+                },
+              }}
+            />
+          ) : (
+            <SignInButton mode="modal">
+              <button className={linkClass(false)} type="button">
+                Sign in
+              </button>
+            </SignInButton>
+          )}
         </nav>
       </div>
     </header>

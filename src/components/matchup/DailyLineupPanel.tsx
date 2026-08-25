@@ -29,9 +29,16 @@ type DailyLineupPanelProps = {
   previewActive?: boolean
   previewSpotCount?: 1 | 2 | 3
   previewPlayerIds?: Set<string> | string[]
-  droppedPlayerIds?: Set<string> | string[]
+  /** Player id → ISO date from which plan drop locks their cells. */
+  droppedFromDateByPlayerId?: Record<string, string>
+  /** Preview streamer id → dates they occupy a plan spot (lock other game days). */
+  streamerOwnedDatesByPlayerId?: Record<string, ReadonlySet<string> | string[]>
   extraPlayers?: SeasonPlayer[]
 }
+
+const toDateSet = (
+  dates?: ReadonlySet<string> | string[],
+): ReadonlySet<string> => (dates instanceof Set ? dates : new Set(dates ?? []))
 
 const toIdSet = (ids?: Set<string> | string[]) =>
   ids instanceof Set ? ids : new Set(ids ?? [])
@@ -60,12 +67,12 @@ export const DailyLineupPanel = ({
   previewActive = false,
   previewSpotCount,
   previewPlayerIds,
-  droppedPlayerIds,
+  droppedFromDateByPlayerId = {},
+  streamerOwnedDatesByPlayerId = {},
   extraPlayers,
 }: DailyLineupPanelProps) => {
   const [hint, setHint] = useState("")
   const previewIds = toIdSet(previewPlayerIds)
-  const droppedIds = toIdSet(droppedPlayerIds)
   const rowPlayers = [...rosterPlayers]
   const seenIds = new Set(rosterPlayers.map((player) => player.id))
   for (const extra of extraPlayers ?? []) {
@@ -74,8 +81,13 @@ export const DailyLineupPanel = ({
     seenIds.add(extra.id)
   }
 
-  const handleToggle = (player: SeasonPlayer, day: string, hasGame: boolean) => {
-    if (previewActive || !hasGame) return
+  const handleToggle = (
+    player: SeasonPlayer,
+    day: string,
+    hasGame: boolean,
+    locked: boolean,
+  ) => {
+    if (locked || !hasGame) return
 
     const status = onTogglePlayerDay(player.id, day)
     if (status === "full") {
@@ -102,12 +114,8 @@ export const DailyLineupPanel = ({
           </p>
         </div>
         <button
-          className="text-[0.8125rem] font-medium text-[var(--color-mute)] underline-offset-2 transition-colors hover:text-[var(--color-ink)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40"
-          disabled={previewActive}
-          onClick={() => {
-            if (previewActive) return
-            onReset()
-          }}
+          className="text-[0.8125rem] font-medium text-[var(--color-mute)] underline-offset-2 transition-colors hover:text-[var(--color-ink)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+          onClick={() => onReset()}
           type="button"
         >
           Reset to players with games
@@ -116,7 +124,7 @@ export const DailyLineupPanel = ({
 
       {previewActive ? (
         <p className="mb-3 text-[0.8125rem] text-[var(--color-mute)]" role="status">
-          {`Previewing ${previewSpotCount ? `${previewSpotCount}-spot` : "streaming"} plan — board & daily show simulated adds/drops.`}
+          {`Previewing ${previewSpotCount ? `${previewSpotCount}-spot` : "streaming"} plan — streamers overlay; start/sit roster or preview streamers as needed.`}
         </p>
       ) : null}
 
@@ -147,7 +155,11 @@ export const DailyLineupPanel = ({
           <tbody>
             {rowPlayers.map((player) => {
               const isPreview = previewIds.has(player.id)
-              const isDropped = droppedIds.has(player.id)
+              const droppedFrom = droppedFromDateByPlayerId[player.id]
+              const ownedDates = isPreview
+                ? toDateSet(streamerOwnedDatesByPlayerId[player.id])
+                : null
+              const isPlanDropped = Boolean(droppedFrom)
 
               return (
                 <tr
@@ -164,7 +176,7 @@ export const DailyLineupPanel = ({
                   >
                     <span
                       className={
-                        isDropped
+                        isPlanDropped
                           ? "text-[var(--color-mute)] line-through"
                           : undefined
                       }
@@ -186,6 +198,13 @@ export const DailyLineupPanel = ({
                     ) : null}
                   </th>
                   {days.map((day) => {
+                    const isDropped = Boolean(
+                      droppedFrom && day >= droppedFrom,
+                    )
+                    const isOutsideStreamerWindow = Boolean(
+                      ownedDates && !ownedDates.has(day),
+                    )
+                    const isLocked = isDropped || isOutsideStreamerWindow
                     const teamAbbr = player.teamAbbr ?? ""
                     const gameWeight = teamAbbr
                       ? gameWeightForTeamDate(teamAbbr, day, schedule)
@@ -210,6 +229,9 @@ export const DailyLineupPanel = ({
                     const ariaLabel = startedSlot
                       ? `${action} ${player.name} on ${formatDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
                       : `${action} ${player.name} on ${formatDayLabel(day)}`
+                    const lockedAriaLabel = isDropped
+                      ? `${player.name} dropped in streaming plan on ${formatDayLabel(day)}`
+                      : `${player.name} not on streaming plan on ${formatDayLabel(day)}`
 
                     if (!hasGame) {
                       return (
@@ -227,24 +249,28 @@ export const DailyLineupPanel = ({
                     return (
                       <td className="px-1 py-1 text-center" key={day}>
                         <button
-                          aria-label={ariaLabel}
-                          aria-pressed={started}
-                          className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-60 ${
-                            started
-                              ? "bg-[var(--color-ink)] text-white hover:opacity-90"
-                              : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
+                          aria-label={isLocked ? lockedAriaLabel : ariaLabel}
+                          aria-pressed={isLocked ? undefined : started}
+                          className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
+                            isLocked
+                              ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
+                              : started
+                                ? "bg-[var(--color-ink)] text-white hover:opacity-90"
+                                : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
                           }`}
-                          disabled={previewActive}
-                          onClick={() => handleToggle(player, day, hasGame)}
+                          disabled={isLocked}
+                          onClick={() =>
+                            handleToggle(player, day, hasGame, isLocked)
+                          }
                           type="button"
                         >
-                          {startedSlot ? (
+                          {startedSlot && !isLocked ? (
                             <span className="mr-1 font-semibold tracking-wide">
                               {slotDisplayLabel(startedSlot)}
                             </span>
                           ) : null}
                           {shortLabel}
-                          {isB2b ? (
+                          {isB2b && !isLocked ? (
                             <span
                               className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
                               title="B2B · ~75% expected"

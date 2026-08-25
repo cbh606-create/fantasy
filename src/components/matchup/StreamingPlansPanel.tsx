@@ -89,6 +89,21 @@ const SPOT_ROW_CLASS = [
 
 const spotRowClass = (spotIndex: number) => SPOT_ROW_CLASS[spotIndex] ?? ""
 
+/** Distinct colors for plan-wide add ordinals (1-based). */
+const ADD_INDEX_COLOR_CLASS = [
+  "text-[var(--color-success)]",
+  "text-[#b45309]",
+  "text-[#0369a1]",
+  "text-[#be123c]",
+  "text-[#0f766e]",
+  "text-[#c2410c]",
+  "text-[#4d7c0f]",
+] as const
+
+const addIndexColorClass = (addIndex: number) =>
+  ADD_INDEX_COLOR_CLASS[(addIndex - 1) % ADD_INDEX_COLOR_CLASS.length] ??
+  "text-[var(--color-mute)]"
+
 const countAddsBySpot = (plan: StreamingPlan): number[] => {
   const counts = Array.from({ length: plan.spotCount }, () => 0)
   for (const day of plan.days) {
@@ -169,7 +184,7 @@ const AddCell = ({
         {cell.addIndex != null ? (
           <span
             aria-label={`Add ${cell.addIndex}`}
-            className="ml-0.5 text-[0.65rem] tabular-nums text-[var(--color-mute)]"
+            className={`ml-0.5 text-[0.8125rem] font-semibold tabular-nums ${addIndexColorClass(cell.addIndex)}`}
           >
             {cell.addIndex}
           </span>
