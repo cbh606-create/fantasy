@@ -382,8 +382,12 @@ export const buildStreamingPlan = ({
       }
     }
 
-    // Early swap: 1-spot off-night always cover, else denser on-game block today.
-    for (let spotIndex = 0; spotIndex < spotCount; spotIndex++) {
+    // Early swap: 1-spot always-cover; 2/3-spot density ok+ (or late thin);
+    // else denser on-game block today. Prefer spots with fewer adds first.
+    const spotOrder = [...Array(spotCount).keys()].sort(
+      (left, right) => addsBySpot[left]! - addsBySpot[right]! || left - right,
+    )
+    for (const spotIndex of spotOrder) {
       const cell = cells[spotIndex]
       if (!cell || cell.action !== "hold" || !cell.playerId) continue
       const occupant = playersById.get(cell.playerId)
@@ -394,8 +398,10 @@ export const buildStreamingPlan = ({
       const heldRemaining = remainingGameDays(occupant, date, schedule)
       if (heldRemaining <= 0) continue
 
-      const isOffNightAlwaysCover =
+      const isOneSpotAlwaysCover =
         spotCount === 1 && !heldPlaysToday && heldRemaining > 0
+      const isMultiSpotOffNight =
+        spotCount > 1 && !heldPlaysToday && heldRemaining > 0
 
       let upgradePlayer: SeasonPlayer | null = null
       const todayBlock = pickTodayBlock(
@@ -410,7 +416,12 @@ export const buildStreamingPlan = ({
       )
       if (todayBlock) {
         upgradePlayer = playersById.get(todayBlock.playerId) ?? null
-      } else if (isOffNightAlwaysCover) {
+      } else if (isOneSpotAlwaysCover) {
+        upgradePlayer = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
+      } else if (
+        isMultiSpotOffNight &&
+        allowsThinFill(strategyMode, dayIndex, dayCount)
+      ) {
         upgradePlayer = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
       }
 
@@ -418,7 +429,22 @@ export const buildStreamingPlan = ({
       const upgradeRemaining = remainingGameDays(upgradePlayer, date, schedule)
       if (upgradeRemaining <= 0) continue
 
-      if (!isOffNightAlwaysCover) {
+      if (isOneSpotAlwaysCover) {
+        // Accept any today-playing FA; no remaining-games gate.
+      } else if (isMultiSpotOffNight) {
+        const tier = todayBlock?.tier ?? "thin"
+        const denseEnough = densityTierRank(tier) >= densityTierRank("ok")
+        const lateThin =
+          !todayBlock && allowsThinFill(strategyMode, dayIndex, dayCount)
+        if (!denseEnough && !lateThin) continue
+        if (
+          todayBlock &&
+          !denseEnough &&
+          !allowsThinFill(strategyMode, dayIndex, dayCount)
+        ) {
+          continue
+        }
+      } else {
         if (!heldPlaysToday) continue
         const held = blockFromDate(occupant, date, schedule)
         const heldRank = held ? densityTierRank(held.tier) : 0
