@@ -7,6 +7,7 @@ export const B2B_SECOND_NIGHT_PLAY_RATE = 0.75
 export const MAX_SIT_START = 5
 export const MAX_STREAMERS = 8
 export const WEEKLY_ADD_LIMIT = 7
+export const STREAMING_PROTECTED_ADP_MAX = 60
 export const MIN_STREAMER_GAMES = 2
 export const MATCHUP_CATEGORY_SIGMOID_SCALE = {
   PTS: 15,
