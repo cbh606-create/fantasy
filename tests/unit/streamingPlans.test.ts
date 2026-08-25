@@ -1003,38 +1003,6 @@ describe("1-spot off-night always cover", () => {
     })
   })
 
-  it("does not apply off-night always-cover rule on 2-spot", () => {
-    const bos = player("fa-bos", "BOS", {
-      projections: { ...baseProjections(), STL: 200 },
-    })
-    const chi = player("fa-chi", "CHI", {
-      projections: { ...baseProjections(), STL: 150 },
-    })
-    const atl = player("fa-atl", "ATL", {
-      projections: { ...baseProjections(), STL: 140 },
-    })
-    const state = tinyState([bos, chi, atl], ["fa-bos", "fa-chi", "fa-atl"])
-    const schedule = tinySchedule(days, [
-      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
-      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "MIA" },
-      { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "WAS" },
-      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "ORL" },
-      { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "NYK" },
-    ])
-    const plan = buildStreamingPlan({
-      spotCount: 2,
-      state,
-      schedule,
-      board: emptyBoardLosingStl(),
-      strategyMode: "aggressive",
-      addLimit: 7,
-    })
-
-    // Thin CHI on Tue is not a density upgrade; 2-spot must hold, not always-cover
-    const tueBos = plan.days[1]!.cells.find((c) => c.playerId === "fa-bos")
-    expect(tueBos?.action).toBe("hold")
-  })
-
   it("uses pickBestFa fallback when pickTodayBlock is gated on mid-week off night", () => {
     // Conservative skips thin until last 3 days. 7-day week, Tue = dayIndex 1.
     const days = [
@@ -1081,7 +1049,16 @@ describe("1-spot off-night always cover", () => {
 })
 
 describe("2/3-spot density-first off nights", () => {
-  const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
+  const fourDays = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
+  const sevenDays = [
+    "2025-11-03",
+    "2025-11-04",
+    "2025-11-05",
+    "2025-11-06",
+    "2025-11-07",
+    "2025-11-08",
+    "2025-11-09",
+  ]
 
   it("holds 2-spot mid-block off night when only thin FA plays today", () => {
     const bos = player("fa-bos", "BOS", {
@@ -1095,7 +1072,7 @@ describe("2/3-spot density-first off nights", () => {
       projections: { ...baseProjections(), STL: 140 },
     })
     const state = tinyState([bos, chi, atl], ["fa-bos", "fa-chi", "fa-atl"])
-    const schedule = tinySchedule(days, [
+    const schedule = tinySchedule(sevenDays, [
       { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
       { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "MIA" },
       { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "WAS" },
@@ -1110,9 +1087,43 @@ describe("2/3-spot density-first off nights", () => {
       strategyMode: "aggressive",
       addLimit: 7,
     })
-    // Spot that holds BOS through Tue must stay hold (thin CHI only)
+    // Spot that holds BOS through Tue must stay hold (thin CHI only; Tue is not last 3)
     const tueBos = plan.days[1]!.cells.find((c) => c.playerId === "fa-bos")
     expect(tueBos?.action).toBe("hold")
+  })
+
+  it("drop_adds on 2-spot late-week off night when only thin FA plays today", () => {
+    const bos = player("fa-bos", "BOS", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const chi = player("fa-chi", "CHI", {
+      projections: { ...baseProjections(), STL: 150 },
+    })
+    const atl = player("fa-atl", "ATL", {
+      projections: { ...baseProjections(), STL: 140 },
+    })
+    const state = tinyState([bos, chi, atl], ["fa-bos", "fa-chi", "fa-atl"])
+    const schedule = tinySchedule(fourDays, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "MIA" },
+      { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "WAS" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "ORL" },
+      { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "NYK" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 2,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+    })
+    // 4-day week: last 3 includes Tue. Held BOS still has Wed+Thu remaining.
+    const tue = plan.days[1]!.cells.find((c) => c.droppedPlayerId === "fa-bos")
+    expect(tue).toMatchObject({
+      action: "drop_add",
+      playerId: "fa-chi",
+    })
   })
 
   it("drop_adds on 2-spot off night when dense ok+ block starts today", () => {
@@ -1127,7 +1138,7 @@ describe("2/3-spot density-first off nights", () => {
       projections: { ...baseProjections(), STL: 140 },
     })
     const state = tinyState([bos, nyk, atl], ["fa-bos", "fa-nyk", "fa-atl"])
-    const schedule = tinySchedule(days, [
+    const schedule = tinySchedule(fourDays, [
       { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
       { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "MIA" },
       { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "CHI" },

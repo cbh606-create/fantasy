@@ -382,8 +382,9 @@ export const buildStreamingPlan = ({
       }
     }
 
-    // Early swap: 1-spot always-cover; 2/3-spot density ok+ (or late thin);
+    // Early swap: 1-spot always-cover; 2/3-spot density ok+ (or late-week thin);
     // else denser on-game block today. Prefer spots with fewer adds first.
+    const isLateWeek = dayIndex >= Math.max(0, dayCount - 3)
     const spotOrder = [...Array(spotCount).keys()].sort(
       (left, right) => addsBySpot[left]! - addsBySpot[right]! || left - right,
     )
@@ -418,10 +419,7 @@ export const buildStreamingPlan = ({
         upgradePlayer = playersById.get(todayBlock.playerId) ?? null
       } else if (isOneSpotAlwaysCover) {
         upgradePlayer = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
-      } else if (
-        isMultiSpotOffNight &&
-        allowsThinFill(strategyMode, dayIndex, dayCount)
-      ) {
+      } else if (isMultiSpotOffNight && isLateWeek) {
         upgradePlayer = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
       }
 
@@ -432,18 +430,11 @@ export const buildStreamingPlan = ({
       if (isOneSpotAlwaysCover) {
         // Accept any today-playing FA; no remaining-games gate.
       } else if (isMultiSpotOffNight) {
-        const tier = todayBlock?.tier ?? "thin"
-        const denseEnough = densityTierRank(tier) >= densityTierRank("ok")
-        const lateThin =
-          !todayBlock && allowsThinFill(strategyMode, dayIndex, dayCount)
-        if (!denseEnough && !lateThin) continue
-        if (
-          todayBlock &&
-          !denseEnough &&
-          !allowsThinFill(strategyMode, dayIndex, dayCount)
-        ) {
-          continue
-        }
+        const denseEnough =
+          todayBlock != null &&
+          densityTierRank(todayBlock.tier) >= densityTierRank("ok")
+        // Mid-week thin (any strategy, including Aggressive) → hold.
+        if (!denseEnough && !isLateWeek) continue
       } else {
         if (!heldPlaysToday) continue
         const held = blockFromDate(occupant, date, schedule)
