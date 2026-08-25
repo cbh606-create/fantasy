@@ -26,7 +26,15 @@ type DailyLineupPanelProps = {
     day: string,
   ) => TogglePlayerDayResult["status"]
   onReset: () => void
+  previewActive?: boolean
+  previewSpotCount?: 1 | 2 | 3
+  previewPlayerIds?: Set<string> | string[]
+  droppedPlayerIds?: Set<string> | string[]
+  extraPlayers?: SeasonPlayer[]
 }
+
+const toIdSet = (ids?: Set<string> | string[]) =>
+  ids instanceof Set ? ids : new Set(ids ?? [])
 
 const formatDayLabel = (day: string) => {
   const date = new Date(`${day}T12:00:00`)
@@ -49,11 +57,25 @@ export const DailyLineupPanel = ({
   schedule,
   onTogglePlayerDay,
   onReset,
+  previewActive = false,
+  previewSpotCount,
+  previewPlayerIds,
+  droppedPlayerIds,
+  extraPlayers,
 }: DailyLineupPanelProps) => {
   const [hint, setHint] = useState("")
+  const previewIds = toIdSet(previewPlayerIds)
+  const droppedIds = toIdSet(droppedPlayerIds)
+  const rowPlayers = [...rosterPlayers]
+  const seenIds = new Set(rosterPlayers.map((player) => player.id))
+  for (const extra of extraPlayers ?? []) {
+    if (seenIds.has(extra.id)) continue
+    rowPlayers.push(extra)
+    seenIds.add(extra.id)
+  }
 
   const handleToggle = (player: SeasonPlayer, day: string, hasGame: boolean) => {
-    if (!hasGame) return
+    if (previewActive || !hasGame) return
 
     const status = onTogglePlayerDay(player.id, day)
     if (status === "full") {
@@ -80,13 +102,23 @@ export const DailyLineupPanel = ({
           </p>
         </div>
         <button
-          className="text-[0.8125rem] font-medium text-[var(--color-mute)] underline-offset-2 transition-colors hover:text-[var(--color-ink)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
-          onClick={onReset}
+          className="text-[0.8125rem] font-medium text-[var(--color-mute)] underline-offset-2 transition-colors hover:text-[var(--color-ink)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40"
+          disabled={previewActive}
+          onClick={() => {
+            if (previewActive) return
+            onReset()
+          }}
           type="button"
         >
           Reset to players with games
         </button>
       </div>
+
+      {previewActive ? (
+        <p className="mb-3 text-[0.8125rem] text-[var(--color-mute)]" role="status">
+          {`Previewing ${previewSpotCount ? `${previewSpotCount}-spot` : "streaming"} plan — board & daily show simulated adds/drops.`}
+        </p>
+      ) : null}
 
       {hint ? (
         <p className="mb-3 text-[0.8125rem] text-[var(--color-sale)]" role="status">
@@ -113,17 +145,37 @@ export const DailyLineupPanel = ({
             </tr>
           </thead>
           <tbody>
-            {rosterPlayers.map((player) => {
+            {rowPlayers.map((player) => {
+              const isPreview = previewIds.has(player.id)
+              const isDropped = droppedIds.has(player.id)
+
               return (
                 <tr
-                  className="border-t border-[var(--color-hairline)]"
+                  className={
+                    isPreview
+                      ? "border-t border-dashed border-[var(--color-hairline)]"
+                      : "border-t border-[var(--color-hairline)]"
+                  }
                   key={player.id}
                 >
                   <th
                     className="sticky left-0 z-10 whitespace-nowrap bg-[var(--color-canvas)] px-2.5 py-1.5 font-medium"
                     scope="row"
                   >
-                    <span>{player.name}</span>
+                    <span
+                      className={
+                        isDropped
+                          ? "text-[var(--color-mute)] line-through"
+                          : undefined
+                      }
+                    >
+                      {player.name}
+                    </span>
+                    {isPreview ? (
+                      <span className="ml-1.5 rounded-full border border-dashed border-[var(--color-hairline)] px-1.5 py-0.5 text-[0.625rem] font-normal tracking-wide text-[var(--color-mute)] uppercase">
+                        preview
+                      </span>
+                    ) : null}
                     <span className="ml-1.5 font-normal text-[var(--color-mute)]">
                       {formatPlayerPositions(player)}
                     </span>
@@ -177,11 +229,12 @@ export const DailyLineupPanel = ({
                         <button
                           aria-label={ariaLabel}
                           aria-pressed={started}
-                          className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                          className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-60 ${
                             started
                               ? "bg-[var(--color-ink)] text-white hover:opacity-90"
                               : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
                           }`}
+                          disabled={previewActive}
                           onClick={() => handleToggle(player, day, hasGame)}
                           type="button"
                         >

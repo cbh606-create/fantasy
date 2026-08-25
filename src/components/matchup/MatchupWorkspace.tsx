@@ -26,8 +26,14 @@ import {
   type DailyLineups,
   type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
+import { applyStreamingPlanPreview } from "@/lib/matchup/applyStreamingPlanPreview"
 import { rosterSlotsFor } from "@/lib/matchup/eligibility"
-import type { MatchupAdvice, MatchupBoard as MatchupBoardData, SitStartSuggestion } from "@/lib/matchup/types"
+import type {
+  MatchupAdvice,
+  MatchupBoard as MatchupBoardData,
+  SitStartSuggestion,
+  StreamingPlan,
+} from "@/lib/matchup/types"
 import type {
   ScheduleResponse,
   SeasonLeagueState,
@@ -124,6 +130,34 @@ const hasIncompleteActiveLineup = (state: SeasonLeagueState): boolean => {
 const swapKey = (suggestion: SitStartSuggestion) =>
   `${suggestion.benchPlayerId}:${suggestion.activePlayerId}`
 
+const previewStreamerIds = (plan: StreamingPlan | null): Set<string> => {
+  const ids = new Set<string>()
+  if (!plan) return ids
+  for (const day of plan.days) {
+    for (const cell of day.cells) {
+      if (cell.playerId && cell.action !== "empty") ids.add(cell.playerId)
+    }
+  }
+  return ids
+}
+
+const previewDroppedIds = (plan: StreamingPlan | null): Set<string> => {
+  const ids = new Set<string>()
+  if (!plan) return ids
+  for (const day of plan.days) {
+    for (const cell of day.cells) {
+      if (
+        cell.action === "add" &&
+        cell.rosterDropKind === "player" &&
+        cell.rosterDropPlayerId
+      ) {
+        ids.add(cell.rosterDropPlayerId)
+      }
+    }
+  }
+  return ids
+}
+
 export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   useSyncActiveSeasonLeague(leagueId)
 
@@ -131,6 +165,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [matchupData, setMatchupData] = useState<MatchupResponse | null>(null)
   const [opponentTeamIndex, setOpponentTeamIndex] = useState<number | null>(null)
   const [daily, setDaily] = useState<DailyLineups | null>(null)
+  const [previewPlan, setPreviewPlan] = useState<StreamingPlan | null>(null)
   const [error, setError] = useState("")
   const [opponentError, setOpponentError] = useState("")
   const [applyError, setApplyError] = useState("")
@@ -224,6 +259,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
     const bootstrap = async () => {
       try {
+        setPreviewPlan(null)
         const storedOpponent = readStoredOpponent(leagueId)
         let payload: MatchupResponse
 
@@ -319,7 +355,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     playerId: string,
     day: string,
   ): TogglePlayerDayResult["status"] => {
-    if (!daily || !matchupData) return "missing_day"
+    if (!daily || !matchupData || previewPlan) return "missing_day"
 
     const player = state?.players.find((entry) => entry.id === playerId)
     const hasGame = player
@@ -345,7 +381,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   }
 
   const handleResetDaily = () => {
-    if (!state || !matchupData) return
+    if (!state || !matchupData || previewPlan) return
 
     syncDailyFromState(
       state,
@@ -418,11 +454,20 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
   const showIncompleteBanner = hasIncompleteActiveLineup(state)
 
-  const liveBoard = buildMatchupBoard(
-    youTotalsFromDaily(daily, state.players, matchupData.schedule),
-    oppTotalsFromBoard(matchupData.board),
-    enabledCategoryIds(state),
-  )
+  const playersMap: Record<string, SeasonPlayer> = {
+    ...Object.fromEntries(state.players.map((player) => [player.id, player])),
+    ...matchupData.playersById,
+  }
+
+  const displayDaily =
+    daily && previewPlan
+      ? applyStreamingPlanPreview(
+          daily,
+          previewPlan,
+          playersMap,
+          matchupData.schedule,
+        )
+      : daily
 
   const youTeam = state.teams.find(
     (team) => team.teamIndex === state.perspectiveTeamIndex,
@@ -434,6 +479,27 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   )
   const rosterPlayers = state.players.filter((player) =>
     rosterPlayerIds.has(player.id),
+  )
+
+  const extraPlayers = [...previewStreamerIds(previewPlan)]
+    .map((playerId) => playersMap[playerId])
+    .filter(
+      (player): player is SeasonPlayer =>
+        Boolean(player) && !rosterPlayerIds.has(player.id),
+    )
+
+  const totalsPlayerIds = new Set(state.players.map((player) => player.id))
+  const playersForTotals = [...state.players]
+  for (const extra of extraPlayers) {
+    if (totalsPlayerIds.has(extra.id)) continue
+    playersForTotals.push(extra)
+    totalsPlayerIds.add(extra.id)
+  }
+
+  const liveBoard = buildMatchupBoard(
+    youTotalsFromDaily(displayDaily, playersForTotals, matchupData.schedule),
+    oppTotalsFromBoard(matchupData.board),
+    enabledCategoryIds(state),
   )
 
   return (
@@ -514,10 +580,15 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         <MatchupBoard board={liveBoard} />
 
         <DailyLineupPanel
-          daily={daily}
+          daily={displayDaily}
           days={matchupData.schedule.matchup.days}
+          droppedPlayerIds={previewDroppedIds(previewPlan)}
+          extraPlayers={extraPlayers}
           onReset={handleResetDaily}
           onTogglePlayerDay={handleTogglePlayerDay}
+          previewActive={previewPlan != null}
+          previewPlayerIds={previewStreamerIds(previewPlan)}
+          previewSpotCount={previewPlan?.spotCount}
           rosterPlayers={rosterPlayers}
           schedule={matchupData.schedule}
         />
@@ -528,6 +599,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             adpByPlayerId={matchupData.adpByPlayerId}
             board={matchupData.board}
             leagueId={leagueId}
+            onPreviewPlanChange={setPreviewPlan}
             playersById={matchupData.playersById}
             schedule={matchupData.schedule}
             state={state}

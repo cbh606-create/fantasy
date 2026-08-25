@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Fragment, useState } from "react"
+import { Fragment, useEffect, useMemo, useRef, useState } from "react"
 import { formatPlayerPositions } from "@/lib/season/slotLabels"
 import type {
   ScheduleResponse,
@@ -27,6 +27,13 @@ const STRATEGY_OPTIONS: { id: StreamingStrategyMode; label: string }[] = [
   { id: "conservative", label: "Conservative" },
 ]
 
+const PREVIEW_OPTIONS: { id: 1 | 2 | 3 | null; label: string }[] = [
+  { id: null, label: "None" },
+  { id: 1, label: "1-spot" },
+  { id: 2, label: "2-spot" },
+  { id: 3, label: "3-spot" },
+]
+
 type StreamingPlansPanelProps = {
   leagueId: string
   state: SeasonLeagueState
@@ -34,6 +41,7 @@ type StreamingPlansPanelProps = {
   board: MatchupBoard
   playersById: Record<string, SeasonPlayer>
   adpByPlayerId?: Record<string, number>
+  onPreviewPlanChange?: (plan: StreamingPlan | null) => void
 }
 
 const formatDayLabel = (day: string) => {
@@ -189,20 +197,50 @@ export const StreamingPlansPanel = ({
   board,
   playersById,
   adpByPlayerId,
+  onPreviewPlanChange,
 }: StreamingPlansPanelProps) => {
   const suggested = suggestStreamingStrategyMode(board)
   const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
   const [strategyMode, setStrategyMode] =
     useState<StreamingStrategyMode>(suggested)
+  const [previewSpotCount, setPreviewSpotCount] = useState<1 | 2 | 3 | null>(
+    null,
+  )
 
-  const plans = buildAllStreamingPlans({
-    state,
-    schedule,
-    board,
-    addLimit: addBudget,
-    strategyMode,
-    adpByPlayerId,
-  })
+  const plans = useMemo(
+    () =>
+      buildAllStreamingPlans({
+        state,
+        schedule,
+        board,
+        addLimit: addBudget,
+        strategyMode,
+        adpByPlayerId,
+      }),
+    [state, schedule, board, addBudget, strategyMode, adpByPlayerId],
+  )
+
+  const selectPreviewSpot = (spot: 1 | 2 | 3 | null) => {
+    setPreviewSpotCount(spot)
+    if (spot == null) {
+      onPreviewPlanChange?.(null)
+      return
+    }
+    onPreviewPlanChange?.(
+      plans.find((plan) => plan.spotCount === spot) ?? null,
+    )
+  }
+
+  const previewSpotRef = useRef(previewSpotCount)
+  previewSpotRef.current = previewSpotCount
+
+  useEffect(() => {
+    const spot = previewSpotRef.current
+    if (spot == null) return
+    onPreviewPlanChange?.(
+      plans.find((plan) => plan.spotCount === spot) ?? null,
+    )
+  }, [plans, onPreviewPlanChange])
 
   const resolvedPlayers: Record<string, SeasonPlayer> = {
     ...Object.fromEntries(state.players.map((player) => [player.id, player])),
@@ -290,8 +328,33 @@ export const StreamingPlansPanel = ({
               </span>
             ) : null}
           </div>
+          <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
+            <span className="text-[var(--color-mute)]">Preview</span>
+            {PREVIEW_OPTIONS.map((option) => (
+              <button
+                aria-pressed={previewSpotCount === option.id}
+                className={
+                  previewSpotCount === option.id
+                    ? "rounded-full border border-[var(--color-ink)] px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                    : "rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                }
+                key={option.label}
+                onClick={() => selectPreviewSpot(option.id)}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {previewSpotCount != null ? (
+        <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]" role="status">
+          Previewing {previewSpotCount}-spot plan — board & daily show simulated
+          adds/drops.
+        </p>
+      ) : null}
 
       <div className="mt-3 space-y-5">
         {plans.map((plan) => {

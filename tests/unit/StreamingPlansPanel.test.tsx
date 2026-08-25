@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest"
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { MatchupBoard } from "@/lib/matchup/types"
@@ -339,5 +339,69 @@ describe("StreamingPlansPanel", () => {
     expect(screen.getAllByText(/Protected ADP ≤ 60/).length).toBeGreaterThan(0)
     expect(screen.getAllByText("Scrub").length).toBeGreaterThan(0)
     expect(screen.queryAllByText("Star")).toHaveLength(0)
+  })
+
+  it("renders None/1/2/3 preview selector defaulting to None", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    const none = screen.getByRole("button", { name: /^None$/i })
+    const one = screen.getByRole("button", { name: /^1-spot$/i })
+    const two = screen.getByRole("button", { name: /^2-spot$/i })
+    const three = screen.getByRole("button", { name: /^3-spot$/i })
+
+    expect(none).toHaveAttribute("aria-pressed", "true")
+    expect(one).toHaveAttribute("aria-pressed", "false")
+    expect(two).toHaveAttribute("aria-pressed", "false")
+    expect(three).toHaveAttribute("aria-pressed", "false")
+  })
+
+  it("calls onPreviewPlanChange with the 1-spot plan when 1-spot is selected", () => {
+    const onPreviewPlanChange = vi.fn()
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        onPreviewPlanChange={onPreviewPlanChange}
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: /^1-spot$/i }))
+
+    expect(onPreviewPlanChange).toHaveBeenCalledTimes(1)
+    expect(onPreviewPlanChange).toHaveBeenCalledWith(
+      expect.objectContaining({ spotCount: 1 }),
+    )
+  })
+
+  it("calls onPreviewPlanChange(null) when None is selected after a plan", () => {
+    const onPreviewPlanChange = vi.fn()
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        onPreviewPlanChange={onPreviewPlanChange}
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: /^1-spot$/i }))
+    fireEvent.click(screen.getByRole("button", { name: /^None$/i }))
+
+    expect(onPreviewPlanChange).toHaveBeenLastCalledWith(null)
   })
 })
