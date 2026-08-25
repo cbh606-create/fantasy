@@ -70,6 +70,7 @@ export type StreamingPlanDayCell = {
   droppedPlayerId: string | null
   rosterDropPlayerId: string | null
   rosterDropKind: StreamingPlanRosterDropKind
+  addIndex: number | null
 }
 
 export type StreamingPlanDay = {

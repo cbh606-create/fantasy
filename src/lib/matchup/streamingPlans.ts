@@ -375,6 +375,7 @@ export const buildStreamingPlan = ({
           droppedPlayerId: null,
           rosterDropPlayerId: null,
           rosterDropKind: "none",
+          addIndex: null,
         }
       } else {
         needFill.push(spotIndex)
@@ -422,6 +423,7 @@ export const buildStreamingPlan = ({
         droppedPlayerId: cell.playerId,
         rosterDropPlayerId: null,
         rosterDropKind: "none",
+        addIndex: addsUsed,
       }
     }
 
@@ -440,6 +442,7 @@ export const buildStreamingPlan = ({
       let droppedPlayerId: string | null = null
       let rosterDropKind: StreamingPlanRosterDropKind = "none"
       let rosterDropPlayerId: string | null = null
+      let addIndex: number | null = null
 
       if (addsUsed < addLimit) {
         const todayBlock = pickTodayBlock(
@@ -470,6 +473,7 @@ export const buildStreamingPlan = ({
           }
           addsUsed += 1
           addsBySpot[spotIndex]! += 1
+          addIndex = addsUsed
           seatedToday.add(best.id)
         }
       }
@@ -501,6 +505,7 @@ export const buildStreamingPlan = ({
         droppedPlayerId,
         rosterDropPlayerId,
         rosterDropKind,
+        addIndex,
       }
     }
 

@@ -25,8 +25,43 @@ it("StreamingPlanDayCell requires drop fields", () => {
     droppedPlayerId: null,
     rosterDropPlayerId: null,
     rosterDropKind: "open_slot",
+    addIndex: 1,
   })
-  expect(cell.rosterDropKind).toBe("open_slot")
+  expect(cell.addIndex).toBe(1)
+})
+
+it("stamps chronological addIndex on add and drop_add cells", () => {
+  const days = ["2025-11-03", "2025-11-04"]
+  const faA = player("fa-a", "BOS", {
+    projections: { ...baseProjections(), STL: 180 },
+  })
+  const faB = player("fa-b", "NYK", {
+    projections: { ...baseProjections(), STL: 160 },
+  })
+  const state = tinyState([faA, faB], ["fa-a", "fa-b"])
+  const schedule = tinySchedule(days, [
+    { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+    { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "CHI" },
+  ])
+  const plan = buildStreamingPlan({
+    spotCount: 1,
+    state,
+    schedule,
+    board: emptyBoardLosingStl(),
+    strategyMode: "aggressive",
+  })
+
+  expect(plan.days[0]!.cells[0]).toMatchObject({
+    action: "add",
+    playerId: "fa-a",
+    addIndex: 1,
+  })
+  expect(plan.days[1]!.cells[0]).toMatchObject({
+    action: "drop_add",
+    playerId: "fa-b",
+    addIndex: 2,
+  })
+  // hold cells (if any in other fixtures) must use addIndex: null — covered in Task 2
 })
 
 const baseProjections = (): SeasonPlayer["projections"] => ({
