@@ -1,6 +1,12 @@
 import { execSync } from "node:child_process"
 import { readFileSync, writeFileSync } from "node:fs"
 
+/**
+ * Rebuild espn-season-league.json player overlays via a snake ADP draft:
+ * each round every team takes one ADP-ordered player into one remaining slot.
+ * That avoids stacking all top ADP names on the perspective team.
+ */
+
 const fixture = JSON.parse(
   execSync("git show HEAD:data/fixtures/espn-season-league.json", {
     encoding: "utf8",
@@ -18,7 +24,11 @@ const pool = JSON.parse(readFileSync("data/players/proj_2026_27.json", "utf8"))
       player.positions.length > 0,
   )
   .slice()
-  .sort((left, right) => (left.adp ?? 999) - (right.adp ?? 999))
+  .sort(
+    (left, right) =>
+      (left.adp ?? 999) - (right.adp ?? 999) ||
+      String(left.id).localeCompare(String(right.id)),
+  )
 
 const eligibleForSlot = (positions, slot) => {
   if (slot === "BE" || slot === "IL" || slot === "UTIL") return true
@@ -46,44 +56,6 @@ const estimateShooting = (projections) => {
   return { FGM: fgm, FGA: fga, FTM: ftm, FTA: fta }
 }
 
-const usedEspnIds = new Set()
-const murphy = pool.find((player) => player.name === "Trey Murphy III")
-const perspective = fixture.perspectiveTeamIndex
-
-const pickReal = (slot, usedTeams, preferEspnId) => {
-  if (preferEspnId) {
-    const preferred = pool.find(
-      (player) => player.id === preferEspnId && !usedEspnIds.has(player.id),
-    )
-    if (
-      preferred &&
-      eligibleForSlot(preferred.positions, slot) &&
-      !usedTeams.has(preferred.teamAbbr)
-    ) {
-      usedEspnIds.add(preferred.id)
-      usedTeams.add(preferred.teamAbbr)
-      return preferred
-    }
-  }
-
-  const candidate =
-    pool.find(
-      (player) =>
-        !usedEspnIds.has(player.id) &&
-        eligibleForSlot(player.positions, slot) &&
-        !usedTeams.has(player.teamAbbr),
-    ) ||
-    pool.find(
-      (player) =>
-        !usedEspnIds.has(player.id) && eligibleForSlot(player.positions, slot),
-    )
-
-  if (!candidate) throw new Error(`No player for slot ${slot}`)
-  usedEspnIds.add(candidate.id)
-  usedTeams.add(candidate.teamAbbr)
-  return candidate
-}
-
 const overlayPlayer = (stableId, real, availability) => ({
   id: stableId,
   name: real.name,
@@ -94,33 +66,86 @@ const overlayPlayer = (stableId, real, availability) => ({
   ...(availability ? { availability } : {}),
 })
 
+const usedEspnIds = new Set()
 const playersById = new Map()
 
-const assignTeam = (team) => {
-  const usedTeams = new Set()
-  let utilIndex = 0
-  for (const entry of team.entries) {
-    if (!entry.playerId) continue
-    const prefer =
-      team.teamIndex === perspective && entry.slot === "UTIL" && utilIndex === 0
-        ? murphy?.id
-        : undefined
-    if (entry.slot === "UTIL") utilIndex += 1
-    const real = pickReal(entry.slot, usedTeams, prefer)
-    playersById.set(entry.playerId, overlayPlayer(entry.playerId, real))
+/** @type {Map<number, { slot: string, playerId: string }[]>} */
+const remainingSlotsByTeam = new Map()
+/** @type {Map<number, Set<string>>} */
+const usedNbaTeamsByTeam = new Map()
+
+for (const team of fixture.teams) {
+  remainingSlotsByTeam.set(
+    team.teamIndex,
+    team.entries
+      .filter((entry) => entry.playerId)
+      .map((entry) => ({ slot: entry.slot, playerId: entry.playerId })),
+  )
+  usedNbaTeamsByTeam.set(team.teamIndex, new Set())
+}
+
+const draftOrder = fixture.teams
+  .map((team) => team.teamIndex)
+  .sort((left, right) => left - right)
+
+const maxRounds = Math.max(
+  ...[...remainingSlotsByTeam.values()].map((slots) => slots.length),
+  0,
+)
+
+const pickForTeam = (teamIndex) => {
+  const remaining = remainingSlotsByTeam.get(teamIndex)
+  if (!remaining || remaining.length === 0) return null
+
+  const usedNba = usedNbaTeamsByTeam.get(teamIndex)
+
+  const tryPick = (requireUniqueNba) => {
+    for (const real of pool) {
+      if (usedEspnIds.has(real.id)) continue
+      if (requireUniqueNba && usedNba.has(real.teamAbbr)) continue
+
+      const slotIndex = remaining.findIndex((entry) =>
+        eligibleForSlot(real.positions, entry.slot),
+      )
+      if (slotIndex < 0) continue
+
+      const [entry] = remaining.splice(slotIndex, 1)
+      usedEspnIds.add(real.id)
+      usedNba.add(real.teamAbbr)
+      playersById.set(entry.playerId, overlayPlayer(entry.playerId, real))
+      return { entry, real }
+    }
+    return null
+  }
+
+  return tryPick(true) ?? tryPick(false)
+}
+
+for (let round = 0; round < maxRounds; round += 1) {
+  const order =
+    round % 2 === 0 ? draftOrder : [...draftOrder].reverse()
+  for (const teamIndex of order) {
+    const picked = pickForTeam(teamIndex)
+    if (!picked) {
+      const left = remainingSlotsByTeam.get(teamIndex)?.length ?? 0
+      if (left > 0) {
+        throw new Error(
+          `Could not fill round ${round + 1} for team ${teamIndex} (${left} slots left)`,
+        )
+      }
+    }
   }
 }
 
-const perspectiveTeam = fixture.teams.find(
-  (team) => team.teamIndex === perspective,
-)
-const otherTeams = fixture.teams.filter(
-  (team) => team.teamIndex !== perspective,
-)
-if (!perspectiveTeam) throw new Error("Missing perspective team")
-
-assignTeam(perspectiveTeam)
-for (const team of otherTeams) assignTeam(team)
+for (const [teamIndex, leftover] of remainingSlotsByTeam) {
+  if (leftover.length > 0) {
+    throw new Error(
+      `Team ${teamIndex} still has unfilled slots: ${leftover
+        .map((entry) => entry.slot)
+        .join(",")}`,
+    )
+  }
+}
 
 for (const playerId of fixture.availablePlayerIds ?? []) {
   const real = pool.find((player) => !usedEspnIds.has(player.id))
@@ -145,12 +170,27 @@ writeFileSync(
   `${JSON.stringify(next, null, 2)}\n`,
 )
 
-const you = next.teams.find((team) => team.teamIndex === perspective)
 const byId = new Map(next.players.map((player) => [player.id, player]))
-console.log("You roster:")
-for (const entry of you.entries) {
-  const player = byId.get(entry.playerId)
+const adpByNameTeam = new Map(
+  pool.map((player) => [`${player.name}|${player.teamAbbr}`, player.adp]),
+)
+
+for (const team of next.teams) {
+  const adps = team.entries
+    .filter((entry) => entry.playerId)
+    .map((entry) => {
+      const player = byId.get(entry.playerId)
+      return adpByNameTeam.get(`${player.name}|${player.teamAbbr}`) ?? 999
+    })
   console.log(
-    `${entry.slot.padEnd(4)} ${entry.playerId} ${player.name} · ${player.positions.join("/")} · ${player.teamAbbr}`,
+    `\n${team.name} (team ${team.teamIndex}) · ADP ${Math.min(...adps)}–${Math.max(...adps)}:`,
   )
+  for (const entry of team.entries) {
+    if (!entry.playerId) continue
+    const player = byId.get(entry.playerId)
+    const adp = adpByNameTeam.get(`${player.name}|${player.teamAbbr}`) ?? "?"
+    console.log(
+      `  ${entry.slot.padEnd(4)} ${player.name.padEnd(22)} ${player.positions.join("/").padEnd(8)} ${player.teamAbbr}  adp=${adp}`,
+    )
+  }
 }
