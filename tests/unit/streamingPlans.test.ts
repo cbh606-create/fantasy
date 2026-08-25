@@ -673,3 +673,183 @@ describe("strategy-aware streaming plans", () => {
     })
   })
 })
+
+describe("starts-max adds and protected drops", () => {
+  it("uses more than one add when multiple start-positive blocks exist (balanced)", () => {
+    const days = [
+      "2025-11-03",
+      "2025-11-04",
+      "2025-11-05",
+      "2025-11-06",
+      "2025-11-07",
+    ]
+    const faEarly = player("fa-early", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faLate = player("fa-late", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const state = tinyState([faEarly, faLate], ["fa-early", "fa-late"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2025-11-06", homeAbbr: "NYK", awayAbbr: "ATL" },
+      { date: "2025-11-07", homeAbbr: "NYK", awayAbbr: "ORL" },
+    ])
+
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 7,
+      strategyMode: "balanced",
+    })
+
+    expect(plan.addsUsed).toBeGreaterThanOrEqual(2)
+    expect(plan.gameStarts).toBeGreaterThanOrEqual(2)
+    expect(plan.addsUsed).toBeLessThanOrEqual(plan.addLimit)
+    expect(plan.summaryReasons).toContain("Maximizing starts within add budget")
+  })
+
+  it("allows a starts-positive add past per-spot soft-cap while weekly budget remains", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
+    const faHold = player("fa-hold", "BOS", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const faMon = player("fa-mon", "NYK", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faTue = player("fa-tue", "MIA", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const faWed = player("fa-wed", "ATL", {
+      projections: { ...baseProjections(), STL: 140 },
+    })
+    const state = tinyState(
+      [faHold, faMon, faTue, faWed],
+      ["fa-hold", "fa-mon", "fa-tue", "fa-wed"],
+    )
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "WAS" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "ORL" },
+      { date: "2025-11-04", homeAbbr: "MIA", awayAbbr: "DET" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "IND" },
+      { date: "2025-11-05", homeAbbr: "ATL", awayAbbr: "CLE" },
+    ])
+
+    const plan = buildStreamingPlan({
+      spotCount: 2,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      strategyMode: "balanced",
+    })
+
+    expect(plan.addsUsed).toBe(4)
+    expect(plan.addsUsed).toBeLessThanOrEqual(plan.addLimit)
+  })
+
+  it("does not roster-drop a healthy low-ADP player on first add", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const star = player("star", "CHI", {
+      projections: { ...baseProjections(), STL: 10 },
+    })
+    const scrub = player("scrub", "ATL", {
+      projections: { ...baseProjections(), STL: 5 },
+    })
+    const state = tinyState([faA, star, scrub], ["fa-a"])
+    state.teams[0]!.entries = [
+      { slot: "UTIL", playerId: "star" },
+      { slot: "BE", playerId: "scrub" },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+    ])
+
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      adpByPlayerId: { star: 25, scrub: 200 },
+    })
+
+    expect(plan.days[0]!.cells[0]!.action).toBe("add")
+    expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).not.toBe("star")
+    expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).toBe("scrub")
+    expect(plan.summaryReasons).toContain("Protected ADP ≤ 60")
+  })
+
+  it("may roster-drop a low-ADP player when marked long-term out", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const star = player("star", "CHI", {
+      projections: { ...baseProjections(), STL: 10 },
+    })
+    const scrub = player("scrub", "ATL", {
+      projections: { ...baseProjections(), STL: 5 },
+    })
+    const state = tinyState([faA, star, scrub], ["fa-a"])
+    state.teams[0]!.entries = [
+      { slot: "UTIL", playerId: "star" },
+      { slot: "BE", playerId: "scrub" },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+    ])
+
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      adpByPlayerId: { star: 25, scrub: 200 },
+      injuryOutDaysByPlayerId: { star: 21 },
+    })
+
+    expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).toBe("star")
+    expect(plan.days[0]!.cells[0]!.rosterDropKind).toBe("player")
+  })
+
+  it("prefers IL vs new-injured comparison when both exist", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const ilGuy = player("il-guy", "NYK")
+    const star = player("star", "CHI")
+    const state = tinyState([faA, ilGuy, star], ["fa-a"])
+    state.teams[0]!.entries = [
+      { slot: "IL", playerId: "il-guy" },
+      { slot: "UTIL", playerId: "star" },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+    ])
+
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      adpByPlayerId: { "il-guy": 80, star: 20 },
+      injuryOutDaysByPlayerId: { "il-guy": 30, star: 21 },
+    })
+
+    expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).toBe("il-guy")
+    expect(plan.days[0]!.cells[0]!.rosterDropKind).toBe("player")
+  })
+})

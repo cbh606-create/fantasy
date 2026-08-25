@@ -22,12 +22,17 @@ import {
   type StreamingBlock,
 } from "./streamingBlocks"
 import {
+  chooseIlVersusNewInjuredDrop,
+  isAdpProtected,
+  isLongTermInjuryException,
+  isUnderperformingDropException,
+} from "./streamingDropPolicy"
+import {
   allowsAddForTier,
   allowsEarlySwap,
   allowsThinFill,
   densityTierRank,
   normalizeStreamingStrategyMode,
-  softCapForSpot,
   suggestStreamingStrategyMode,
 } from "./streamingStrategy"
 import { weeklyPlayerStats } from "./weekly"
@@ -49,6 +54,8 @@ export type BuildStreamingPlanInput = {
   board: MatchupBoard
   addLimit?: number
   strategyMode?: StreamingStrategyMode
+  adpByPlayerId?: Record<string, number>
+  injuryOutDaysByPlayerId?: Record<string, number>
 }
 
 const weakCategories = (board: MatchupBoard): CategoryId[] =>
@@ -121,12 +128,12 @@ const pickBestFa = (
     .filter((player) => playsOn(player, date, schedule))
     .map((player) => ({
       player,
-      // Prefer dense leftover schedule (e.g. 3 games / 4 days, B2B stretches)
-      // so one add covers more starts instead of one-and-done churn.
+      // Prefer leftover starts first so one add covers more games.
       volume: remainingGameDays(player, date, schedule),
       stretch: nearTermStretch(player, date, schedule),
       score: weakCatScore(player, weakCats),
     }))
+    .filter((entry) => entry.volume > 0)
     .sort((left, right) => {
       if (right.volume !== left.volume) return right.volume - left.volume
       if (right.stretch !== left.stretch) return right.stretch - left.stretch
@@ -143,14 +150,11 @@ const compareBlocks = (
   playersById: Map<string, SeasonPlayer>,
   weakCats: CategoryId[],
 ): number => {
-  const tierDelta = densityTierRank(right.tier) - densityTierRank(left.tier)
-  if (tierDelta !== 0) return tierDelta
-  if (right.gamesInWindow !== left.gamesInWindow) {
-    return right.gamesInWindow - left.gamesInWindow
-  }
   if (right.remainingWeekGames !== left.remainingWeekGames) {
     return right.remainingWeekGames - left.remainingWeekGames
   }
+  const tierDelta = densityTierRank(right.tier) - densityTierRank(left.tier)
+  if (tierDelta !== 0) return tierDelta
   const leftPlayer = playersById.get(left.playerId)
   const rightPlayer = playersById.get(right.playerId)
   const leftScore = leftPlayer ? weakCatScore(leftPlayer, weakCats) : 0
@@ -171,6 +175,7 @@ const pickTodayBlock = (
 ): StreamingBlock | null => {
   const candidates = blocks
     .filter((block) => block.startDate === date && !seatedIds.has(block.playerId))
+    .filter((block) => block.remainingWeekGames > 0)
     .sort((left, right) => compareBlocks(left, right, playersById, weakCats))
 
   for (const block of candidates) {
@@ -186,15 +191,22 @@ const pickTodayBlock = (
 const buildSummaryReasons = (
   strategyMode: StreamingStrategyMode,
   suggestedStrategyMode: StreamingStrategyMode,
+  didProtectDrops: boolean,
 ): string[] => {
-  const summaryReasons = ["Prioritized 3-in-4 / B2B blocks"]
+  const summaryReasons = [
+    "Prioritized 3-in-4 / B2B blocks",
+    "Maximizing starts within add budget",
+  ]
+  if (didProtectDrops) {
+    summaryReasons.push("Protected ADP ≤ 60")
+  }
   if (strategyMode === suggestedStrategyMode && strategyMode === "aggressive") {
     summaryReasons.push("Board behind → aggressive")
   }
   if (strategyMode === "conservative") {
     summaryReasons.push("Skipped thin one-game streams")
   }
-  return summaryReasons
+  return summaryReasons.slice(0, 3)
 }
 
 const isIlSlot = (slot: SeasonRosterEntry["slot"]) => slot === "IL"
@@ -219,16 +231,71 @@ const pickRosterDrop = (
   schedule: ScheduleResponse,
   weakCats: CategoryId[],
   alreadyDropped: Set<string>,
-): { kind: StreamingPlanRosterDropKind; playerId: string | null } => {
+  adpByPlayerId?: Record<string, number>,
+  injuryOutDaysByPlayerId?: Record<string, number>,
+): {
+  kind: StreamingPlanRosterDropKind
+  playerId: string | null
+  didProtect: boolean
+} => {
   if (hasOpenNonIlSlot(entries)) {
-    return { kind: "open_slot", playerId: null }
+    return { kind: "open_slot", playerId: null, didProtect: false }
   }
 
-  const candidates = entries
+  const outDaysOf = (id: string) => injuryOutDaysByPlayerId?.[id] ?? 0
+  const adpOf = (id: string) => adpByPlayerId?.[id] ?? null
+  const isProtectedFromDrop = (player: SeasonPlayer) =>
+    isAdpProtected(adpOf(player.id)) &&
+    !isLongTermInjuryException(outDaysOf(player.id)) &&
+    !isUnderperformingDropException(player)
+
+  const rosteredNonIl = entries
     .filter((entry) => !isIlSlot(entry.slot) && entry.playerId)
     .map((entry) => playersById.get(entry.playerId!))
     .filter((p): p is SeasonPlayer => Boolean(p))
     .filter((p) => !alreadyDropped.has(p.id))
+
+  const didProtect = rosteredNonIl.some(isProtectedFromDrop)
+  const eligible = rosteredNonIl.filter((player) => !isProtectedFromDrop(player))
+
+  const ilEntry = entries.find(
+    (entry) =>
+      isIlSlot(entry.slot) &&
+      entry.playerId &&
+      !alreadyDropped.has(entry.playerId),
+  )
+  const longTermNonIl = rosteredNonIl.filter((player) =>
+    isLongTermInjuryException(outDaysOf(player.id)),
+  )
+
+  if (ilEntry?.playerId && longTermNonIl.length > 0) {
+    const newlyInjured = longTermNonIl.slice().sort((left, right) => {
+      const outDelta = outDaysOf(right.id) - outDaysOf(left.id)
+      if (outDelta !== 0) return outDelta
+      return left.id.localeCompare(right.id)
+    })[0]!
+    const dropId = chooseIlVersusNewInjuredDrop({
+      il: {
+        playerId: ilEntry.playerId,
+        adp: adpOf(ilEntry.playerId),
+        outDays: outDaysOf(ilEntry.playerId),
+      },
+      newlyInjured: {
+        playerId: newlyInjured.id,
+        adp: adpOf(newlyInjured.id),
+        outDays: outDaysOf(newlyInjured.id),
+      },
+    })
+    if (
+      dropId &&
+      !alreadyDropped.has(dropId) &&
+      entries.some((entry) => entry.playerId === dropId)
+    ) {
+      return { kind: "player", playerId: dropId, didProtect }
+    }
+  }
+
+  const candidates = eligible
     .map((p) => ({
       player: p,
       noGame: playsOn(p, date, schedule) ? 0 : 1,
@@ -243,8 +310,8 @@ const pickRosterDrop = (
     })
 
   const best = candidates[0]
-  if (!best) return { kind: "none", playerId: null }
-  return { kind: "player", playerId: best.player.id }
+  if (!best) return { kind: "none", playerId: null, didProtect }
+  return { kind: "player", playerId: best.player.id, didProtect }
 }
 
 export const buildStreamingPlan = ({
@@ -254,6 +321,8 @@ export const buildStreamingPlan = ({
   board,
   addLimit = WEEKLY_ADD_LIMIT,
   strategyMode: inputStrategy,
+  adpByPlayerId,
+  injuryOutDaysByPlayerId,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -268,10 +337,10 @@ export const buildStreamingPlan = ({
   const weakCats = weakCategories(board)
   const occupants: (string | null)[] = Array.from({ length: spotCount }, () => null)
   const addsBySpot = Array.from({ length: spotCount }, () => 0)
-  const softCap = softCapForSpot(addLimit, spotCount, strategyMode)
   const dayCount = schedule.matchup.days.length
   let addsUsed = 0
   let gameStarts = 0
+  let didProtectDrops = false
   const days: StreamingPlanDay[] = []
 
   for (const [dayIndex, date] of schedule.matchup.days.entries()) {
@@ -319,7 +388,7 @@ export const buildStreamingPlan = ({
       const occupant = playersById.get(cell.playerId)
       if (!occupant) continue
       if (remainingGameDays(occupant, date, schedule) <= 0) continue
-      if (addsUsed >= addLimit || addsBySpot[spotIndex]! >= softCap) continue
+      if (addsUsed >= addLimit) continue
 
       const held = blockFromDate(occupant, date, schedule)
       const heldRank = held ? densityTierRank(held.tier) : 0
@@ -336,6 +405,7 @@ export const buildStreamingPlan = ({
       if (!upgrade) continue
       const upgradePlayer = playersById.get(upgrade.playerId)
       if (!upgradePlayer || !playsOn(upgradePlayer, date, schedule)) continue
+      if (remainingGameDays(upgradePlayer, date, schedule) <= 0) continue
       if (!allowsEarlySwap(strategyMode, heldRank, densityTierRank(upgrade.tier))) {
         continue
       }
@@ -371,8 +441,7 @@ export const buildStreamingPlan = ({
       let rosterDropKind: StreamingPlanRosterDropKind = "none"
       let rosterDropPlayerId: string | null = null
 
-      const underSoftCap = addsBySpot[spotIndex]! < softCap
-      if (addsUsed < addLimit && underSoftCap) {
+      if (addsUsed < addLimit) {
         const todayBlock = pickTodayBlock(
           blocks,
           date,
@@ -388,7 +457,10 @@ export const buildStreamingPlan = ({
           : allowsThinFill(strategyMode, dayIndex, dayCount)
             ? pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
             : null
-        if (best) {
+        const expectedStarts = best
+          ? remainingGameDays(best, date, schedule)
+          : 0
+        if (best && expectedStarts > 0) {
           playerId = best.id
           if (previousId) {
             action = "drop_add"
@@ -410,9 +482,12 @@ export const buildStreamingPlan = ({
           schedule,
           weakCats,
           rosterDroppedToday,
+          adpByPlayerId,
+          injuryOutDaysByPlayerId,
         )
         rosterDropKind = rosterDrop.kind
         rosterDropPlayerId = rosterDrop.playerId
+        if (rosterDrop.didProtect) didProtectDrops = true
         if (rosterDrop.kind === "player" && rosterDrop.playerId) {
           rosterDroppedToday.add(rosterDrop.playerId)
         }
@@ -448,7 +523,11 @@ export const buildStreamingPlan = ({
     gameStarts,
     strategyMode,
     suggestedStrategyMode,
-    summaryReasons: buildSummaryReasons(strategyMode, suggestedStrategyMode),
+    summaryReasons: buildSummaryReasons(
+      strategyMode,
+      suggestedStrategyMode,
+      didProtectDrops,
+    ),
     days,
   }
 }
