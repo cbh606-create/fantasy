@@ -156,6 +156,7 @@ describe("GET /api/matchup", () => {
         }),
       }),
     })
+    expect(payload.adpByPlayerId.t1p1).toEqual(expect.any(Number))
     expect(Array.isArray(payload.schedule.matchup.days)).toBe(true)
     expect(payload.schedule.matchup.days.length).toBeGreaterThan(0)
     expect(payload.teams.some((team: { teamIndex: number }) => team.teamIndex === opponentTeamIndex)).toBe(

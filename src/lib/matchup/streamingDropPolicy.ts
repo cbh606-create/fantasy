@@ -42,8 +42,25 @@ type ProjAdpPlayer = {
   adp?: number
 }
 
+const ESPN_ID_PREFIX = "espn-"
+const isDigitsOnlyId = (id: string) => /^\d+$/.test(id)
+
 const nameTeamKey = (name: string, teamAbbr?: string) =>
   `${name}|${(teamAbbr ?? "").toUpperCase()}`
+
+const resolveAdpFromId = (
+  playerId: string,
+  byId: Map<string, number>,
+): number | undefined => {
+  const exact = byId.get(playerId)
+  if (exact != null) return exact
+  if (isDigitsOnlyId(playerId)) return byId.get(`${ESPN_ID_PREFIX}${playerId}`)
+  if (playerId.startsWith(ESPN_ID_PREFIX)) {
+    const bare = playerId.slice(ESPN_ID_PREFIX.length)
+    if (isDigitsOnlyId(bare)) return byId.get(bare)
+  }
+  return undefined
+}
 
 export const buildAdpByPlayerIdFromProjPool = (
   players: SeasonPlayer[],
@@ -60,7 +77,7 @@ export const buildAdpByPlayerIdFromProjPool = (
 
   const adpByPlayerId: Record<string, number> = {}
   for (const player of players) {
-    const fromId = byId.get(player.id)
+    const fromId = resolveAdpFromId(player.id, byId)
     if (fromId != null) {
       adpByPlayerId[player.id] = fromId
       continue

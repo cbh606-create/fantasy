@@ -104,4 +104,27 @@ describe("streamingDropPolicy", () => {
       )["espn-no-adp"],
     ).toBeUndefined()
   })
+
+  it("bridges digits-only and espn- prefixed ids before name|team", () => {
+    const digitsToEspn = buildAdpByPlayerIdFromProjPool(
+      [dummyPlayer("5104157", "Wrong Name", "XXX")],
+      projPool,
+    )
+    expect(digitsToEspn["5104157"]).toBe(1)
+
+    const barePool = [
+      { id: "3112335", name: "Nikola Jokic", teamAbbr: "DEN", adp: 2 },
+    ]
+    const espnToBare = buildAdpByPlayerIdFromProjPool(
+      [dummyPlayer("espn-3112335", "Wrong Name", "XXX")],
+      barePool,
+    )
+    expect(espnToBare["espn-3112335"]).toBe(2)
+
+    const nameFallback = buildAdpByPlayerIdFromProjPool(
+      [dummyPlayer("custom-jokic", "Nikola Jokic", "DEN")],
+      projPool,
+    )
+    expect(nameFallback["custom-jokic"]).toBe(2)
+  })
 })
