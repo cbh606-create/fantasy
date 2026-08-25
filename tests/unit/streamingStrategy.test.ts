@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { MatchupBoard } from "@/lib/matchup/types"
 import {
+  allowsAddForTier,
   allowsEarlySwap,
   allowsThinFill,
   normalizeStreamingStrategyMode,
@@ -40,14 +41,18 @@ describe("suggestStreamingStrategyMode", () => {
     )
   })
 
-  it("suggests conservative when behindRatio <= 0.25", () => {
-    // 2 L of 9 → ~0.222
-    expect(suggestStreamingStrategyMode(boardWithOutcomes(2, 0))).toBe(
+  it("suggests conservative when behindRatio <= 0.15", () => {
+    // 1 L of 9 → ~0.111
+    expect(suggestStreamingStrategyMode(boardWithOutcomes(1, 0))).toBe(
       "conservative",
     )
   })
 
   it("suggests balanced otherwise", () => {
+    // 2 L of 9 → ~0.222 (was conservative at 0.25 threshold)
+    expect(suggestStreamingStrategyMode(boardWithOutcomes(2, 0))).toBe(
+      "balanced",
+    )
     expect(suggestStreamingStrategyMode(boardWithOutcomes(3, 0))).toBe(
       "balanced",
     )
@@ -74,13 +79,12 @@ describe("normalizeStreamingStrategyMode", () => {
 })
 
 describe("mode policy helpers", () => {
-  it("Conservative never allows thin fill", () => {
-    expect(allowsThinFill("conservative", 6, 7)).toBe(false)
-  })
-
-  it("Balanced allows thin only on last 2 days", () => {
-    expect(allowsThinFill("balanced", 4, 7)).toBe(false)
-    expect(allowsThinFill("balanced", 5, 7)).toBe(true)
+  it("Conservative and balanced allow thin only on last 3 days", () => {
+    expect(allowsThinFill("conservative", 3, 7)).toBe(false)
+    expect(allowsThinFill("conservative", 4, 7)).toBe(true)
+    expect(allowsThinFill("conservative", 6, 7)).toBe(true)
+    expect(allowsThinFill("balanced", 3, 7)).toBe(false)
+    expect(allowsThinFill("balanced", 4, 7)).toBe(true)
     expect(allowsThinFill("balanced", 6, 7)).toBe(true)
   })
 
@@ -88,11 +92,28 @@ describe("mode policy helpers", () => {
     expect(allowsThinFill("aggressive", 0, 7)).toBe(true)
   })
 
-  it("early swap slack is +2 balanced / +1 aggressive", () => {
+  it("conservative allows elite, strong, and ok tiers only", () => {
+    expect(allowsAddForTier("conservative", "elite")).toBe(true)
+    expect(allowsAddForTier("conservative", "strong")).toBe(true)
+    expect(allowsAddForTier("conservative", "ok")).toBe(true)
+    expect(allowsAddForTier("conservative", "thin")).toBe(false)
+  })
+
+  it("balanced and aggressive allow all tiers (thin gated by allowsThinFill)", () => {
+    for (const mode of ["balanced", "aggressive"] as const) {
+      expect(allowsAddForTier(mode, "elite")).toBe(true)
+      expect(allowsAddForTier(mode, "strong")).toBe(true)
+      expect(allowsAddForTier(mode, "ok")).toBe(true)
+      expect(allowsAddForTier(mode, "thin")).toBe(true)
+    }
+  })
+
+  it("early swap slack is +2 balanced/conservative / +1 aggressive", () => {
     expect(allowsEarlySwap("balanced", 0, 1)).toBe(false)
     expect(allowsEarlySwap("balanced", 0, 2)).toBe(true)
+    expect(allowsEarlySwap("conservative", 0, 1)).toBe(false)
+    expect(allowsEarlySwap("conservative", 0, 2)).toBe(true)
     expect(allowsEarlySwap("aggressive", 0, 1)).toBe(true)
-    expect(allowsEarlySwap("conservative", 0, 3)).toBe(false)
   })
 
   it("Aggressive soft-cap is ceil(addLimit/spotCount)+1", () => {

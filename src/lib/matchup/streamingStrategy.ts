@@ -28,7 +28,7 @@ export const suggestStreamingStrategyMode = (
   ).length
   const behindRatio = behind / total
   if (behindRatio >= 0.5) return "aggressive"
-  if (behindRatio <= 0.25) return "conservative"
+  if (behindRatio <= 0.15) return "conservative"
   return "balanced"
 }
 
@@ -59,17 +59,17 @@ export const allowsThinFill = (
   dayIndex: number,
   dayCount: number,
 ): boolean => {
-  if (mode === "conservative") return false
   if (mode === "aggressive") return true
-  return dayIndex >= Math.max(0, dayCount - 2)
+  return dayIndex >= Math.max(0, dayCount - 3)
 }
 
 export const allowsAddForTier = (
   mode: StreamingStrategyMode,
   tier: StreamingDensityTier,
 ): boolean => {
-  if (mode === "conservative") return tier === "elite" || tier === "strong"
-  if (mode === "balanced") return tier !== "thin"
+  if (mode === "conservative") {
+    return tier === "elite" || tier === "strong" || tier === "ok"
+  }
   return true
 }
 
@@ -78,7 +78,6 @@ export const allowsEarlySwap = (
   heldRank: number,
   newRank: number,
 ): boolean => {
-  if (mode === "conservative") return false
   const delta = newRank - heldRank
   if (mode === "aggressive") return delta >= 1
   return delta >= 2
