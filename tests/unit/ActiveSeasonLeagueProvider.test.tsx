@@ -21,6 +21,12 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navigationState.push }),
 }))
 
+vi.mock("@clerk/nextjs", () => ({
+  useAuth: () => ({ isSignedIn: true }),
+  SignInButton: ({ children }: { children: React.ReactNode }) => children,
+  UserButton: () => null,
+}))
+
 const leagues = [
   {
     id: "league-1",
@@ -112,13 +118,18 @@ describe("ActiveSeasonLeagueProvider with SiteNav", () => {
     expect(navigationState.push).toHaveBeenCalledWith("/roster/league-2")
   })
 
-  it("hydrates a valid stored selection after mount", async () => {
+  it("hydrates a stored selection on first paint for deep links", async () => {
     window.localStorage.setItem(
       ACTIVE_SEASON_LEAGUE_STORAGE_KEY,
       "league-2",
     )
 
     renderNavigation()
+
+    expect(screen.getByRole("link", { name: "Matchup" })).toHaveAttribute(
+      "href",
+      "/matchup/league-2",
+    )
 
     await waitFor(() => {
       expect(

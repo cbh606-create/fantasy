@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { Banner } from "@/components/ui/Banner"
@@ -68,6 +69,10 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
       `/api/waivers/pool?seasonLeagueId=${leagueId}`,
       { signal },
     )
+
+    if (poolResponse.status === 401) {
+      throw new Error("unauthorized")
+    }
 
     if (!poolResponse.ok) {
       throw new Error("Unable to load waivers workspace")
@@ -316,21 +321,22 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-mute)]" role="status">
-          Loading waivers…
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/waivers"
+        backLabel="← All waiver leagues"
+        status="Loading waivers…"
+      />
     )
   }
 
   if (!state || !poolData) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-sale)]" role="alert">
-          {error || "Unable to load waivers workspace"}
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/waivers"
+        backLabel="← All waiver leagues"
+        error={error || "Unable to load waivers workspace"}
+        unauthorizedHint="Sign in to load waivers for your leagues."
+      />
     )
   }
 

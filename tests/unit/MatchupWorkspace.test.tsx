@@ -224,7 +224,10 @@ describe("MatchupWorkspace", () => {
 
     expect(screen.getByText("Using your day-by-day lineups")).toBeInTheDocument()
     expect(screen.getByText("Schedule: fixture fallback")).toBeInTheDocument()
-    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/YOU \d+/)
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/4–5–0/)
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/Projected 3\.58 cat wins/)
+    expect(screen.getByRole("rowheader", { name: /^You$/i })).toBeInTheDocument()
+    expect(screen.getByRole("rowheader", { name: /^Opp$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Daily lineup" })).toBeInTheDocument()
     expect(
       screen.getByTitle("B2B · ~75% expected"),

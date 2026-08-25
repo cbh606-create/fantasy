@@ -7,6 +7,7 @@ import {
   type MockLatestPick,
 } from "@/components/draft/MockDraftView"
 import { PrepView } from "@/components/draft/PrepView"
+import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import {
   buildEmptyBoard,
   DEFAULT_DRAFT_ROUNDS,
@@ -213,6 +214,7 @@ export const DraftWorkspace = ({
           signal: controller.signal,
         })
 
+        if (response.status === 401) throw new Error("unauthorized")
         if (!response.ok) throw new Error("Unable to load this league")
 
         const league = (await response.json()) as LeagueResponse
@@ -707,21 +709,22 @@ export const DraftWorkspace = ({
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-mute)]" role="status">
-          Loading draft workspace…
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/leagues/new"
+        backLabel="← Draft setup"
+        status="Loading draft workspace…"
+      />
     )
   }
 
   if (!state) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-sale)]" role="alert">
-          {error || "Unable to load this league"}
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/leagues/new"
+        backLabel="← Draft setup"
+        error={error || "Unable to load this league"}
+        unauthorizedHint="Sign in to load this draft league."
+      />
     )
   }
 

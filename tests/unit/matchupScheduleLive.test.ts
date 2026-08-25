@@ -217,4 +217,27 @@ describe("live matchup schedule", () => {
     expect(requestedUrls[7]).toContain("dates=20260830")
     expect(second).toBe(first)
   })
+
+  it("serves same-week stale cache when a live refresh fails", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-26T12:00:00Z"))
+    const okFetch = async () =>
+      new Response(JSON.stringify(espnScoreboardFor("2026-08-26")), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      })
+
+    const seeded = await getMatchupSchedule({ fetchImpl: okFetch })
+    expect(seeded.source).toBe("live")
+
+    // Expire the 20-minute TTL, then fail the refresh.
+    vi.setSystemTime(new Date("2026-08-26T12:21:00Z"))
+    const stale = await getMatchupSchedule({
+      fetchImpl: async () => {
+        throw new Error("network unavailable")
+      },
+    })
+    expect(stale).toBe(seeded)
+    expect(stale.source).toBe("live")
+  })
 })

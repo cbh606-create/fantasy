@@ -215,6 +215,11 @@ export const getMatchupSchedule = async (
     }
     return schedule
   } catch {
+    // Prefer a same-week stale cache over blocking again on ESPN/season I/O.
+    if (cachedSchedule && cachedSchedule.key === cacheKey) {
+      return cachedSchedule.schedule
+    }
+
     const todayIso = formatNewYorkIsoDate(nowDate)
     const season = nextWeekWithGames(seasonScheduleFile.games, todayIso)
     if (!season) return scheduleFixture as ScheduleResponse

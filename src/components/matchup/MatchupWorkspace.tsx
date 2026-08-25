@@ -8,6 +8,7 @@ import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
+import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { Banner } from "@/components/ui/Banner"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
@@ -527,35 +528,22 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-mute)]" role="status">
-          Loading matchup advisor…
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/matchup"
+        backLabel="← All matchup leagues"
+        status="Loading matchup advisor…"
+      />
     )
   }
 
   if (!state || !matchupData || opponentTeamIndex === null || !daily) {
-    const isUnauthorized =
-      error.toLowerCase() === "unauthorized" ||
-      error.toLowerCase().includes("unauthorized")
-
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-sale)]" role="alert">
-          {isUnauthorized
-            ? "Sign in to load matchup advice for your leagues."
-            : error || "Unable to load matchup workspace"}
-        </p>
-        {isUnauthorized ? (
-          <Link
-            className="font-medium text-sm text-[var(--color-ink)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
-            href="/sign-in"
-          >
-            Go to sign in
-          </Link>
-        ) : null}
-      </main>
+      <SeasonToolShell
+        backHref="/matchup"
+        backLabel="← All matchup leagues"
+        error={error || "Unable to load matchup workspace"}
+        unauthorizedHint="Sign in to load matchup advice for your leagues."
+      />
     )
   }
 
