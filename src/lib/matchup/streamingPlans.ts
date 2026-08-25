@@ -388,11 +388,12 @@ export const buildStreamingPlan = ({
       if (!cell || cell.action !== "hold" || !cell.playerId) continue
       const occupant = playersById.get(cell.playerId)
       if (!occupant) continue
-      if (remainingGameDays(occupant, date, schedule) <= 0) continue
       if (addsUsed >= addLimit) continue
 
-      const held = blockFromDate(occupant, date, schedule)
-      const heldRank = held ? densityTierRank(held.tier) : 0
+      const heldPlaysToday = playsOn(occupant, date, schedule)
+      const heldRemaining = remainingGameDays(occupant, date, schedule)
+      if (heldRemaining <= 0) continue
+
       const upgrade = pickTodayBlock(
         blocks,
         date,
@@ -406,9 +407,22 @@ export const buildStreamingPlan = ({
       if (!upgrade) continue
       const upgradePlayer = playersById.get(upgrade.playerId)
       if (!upgradePlayer || !playsOn(upgradePlayer, date, schedule)) continue
-      if (remainingGameDays(upgradePlayer, date, schedule) <= 0) continue
-      if (!allowsEarlySwap(strategyMode, heldRank, densityTierRank(upgrade.tier))) {
-        continue
+      const upgradeRemaining = remainingGameDays(upgradePlayer, date, schedule)
+      if (upgradeRemaining <= 0) continue
+
+      const isOffNightNetStarts =
+        spotCount === 1 &&
+        !heldPlaysToday &&
+        heldRemaining > 0 &&
+        upgradeRemaining > heldRemaining
+
+      if (!isOffNightNetStarts) {
+        if (!heldPlaysToday) continue
+        const held = blockFromDate(occupant, date, schedule)
+        const heldRank = held ? densityTierRank(held.tier) : 0
+        if (!allowsEarlySwap(strategyMode, heldRank, densityTierRank(upgrade.tier))) {
+          continue
+        }
       }
 
       seatedToday.delete(cell.playerId)
