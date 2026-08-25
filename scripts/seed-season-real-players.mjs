@@ -84,9 +84,19 @@ for (const team of fixture.teams) {
   usedNbaTeamsByTeam.set(team.teamIndex, new Set())
 }
 
-const draftOrder = fixture.teams
-  .map((team) => team.teamIndex)
-  .sort((left, right) => left - right)
+const draftOrder = (() => {
+  // Put "You" in the middle of the draft (7th of 12) so the perspective
+  // roster is a typical mid-round team, not pick-3 superstar stacking.
+  const perspective = fixture.perspectiveTeamIndex
+  const others = fixture.teams
+    .map((team) => team.teamIndex)
+    .filter((teamIndex) => teamIndex !== perspective)
+    .sort((left, right) => left - right)
+  const order = [...others]
+  const insertAt = Math.min(6, order.length)
+  order.splice(insertAt, 0, perspective)
+  return order
+})()
 
 const maxRounds = Math.max(
   ...[...remainingSlotsByTeam.values()].map((slots) => slots.length),

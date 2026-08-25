@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useContext, type ChangeEvent } from "react"
 import {
   ActiveSeasonLeagueContext,
@@ -56,13 +56,23 @@ const EMPTY_ACTIVE_LEAGUE = {
 
 export const SiteNav = () => {
   const pathname = usePathname()
+  const router = useRouter()
   // Optional context: Fast Refresh can remount SiteNav before the provider
   // for one frame; throwing here surfaces as Internal Server Error.
   const leagueContext = useContext(ActiveSeasonLeagueContext) ?? EMPTY_ACTIVE_LEAGUE
   const { activeId, isLoading, leagues, setActiveId } = leagueContext
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setActiveId(event.target.value || null)
+    const nextId = event.target.value || null
+    setActiveId(nextId)
+
+    // Active id alone does not remount /roster/[id] — navigate when already
+    // on a season tool so the workspace loads the selected league.
+    if (!nextId) return
+    const tool = pathname.split("/").filter(Boolean)[0]
+    if (tool && SEASON_TOOL_PATHS.has(`/${tool}`)) {
+      router.push(`/${tool}/${nextId}`)
+    }
   }
 
   return (
