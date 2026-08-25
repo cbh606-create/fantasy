@@ -186,7 +186,7 @@ describe("buildStreamingPlan", () => {
   })
 })
 
-  it("1-spot prefers holding a multi-game streamer over nightly churn", () => {
+  it("1-spot covers off night instead of holding a multi-game streamer", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
     const faA = player("fa-a", "BOS", {
       projections: { ...baseProjections(), STL: 180 },
@@ -216,11 +216,18 @@ describe("buildStreamingPlan", () => {
 
     expect(plan.addsUsed).toBeLessThanOrEqual(7)
     expect(plan.addLimit).toBe(7)
-    // Mon Add A (also plays Wed) → hold Tue off-night → hold Wed. One add only.
-    expect(plan.addsUsed).toBe(1)
+    expect(plan.addsUsed).toBe(3)
     expect(plan.days[0]!.cells[0]).toMatchObject({ action: "add", playerId: "fa-a" })
-    expect(plan.days[1]!.cells[0]).toMatchObject({ action: "hold", playerId: "fa-a" })
-    expect(plan.days[2]!.cells[0]).toMatchObject({ action: "hold", playerId: "fa-a" })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "drop_add",
+      playerId: "fa-b",
+      droppedPlayerId: "fa-a",
+    })
+    expect(plan.days[2]!.cells[0]).toMatchObject({
+      action: "drop_add",
+      playerId: "fa-a",
+      droppedPlayerId: "fa-b",
+    })
   })
 
   it("holds a player across consecutive game days without spending adds", () => {
@@ -890,7 +897,7 @@ describe("starts-max adds and protected drops", () => {
   })
 })
 
-describe("1-spot off-night net-starts swap", () => {
+describe("1-spot off-night always cover", () => {
   const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
 
   it("swaps on off night when upgrade has strictly more remaining games", () => {
@@ -933,9 +940,8 @@ describe("1-spot off-night net-starts swap", () => {
     })
   })
 
-  it("keeps hold on off night when upgrade has fewer or equal remaining games", () => {
-    // Held BOS: Mon, Wed, Thu → Tue remaining = 2
-    // Thin CHI: Tue only → remaining = 1 → no swap
+  it("covers off night even when upgrade has fewer remaining games", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
     const bos = player("fa-bos", "BOS", {
       projections: { ...baseProjections(), STL: 200 },
     })
@@ -963,13 +969,41 @@ describe("1-spot off-night net-starts swap", () => {
       playerId: "fa-bos",
     })
     expect(plan.days[1]!.cells[0]).toMatchObject({
-      action: "hold",
-      playerId: "fa-bos",
-      addIndex: null,
+      action: "drop_add",
+      playerId: "fa-chi",
+      droppedPlayerId: "fa-bos",
     })
   })
 
-  it("does not apply off-night net-starts rule on 2-spot", () => {
+  it("keeps hold on game day when held plays", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const bos = player("fa-bos", "BOS", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const chi = player("fa-chi", "CHI", {
+      projections: { ...baseProjections(), STL: 100 },
+    })
+    const state = tinyState([bos, chi], ["fa-bos", "fa-chi"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "ORL" },
+      { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "MIA" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "conservative",
+      addLimit: 7,
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "hold",
+      playerId: "fa-bos",
+    })
+  })
+
+  it("does not apply off-night always-cover rule on 2-spot", () => {
     const bos = player("fa-bos", "BOS", {
       projections: { ...baseProjections(), STL: 200 },
     })
@@ -999,5 +1033,49 @@ describe("1-spot off-night net-starts swap", () => {
     expect(tueSpot0?.action === "drop_add" && tueSpot0.droppedPlayerId === "fa-bos").toBe(
       false,
     )
+  })
+
+  it("uses pickBestFa fallback when pickTodayBlock is gated on mid-week off night", () => {
+    // Conservative skips thin until last 3 days. 7-day week, Tue = dayIndex 1.
+    const days = [
+      "2025-11-03",
+      "2025-11-04",
+      "2025-11-05",
+      "2025-11-06",
+      "2025-11-07",
+      "2025-11-08",
+      "2025-11-09",
+    ]
+    const bos = player("fa-bos", "BOS", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const chi = player("fa-chi", "CHI", {
+      projections: { ...baseProjections(), STL: 150 },
+    })
+    const state = tinyState([bos, chi], ["fa-bos", "fa-chi"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "WAS" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "ORL" },
+      { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "MIA" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "conservative",
+      addLimit: 7,
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-bos",
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "drop_add",
+      playerId: "fa-chi",
+      droppedPlayerId: "fa-bos",
+    })
   })
 })

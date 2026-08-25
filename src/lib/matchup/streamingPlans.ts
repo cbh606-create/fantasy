@@ -382,7 +382,7 @@ export const buildStreamingPlan = ({
       }
     }
 
-    // Early swap: while holding, spend an add on a denser block that starts today.
+    // Early swap: 1-spot off-night always cover, else denser on-game block today.
     for (let spotIndex = 0; spotIndex < spotCount; spotIndex++) {
       const cell = cells[spotIndex]
       if (!cell || cell.action !== "hold" || !cell.playerId) continue
@@ -394,7 +394,11 @@ export const buildStreamingPlan = ({
       const heldRemaining = remainingGameDays(occupant, date, schedule)
       if (heldRemaining <= 0) continue
 
-      const upgrade = pickTodayBlock(
+      const isOffNightAlwaysCover =
+        spotCount === 1 && !heldPlaysToday && heldRemaining > 0
+
+      let upgradePlayer: SeasonPlayer | null = null
+      const todayBlock = pickTodayBlock(
         blocks,
         date,
         seatedToday,
@@ -404,35 +408,43 @@ export const buildStreamingPlan = ({
         dayIndex,
         dayCount,
       )
-      if (!upgrade) continue
-      const upgradePlayer = playersById.get(upgrade.playerId)
+      if (todayBlock) {
+        upgradePlayer = playersById.get(todayBlock.playerId) ?? null
+      } else if (isOffNightAlwaysCover) {
+        upgradePlayer = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
+      }
+
       if (!upgradePlayer || !playsOn(upgradePlayer, date, schedule)) continue
       const upgradeRemaining = remainingGameDays(upgradePlayer, date, schedule)
       if (upgradeRemaining <= 0) continue
 
-      const isOffNightNetStarts =
-        spotCount === 1 &&
-        !heldPlaysToday &&
-        heldRemaining > 0 &&
-        upgradeRemaining > heldRemaining
-
-      if (!isOffNightNetStarts) {
+      if (!isOffNightAlwaysCover) {
         if (!heldPlaysToday) continue
         const held = blockFromDate(occupant, date, schedule)
         const heldRank = held ? densityTierRank(held.tier) : 0
-        if (!allowsEarlySwap(strategyMode, heldRank, densityTierRank(upgrade.tier))) {
+        const upgradeBlock = blockFromDate(upgradePlayer, date, schedule)
+        const upgradeRank = upgradeBlock
+          ? densityTierRank(upgradeBlock.tier)
+          : densityTierRank(todayBlock?.tier ?? "thin")
+        if (
+          !allowsEarlySwap(
+            strategyMode,
+            heldRank,
+            todayBlock ? densityTierRank(todayBlock.tier) : upgradeRank,
+          )
+        ) {
           continue
         }
       }
 
       seatedToday.delete(cell.playerId)
-      seatedToday.add(upgrade.playerId)
-      occupants[spotIndex] = upgrade.playerId
+      seatedToday.add(upgradePlayer.id)
+      occupants[spotIndex] = upgradePlayer.id
       addsUsed += 1
       addsBySpot[spotIndex]! += 1
       cells[spotIndex] = {
         spotIndex,
-        playerId: upgrade.playerId,
+        playerId: upgradePlayer.id,
         action: "drop_add",
         droppedPlayerId: cell.playerId,
         rosterDropPlayerId: null,
