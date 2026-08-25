@@ -56,6 +56,22 @@ const playerName = (
 const isAddAction = (action: StreamingPlanDayCell["action"]) =>
   action === "add" || action === "drop_add"
 
+const playerPlaysOn = (
+  player: SeasonPlayer | undefined,
+  date: string,
+  schedule: ScheduleResponse,
+): boolean => {
+  const team = player?.teamAbbr?.toUpperCase()
+  if (!team) return false
+  return schedule.games.some((game) => {
+    if (game.date !== date) return false
+    return (
+      game.homeAbbr.toUpperCase() === team ||
+      game.awayAbbr.toUpperCase() === team
+    )
+  })
+}
+
 /** Soft row tints for spot 1…3 (including 1-spot plans). */
 const SPOT_ROW_CLASS = [
   "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] border-l-[3px] border-l-[var(--color-success)]",
@@ -105,12 +121,16 @@ const dropLabel = (
 
 const AddCell = ({
   cell,
+  date,
   leagueId,
   playersById,
+  schedule,
 }: {
   cell: StreamingPlanDayCell | undefined
+  date: string
   leagueId: string
   playersById: Record<string, SeasonPlayer>
+  schedule: ScheduleResponse
 }) => {
   if (!cell || cell.action === "empty" || !cell.playerId) {
     return <span className="text-[var(--color-mute)]">—</span>
@@ -118,6 +138,10 @@ const AddCell = ({
 
   const seated = playersById[cell.playerId]
   const name = playerName(cell.playerId, playersById)
+  const hasGame = playerPlaysOn(seated, date, schedule)
+  const nameClass = hasGame
+    ? "font-bold text-[var(--color-ink)]"
+    : "font-normal text-[var(--color-mute)]"
   const meta = (
     <span className="ml-1 text-[var(--color-mute)]">
       {formatPlayerPositions(seated)}
@@ -127,21 +151,29 @@ const AddCell = ({
 
   if (isAddAction(cell.action)) {
     return (
-      <span>
+      <span title={hasGame ? "Game day" : "Off night"}>
         <Link
-          className="font-medium text-[var(--color-ink)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+          className={`${nameClass} underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
           href={`/waivers/${leagueId}?addPlayerId=${cell.playerId}`}
         >
           {name}
         </Link>
+        {cell.addIndex != null ? (
+          <span
+            aria-label={`Add ${cell.addIndex}`}
+            className="ml-0.5 text-[0.65rem] tabular-nums text-[var(--color-mute)]"
+          >
+            {cell.addIndex}
+          </span>
+        ) : null}
         {meta}
       </span>
     )
   }
 
   return (
-    <span>
-      <span className="font-medium">{name}</span>
+    <span title={hasGame ? "Game day" : "Off night"}>
+      <span className={nameClass}>{name}</span>
       {meta}
     </span>
   )
@@ -188,8 +220,9 @@ export const StreamingPlansPanel = ({
           <h2 className="text-lg font-semibold">Streaming plans</h2>
           <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
             Drops are free. Prefer dense schedules and hold through off nights
-            when more games remain. Adds stay even across spots (max{" "}
-            {softCaps[1]}/spot on 2-spot, {softCaps[2]}/spot on 3-spot).
+            when more games remain. Game days are bold; off nights stay muted.
+            Adds stay even across spots (max {softCaps[1]}/spot on 2-spot,{" "}
+            {softCaps[2]}/spot on 3-spot).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -295,15 +328,44 @@ export const StreamingPlansPanel = ({
                         >
                           Move
                         </th>
-                        {dates.map((date) => (
-                          <th
-                            className="min-w-[5.5rem] py-1.5 pr-3 font-medium text-[var(--color-mute)]"
-                            key={date}
-                            scope="col"
-                          >
-                            {formatDayLabel(date)}
-                          </th>
-                        ))}
+                        {dates.map((date) => {
+                          const hasStreamerGame = Array.from(
+                            { length: plan.spotCount },
+                            (_, spotIndex) =>
+                              cellFor(plan, date, spotIndex),
+                          ).some((cell) => {
+                            if (
+                              !cell?.playerId ||
+                              cell.action === "empty"
+                            ) {
+                              return false
+                            }
+                            return playerPlaysOn(
+                              resolvedPlayers[cell.playerId],
+                              date,
+                              schedule,
+                            )
+                          })
+
+                          return (
+                            <th
+                              className={
+                                hasStreamerGame
+                                  ? "min-w-[5.5rem] py-1.5 pr-3 font-bold text-[var(--color-ink)]"
+                                  : "min-w-[5.5rem] py-1.5 pr-3 font-medium text-[var(--color-mute)]"
+                              }
+                              key={date}
+                              scope="col"
+                              title={
+                                hasStreamerGame
+                                  ? "Streamer game day"
+                                  : undefined
+                              }
+                            >
+                              {formatDayLabel(date)}
+                            </th>
+                          )
+                        })}
                       </tr>
                     </thead>
                     <tbody>
@@ -330,8 +392,10 @@ export const StreamingPlansPanel = ({
                                 >
                                   <AddCell
                                     cell={cellFor(plan, date, spotIndex)}
+                                    date={date}
                                     leagueId={leagueId}
                                     playersById={resolvedPlayers}
+                                    schedule={schedule}
                                   />
                                 </td>
                               ))}

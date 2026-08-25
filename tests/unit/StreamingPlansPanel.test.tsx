@@ -175,6 +175,43 @@ describe("StreamingPlansPanel", () => {
     )
   })
 
+  it("shows add ordinal next to streamer adds", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    expect(screen.getAllByLabelText(/^Add \d+$/).length).toBeGreaterThan(0)
+  })
+
+  it("bolds streamer names on game days and mutes off nights", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    const gameDayLinks = screen.getAllByRole("link", { name: /Streamer A/i })
+    expect(gameDayLinks.length).toBeGreaterThan(0)
+    expect(gameDayLinks[0]?.className).toMatch(/font-bold/)
+    expect(gameDayLinks[0]?.closest("[title]")?.getAttribute("title")).toBe(
+      "Game day",
+    )
+
+    const gameDayHeaders = screen.getAllByTitle("Streamer game day")
+    expect(gameDayHeaders.length).toBeGreaterThan(0)
+    expect(gameDayHeaders[0]?.className).toMatch(/font-bold/)
+  })
+
   it("tints multi-spot and 1-spot rows", () => {
     render(
       <StreamingPlansPanel
