@@ -195,6 +195,17 @@ describe("GET /api/matchup", () => {
       expect(sample).toHaveProperty("droppedPlayerId")
       expect(sample).toHaveProperty("rosterDropKind")
     }
+
+    const plans = payload.streamingPlans as Array<{
+      strategyMode: string
+      suggestedStrategyMode: string
+      summaryReasons: unknown
+    }>
+    expect(plans.length).toBeGreaterThan(0)
+    for (const plan of plans) {
+      expect(plan.strategyMode).toBe(plan.suggestedStrategyMode)
+      expect(Array.isArray(plan.summaryReasons)).toBe(true)
+    }
   })
 
   it("resolves auto opponent and includes state when requested", async () => {

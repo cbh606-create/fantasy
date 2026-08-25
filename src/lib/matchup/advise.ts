@@ -22,6 +22,7 @@ export const adviseMatchup = (
   state: SeasonLeagueState,
   schedule: ScheduleResponse,
   opponentTeamIndex: number,
+  options: { addLimit?: number } = {},
 ): MatchupAdvice | { error: string } => {
   if (opponentTeamIndex === state.perspectiveTeamIndex) {
     return { error: "invalid_opponent" }
@@ -62,7 +63,12 @@ export const adviseMatchup = (
     b2bMap: streamerB2bMap,
   })
 
-  const streamingPlans = buildAllStreamingPlans({ state, schedule, board })
+  const streamingPlans = buildAllStreamingPlans({
+    state,
+    schedule,
+    board,
+    addLimit: options.addLimit,
+  })
 
   return {
     opponentTeamIndex,
