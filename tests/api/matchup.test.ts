@@ -147,6 +147,7 @@ describe("GET /api/matchup", () => {
       }),
       streamers: expect.any(Array),
       streamingPlans: expect.any(Array),
+      adpByPlayerId: expect.any(Object),
       playersById: expect.any(Object),
       teams: expect.any(Array),
       schedule: expect.objectContaining({

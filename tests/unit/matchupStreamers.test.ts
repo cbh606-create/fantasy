@@ -212,4 +212,32 @@ describe("adviseMatchup", () => {
       expect(plan.addLimit).toBe(2)
     }
   })
+
+  it("includes adpByPlayerId for proj-pool id and name|team matches", () => {
+    const wemby: SeasonPlayer = {
+      id: "espn-5104157",
+      name: "Victor Wembanyama",
+      teamAbbr: "SAS",
+      projections: baseProjections(),
+      shooting: { FGM: 500, FGA: 1040, FTM: 200, FTA: 260 },
+    }
+    const jokicAlias: SeasonPlayer = {
+      id: "custom-jokic",
+      name: "Nikola Jokic",
+      teamAbbr: "DEN",
+      projections: baseProjections(),
+      shooting: { FGM: 500, FGA: 1040, FTM: 200, FTA: 260 },
+    }
+    const advice = adviseMatchup(
+      { ...state, players: [...state.players, wemby, jokicAlias] },
+      schedule,
+      1,
+    )
+
+    expect(advice).not.toHaveProperty("error")
+    if ("error" in advice) return
+
+    expect(advice.adpByPlayerId?.["espn-5104157"]).toBe(1)
+    expect(advice.adpByPlayerId?.["custom-jokic"]).toBe(2)
+  })
 })

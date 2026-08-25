@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
@@ -9,9 +11,31 @@ import {
 } from "./games"
 import { suggestSitStart } from "./sitStart"
 import { suggestStreamers } from "./streamers"
+import { buildAdpByPlayerIdFromProjPool } from "./streamingDropPolicy"
 import { buildAllStreamingPlans } from "./streamingPlans"
 import type { MatchupAdvice } from "./types"
 import { activeTeamWeeklyTotals } from "./weekly"
+
+type ProjAdpPlayer = {
+  id: string
+  name: string
+  teamAbbr?: string
+  adp?: number
+}
+
+let cachedProjAdpPlayers: ProjAdpPlayer[] | undefined
+
+const loadProjAdpPlayers = (): ProjAdpPlayer[] => {
+  if (cachedProjAdpPlayers) return cachedProjAdpPlayers
+  const parsed = JSON.parse(
+    readFileSync(
+      path.join(process.cwd(), "data", "players", "proj_2026_27.json"),
+      "utf8",
+    ),
+  ) as { players?: ProjAdpPlayer[] }
+  cachedProjAdpPlayers = parsed.players ?? []
+  return cachedProjAdpPlayers
+}
 
 const enabledCategoryIds = (state: SeasonLeagueState): CategoryId[] => {
   const enabled = state.categories.filter((category) => category.enabled).map((category) => category.id)
@@ -63,11 +87,16 @@ export const adviseMatchup = (
     b2bMap: streamerB2bMap,
   })
 
+  const adpByPlayerId = buildAdpByPlayerIdFromProjPool(
+    state.players,
+    loadProjAdpPlayers(),
+  )
   const streamingPlans = buildAllStreamingPlans({
     state,
     schedule,
     board,
     addLimit: options.addLimit,
+    adpByPlayerId,
   })
 
   return {
@@ -77,5 +106,6 @@ export const adviseMatchup = (
     sitStart,
     streamers,
     streamingPlans,
+    adpByPlayerId,
   }
 }

@@ -234,5 +234,73 @@ describe("StreamingPlansPanel", () => {
     expect(
       screen.getAllByText(/Prioritized 3-in-4|blocks|Skipped thin|Board/i).length,
     ).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText(/Maximizing starts within add budget/).length,
+    ).toBeGreaterThan(0)
+  })
+
+  it("rebuilds with adpByPlayerId so ADP≤60 roster drops stay protected", () => {
+    const star: SeasonPlayer = {
+      id: "star",
+      name: "Star",
+      teamAbbr: "CHI",
+      positions: ["PF"],
+      projections,
+      shooting,
+    }
+    const scrub: SeasonPlayer = {
+      id: "scrub",
+      name: "Scrub",
+      teamAbbr: "ATL",
+      positions: ["C"],
+      projections,
+      shooting,
+    }
+    const protectedState: SeasonLeagueState = {
+      ...state,
+      players: [streamerA, star, scrub],
+      availablePlayerIds: ["fa-a"],
+      teams: [
+        {
+          teamIndex: 0,
+          name: "You",
+          entries: [
+            { slot: "UTIL", playerId: "star" },
+            { slot: "BE", playerId: "scrub" },
+          ],
+        },
+        state.teams[1]!,
+      ],
+    }
+    const protectedSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2025-11-03",
+        endDate: "2025-11-03",
+        days: ["2025-11-03"],
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+      ],
+    }
+
+    render(
+      <StreamingPlansPanel
+        adpByPlayerId={{ star: 25, scrub: 200 }}
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={protectedSchedule}
+        state={protectedState}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    expect(screen.getAllByText(/Protected ADP ≤ 60/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Scrub").length).toBeGreaterThan(0)
+    expect(screen.queryAllByText("Star")).toHaveLength(0)
   })
 })

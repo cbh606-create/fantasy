@@ -33,6 +33,7 @@ type StreamingPlansPanelProps = {
   schedule: ScheduleResponse
   board: MatchupBoard
   playersById: Record<string, SeasonPlayer>
+  adpByPlayerId?: Record<string, number>
 }
 
 const formatDayLabel = (day: string) => {
@@ -155,6 +156,7 @@ export const StreamingPlansPanel = ({
   schedule,
   board,
   playersById,
+  adpByPlayerId,
 }: StreamingPlansPanelProps) => {
   const suggested = suggestStreamingStrategyMode(board)
   const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
@@ -167,6 +169,7 @@ export const StreamingPlansPanel = ({
     board,
     addLimit: addBudget,
     strategyMode,
+    adpByPlayerId,
   })
 
   const resolvedPlayers: Record<string, SeasonPlayer> = {

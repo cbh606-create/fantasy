@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  buildAdpByPlayerIdFromProjPool,
   chooseIlVersusNewInjuredDrop,
   isAdpProtected,
   isLongTermInjuryException,
@@ -7,6 +8,25 @@ import {
   resolveExpectedOutDays,
 } from "@/lib/matchup/streamingDropPolicy"
 import { STREAMING_PROTECTED_ADP_MAX } from "@/lib/matchup/constants"
+import type { SeasonPlayer } from "@/lib/season/types"
+
+const dummyPlayer = (
+  id: string,
+  name: string,
+  teamAbbr?: string,
+): SeasonPlayer => ({
+  id,
+  name,
+  teamAbbr,
+  projections: {} as never,
+  shooting: { FGM: 0, FGA: 0, FTM: 0, FTA: 0 },
+})
+
+const projPool = [
+  { id: "espn-5104157", name: "Victor Wembanyama", teamAbbr: "SAS", adp: 1 },
+  { id: "espn-3112335", name: "Nikola Jokic", teamAbbr: "DEN", adp: 2 },
+  { id: "espn-no-adp", name: "No Adp", teamAbbr: "CHI" },
+]
 
 describe("streamingDropPolicy", () => {
   it("protects ADP at or below 60", () => {
@@ -51,5 +71,37 @@ describe("streamingDropPolicy", () => {
         newlyInjured: { playerId: "star", adp: 20, outDays: 21 },
       }),
     ).toBe("il-guy")
+  })
+
+  it("maps ADP by player id first, else name|teamAbbr", () => {
+    const byId = buildAdpByPlayerIdFromProjPool(
+      [dummyPlayer("espn-5104157", "Wrong Name", "XXX")],
+      projPool,
+    )
+    expect(byId["espn-5104157"]).toBe(1)
+
+    const byName = buildAdpByPlayerIdFromProjPool(
+      [dummyPlayer("custom-jokic", "Nikola Jokic", "DEN")],
+      projPool,
+    )
+    expect(byName["custom-jokic"]).toBe(2)
+
+    const idWins = buildAdpByPlayerIdFromProjPool(
+      [dummyPlayer("espn-5104157", "Nikola Jokic", "DEN")],
+      projPool,
+    )
+    expect(idWins["espn-5104157"]).toBe(1)
+
+    const unmatched = buildAdpByPlayerIdFromProjPool(
+      [dummyPlayer("nobody", "Nobody", "ZZZ")],
+      projPool,
+    )
+    expect(unmatched["nobody"]).toBeUndefined()
+    expect(
+      buildAdpByPlayerIdFromProjPool(
+        [dummyPlayer("espn-no-adp", "No Adp", "CHI")],
+        projPool,
+      )["espn-no-adp"],
+    ).toBeUndefined()
   })
 })

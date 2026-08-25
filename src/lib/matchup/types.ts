@@ -100,4 +100,5 @@ export type MatchupAdvice = {
   sitStart: SitStartSuggestion[]
   streamers: StreamerSuggestion[]
   streamingPlans: StreamingPlan[]
+  adpByPlayerId?: Record<string, number>
 }

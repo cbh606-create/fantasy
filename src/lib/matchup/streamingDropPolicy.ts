@@ -35,6 +35,42 @@ export const isUnderperformingDropException = (_player: SeasonPlayer): boolean =
 export const isAdpProtected = (adp: number | null | undefined): boolean =>
   adp != null && adp <= STREAMING_PROTECTED_ADP_MAX
 
+type ProjAdpPlayer = {
+  id: string
+  name: string
+  teamAbbr?: string
+  adp?: number
+}
+
+const nameTeamKey = (name: string, teamAbbr?: string) =>
+  `${name}|${(teamAbbr ?? "").toUpperCase()}`
+
+export const buildAdpByPlayerIdFromProjPool = (
+  players: SeasonPlayer[],
+  projPlayers: readonly ProjAdpPlayer[] = [],
+): Record<string, number> => {
+  const byId = new Map<string, number>()
+  const byNameTeam = new Map<string, number>()
+  for (const row of projPlayers) {
+    if (row.adp == null) continue
+    byId.set(row.id, row.adp)
+    const key = nameTeamKey(row.name, row.teamAbbr)
+    if (!byNameTeam.has(key)) byNameTeam.set(key, row.adp)
+  }
+
+  const adpByPlayerId: Record<string, number> = {}
+  for (const player of players) {
+    const fromId = byId.get(player.id)
+    if (fromId != null) {
+      adpByPlayerId[player.id] = fromId
+      continue
+    }
+    const fromName = byNameTeam.get(nameTeamKey(player.name, player.teamAbbr))
+    if (fromName != null) adpByPlayerId[player.id] = fromName
+  }
+  return adpByPlayerId
+}
+
 export const chooseIlVersusNewInjuredDrop = ({
   il,
   newlyInjured,
