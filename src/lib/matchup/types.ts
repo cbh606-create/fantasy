@@ -37,6 +37,14 @@ export type SitStartSuggestion = {
   reason: string
 }
 
+export type RatioSitSuggestion = {
+  playerId: string
+  date: string
+  targetCategoryId: "FG_PCT" | "FT_PCT" | "TO"
+  deltaWinProb: number
+  reason: string
+}
+
 export type SitStartSwap = {
   benchPlayerId: string
   activePlayerId: string
