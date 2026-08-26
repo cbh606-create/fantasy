@@ -536,10 +536,86 @@ describe("StreamingPlansPanel", () => {
     const initialPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
     expect(initialPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
 
-    const firstSelect = screen.getAllByRole("combobox", { name: /roster drop/i })[0]!
-    fireEvent.change(firstSelect, { target: { value: "you-play" } })
+    // Selects render 1-spot → 2-spot → 3-spot; index 1 is 2-spot spot 0.
+    const twoSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop/i,
+    })[1]!
+    fireEvent.change(twoSpotSelect, { target: { value: "you-play" } })
 
     const rebuiltPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
     expect(rebuiltPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-play")
+  })
+
+  it("keeps roster drop overrides isolated per spot-count plan", () => {
+    const onPreviewPlanChange = vi.fn()
+    const noGameCut: SeasonPlayer = {
+      id: "you-idle",
+      name: "No Game Cut",
+      teamAbbr: "CHI",
+      positions: ["PF"],
+      projections,
+      shooting,
+    }
+    const playsCut: SeasonPlayer = {
+      id: "you-play",
+      name: "Plays Cut",
+      teamAbbr: "ATL",
+      positions: ["C"],
+      projections,
+      shooting,
+    }
+    const dropState: SeasonLeagueState = {
+      ...state,
+      players: [streamerA, streamerB, noGameCut, playsCut],
+      teams: [
+        {
+          teamIndex: 0,
+          name: "You",
+          entries: [
+            { slot: "UTIL", playerId: "you-idle" },
+            { slot: "BE", playerId: "you-play" },
+          ],
+        },
+        state.teams[1]!,
+      ],
+    }
+    const dropSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2025-11-03",
+        endDate: "2025-11-03",
+        days: ["2025-11-03"],
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+      ],
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        onPreviewPlanChange={onPreviewPlanChange}
+        playersById={{}}
+        schedule={dropSchedule}
+        state={dropState}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    const oneSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop .* spot 1/i,
+    })[0]!
+    expect(oneSpotSelect).toHaveValue("you-idle")
+    fireEvent.change(oneSpotSelect, { target: { value: "you-play" } })
+    expect(oneSpotSelect).toHaveValue("you-play")
+
+    fireEvent.click(screen.getByRole("button", { name: /^2-spot$/i }))
+    const twoSpotPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
+    expect(twoSpotPlan?.spotCount).toBe(2)
+    expect(twoSpotPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
   })
 })

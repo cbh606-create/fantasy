@@ -9,7 +9,10 @@ import type {
   SeasonPlayer,
 } from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
-import { buildAllStreamingPlans, streamingAddDropKey } from "@/lib/matchup/streamingPlans"
+import {
+  buildStreamingPlan,
+  streamingAddDropKey,
+} from "@/lib/matchup/streamingPlans"
 import {
   collectEarlierRosterDropIds,
   eligibleRosterDropPlayerIds,
@@ -297,25 +300,29 @@ export const StreamingPlansPanel = ({
   const [previewSpotCount, setPreviewSpotCount] = useState<1 | 2 | 3 | null>(
     null,
   )
-  const [forcedRosterDrops, setForcedRosterDrops] = useState<
-    Record<string, string | "open_slot">
-  >({})
+  const [forcedRosterDropsBySpotCount, setForcedRosterDropsBySpotCount] =
+    useState<
+      Partial<Record<1 | 2 | 3, Record<string, string | "open_slot">>>
+    >({})
 
   useEffect(() => {
-    setForcedRosterDrops({})
+    setForcedRosterDropsBySpotCount({})
   }, [strategyMode, addBudget])
 
   const plans = useMemo(
     () =>
-      buildAllStreamingPlans({
-        state,
-        schedule,
-        board,
-        addLimit: addBudget,
-        strategyMode,
-        adpByPlayerId,
-        forcedRosterDrops,
-      }),
+      ([1, 2, 3] as const).map((spotCount) =>
+        buildStreamingPlan({
+          state,
+          schedule,
+          board,
+          addLimit: addBudget,
+          strategyMode,
+          adpByPlayerId,
+          spotCount,
+          forcedRosterDrops: forcedRosterDropsBySpotCount[spotCount],
+        }),
+      ),
     [
       state,
       schedule,
@@ -323,22 +330,23 @@ export const StreamingPlansPanel = ({
       addBudget,
       strategyMode,
       adpByPlayerId,
-      forcedRosterDrops,
+      forcedRosterDropsBySpotCount,
     ],
   )
 
   const handleForcedRosterDropChange = (
+    spotCount: 1 | 2 | 3,
     key: string,
     value: string | "open_slot",
   ) => {
-    setForcedRosterDrops((prev) => {
-      const next = { ...prev, [key]: value }
-      for (const forcedKey of Object.keys(next)) {
+    setForcedRosterDropsBySpotCount((prev) => {
+      const nextForSpot = { ...(prev[spotCount] ?? {}), [key]: value }
+      for (const forcedKey of Object.keys(nextForSpot)) {
         if (isAfterStreamingAddDropKey(forcedKey, key)) {
-          delete next[forcedKey]
+          delete nextForSpot[forcedKey]
         }
       }
-      return next
+      return { ...prev, [spotCount]: nextForSpot }
     })
   }
 
@@ -608,8 +616,12 @@ export const StreamingPlansPanel = ({
                                       adpByPlayerId={adpByPlayerId}
                                       cell={cell}
                                       date={date}
-                                      onForcedRosterDropChange={
-                                        handleForcedRosterDropChange
+                                      onForcedRosterDropChange={(key, value) =>
+                                        handleForcedRosterDropChange(
+                                          plan.spotCount,
+                                          key,
+                                          value,
+                                        )
                                       }
                                       plan={plan}
                                       playersById={resolvedPlayers}

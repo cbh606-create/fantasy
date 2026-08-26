@@ -66,7 +66,7 @@ describe("DailyLineupPanel sit/start badges", () => {
     cleanup()
   })
 
-  it("shows badge text next to a roster player when a hint is provided", () => {
+  it("shows sit/start hint on the player's game cells", () => {
     render(
       <DailyLineupPanel
         daily={daily}
@@ -79,7 +79,13 @@ describe("DailyLineupPanel sit/start badges", () => {
       />,
     )
 
-    expect(screen.getByText("Start over Streamer A")).toBeInTheDocument()
+    const hints = screen.getAllByText("Start over Streamer A")
+    expect(hints.length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole("button", {
+        name: /Start over Streamer A/i,
+      }).length,
+    ).toBeGreaterThan(0)
   })
 })
 

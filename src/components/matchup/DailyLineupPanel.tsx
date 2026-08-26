@@ -34,7 +34,7 @@ type DailyLineupPanelProps = {
   /** Preview streamer id → dates they occupy a plan spot (lock other game days). */
   streamerOwnedDatesByPlayerId?: Record<string, ReadonlySet<string> | string[]>
   extraPlayers?: SeasonPlayer[]
-  /** Muted sit/start hint badges keyed by player id (hint-only, not clickable). */
+  /** Sit/start hints keyed by player id — shown on that player's game cells. */
   sitStartBadgesByPlayerId?: Record<string, string>
 }
 
@@ -199,11 +199,6 @@ export const DailyLineupPanel = ({
                         {player.teamAbbr}
                       </span>
                     ) : null}
-                    {sitStartBadgesByPlayerId[player.id] ? (
-                      <span className="ml-1.5 text-[0.625rem] font-normal text-[var(--color-mute)]">
-                        {sitStartBadgesByPlayerId[player.id]}
-                      </span>
-                    ) : null}
                   </th>
                   {days.map((day) => {
                     const isDropped = Boolean(
@@ -233,6 +228,7 @@ export const DailyLineupPanel = ({
                         : null
                     const label = dayOpponentLabel(player, day, schedule)
                     const shortLabel = shortOpponentLabel(label)
+                    const sitStartHint = sitStartBadgesByPlayerId[player.id]
                     const action = started ? "Sit" : "Start"
                     const ariaLabel = startedSlot
                       ? `${action} ${player.name} on ${formatDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
@@ -255,38 +251,54 @@ export const DailyLineupPanel = ({
                     }
 
                     return (
-                      <td className="px-1 py-1 text-center" key={day}>
-                        <button
-                          aria-label={isLocked ? lockedAriaLabel : ariaLabel}
-                          aria-pressed={isLocked ? undefined : started}
-                          className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
-                            isLocked
-                              ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
-                              : started
-                                ? "bg-[var(--color-ink)] text-white hover:opacity-90"
-                                : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
-                          }`}
-                          disabled={isLocked}
-                          onClick={() =>
-                            handleToggle(player, day, hasGame, isLocked)
-                          }
-                          type="button"
-                        >
-                          {startedSlot && !isLocked ? (
-                            <span className="mr-1 font-semibold tracking-wide">
-                              {slotDisplayLabel(startedSlot)}
-                            </span>
-                          ) : null}
-                          {shortLabel}
-                          {isB2b && !isLocked ? (
+                      <td className="px-1 py-1 text-center align-top" key={day}>
+                        <div className="inline-flex flex-col items-center gap-0.5">
+                          <button
+                            aria-label={
+                              isLocked
+                                ? lockedAriaLabel
+                                : sitStartHint
+                                  ? `${ariaLabel}. ${sitStartHint}`
+                                  : ariaLabel
+                            }
+                            aria-pressed={isLocked ? undefined : started}
+                            className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
+                              isLocked
+                                ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
+                                : started
+                                  ? "bg-[var(--color-ink)] text-white hover:opacity-90"
+                                  : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
+                            }`}
+                            disabled={isLocked}
+                            onClick={() =>
+                              handleToggle(player, day, hasGame, isLocked)
+                            }
+                            type="button"
+                          >
+                            {startedSlot && !isLocked ? (
+                              <span className="mr-1 font-semibold tracking-wide">
+                                {slotDisplayLabel(startedSlot)}
+                              </span>
+                            ) : null}
+                            {shortLabel}
+                            {isB2b && !isLocked ? (
+                              <span
+                                className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
+                                title="B2B · ~75% expected"
+                              >
+                                B2B
+                              </span>
+                            ) : null}
+                          </button>
+                          {sitStartHint ? (
                             <span
-                              className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
-                              title="B2B · ~75% expected"
+                              className="max-w-[4.75rem] text-center text-[0.5625rem] leading-tight font-medium text-[var(--color-ink)]"
+                              title={sitStartHint}
                             >
-                              B2B
+                              {sitStartHint}
                             </span>
                           ) : null}
-                        </button>
+                        </div>
                       </td>
                     )
                   })}

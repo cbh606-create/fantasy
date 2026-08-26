@@ -19,7 +19,6 @@ import { isActiveSlot } from "@/lib/matchup/constants"
 import {
   clearNoGameActiveSlots,
   dailyLineupsMatchDays,
-  effectiveGamesByPlayerId,
   findPlayerSlotIndex,
   initDailyLineups,
   playerGameDays,
@@ -31,7 +30,6 @@ import {
   type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
 import { suggestRatioSits } from "@/lib/matchup/ratioSits"
-import { suggestSitStart } from "@/lib/matchup/sitStart"
 import { applyStreamingPlanPreview, previewSeatKey } from "@/lib/matchup/applyStreamingPlanPreview"
 import { rosterSlotsFor } from "@/lib/matchup/eligibility"
 import type {
@@ -554,47 +552,19 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     }
   }
 
-  const liveSitStart = useMemo(() => {
-    if (
-      !state ||
-      !matchupData ||
-      !daily ||
-      previewPlan ||
-      opponentTeamIndex === null
-    ) {
-      return matchupData?.sitStart ?? []
-    }
-
-    const youTeam = state.teams.find(
-      (team) => team.teamIndex === state.perspectiveTeamIndex,
-    )
-    const oppTeam = state.teams.find(
-      (team) => team.teamIndex === opponentTeamIndex,
-    )
-    if (!youTeam || !oppTeam) return matchupData.sitStart
-
-    return suggestSitStart({
-      youEntries: youTeam.entries,
-      oppEntries: oppTeam.entries,
-      players: state.players,
-      gamesMap: effectiveGamesByPlayerId(
-        daily,
-        state.players,
-        matchupData.schedule,
-      ),
-      categoryIds: enabledCategoryIds(state),
-    })
-  }, [state, matchupData, daily, previewPlan, opponentTeamIndex])
+  const sitStartSuggestions = matchupData?.sitStart ?? []
 
   const sitStartBadgesByPlayerId = useMemo(() => {
-    if (previewPlan || !state || !matchupData) return undefined
+    if (!state || !matchupData || sitStartSuggestions.length === 0) {
+      return undefined
+    }
 
     const playersById: Record<string, SeasonPlayer> = {
       ...Object.fromEntries(state.players.map((player) => [player.id, player])),
       ...matchupData.playersById,
     }
     const badges: Record<string, string> = {}
-    for (const suggestion of liveSitStart) {
+    for (const suggestion of sitStartSuggestions) {
       if (!badges[suggestion.benchPlayerId]) {
         badges[suggestion.benchPlayerId] =
           `Start over ${playerShortName(suggestion.activePlayerId, playersById)}`
@@ -605,7 +575,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       }
     }
     return badges
-  }, [liveSitStart, previewPlan, state, matchupData])
+  }, [sitStartSuggestions, state, matchupData])
 
   if (isLoading) {
     return (
@@ -802,7 +772,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             applyingSwapKey={applyingSwapKey}
             onApply={handleApplySwap}
             playersById={matchupData.playersById}
-            suggestions={previewPlan ? matchupData.sitStart : liveSitStart}
+            suggestions={sitStartSuggestions}
           />
           {previewPlan == null ? (
             <RatioSitsPanel
