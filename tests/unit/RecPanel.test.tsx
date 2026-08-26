@@ -94,6 +94,21 @@ describe("RecPanel", () => {
     expect(screen.getByText(/simulating/i)).toBeInTheDocument()
   })
 
+  it("shows approximate frequencies and sim count", () => {
+    render(
+      <RecPanel
+        maxNextPicks={3}
+        players={players}
+        result={result}
+        showCategoryOutlook={false}
+      />,
+    )
+
+    expect(screen.getByText("~50%")).toBeInTheDocument()
+    expect(screen.getByText("~30%")).toBeInTheDocument()
+    expect(screen.getByText(/Based on 10 sims/i)).toBeInTheDocument()
+  })
+
   it("renders a horizontal row layout without outlook", () => {
     render(
       <RecPanel

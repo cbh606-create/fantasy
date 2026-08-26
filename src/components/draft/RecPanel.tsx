@@ -4,6 +4,7 @@ import type {
   Player,
   SimulationResult,
 } from "@/lib/domain/types"
+import { formatNextPickFrequency } from "@/lib/sim/formatNextPickFrequency"
 
 const CATEGORY_LABELS: Record<CategoryId, string> = {
   FG_PCT: "FG%",
@@ -74,6 +75,11 @@ export const RecPanel = ({
             >
               Next picks
             </h2>
+            {result ? (
+              <p className="text-xs text-[var(--color-mute)]">
+                Based on {result.meta.simCount} sims
+              </p>
+            ) : null}
           </div>
           {isRow && isSimulating && result ? (
             <p className="text-xs text-[var(--color-mute)]" role="status">
@@ -117,7 +123,7 @@ export const RecPanel = ({
                     </span>
                   </div>
                   <span className="shrink-0 text-sm tabular-nums text-[var(--color-mute)]">
-                    {Math.round(pick.frequency * 100)}%
+                    {formatNextPickFrequency(pick.frequency)}
                   </span>
                 </li>
               )
