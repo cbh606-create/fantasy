@@ -56,6 +56,33 @@ npm run players:refresh         # ESPN season 2027 → data/players/proj_2026_27
 npm run players:espn-rankings   # overlay ESPN H2H Points article ranks onto that pool
 ```
 
+### Refresh all mock ADP / ranks (do this often)
+
+One command updates every Primary/reference source on the draft pool:
+
+```bash
+npm run players:adp-refresh
+```
+
+That runs, in order:
+
+1. **Yahoo rank** (live overall rank → `yahoo_draft_analysis_rank`, writes fixture)
+2. **FantasyPros Yahoo** (live ADP column → `fantasypros_yahoo`, writes fixture)
+3. **ESPN article** (checked-in H2H points ranks → `espn_article_h2h_points`)
+4. **Merge** (sync meta + project default Primary into `player.adp`)
+
+Offline / CI without network:
+
+```bash
+npm run players:adp-refresh -- --fixture
+```
+
+Single-source refreshes still work: `players:yahoo-adp`, `players:fantasypros-adp`, `players:espn-rankings`, then optionally `players:adp-merge`.
+
+Commit updated `data/players/proj_2026_27.json` and rank fixtures after a live refresh so Mock stays current for everyone.
+
+GitHub Actions also runs `players:adp-refresh` **Mon/Thu** (or via Actions → Refresh ADP ranks → Run workflow) and opens a PR when files change.
+
 Optional env: `PLAYER_POOL_SOURCE=proj_2026_27` (default). Prior season cache: `stats_2025_26`.
 
 ### Hashtag projections overlay

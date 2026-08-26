@@ -1,0 +1,50 @@
+name: Refresh ADP ranks
+
+on:
+  schedule:
+    # Twice weekly (Mon/Thu 12:00 UTC ≈ 21:00 KST)
+    - cron: "0 12 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Refresh all ADP sources
+        run: npm run players:adp-refresh
+
+      - name: Open PR if pool/fixtures changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(players): refresh Yahoo / FantasyPros / ESPN ADP ranks"
+          title: "chore(players): refresh mock draft ADP ranks"
+          body: |
+            Automated refresh of mock-draft ADP sources via `npm run players:adp-refresh`.
+
+            - Yahoo overall rank (live → fixture + pool)
+            - FantasyPros Yahoo ADP (live → fixture + pool)
+            - ESPN article ranks (fixture re-applied)
+            - Primary ADP merge
+
+            Trigger: schedule (Mon/Thu) or manual `workflow_dispatch`.
+          branch: chore/adp-refresh
+          delete-branch: true
+          labels: |
+            chore
+            players
