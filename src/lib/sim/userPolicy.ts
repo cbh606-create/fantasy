@@ -7,6 +7,9 @@ import {
 
 type CategoryWeights = Record<CategoryId, number>
 
+export const USER_PICK_TOP_K = 8
+export const USER_PICK_SOFTMAX_TAU = 0.08
+
 const scorePlayer = (
   player: Player,
   userRoster: Player[],
@@ -33,29 +36,36 @@ export const greedyUserPick = (
     throw new RangeError("Cannot pick a user player from an empty pool")
   }
 
-  let bestScore = Number.NEGATIVE_INFINITY
-  let bestPlayers: Player[] = []
+  const scored = remaining.map((player) => ({
+    player,
+    score: scorePlayer(player, userRoster, allRosters, weights),
+  }))
 
-  for (const player of remaining) {
-    const score = scorePlayer(player, userRoster, allRosters, weights)
-
-    if (score > bestScore) {
-      bestScore = score
-      bestPlayers = [player]
-      continue
+  scored.sort((left, right) => {
+    if (right.score !== left.score) {
+      return right.score - left.score
     }
 
-    if (score === bestScore) {
-      bestPlayers.push(player)
+    return left.player.id.localeCompare(right.player.id)
+  })
+
+  const top = scored.slice(0, Math.min(USER_PICK_TOP_K, scored.length))
+  const maxScore = top[0].score
+  const softmaxWeights = top.map(({ score }) =>
+    Math.exp((score - maxScore) / USER_PICK_SOFTMAX_TAU),
+  )
+  const totalWeight = softmaxWeights.reduce((sum, weight) => sum + weight, 0)
+  const threshold = rng() * totalWeight
+
+  let cumulative = 0
+  for (let index = 0; index < top.length; index += 1) {
+    cumulative += softmaxWeights[index]
+    if (threshold < cumulative) {
+      return top[index].player
     }
   }
 
-  const selectedIndex = Math.min(
-    Math.floor(rng() * bestPlayers.length),
-    bestPlayers.length - 1,
-  )
-
-  return bestPlayers[selectedIndex]
+  return top[top.length - 1].player
 }
 
 export const evaluateForcePick = (

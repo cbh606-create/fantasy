@@ -59,6 +59,54 @@ describe("greedyUserPick", () => {
   })
 })
 
+describe("greedyUserPick softmax", () => {
+  it("usually picks the clear points leader across many draws", () => {
+    const lowPoints = player("low-points", { PTS: 10 })
+    const highPoints = player("high-points", { PTS: 40 })
+    const baselines = [
+      [player("baseline-low", { PTS: 5 })],
+      [player("baseline-high", { PTS: 15 })],
+    ]
+    const w = weights({ PTS: 1 })
+
+    let highCount = 0
+    for (let i = 0; i < 80; i += 1) {
+      const rng = () => (i + 0.5) / 80
+      const picked = greedyUserPick(
+        [lowPoints, highPoints],
+        [],
+        baselines,
+        w,
+        rng,
+      )
+      if (picked.id === "high-points") highCount += 1
+    }
+
+    expect(highCount).toBeGreaterThan(60)
+  })
+
+  it("spreads picks across near-tied scorers", () => {
+    const a = player("a", { PTS: 20 })
+    const b = player("b", { PTS: 19.5 })
+    const c = player("c", { PTS: 19 })
+    const baselines = [
+      [player("baseline-low", { PTS: 5 })],
+      [player("baseline-high", { PTS: 15 })],
+    ]
+    const w = weights({ PTS: 1 })
+    const counts = new Map<string, number>()
+
+    for (let i = 0; i < 120; i += 1) {
+      const rng = () => (i + 0.5) / 120
+      const picked = greedyUserPick([a, b, c], [], baselines, w, rng)
+      counts.set(picked.id, (counts.get(picked.id) ?? 0) + 1)
+    }
+
+    expect(counts.size).toBeGreaterThanOrEqual(2)
+    expect(counts.get("a") ?? 0).toBeGreaterThan(0)
+  })
+})
+
 describe("evaluateForcePick", () => {
   it("places the forced player first in the returned path", () => {
     const forcedPlayer = player("forced", { PTS: 10 })
