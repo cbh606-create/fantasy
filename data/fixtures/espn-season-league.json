@@ -1625,27 +1625,28 @@
     },
     {
       "id": "t3p7",
-      "name": "AJ Dybantsa",
-      "teamAbbr": "WAS",
+      "name": "Brandon Ingram",
+      "teamAbbr": "TOR",
       "positions": [
-        "SF"
+        "SF",
+        "PF"
       ],
       "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
+        "FG_PCT": 0.47670807,
+        "FT_PCT": 0.82022472,
+        "TPM": 135,
+        "REB": 430,
+        "AST": 284,
+        "STL": 58,
+        "BLK": 55,
+        "TO": 187,
+        "PTS": 1655
       },
       "shooting": {
-        "FGM": 0,
-        "FGA": 0,
-        "FTM": 0,
-        "FTA": 0
+        "FGM": 628.9,
+        "FGA": 1319.2560386066048,
+        "FTM": 297.9,
+        "FTA": 363.1931502869116
       }
     },
     {
