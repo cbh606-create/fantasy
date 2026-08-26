@@ -37,10 +37,11 @@ jobs:
           body: |
             Automated refresh of mock-draft ADP sources via `npm run players:adp-refresh`.
 
-            - Yahoo overall rank (live → fixture + pool)
-            - FantasyPros Yahoo ADP (live → fixture + pool)
-            - ESPN article ranks (fixture re-applied)
+            - Yahoo ADP (`draft_analysis.average_pick`)
+            - ESPN ADP (`ownership.averageDraftPosition`)
             - Primary ADP merge
+
+            FantasyPros is skipped (stale 2025-26 ADP).
 
             Trigger: schedule (Mon/Thu) or manual `workflow_dispatch`.
           branch: chore/adp-refresh

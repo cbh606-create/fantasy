@@ -1,13 +1,12 @@
 /**
- * Refresh all mock-draft ADP / rank sources onto the player pool in one shot.
+ * Refresh selectable mock-draft ADP sources onto the player pool.
  *
- * Live-fetches Yahoo overall rank + FantasyPros Yahoo ADP (writes fixtures),
- * reapplies ESPN article ranks from fixture, then merges Primary ADP.
+ * Live-fetches Yahoo average_pick + ESPN averageDraftPosition (writes fixtures),
+ * then merges Primary ADP.
  *
  * Usage:
  *   node scripts/refresh-all-adp.mjs
- *   node scripts/refresh-all-adp.mjs --fixture          # offline: use checked-in fixtures
- *   node scripts/refresh-all-adp.mjs --in=data/players/proj_2026_27.json
+ *   node scripts/refresh-all-adp.mjs --fixture
  *   npm run players:adp-refresh
  */
 
@@ -41,24 +40,16 @@ const runNode = (scriptRel, extraArgs = []) =>
   })
 
 const main = async () => {
-  // Live sources: refresh fixtures when online so frequent re-runs stay current.
   const liveExtra = forceFixture ? [] : ["--write-fixture"]
 
   await runNode("scripts/refresh-yahoo-adp.mjs", liveExtra)
-  await runNode("scripts/refresh-fantasypros-adp.mjs", liveExtra)
-  // ESPN article ranks stay fixture-backed (live page is bot-blocked).
-  await runNode("scripts/refresh-espn-rankings.mjs")
+  await runNode("scripts/refresh-espn-rankings.mjs", liveExtra)
   await runNode("scripts/merge-adp-sources.mjs")
 
-  console.log("\nAll ADP sources refreshed.")
+  console.log("\nADP sources refreshed (Yahoo + ESPN).")
   if (!forceFixture) {
-    console.log(
-      "Fixtures updated for Yahoo + FantasyPros. Commit data/players/* when ready.",
-    )
+    console.log("Fixtures updated. Commit data/players/* when ready.")
   }
-  console.log(
-    "ESPN ranks still use the checked-in article fixture — rebuild when the ESPN list changes.",
-  )
 }
 
 main().catch((error) => {

@@ -29,6 +29,7 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
 import {
   DEFAULT_ADP_SOURCE,
+  normalizeSelectableAdpSource,
   withProjectedAdp,
   type AdpSourceId,
 } from "@/lib/players/adpSources"
@@ -579,12 +580,13 @@ export const DraftWorkspace = ({
   }
 
   const handleAdpSourceChange = (next: AdpSourceId) => {
-    setAdpSource(next)
+    const source = normalizeSelectableAdpSource(next)
+    setAdpSource(source)
     if (!state) return
     void startMockDraft(state, mockPerspectiveTeamIndex, {
       refreshPlayers: true,
       teams: mockTeams,
-      adpSource: next,
+      adpSource: source,
     })
   }
 

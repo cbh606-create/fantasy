@@ -16,9 +16,9 @@ import type {
   SimulationResult,
 } from "@/lib/domain/types"
 import {
-  ADP_SOURCE_IDS,
   ADP_SOURCES,
   DEFAULT_ADP_SOURCE,
+  SELECTABLE_ADP_SOURCE_IDS,
   formatAdpReferenceLine,
   type AdpSourceId,
 } from "@/lib/players/adpSources"
@@ -196,7 +196,7 @@ export const MockDraftView = ({
               onChange={handleAdpSourceChange}
               value={adpSource}
             >
-              {ADP_SOURCE_IDS.map((id) => (
+              {SELECTABLE_ADP_SOURCE_IDS.map((id) => (
                 <option key={id} value={id}>
                   {ADP_SOURCES[id].label}
                 </option>

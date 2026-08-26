@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 import {
   DEFAULT_ADP_SOURCE,
+  SELECTABLE_ADP_SOURCE_IDS,
   formatAdpReferenceLine,
+  normalizeSelectableAdpSource,
   projectAdpFromSource,
   withProjectedAdp,
 } from "@/lib/players/adpSources"
@@ -45,22 +47,32 @@ describe("adpSources", () => {
         id: "b",
         name: "B",
         adp: 1,
-        adpBySource: { fantasypros_yahoo: 20 },
+        adpBySource: { espn_article_h2h_points: 20 },
       }),
       base({
         id: "a",
         name: "A",
         adp: 2,
-        adpBySource: { fantasypros_yahoo: 5 },
+        adpBySource: { espn_article_h2h_points: 5 },
       }),
     ]
-    const next = withProjectedAdp(players, "fantasypros_yahoo")
+    const next = withProjectedAdp(players, "espn_article_h2h_points")
     expect(next.map((p) => p.id)).toEqual(["a", "b"])
     expect(next[0].adp).toBe(5)
     expect(DEFAULT_ADP_SOURCE).toBe("yahoo_draft_analysis_rank")
   })
 
-  it("formatAdpReferenceLine shows primary and other sources", () => {
+  it("exposes only Yahoo ADP and ESPN ADP as selectable sources", () => {
+    expect([...SELECTABLE_ADP_SOURCE_IDS]).toEqual([
+      "yahoo_draft_analysis_rank",
+      "espn_article_h2h_points",
+    ])
+    expect(normalizeSelectableAdpSource("fantasypros_yahoo")).toBe(
+      "yahoo_draft_analysis_rank",
+    )
+  })
+
+  it("formatAdpReferenceLine shows primary and selectable sources only", () => {
     const player = base({
       id: "1",
       name: "A",
@@ -68,13 +80,14 @@ describe("adpSources", () => {
       adpBySource: {
         yahoo_draft_analysis_rank: 3,
         fantasypros_yahoo: 4.2,
+        espn_article_h2h_points: 10,
       },
     })
     expect(formatAdpReferenceLine(player, "yahoo_draft_analysis_rank")).toBe(
-      "ADP 3 · FP 4.2 · ESPN —",
+      "ADP 3 · ESPN 10",
     )
-    expect(formatAdpReferenceLine(player, "fantasypros_yahoo")).toBe(
-      "ADP 3 · Yahoo 3 · ESPN —",
+    expect(formatAdpReferenceLine(player, "espn_article_h2h_points")).toBe(
+      "ADP 3 · Yahoo 3",
     )
   })
 })
