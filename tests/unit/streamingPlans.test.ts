@@ -1002,6 +1002,67 @@ describe("forcedRosterDrops", () => {
 
     expect(plans[1]!.days[0]!.cells[0]!.rosterDropPlayerId).toBe("you-play")
   })
+
+  it("resolves forced roster drops in spotIndex order on same day", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
+    const faMon = player("fa-mon", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faWed0 = player("fa-wed-0", "ORL", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const faWed1 = player("fa-wed-1", "NYK", {
+      projections: { ...baseProjections(), STL: 155 },
+    })
+    const noGameHighStl = player("you-idle", "DET", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const playsLowStl = player("you-play", "ATL", {
+      projections: { ...baseProjections(), STL: 5 },
+    })
+    const benchCut = player("you-bench", "PHI", {
+      projections: { ...baseProjections(), STL: 150 },
+    })
+    const state = tinyState(
+      [faMon, faWed0, faWed1, noGameHighStl, playsLowStl, benchCut],
+      ["fa-mon", "fa-wed-0", "fa-wed-1"],
+    )
+    state.teams[0]!.entries = [
+      { slot: "UTIL", playerId: "you-idle" },
+      { slot: "BE", playerId: "you-play" },
+      { slot: "BN", playerId: "you-bench" },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "DET" },
+      { date: "2025-11-05", homeAbbr: "ORL", awayAbbr: "NYK" },
+      { date: "2025-11-05", homeAbbr: "ATL", awayAbbr: "PHI" },
+    ])
+    const mon = days[0]!
+    const wed = days[2]!
+    const forceKey = streamingAddDropKey(wed, 0)
+
+    const plan = buildStreamingPlan({
+      spotCount: 2,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      forcedRosterDrops: {
+        [streamingAddDropKey(mon, 0)]: "you-idle",
+        [forceKey]: "you-play",
+      },
+    })
+
+    const wedCells = plan.days[2]!.cells
+    expect(wedCells[0]).toMatchObject({
+      action: "add",
+      rosterDropPlayerId: "you-play",
+    })
+    expect(wedCells[1]).toMatchObject({
+      action: "add",
+      rosterDropPlayerId: "you-bench",
+    })
+  })
 })
 
 describe("1-spot off-night always cover", () => {

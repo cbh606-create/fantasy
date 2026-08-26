@@ -301,6 +301,10 @@ export const StreamingPlansPanel = ({
     Record<string, string | "open_slot">
   >({})
 
+  useEffect(() => {
+    setForcedRosterDrops({})
+  }, [strategyMode, addBudget])
+
   const plans = useMemo(
     () =>
       buildAllStreamingPlans({

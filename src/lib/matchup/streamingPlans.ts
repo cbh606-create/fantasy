@@ -585,13 +585,13 @@ export const buildStreamingPlan = ({
       return left - right
     })
 
+    const pendingAdds: number[] = []
+
     for (const spotIndex of needFill) {
       const previousId = previousOccupants[spotIndex] ?? null
       let playerId: string | null = null
       let action: StreamingPlanAction = "empty"
       let droppedPlayerId: string | null = null
-      let rosterDropKind: StreamingPlanRosterDropKind = "none"
-      let rosterDropPlayerId: string | null = null
       let addIndex: number | null = null
 
       if (addsUsed < addLimit) {
@@ -620,32 +620,12 @@ export const buildStreamingPlan = ({
             droppedPlayerId = previousId
           } else {
             action = "add"
+            pendingAdds.push(spotIndex)
           }
           addsUsed += 1
           addsBySpot[spotIndex]! += 1
           addIndex = addsUsed
           seatedToday.add(best.id)
-        }
-      }
-
-      if (action === "add") {
-        const rosterDrop = resolveRosterDrop(
-          state.teams[state.perspectiveTeamIndex]!.entries,
-          playersById,
-          date,
-          spotIndex,
-          schedule,
-          weakCats,
-          weekDroppedPlayers,
-          forcedRosterDrops,
-          adpByPlayerId,
-          injuryOutDaysByPlayerId,
-        )
-        rosterDropKind = rosterDrop.kind
-        rosterDropPlayerId = rosterDrop.playerId
-        if (rosterDrop.didProtect) didProtectDrops = true
-        if (rosterDrop.kind === "player" && rosterDrop.playerId) {
-          weekDroppedPlayers.add(rosterDrop.playerId)
         }
       }
 
@@ -655,9 +635,35 @@ export const buildStreamingPlan = ({
         playerId,
         action,
         droppedPlayerId,
-        rosterDropPlayerId,
-        rosterDropKind,
+        rosterDropPlayerId: null,
+        rosterDropKind: "none",
         addIndex,
+      }
+    }
+
+    pendingAdds.sort((left, right) => left - right)
+    for (const spotIndex of pendingAdds) {
+      const rosterDrop = resolveRosterDrop(
+        state.teams[state.perspectiveTeamIndex]!.entries,
+        playersById,
+        date,
+        spotIndex,
+        schedule,
+        weakCats,
+        weekDroppedPlayers,
+        forcedRosterDrops,
+        adpByPlayerId,
+        injuryOutDaysByPlayerId,
+      )
+      if (rosterDrop.didProtect) didProtectDrops = true
+      if (rosterDrop.kind === "player" && rosterDrop.playerId) {
+        weekDroppedPlayers.add(rosterDrop.playerId)
+      }
+      const cell = cells[spotIndex]!
+      cells[spotIndex] = {
+        ...cell,
+        rosterDropKind: rosterDrop.kind,
+        rosterDropPlayerId: rosterDrop.playerId,
       }
     }
 
