@@ -122,6 +122,33 @@ const nearTermStretch = (
 
 const ALTERNATIVE_FA_LIMIT = 3
 
+type StreamPosFamily = "guard" | "wing" | "big"
+
+const streamPositionFamily = (
+  player: SeasonPlayer | undefined,
+): StreamPosFamily | null => {
+  const positions = player?.positions ?? []
+  if (positions.length === 0) return null
+  if (positions.some((slot) => slot === "C" || slot === "PF")) return "big"
+  if (positions.some((slot) => slot === "PG" || slot === "SG" || slot === "G")) {
+    return "guard"
+  }
+  return "wing"
+}
+
+/** Alternatives should feel like the same stream archetype (not C-block vs 3PT guard). */
+const isCompatibleStreamerAlternative = (
+  chosen: SeasonPlayer,
+  candidate: SeasonPlayer,
+): boolean => {
+  const chosenFamily = streamPositionFamily(chosen)
+  const candidateFamily = streamPositionFamily(candidate)
+  if (chosenFamily && candidateFamily && chosenFamily !== candidateFamily) {
+    return false
+  }
+  return true
+}
+
 const rankEligibleFas = (
   candidates: SeasonPlayer[],
   date: string,
@@ -151,11 +178,12 @@ const rankEligibleFas = (
 }
 
 const alternativePlayerIdsFrom = (
-  chosenId: string,
+  chosen: SeasonPlayer,
   ranked: SeasonPlayer[],
 ): string[] =>
   ranked
-    .filter((player) => player.id !== chosenId)
+    .filter((player) => player.id !== chosen.id)
+    .filter((player) => isCompatibleStreamerAlternative(chosen, player))
     .slice(0, ALTERNATIVE_FA_LIMIT)
     .map((player) => player.id)
 
@@ -205,11 +233,27 @@ const listTodayBlocks = (
 const alternativeIdsFromBlocks = (
   chosenId: string,
   ranked: StreamingBlock[],
-): string[] =>
-  ranked
-    .filter((block) => block.playerId !== chosenId)
-    .slice(0, ALTERNATIVE_FA_LIMIT)
-    .map((block) => block.playerId)
+  playersById: Map<string, SeasonPlayer>,
+): string[] => {
+  const chosenBlock = ranked.find((block) => block.playerId === chosenId)
+  const chosen = playersById.get(chosenId)
+  if (!chosenBlock || !chosen) return []
+
+  const sameFamily = ranked.filter((block) => {
+    if (block.playerId === chosenId) return false
+    const candidate = playersById.get(block.playerId)
+    return (
+      Boolean(candidate) &&
+      isCompatibleStreamerAlternative(chosen, candidate!)
+    )
+  })
+  const sameTier = sameFamily.filter(
+    (block) => block.tier === chosenBlock.tier,
+  )
+  const pool = sameTier.length > 0 ? sameTier : sameFamily
+
+  return pool.slice(0, ALTERNATIVE_FA_LIMIT).map((block) => block.playerId)
+}
 
 const buildSummaryReasons = (
   strategyMode: StreamingStrategyMode,
@@ -549,6 +593,7 @@ export const buildStreamingPlan = ({
         alternativePlayerIds = alternativeIdsFromBlocks(
           todayBlock.playerId,
           rankedBlocks,
+          playersById,
         )
       } else if (isOneSpotAlwaysCover) {
         const rankedFas = rankEligibleFas(
@@ -561,7 +606,7 @@ export const buildStreamingPlan = ({
         upgradePlayer = rankedFas[0] ?? null
         if (upgradePlayer) {
           alternativePlayerIds = alternativePlayerIdsFrom(
-            upgradePlayer.id,
+            upgradePlayer,
             rankedFas,
           )
         }
@@ -576,7 +621,7 @@ export const buildStreamingPlan = ({
         upgradePlayer = rankedFas[0] ?? null
         if (upgradePlayer) {
           alternativePlayerIds = alternativePlayerIdsFrom(
-            upgradePlayer.id,
+            upgradePlayer,
             rankedFas,
           )
         }
@@ -667,6 +712,7 @@ export const buildStreamingPlan = ({
             alternativePlayerIds = alternativeIdsFromBlocks(
               best.id,
               rankedBlocks,
+              playersById,
             )
           }
         } else if (allowsThinFill(strategyMode, dayIndex, dayCount)) {
@@ -679,7 +725,7 @@ export const buildStreamingPlan = ({
           )
           best = rankedFas[0] ?? null
           if (best) {
-            alternativePlayerIds = alternativePlayerIdsFrom(best.id, rankedFas)
+            alternativePlayerIds = alternativePlayerIdsFrom(best, rankedFas)
           }
         }
         const expectedStarts = best

@@ -1147,12 +1147,15 @@ describe("1-spot off-night always cover", () => {
   it("lists next-best streamers as alternativePlayerIds on add cells", () => {
     const days = ["2025-11-03", "2025-11-04"]
     const faBest = player("fa-best", "BOS", {
+      positions: ["C"],
       projections: { ...baseProjections(), STL: 200 },
     })
     const faAlt = player("fa-alt", "NYK", {
+      positions: ["PF", "C"],
       projections: { ...baseProjections(), STL: 120 },
     })
     const faQuiet = player("fa-quiet", "CHI", {
+      positions: ["C"],
       projections: { ...baseProjections(), STL: 10 },
     })
     const state = tinyState([faBest, faAlt, faQuiet], [
@@ -1182,6 +1185,37 @@ describe("1-spot off-night always cover", () => {
     expect(plan.days[0]!.cells[0]!.alternativePlayerIds).toContain("fa-alt")
     expect(plan.days[0]!.cells[0]!.alternativePlayerIds).not.toContain(
       "fa-best",
+    )
+  })
+
+  it("excludes cross-family streamers from alternativePlayerIds", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const big = player("fa-big", "BOS", {
+      positions: ["C"],
+      projections: { ...baseProjections(), STL: 200, BLK: 100 },
+    })
+    const guard = player("fa-guard", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 180, TPM: 200 },
+    })
+    const state = tinyState([big, guard], ["fa-big", "fa-guard"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ORL" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "ATL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+    })
+
+    expect(plan.days[0]!.cells[0]?.playerId).toBe("fa-big")
+    expect(plan.days[0]!.cells[0]!.alternativePlayerIds).not.toContain(
+      "fa-guard",
     )
   })
 
