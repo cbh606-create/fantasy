@@ -859,12 +859,47 @@ describe("starts-max adds and protected drops", () => {
     const earlyAdds = addsByDay.slice(0, 3).reduce((sum, n) => sum + n, 0)
     const lateAdds = addsByDay.slice(4).reduce((sum, n) => sum + n, 0)
 
-    expect(Math.max(...addsByDay)).toBeLessThanOrEqual(2)
-    expect(earlyAdds).toBeLessThanOrEqual(3)
+    // Empty fills are unpaced (2 on day 0 OK); swap churn stays paced.
+    expect(addsByDay[0]).toBeGreaterThanOrEqual(2)
+    expect(earlyAdds).toBeLessThan(7)
     expect(plan.addsUsed).toBeLessThanOrEqual(7)
-    // With pacing, some adds should remain available into the back half.
     expect(earlyAdds).toBeLessThan(plan.addsUsed)
     expect(lateAdds + addsByDay[3]!).toBeGreaterThan(0)
+  })
+
+  it("2-spot fills both empty seats on day 1 even when daily swap pace is 1", () => {
+    const days = [
+      "2025-11-03",
+      "2025-11-04",
+      "2025-11-05",
+      "2025-11-06",
+      "2025-11-07",
+      "2025-11-08",
+      "2025-11-09",
+    ]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const state = tinyState([faA, faB], ["fa-a", "fa-b"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ORL" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 2,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 7,
+      strategyMode: "aggressive",
+    })
+    expect(plan.days[0]!.cells.every((c) => c.action === "add")).toBe(true)
+    expect(plan.addsUsed).toBe(2)
   })
 
   it("does not roster-drop a healthy low-ADP player on first add", () => {

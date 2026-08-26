@@ -578,16 +578,17 @@ export const buildStreamingPlan = ({
       }
     }
 
-    // Pace 2/3-spot adds across the week; prefer empty fills before early swaps.
+    // Pace only early swaps on 2/3-spot; empty fills always spend weekly budget.
     const remainingDays = dayCount - dayIndex
-    const dayPaceLimit =
+    const daySwapPaceLimit =
       spotCount === 1
         ? addLimit
         : dailyAddPaceLimit(addLimit - addsUsed, remainingDays)
-    let addsToday = 0
-    const canSpendAdd = () =>
-      addsUsed < addLimit &&
-      (spotCount === 1 || addsToday < dayPaceLimit)
+    let swapsToday = 0
+    const canSpendWeeklyAdd = () => addsUsed < addLimit
+    const canSpendSwapAdd = () =>
+      canSpendWeeklyAdd() &&
+      (spotCount === 1 || swapsToday < daySwapPaceLimit)
 
     // Prefer spots that have used fewer adds so churn stays even across spots.
     needFill.sort((left, right) => {
@@ -607,7 +608,7 @@ export const buildStreamingPlan = ({
       let addIndex: number | null = null
       let alternativePlayerIds: string[] = []
 
-      if (canSpendAdd()) {
+      if (canSpendWeeklyAdd()) {
         const rankedBlocks = listTodayBlocks(
           blocks,
           date,
@@ -655,7 +656,6 @@ export const buildStreamingPlan = ({
             pendingAdds.push(spotIndex)
           }
           addsUsed += 1
-          addsToday += 1
           addsBySpot[spotIndex]! += 1
           addIndex = addsUsed
           seatedToday.add(best.id)
@@ -675,7 +675,7 @@ export const buildStreamingPlan = ({
       }
     }
 
-    // Early swap: 1-spot always-cover; 2/3-spot stricter early week.
+    // Early swap: 1-spot always-cover; 2/3-spot stricter early week + paced.
     const isLateWeek = dayIndex >= Math.max(0, dayCount - 3)
     const spotOrder = [...Array(spotCount).keys()].sort(
       (left, right) => addsBySpot[left]! - addsBySpot[right]! || left - right,
@@ -685,7 +685,7 @@ export const buildStreamingPlan = ({
       if (!cell || cell.action !== "hold" || !cell.playerId) continue
       const occupant = playersById.get(cell.playerId)
       if (!occupant) continue
-      if (!canSpendAdd()) continue
+      if (!canSpendSwapAdd()) continue
 
       const heldPlaysToday = playsOn(occupant, date, schedule)
       const heldRemaining = remainingGameDays(occupant, date, schedule)
@@ -793,7 +793,7 @@ export const buildStreamingPlan = ({
       seatedToday.add(upgradePlayer.id)
       occupants[spotIndex] = upgradePlayer.id
       addsUsed += 1
-      addsToday += 1
+      swapsToday += 1
       addsBySpot[spotIndex]! += 1
       cells[spotIndex] = {
         spotIndex,
