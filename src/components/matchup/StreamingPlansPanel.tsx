@@ -255,16 +255,13 @@ const AddCell = ({
     const alternativeNames = (cell.alternativePlayerIds ?? [])
       .map((playerId) => playerName(playerId, playersById))
       .filter((label) => label !== "—")
-    const tipParts = [
-      hasGame ? "Game day" : "Off night",
-      alternativeNames.length > 0
-        ? `Also consider: ${alternativeNames.join(", ")}`
-        : null,
-    ].filter(Boolean)
+    const gameLabel = hasGame ? "Game day" : "Off night"
+    const tipId = `add-alt-${date}-${cell.spotIndex}-${cell.playerId}`
 
     return (
-      <span title={tipParts.join(" · ")}>
+      <span className="group relative inline-flex max-w-full items-baseline">
         <Link
+          aria-describedby={tipId}
           className={`${nameClass} underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
           href={`/waivers/${leagueId}?addPlayerId=${cell.playerId}`}
         >
@@ -279,6 +276,36 @@ const AddCell = ({
           </span>
         ) : null}
         {meta}
+        <span
+          className="pointer-events-none absolute left-0 top-full z-30 mt-1.5 w-[min(14rem,calc(100vw-2rem))] origin-top-left scale-95 rounded-xl border border-[var(--color-hairline)] bg-white p-2.5 text-left opacity-0 shadow-md transition duration-150 ease-out group-hover:scale-100 group-hover:opacity-100 group-focus-within:scale-100 group-focus-within:opacity-100"
+          id={tipId}
+          role="tooltip"
+        >
+          <span className="inline-flex rounded-md bg-[var(--color-soft-cloud)] px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
+            {gameLabel}
+          </span>
+          {alternativeNames.length > 0 ? (
+            <span className="mt-2 block">
+              <span className="text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
+                Also consider
+              </span>
+              <ul className="mt-1 space-y-0.5">
+                {alternativeNames.map((altName) => (
+                  <li
+                    className="text-[0.75rem] leading-snug font-medium text-[var(--color-ink)]"
+                    key={altName}
+                  >
+                    {altName}
+                  </li>
+                ))}
+              </ul>
+            </span>
+          ) : (
+            <span className="mt-1.5 block text-[0.7rem] leading-snug text-[var(--color-mute)]">
+              No close alternatives today
+            </span>
+          )}
+        </span>
       </span>
     )
   }

@@ -175,7 +175,7 @@ describe("StreamingPlansPanel", () => {
     )
   })
 
-  it("shows also-consider alternatives on add cell hover title", () => {
+  it("shows also-consider alternatives in a custom hover tooltip", () => {
     const bothPlaySchedule: ScheduleResponse = {
       ...schedule,
       games: [
@@ -198,7 +198,11 @@ describe("StreamingPlansPanel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
 
-    expect(screen.getAllByTitle(/Also consider:/i).length).toBeGreaterThan(0)
+    const tips = screen.getAllByRole("tooltip")
+    expect(tips.length).toBeGreaterThan(0)
+    expect(
+      tips.some((tip) => /Also consider/i.test(tip.textContent ?? "")),
+    ).toBe(true)
   })
 
   it("shows add ordinal next to streamer adds", () => {
@@ -229,9 +233,9 @@ describe("StreamingPlansPanel", () => {
     const gameDayLinks = screen.getAllByRole("link", { name: /Streamer A/i })
     expect(gameDayLinks.length).toBeGreaterThan(0)
     expect(gameDayLinks[0]?.className).toMatch(/font-bold/)
-    expect(gameDayLinks[0]?.closest("[title]")?.getAttribute("title")).toBe(
-      "Game day",
-    )
+    const tipId = gameDayLinks[0]?.getAttribute("aria-describedby")
+    expect(tipId).toBeTruthy()
+    expect(document.getElementById(tipId!)?.textContent).toMatch(/Game day/i)
 
     const gameDayHeaders = screen.getAllByTitle("Streamer game day")
     expect(gameDayHeaders.length).toBeGreaterThan(0)
