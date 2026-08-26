@@ -4,7 +4,10 @@ import type { MatchupBoard } from "@/lib/matchup/types"
 import {
   allowsAddForTier,
   allowsEarlySwap,
+  allowsMultiSpotEarlySwap,
+  allowsMultiSpotOffNightUpgrade,
   allowsThinFill,
+  dailyAddPaceLimit,
   normalizeStreamingStrategyMode,
   softCapForSpot,
   suggestStreamingStrategyMode,
@@ -120,5 +123,31 @@ describe("mode policy helpers", () => {
     expect(softCapForSpot(7, 3, "balanced")).toBe(3)
     expect(softCapForSpot(7, 3, "aggressive")).toBe(4)
     expect(softCapForSpot(7, 3, "conservative")).toBe(3)
+  })
+
+  it("dailyAddPaceLimit spreads remaining adds across remaining days", () => {
+    expect(dailyAddPaceLimit(7, 7)).toBe(1)
+    expect(dailyAddPaceLimit(5, 3)).toBe(2)
+    expect(dailyAddPaceLimit(1, 4)).toBe(1)
+    expect(dailyAddPaceLimit(0, 3)).toBe(0)
+  })
+
+  it("multi-spot early swap is stricter before the last 3 days", () => {
+    // thin(0) → strong(2) is +2 → ok early week
+    expect(allowsMultiSpotEarlySwap("aggressive", 0, 2, 0, 7)).toBe(true)
+    // thin(0) → ok(1) is +1 → blocked early week even on aggressive
+    expect(allowsMultiSpotEarlySwap("aggressive", 0, 1, 0, 7)).toBe(false)
+    // elite always ok early week
+    expect(allowsMultiSpotEarlySwap("aggressive", 2, 3, 0, 7)).toBe(true)
+    // late week uses normal aggressive +1
+    expect(allowsMultiSpotEarlySwap("aggressive", 0, 1, 4, 7)).toBe(true)
+  })
+
+  it("multi-spot off-night needs strong+ early week; late week allows any tier", () => {
+    expect(allowsMultiSpotOffNightUpgrade("ok", 0, 7)).toBe(false)
+    expect(allowsMultiSpotOffNightUpgrade("thin", 0, 7)).toBe(false)
+    expect(allowsMultiSpotOffNightUpgrade("strong", 0, 7)).toBe(true)
+    expect(allowsMultiSpotOffNightUpgrade("thin", 4, 7)).toBe(true)
+    expect(allowsMultiSpotOffNightUpgrade("ok", 4, 7)).toBe(true)
   })
 })

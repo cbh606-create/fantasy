@@ -30,20 +30,30 @@ import {
 import {
   allowsAddForTier,
   allowsEarlySwap,
+  allowsMultiSpotEarlySwap,
+  allowsMultiSpotOffNightUpgrade,
   allowsThinFill,
+  dailyAddPaceLimit,
   densityTierRank,
   normalizeStreamingStrategyMode,
   suggestStreamingStrategyMode,
 } from "./streamingStrategy"
 import { weeklyPlayerStats } from "./weekly"
 
-const STREAMER_COUNTING_CATEGORIES: CategoryId[] = [
+const PRIMARY_STREAMER_CATEGORIES: CategoryId[] = [
   "TPM",
   "REB",
   "AST",
   "STL",
   "BLK",
   "PTS",
+]
+
+/** Soft tie-breakers after volume / stretch / primary weak cats. */
+const SOFT_STREAMER_CATEGORIES: CategoryId[] = ["FG_PCT", "FT_PCT", "TO"]
+
+const STREAMER_COUNTING_CATEGORIES: CategoryId[] = [
+  ...PRIMARY_STREAMER_CATEGORIES,
   "TO",
 ]
 
@@ -79,7 +89,17 @@ const categoryContribution = (
 
 const weakCatScore = (player: SeasonPlayer, weakCats: CategoryId[]): number =>
   weakCats.reduce((sum, categoryId) => {
-    if (!STREAMER_COUNTING_CATEGORIES.includes(categoryId)) return sum
+    if (!PRIMARY_STREAMER_CATEGORIES.includes(categoryId)) return sum
+    return sum + categoryContribution(player, 1, categoryId)
+  }, 0)
+
+/** FG%/FT%/TO when those cats are L/T — never overrides volume/stretch/primary. */
+const softStreamerScore = (
+  player: SeasonPlayer,
+  weakCats: CategoryId[],
+): number =>
+  weakCats.reduce((sum, categoryId) => {
+    if (!SOFT_STREAMER_CATEGORIES.includes(categoryId)) return sum
     return sum + categoryContribution(player, 1, categoryId)
   }, 0)
 
@@ -165,12 +185,14 @@ const rankEligibleFas = (
       volume: remainingGameDays(player, date, schedule),
       stretch: nearTermStretch(player, date, schedule),
       score: weakCatScore(player, weakCats),
+      soft: softStreamerScore(player, weakCats),
     }))
     .filter((entry) => entry.volume > 0)
     .sort((left, right) => {
       if (right.volume !== left.volume) return right.volume - left.volume
       if (right.stretch !== left.stretch) return right.stretch - left.stretch
       if (right.score !== left.score) return right.score - left.score
+      if (right.soft !== left.soft) return right.soft - left.soft
       return left.player.id.localeCompare(right.player.id)
     })
 
@@ -203,6 +225,9 @@ const compareBlocks = (
   const leftScore = leftPlayer ? weakCatScore(leftPlayer, weakCats) : 0
   const rightScore = rightPlayer ? weakCatScore(rightPlayer, weakCats) : 0
   if (rightScore !== leftScore) return rightScore - leftScore
+  const leftSoft = leftPlayer ? softStreamerScore(leftPlayer, weakCats) : 0
+  const rightSoft = rightPlayer ? softStreamerScore(rightPlayer, weakCats) : 0
+  if (rightSoft !== leftSoft) return rightSoft - leftSoft
   return left.playerId.localeCompare(right.playerId)
 }
 
@@ -553,8 +578,104 @@ export const buildStreamingPlan = ({
       }
     }
 
-    // Early swap: 1-spot always-cover; 2/3-spot density ok+ (or late-week thin);
-    // else denser on-game block today. Prefer spots with fewer adds first.
+    // Pace 2/3-spot adds across the week; prefer empty fills before early swaps.
+    const remainingDays = dayCount - dayIndex
+    const dayPaceLimit =
+      spotCount === 1
+        ? addLimit
+        : dailyAddPaceLimit(addLimit - addsUsed, remainingDays)
+    let addsToday = 0
+    const canSpendAdd = () =>
+      addsUsed < addLimit &&
+      (spotCount === 1 || addsToday < dayPaceLimit)
+
+    // Prefer spots that have used fewer adds so churn stays even across spots.
+    needFill.sort((left, right) => {
+      if (addsBySpot[left]! !== addsBySpot[right]!) {
+        return addsBySpot[left]! - addsBySpot[right]!
+      }
+      return left - right
+    })
+
+    const pendingAdds: number[] = []
+
+    for (const spotIndex of needFill) {
+      const previousId = previousOccupants[spotIndex] ?? null
+      let playerId: string | null = null
+      let action: StreamingPlanAction = "empty"
+      let droppedPlayerId: string | null = null
+      let addIndex: number | null = null
+      let alternativePlayerIds: string[] = []
+
+      if (canSpendAdd()) {
+        const rankedBlocks = listTodayBlocks(
+          blocks,
+          date,
+          seatedToday,
+          playersById,
+          weakCats,
+          strategyMode,
+          dayIndex,
+          dayCount,
+        )
+        const todayBlock = rankedBlocks[0] ?? null
+        let best: SeasonPlayer | null = null
+        if (todayBlock) {
+          best = playersById.get(todayBlock.playerId) ?? null
+          if (best) {
+            alternativePlayerIds = alternativeIdsFromBlocks(
+              best.id,
+              rankedBlocks,
+              playersById,
+            )
+          }
+        } else if (allowsThinFill(strategyMode, dayIndex, dayCount)) {
+          const rankedFas = rankEligibleFas(
+            freeAgents,
+            date,
+            schedule,
+            weakCats,
+            seatedToday,
+          )
+          best = rankedFas[0] ?? null
+          if (best) {
+            alternativePlayerIds = alternativePlayerIdsFrom(best, rankedFas)
+          }
+        }
+        const expectedStarts = best
+          ? remainingGameDays(best, date, schedule)
+          : 0
+        if (best && expectedStarts > 0) {
+          playerId = best.id
+          if (previousId) {
+            action = "drop_add"
+            droppedPlayerId = previousId
+          } else {
+            action = "add"
+            pendingAdds.push(spotIndex)
+          }
+          addsUsed += 1
+          addsToday += 1
+          addsBySpot[spotIndex]! += 1
+          addIndex = addsUsed
+          seatedToday.add(best.id)
+        }
+      }
+
+      occupants[spotIndex] = playerId
+      cells[spotIndex] = {
+        spotIndex,
+        playerId,
+        action,
+        droppedPlayerId,
+        rosterDropPlayerId: null,
+        rosterDropKind: "none",
+        addIndex,
+        alternativePlayerIds,
+      }
+    }
+
+    // Early swap: 1-spot always-cover; 2/3-spot stricter early week.
     const isLateWeek = dayIndex >= Math.max(0, dayCount - 3)
     const spotOrder = [...Array(spotCount).keys()].sort(
       (left, right) => addsBySpot[left]! - addsBySpot[right]! || left - right,
@@ -564,7 +685,7 @@ export const buildStreamingPlan = ({
       if (!cell || cell.action !== "hold" || !cell.playerId) continue
       const occupant = playersById.get(cell.playerId)
       if (!occupant) continue
-      if (addsUsed >= addLimit) continue
+      if (!canSpendAdd()) continue
 
       const heldPlaysToday = playsOn(occupant, date, schedule)
       const heldRemaining = remainingGameDays(occupant, date, schedule)
@@ -634,11 +755,16 @@ export const buildStreamingPlan = ({
       if (isOneSpotAlwaysCover) {
         // Accept any today-playing FA; no remaining-games gate.
       } else if (isMultiSpotOffNight) {
-        const denseEnough =
-          todayBlock != null &&
-          densityTierRank(todayBlock.tier) >= densityTierRank("ok")
-        // Mid-week thin (any strategy, including Aggressive) → hold.
-        if (!denseEnough && !isLateWeek) continue
+        if (
+          todayBlock == null ||
+          !allowsMultiSpotOffNightUpgrade(
+            todayBlock.tier,
+            dayIndex,
+            dayCount,
+          )
+        ) {
+          continue
+        }
       } else {
         if (!heldPlaysToday) continue
         const held = blockFromDate(occupant, date, schedule)
@@ -647,21 +773,27 @@ export const buildStreamingPlan = ({
         const upgradeRank = upgradeBlock
           ? densityTierRank(upgradeBlock.tier)
           : densityTierRank(todayBlock?.tier ?? "thin")
-        if (
-          !allowsEarlySwap(
-            strategyMode,
-            heldRank,
-            todayBlock ? densityTierRank(todayBlock.tier) : upgradeRank,
-          )
-        ) {
-          continue
-        }
+        const candidateRank = todayBlock
+          ? densityTierRank(todayBlock.tier)
+          : upgradeRank
+        const swapOk =
+          spotCount === 1
+            ? allowsEarlySwap(strategyMode, heldRank, candidateRank)
+            : allowsMultiSpotEarlySwap(
+                strategyMode,
+                heldRank,
+                candidateRank,
+                dayIndex,
+                dayCount,
+              )
+        if (!swapOk) continue
       }
 
       seatedToday.delete(cell.playerId)
       seatedToday.add(upgradePlayer.id)
       occupants[spotIndex] = upgradePlayer.id
       addsUsed += 1
+      addsToday += 1
       addsBySpot[spotIndex]! += 1
       cells[spotIndex] = {
         spotIndex,
@@ -671,91 +803,6 @@ export const buildStreamingPlan = ({
         rosterDropPlayerId: null,
         rosterDropKind: "none",
         addIndex: addsUsed,
-        alternativePlayerIds,
-      }
-    }
-
-    // Prefer spots that have used fewer adds so churn stays even across spots.
-    needFill.sort((left, right) => {
-      if (addsBySpot[left]! !== addsBySpot[right]!) {
-        return addsBySpot[left]! - addsBySpot[right]!
-      }
-      return left - right
-    })
-
-    const pendingAdds: number[] = []
-
-    for (const spotIndex of needFill) {
-      const previousId = previousOccupants[spotIndex] ?? null
-      let playerId: string | null = null
-      let action: StreamingPlanAction = "empty"
-      let droppedPlayerId: string | null = null
-      let addIndex: number | null = null
-      let alternativePlayerIds: string[] = []
-
-      if (addsUsed < addLimit) {
-        const rankedBlocks = listTodayBlocks(
-          blocks,
-          date,
-          seatedToday,
-          playersById,
-          weakCats,
-          strategyMode,
-          dayIndex,
-          dayCount,
-        )
-        const todayBlock = rankedBlocks[0] ?? null
-        let best: SeasonPlayer | null = null
-        if (todayBlock) {
-          best = playersById.get(todayBlock.playerId) ?? null
-          if (best) {
-            alternativePlayerIds = alternativeIdsFromBlocks(
-              best.id,
-              rankedBlocks,
-              playersById,
-            )
-          }
-        } else if (allowsThinFill(strategyMode, dayIndex, dayCount)) {
-          const rankedFas = rankEligibleFas(
-            freeAgents,
-            date,
-            schedule,
-            weakCats,
-            seatedToday,
-          )
-          best = rankedFas[0] ?? null
-          if (best) {
-            alternativePlayerIds = alternativePlayerIdsFrom(best, rankedFas)
-          }
-        }
-        const expectedStarts = best
-          ? remainingGameDays(best, date, schedule)
-          : 0
-        if (best && expectedStarts > 0) {
-          playerId = best.id
-          if (previousId) {
-            action = "drop_add"
-            droppedPlayerId = previousId
-          } else {
-            action = "add"
-            pendingAdds.push(spotIndex)
-          }
-          addsUsed += 1
-          addsBySpot[spotIndex]! += 1
-          addIndex = addsUsed
-          seatedToday.add(best.id)
-        }
-      }
-
-      occupants[spotIndex] = playerId
-      cells[spotIndex] = {
-        spotIndex,
-        playerId,
-        action,
-        droppedPlayerId,
-        rosterDropPlayerId: null,
-        rosterDropKind: "none",
-        addIndex,
         alternativePlayerIds,
       }
     }

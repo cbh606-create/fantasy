@@ -54,13 +54,31 @@ export const softCapForSpot = (
   return mode === "aggressive" ? base + 1 : base
 }
 
+/** Last 3 matchup days — looser swap / thin-fill policy. */
+export const isLateStreamingWeek = (
+  dayIndex: number,
+  dayCount: number,
+): boolean => dayIndex >= Math.max(0, dayCount - 3)
+
+/**
+ * Pace weekly adds across remaining days (2/3-spot).
+ * Example: 7 adds / 7 days → 1 per day early; leftover stacks late.
+ */
+export const dailyAddPaceLimit = (
+  remainingAdds: number,
+  remainingDays: number,
+): number => {
+  if (remainingAdds <= 0 || remainingDays <= 0) return 0
+  return Math.max(1, Math.ceil(remainingAdds / remainingDays))
+}
+
 export const allowsThinFill = (
   mode: StreamingStrategyMode,
   dayIndex: number,
   dayCount: number,
 ): boolean => {
   if (mode === "aggressive") return true
-  return dayIndex >= Math.max(0, dayCount - 3)
+  return isLateStreamingWeek(dayIndex, dayCount)
 }
 
 export const allowsAddForTier = (
@@ -81,4 +99,32 @@ export const allowsEarlySwap = (
   const delta = newRank - heldRank
   if (mode === "aggressive") return delta >= 1
   return delta >= 2
+}
+
+/**
+ * 2/3-spot early-week swaps: elite upgrade, or +2 tiers.
+ * Late week falls back to allowsEarlySwap.
+ */
+export const allowsMultiSpotEarlySwap = (
+  mode: StreamingStrategyMode,
+  heldRank: number,
+  newRank: number,
+  dayIndex: number,
+  dayCount: number,
+): boolean => {
+  if (isLateStreamingWeek(dayIndex, dayCount)) {
+    return allowsEarlySwap(mode, heldRank, newRank)
+  }
+  if (newRank >= densityTierRank("elite")) return true
+  return newRank - heldRank >= 2
+}
+
+/** Off-night upgrade: strong+ early week; late week any today block (incl. thin). */
+export const allowsMultiSpotOffNightUpgrade = (
+  tier: StreamingDensityTier,
+  dayIndex: number,
+  dayCount: number,
+): boolean => {
+  if (isLateStreamingWeek(dayIndex, dayCount)) return true
+  return densityTierRank(tier) >= densityTierRank("strong")
 }
