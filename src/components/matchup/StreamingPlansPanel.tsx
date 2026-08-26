@@ -9,7 +9,15 @@ import type {
   SeasonPlayer,
 } from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
-import { buildAllStreamingPlans } from "@/lib/matchup/streamingPlans"
+import { buildAllStreamingPlans, streamingAddDropKey } from "@/lib/matchup/streamingPlans"
+import {
+  collectEarlierRosterDropIds,
+  eligibleRosterDropPlayerIds,
+  hasOpenNonIlRosterSlot,
+  isAfterStreamingAddDropKey,
+  perspectiveRosterEntries,
+  rosterDropSelectOptions,
+} from "@/lib/matchup/streamingDropOptions"
 import { suggestStreamingStrategyMode } from "@/lib/matchup/streamingStrategy"
 import type {
   MatchupBoard,
@@ -133,13 +141,81 @@ const dropLabel = (
   if (cell.action === "drop_add") {
     return playerName(cell.droppedPlayerId, playersById)
   }
-  if (cell.action === "add") {
-    if (cell.rosterDropKind === "open_slot") return "open slot"
-    if (cell.rosterDropKind === "player") {
-      return playerName(cell.rosterDropPlayerId, playersById)
-    }
-  }
   return "—"
+}
+
+const DropCell = ({
+  cell,
+  date,
+  plan,
+  playersById,
+  rosterEntries,
+  adpByPlayerId,
+  onForcedRosterDropChange,
+}: {
+  cell: StreamingPlanDayCell | undefined
+  date: string
+  plan: StreamingPlan
+  playersById: Record<string, SeasonPlayer>
+  rosterEntries: SeasonLeagueState["teams"][number]["entries"]
+  adpByPlayerId?: Record<string, number>
+  onForcedRosterDropChange: (
+    key: string,
+    value: string | "open_slot",
+  ) => void
+}) => {
+  if (!cell || cell.action !== "add") {
+    return (
+      <span className="text-[var(--color-mute)]">
+        {dropLabel(cell, playersById)}
+      </span>
+    )
+  }
+
+  const key = streamingAddDropKey(date, cell.spotIndex)
+  const earlierDroppedIds = collectEarlierRosterDropIds(
+    plan,
+    date,
+    cell.spotIndex,
+  )
+  const eligiblePlayerIds = eligibleRosterDropPlayerIds(
+    rosterEntries,
+    playersById,
+    earlierDroppedIds,
+    adpByPlayerId,
+  )
+  const options = rosterDropSelectOptions({
+    eligiblePlayerIds,
+    earlierDroppedIds,
+    allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
+    playersById,
+  })
+  const value =
+    cell.rosterDropKind === "open_slot"
+      ? "open_slot"
+      : (cell.rosterDropPlayerId ?? "")
+
+  return (
+    <select
+      aria-label={`Roster drop ${formatDayLabel(date)} spot ${cell.spotIndex + 1}`}
+      className="max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+      onChange={(event) => {
+        const next = event.target.value
+        if (next === "open_slot") {
+          onForcedRosterDropChange(key, "open_slot")
+          return
+        }
+        onForcedRosterDropChange(key, next)
+      }}
+      value={value}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
 }
 
 const AddCell = ({
@@ -221,6 +297,9 @@ export const StreamingPlansPanel = ({
   const [previewSpotCount, setPreviewSpotCount] = useState<1 | 2 | 3 | null>(
     null,
   )
+  const [forcedRosterDrops, setForcedRosterDrops] = useState<
+    Record<string, string | "open_slot">
+  >({})
 
   const plans = useMemo(
     () =>
@@ -231,9 +310,33 @@ export const StreamingPlansPanel = ({
         addLimit: addBudget,
         strategyMode,
         adpByPlayerId,
+        forcedRosterDrops,
       }),
-    [state, schedule, board, addBudget, strategyMode, adpByPlayerId],
+    [
+      state,
+      schedule,
+      board,
+      addBudget,
+      strategyMode,
+      adpByPlayerId,
+      forcedRosterDrops,
+    ],
   )
+
+  const handleForcedRosterDropChange = (
+    key: string,
+    value: string | "open_slot",
+  ) => {
+    setForcedRosterDrops((prev) => {
+      const next = { ...prev, [key]: value }
+      for (const forcedKey of Object.keys(next)) {
+        if (isAfterStreamingAddDropKey(forcedKey, key)) {
+          delete next[forcedKey]
+        }
+      }
+      return next
+    })
+  }
 
   const selectPreviewSpot = (spot: 1 | 2 | 3 | null) => {
     setPreviewSpotCount(spot)
@@ -491,14 +594,25 @@ export const StreamingPlansPanel = ({
                               </th>
                               {dates.map((date) => {
                                 const cell = cellFor(plan, date, spotIndex)
-                                const label = dropLabel(cell, resolvedPlayers)
 
                                 return (
                                   <td
                                     className="py-1.5 pr-3 align-top text-[var(--color-mute)]"
                                     key={`${date}-drop-${spotIndex}`}
                                   >
-                                    {label}
+                                    <DropCell
+                                      adpByPlayerId={adpByPlayerId}
+                                      cell={cell}
+                                      date={date}
+                                      onForcedRosterDropChange={
+                                        handleForcedRosterDropChange
+                                      }
+                                      plan={plan}
+                                      playersById={resolvedPlayers}
+                                      rosterEntries={perspectiveRosterEntries(
+                                        state,
+                                      )}
+                                    />
                                   </td>
                                 )
                               })}

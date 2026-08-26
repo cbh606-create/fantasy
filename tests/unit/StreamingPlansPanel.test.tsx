@@ -404,4 +404,142 @@ describe("StreamingPlansPanel", () => {
 
     expect(onPreviewPlanChange).toHaveBeenLastCalledWith(null)
   })
+
+  it("renders roster drop selects on add cells and rebuilds on change", () => {
+    const noGameCut: SeasonPlayer = {
+      id: "you-idle",
+      name: "No Game Cut",
+      teamAbbr: "CHI",
+      positions: ["PF"],
+      projections,
+      shooting,
+    }
+    const playsCut: SeasonPlayer = {
+      id: "you-play",
+      name: "Plays Cut",
+      teamAbbr: "ATL",
+      positions: ["C"],
+      projections,
+      shooting,
+    }
+    const dropState: SeasonLeagueState = {
+      ...state,
+      players: [streamerA, streamerB, noGameCut, playsCut],
+      teams: [
+        {
+          teamIndex: 0,
+          name: "You",
+          entries: [
+            { slot: "UTIL", playerId: "you-idle" },
+            { slot: "BE", playerId: "you-play" },
+          ],
+        },
+        state.teams[1]!,
+      ],
+    }
+    const dropSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2025-11-03",
+        endDate: "2025-11-03",
+        days: ["2025-11-03"],
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+      ],
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={dropSchedule}
+        state={dropState}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    const selects = screen.getAllByRole("combobox", { name: /roster drop/i })
+    expect(selects.length).toBeGreaterThan(0)
+
+    const firstSelect = selects[0]!
+    expect(firstSelect).toHaveValue("you-idle")
+    fireEvent.change(firstSelect, { target: { value: "you-play" } })
+    expect(firstSelect).toHaveValue("you-play")
+  })
+
+  it("rebuilds preview plan when roster drop override changes", () => {
+    const onPreviewPlanChange = vi.fn()
+    const noGameCut: SeasonPlayer = {
+      id: "you-idle",
+      name: "No Game Cut",
+      teamAbbr: "CHI",
+      positions: ["PF"],
+      projections,
+      shooting,
+    }
+    const playsCut: SeasonPlayer = {
+      id: "you-play",
+      name: "Plays Cut",
+      teamAbbr: "ATL",
+      positions: ["C"],
+      projections,
+      shooting,
+    }
+    const dropState: SeasonLeagueState = {
+      ...state,
+      players: [streamerA, streamerB, noGameCut, playsCut],
+      teams: [
+        {
+          teamIndex: 0,
+          name: "You",
+          entries: [
+            { slot: "UTIL", playerId: "you-idle" },
+            { slot: "BE", playerId: "you-play" },
+          ],
+        },
+        state.teams[1]!,
+      ],
+    }
+    const dropSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2025-11-03",
+        endDate: "2025-11-03",
+        days: ["2025-11-03"],
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+      ],
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        onPreviewPlanChange={onPreviewPlanChange}
+        playersById={{}}
+        schedule={dropSchedule}
+        state={dropState}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+    fireEvent.click(screen.getByRole("button", { name: /^2-spot$/i }))
+
+    const initialPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
+    expect(initialPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
+
+    const firstSelect = screen.getAllByRole("combobox", { name: /roster drop/i })[0]!
+    fireEvent.change(firstSelect, { target: { value: "you-play" } })
+
+    const rebuiltPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
+    expect(rebuiltPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-play")
+  })
 })
