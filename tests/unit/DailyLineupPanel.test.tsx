@@ -61,6 +61,28 @@ const schedule: ScheduleResponse = {
   ],
 }
 
+describe("DailyLineupPanel sit/start badges", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it("shows badge text next to a roster player when a hint is provided", () => {
+    render(
+      <DailyLineupPanel
+        daily={daily}
+        days={days}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+        sitStartBadgesByPlayerId={{ "you-1": "Start over Streamer A" }}
+      />,
+    )
+
+    expect(screen.getByText("Start over Streamer A")).toBeInTheDocument()
+  })
+})
+
 describe("DailyLineupPanel preview overlay", () => {
   afterEach(() => {
     cleanup()

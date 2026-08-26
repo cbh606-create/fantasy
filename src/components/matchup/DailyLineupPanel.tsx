@@ -34,6 +34,8 @@ type DailyLineupPanelProps = {
   /** Preview streamer id → dates they occupy a plan spot (lock other game days). */
   streamerOwnedDatesByPlayerId?: Record<string, ReadonlySet<string> | string[]>
   extraPlayers?: SeasonPlayer[]
+  /** Muted sit/start hint badges keyed by player id (hint-only, not clickable). */
+  sitStartBadgesByPlayerId?: Record<string, string>
 }
 
 const toDateSet = (
@@ -70,6 +72,7 @@ export const DailyLineupPanel = ({
   droppedFromDateByPlayerId = {},
   streamerOwnedDatesByPlayerId = {},
   extraPlayers,
+  sitStartBadgesByPlayerId = {},
 }: DailyLineupPanelProps) => {
   const [hint, setHint] = useState("")
   const previewIds = toIdSet(previewPlayerIds)
@@ -194,6 +197,11 @@ export const DailyLineupPanel = ({
                     {player.teamAbbr ? (
                       <span className="ml-1.5 font-normal text-[var(--color-mute)]">
                         {player.teamAbbr}
+                      </span>
+                    ) : null}
+                    {sitStartBadgesByPlayerId[player.id] ? (
+                      <span className="ml-1.5 text-[0.625rem] font-normal text-[var(--color-mute)]">
+                        {sitStartBadgesByPlayerId[player.id]}
                       </span>
                     ) : null}
                   </th>

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { DailyLineupPanel } from "@/components/matchup/DailyLineupPanel"
 import { InjuryAlertsPanel } from "@/components/matchup/InjuryAlertsPanel"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
@@ -19,6 +19,7 @@ import { isActiveSlot } from "@/lib/matchup/constants"
 import {
   clearNoGameActiveSlots,
   dailyLineupsMatchDays,
+  effectiveGamesByPlayerId,
   findPlayerSlotIndex,
   initDailyLineups,
   playerGameDays,
@@ -30,6 +31,7 @@ import {
   type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
 import { suggestRatioSits } from "@/lib/matchup/ratioSits"
+import { suggestSitStart } from "@/lib/matchup/sitStart"
 import { applyStreamingPlanPreview, previewSeatKey } from "@/lib/matchup/applyStreamingPlanPreview"
 import { rosterSlotsFor } from "@/lib/matchup/eligibility"
 import type {
@@ -134,6 +136,16 @@ const hasIncompleteActiveLineup = (state: SeasonLeagueState): boolean => {
 
 const swapKey = (suggestion: SitStartSuggestion) =>
   `${suggestion.benchPlayerId}:${suggestion.activePlayerId}`
+
+const playerShortName = (
+  playerId: string,
+  playersById: Record<string, SeasonPlayer>,
+) => {
+  const name = playersById[playerId]?.name?.trim()
+  if (!name) return "?"
+  const parts = name.split(/\s+/)
+  return parts.length > 1 ? parts[parts.length - 1]! : name
+}
 
 const previewStreamerIds = (plan: StreamingPlan | null): Set<string> => {
   const ids = new Set<string>()
@@ -542,6 +554,59 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     }
   }
 
+  const liveSitStart = useMemo(() => {
+    if (
+      !state ||
+      !matchupData ||
+      !daily ||
+      previewPlan ||
+      opponentTeamIndex === null
+    ) {
+      return matchupData?.sitStart ?? []
+    }
+
+    const youTeam = state.teams.find(
+      (team) => team.teamIndex === state.perspectiveTeamIndex,
+    )
+    const oppTeam = state.teams.find(
+      (team) => team.teamIndex === opponentTeamIndex,
+    )
+    if (!youTeam || !oppTeam) return matchupData.sitStart
+
+    return suggestSitStart({
+      youEntries: youTeam.entries,
+      oppEntries: oppTeam.entries,
+      players: state.players,
+      gamesMap: effectiveGamesByPlayerId(
+        daily,
+        state.players,
+        matchupData.schedule,
+      ),
+      categoryIds: enabledCategoryIds(state),
+    })
+  }, [state, matchupData, daily, previewPlan, opponentTeamIndex])
+
+  const sitStartBadgesByPlayerId = useMemo(() => {
+    if (previewPlan || !state || !matchupData) return undefined
+
+    const playersById: Record<string, SeasonPlayer> = {
+      ...Object.fromEntries(state.players.map((player) => [player.id, player])),
+      ...matchupData.playersById,
+    }
+    const badges: Record<string, string> = {}
+    for (const suggestion of liveSitStart) {
+      if (!badges[suggestion.benchPlayerId]) {
+        badges[suggestion.benchPlayerId] =
+          `Start over ${playerShortName(suggestion.activePlayerId, playersById)}`
+      }
+      if (!badges[suggestion.activePlayerId]) {
+        badges[suggestion.activePlayerId] =
+          `Sit for ${playerShortName(suggestion.benchPlayerId, playersById)}`
+      }
+    }
+    return badges
+  }, [liveSitStart, previewPlan, state, matchupData])
+
   if (isLoading) {
     return (
       <SeasonToolShell
@@ -719,6 +784,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           streamerOwnedDatesByPlayerId={previewStreamerOwnedDatesByPlayerId(
             previewPlan,
           )}
+          sitStartBadgesByPlayerId={sitStartBadgesByPlayerId}
         />
 
         <div className="mt-8 space-y-8">
@@ -736,7 +802,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             applyingSwapKey={applyingSwapKey}
             onApply={handleApplySwap}
             playersById={matchupData.playersById}
-            suggestions={matchupData.sitStart}
+            suggestions={previewPlan ? matchupData.sitStart : liveSitStart}
           />
           {previewPlan == null ? (
             <RatioSitsPanel
