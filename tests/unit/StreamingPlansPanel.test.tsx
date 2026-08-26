@@ -175,6 +175,32 @@ describe("StreamingPlansPanel", () => {
     )
   })
 
+  it("shows also-consider alternatives on add cell hover title", () => {
+    const bothPlaySchedule: ScheduleResponse = {
+      ...schedule,
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ORL" },
+        { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "CHI" },
+      ],
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={bothPlaySchedule}
+        state={state}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    expect(screen.getAllByTitle(/Also consider:/i).length).toBeGreaterThan(0)
+  })
+
   it("shows add ordinal next to streamer adds", () => {
     render(
       <StreamingPlansPanel

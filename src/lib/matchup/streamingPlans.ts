@@ -120,13 +120,15 @@ const nearTermStretch = (
   return window.filter((day) => playsOn(player, day, schedule)).length
 }
 
-const pickBestFa = (
+const ALTERNATIVE_FA_LIMIT = 3
+
+const rankEligibleFas = (
   candidates: SeasonPlayer[],
   date: string,
   schedule: ScheduleResponse,
   weakCats: CategoryId[],
   seatedIds: Set<string>,
-): SeasonPlayer | null => {
+): SeasonPlayer[] => {
   const eligible = candidates
     .filter((player) => !seatedIds.has(player.id))
     .filter((player) => playsOn(player, date, schedule))
@@ -145,8 +147,17 @@ const pickBestFa = (
       return left.player.id.localeCompare(right.player.id)
     })
 
-  return eligible[0]?.player ?? null
+  return eligible.map((entry) => entry.player)
 }
+
+const alternativePlayerIdsFrom = (
+  chosenId: string,
+  ranked: SeasonPlayer[],
+): string[] =>
+  ranked
+    .filter((player) => player.id !== chosenId)
+    .slice(0, ALTERNATIVE_FA_LIMIT)
+    .map((player) => player.id)
 
 const compareBlocks = (
   left: StreamingBlock,
@@ -167,7 +178,7 @@ const compareBlocks = (
   return left.playerId.localeCompare(right.playerId)
 }
 
-const pickTodayBlock = (
+const listTodayBlocks = (
   blocks: StreamingBlock[],
   date: string,
   seatedIds: Set<string>,
@@ -176,21 +187,29 @@ const pickTodayBlock = (
   strategyMode: StreamingStrategyMode,
   dayIndex: number,
   dayCount: number,
-): StreamingBlock | null => {
+): StreamingBlock[] => {
   const candidates = blocks
     .filter((block) => block.startDate === date && !seatedIds.has(block.playerId))
     .filter((block) => block.remainingWeekGames > 0)
     .sort((left, right) => compareBlocks(left, right, playersById, weakCats))
 
-  for (const block of candidates) {
-    if (!allowsAddForTier(strategyMode, block.tier)) continue
+  return candidates.filter((block) => {
+    if (!allowsAddForTier(strategyMode, block.tier)) return false
     if (block.tier === "thin" && !allowsThinFill(strategyMode, dayIndex, dayCount)) {
-      continue
+      return false
     }
-    return block
-  }
-  return null
+    return true
+  })
 }
+
+const alternativeIdsFromBlocks = (
+  chosenId: string,
+  ranked: StreamingBlock[],
+): string[] =>
+  ranked
+    .filter((block) => block.playerId !== chosenId)
+    .slice(0, ALTERNATIVE_FA_LIMIT)
+    .map((block) => block.playerId)
 
 const buildSummaryReasons = (
   strategyMode: StreamingStrategyMode,
@@ -483,6 +502,7 @@ export const buildStreamingPlan = ({
           rosterDropPlayerId: null,
           rosterDropKind: "none",
           addIndex: null,
+          alternativePlayerIds: [],
         }
       } else {
         needFill.push(spotIndex)
@@ -512,7 +532,8 @@ export const buildStreamingPlan = ({
         spotCount > 1 && !heldPlaysToday && heldRemaining > 0
 
       let upgradePlayer: SeasonPlayer | null = null
-      const todayBlock = pickTodayBlock(
+      let alternativePlayerIds: string[] = []
+      const rankedBlocks = listTodayBlocks(
         blocks,
         date,
         seatedToday,
@@ -522,12 +543,43 @@ export const buildStreamingPlan = ({
         dayIndex,
         dayCount,
       )
+      const todayBlock = rankedBlocks[0] ?? null
       if (todayBlock) {
         upgradePlayer = playersById.get(todayBlock.playerId) ?? null
+        alternativePlayerIds = alternativeIdsFromBlocks(
+          todayBlock.playerId,
+          rankedBlocks,
+        )
       } else if (isOneSpotAlwaysCover) {
-        upgradePlayer = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
+        const rankedFas = rankEligibleFas(
+          freeAgents,
+          date,
+          schedule,
+          weakCats,
+          seatedToday,
+        )
+        upgradePlayer = rankedFas[0] ?? null
+        if (upgradePlayer) {
+          alternativePlayerIds = alternativePlayerIdsFrom(
+            upgradePlayer.id,
+            rankedFas,
+          )
+        }
       } else if (isMultiSpotOffNight && isLateWeek) {
-        upgradePlayer = pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
+        const rankedFas = rankEligibleFas(
+          freeAgents,
+          date,
+          schedule,
+          weakCats,
+          seatedToday,
+        )
+        upgradePlayer = rankedFas[0] ?? null
+        if (upgradePlayer) {
+          alternativePlayerIds = alternativePlayerIdsFrom(
+            upgradePlayer.id,
+            rankedFas,
+          )
+        }
       }
 
       if (!upgradePlayer || !playsOn(upgradePlayer, date, schedule)) continue
@@ -574,6 +626,7 @@ export const buildStreamingPlan = ({
         rosterDropPlayerId: null,
         rosterDropKind: "none",
         addIndex: addsUsed,
+        alternativePlayerIds,
       }
     }
 
@@ -593,9 +646,10 @@ export const buildStreamingPlan = ({
       let action: StreamingPlanAction = "empty"
       let droppedPlayerId: string | null = null
       let addIndex: number | null = null
+      let alternativePlayerIds: string[] = []
 
       if (addsUsed < addLimit) {
-        const todayBlock = pickTodayBlock(
+        const rankedBlocks = listTodayBlocks(
           blocks,
           date,
           seatedToday,
@@ -605,11 +659,29 @@ export const buildStreamingPlan = ({
           dayIndex,
           dayCount,
         )
-        const best = todayBlock
-          ? (playersById.get(todayBlock.playerId) ?? null)
-          : allowsThinFill(strategyMode, dayIndex, dayCount)
-            ? pickBestFa(freeAgents, date, schedule, weakCats, seatedToday)
-            : null
+        const todayBlock = rankedBlocks[0] ?? null
+        let best: SeasonPlayer | null = null
+        if (todayBlock) {
+          best = playersById.get(todayBlock.playerId) ?? null
+          if (best) {
+            alternativePlayerIds = alternativeIdsFromBlocks(
+              best.id,
+              rankedBlocks,
+            )
+          }
+        } else if (allowsThinFill(strategyMode, dayIndex, dayCount)) {
+          const rankedFas = rankEligibleFas(
+            freeAgents,
+            date,
+            schedule,
+            weakCats,
+            seatedToday,
+          )
+          best = rankedFas[0] ?? null
+          if (best) {
+            alternativePlayerIds = alternativePlayerIdsFrom(best.id, rankedFas)
+          }
+        }
         const expectedStarts = best
           ? remainingGameDays(best, date, schedule)
           : 0
@@ -638,6 +710,7 @@ export const buildStreamingPlan = ({
         rosterDropPlayerId: null,
         rosterDropKind: "none",
         addIndex,
+        alternativePlayerIds,
       }
     }
 

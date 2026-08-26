@@ -30,6 +30,7 @@ it("StreamingPlanDayCell requires drop fields", () => {
     rosterDropPlayerId: null,
     rosterDropKind: "open_slot",
     addIndex: 1,
+    alternativePlayerIds: [],
   })
   expect(cell.addIndex).toBe(1)
 })
@@ -1141,6 +1142,47 @@ describe("1-spot off-night always cover", () => {
       playerId: "fa-chi",
       droppedPlayerId: "fa-bos",
     })
+  })
+
+  it("lists next-best streamers as alternativePlayerIds on add cells", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const faBest = player("fa-best", "BOS", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const faAlt = player("fa-alt", "NYK", {
+      projections: { ...baseProjections(), STL: 120 },
+    })
+    const faQuiet = player("fa-quiet", "CHI", {
+      projections: { ...baseProjections(), STL: 10 },
+    })
+    const state = tinyState([faBest, faAlt, faQuiet], [
+      "fa-best",
+      "fa-alt",
+      "fa-quiet",
+    ])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ORL" },
+      { date: "2025-11-03", homeAbbr: "CHI", awayAbbr: "MIA" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "ATL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-best",
+    })
+    expect(plan.days[0]!.cells[0]!.alternativePlayerIds).toContain("fa-alt")
+    expect(plan.days[0]!.cells[0]!.alternativePlayerIds).not.toContain(
+      "fa-best",
+    )
   })
 
   it("keeps hold on game day when held plays", () => {

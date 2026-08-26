@@ -79,6 +79,8 @@ export type StreamingPlanDayCell = {
   rosterDropPlayerId: string | null
   rosterDropKind: StreamingPlanRosterDropKind
   addIndex: number | null
+  /** Next-best free agents / blocks for this add (hover hints). */
+  alternativePlayerIds: string[]
 }
 
 export type StreamingPlanDay = {

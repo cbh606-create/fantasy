@@ -252,8 +252,18 @@ const AddCell = ({
   )
 
   if (isAddAction(cell.action)) {
+    const alternativeNames = (cell.alternativePlayerIds ?? [])
+      .map((playerId) => playerName(playerId, playersById))
+      .filter((label) => label !== "—")
+    const tipParts = [
+      hasGame ? "Game day" : "Off night",
+      alternativeNames.length > 0
+        ? `Also consider: ${alternativeNames.join(", ")}`
+        : null,
+    ].filter(Boolean)
+
     return (
-      <span title={hasGame ? "Game day" : "Off night"}>
+      <span title={tipParts.join(" · ")}>
         <Link
           className={`${nameClass} underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
           href={`/waivers/${leagueId}?addPlayerId=${cell.playerId}`}
