@@ -33,8 +33,9 @@ import {
   allowsMultiSpotEarlySwap,
   allowsMultiSpotOffNightUpgrade,
   allowsThinFill,
-  dailyAddPaceLimit,
+  dailySwapPaceLimit,
   densityTierRank,
+  isAddBudgetBehind,
   normalizeStreamingStrategyMode,
   suggestStreamingStrategyMode,
 } from "./streamingStrategy"
@@ -579,16 +580,20 @@ export const buildStreamingPlan = ({
     }
 
     // Pace only early swaps on 2/3-spot; empty fills always spend weekly budget.
+    // When behind on finishing addLimit, raise swap pace and loosen swap gates.
     const remainingDays = dayCount - dayIndex
-    const daySwapPaceLimit =
+    const remainingAdds = addLimit - addsUsed
+    const budgetBehind =
+      spotCount > 1 && isAddBudgetBehind(remainingAdds, remainingDays)
+    const daySwapPaceCap =
       spotCount === 1
         ? addLimit
-        : dailyAddPaceLimit(addLimit - addsUsed, remainingDays)
+        : dailySwapPaceLimit(remainingAdds, remainingDays)
     let swapsToday = 0
     const canSpendWeeklyAdd = () => addsUsed < addLimit
     const canSpendSwapAdd = () =>
       canSpendWeeklyAdd() &&
-      (spotCount === 1 || swapsToday < daySwapPaceLimit)
+      (spotCount === 1 || swapsToday < daySwapPaceCap)
 
     // Prefer spots that have used fewer adds so churn stays even across spots.
     needFill.sort((left, right) => {
@@ -731,7 +736,7 @@ export const buildStreamingPlan = ({
             rankedFas,
           )
         }
-      } else if (isMultiSpotOffNight && isLateWeek) {
+      } else if (isMultiSpotOffNight && (isLateWeek || budgetBehind)) {
         const rankedFas = rankEligibleFas(
           freeAgents,
           date,
@@ -755,12 +760,15 @@ export const buildStreamingPlan = ({
       if (isOneSpotAlwaysCover) {
         // Accept any today-playing FA; no remaining-games gate.
       } else if (isMultiSpotOffNight) {
-        if (
-          todayBlock == null ||
+        if (todayBlock == null) {
+          // Thin FA fallback only when late week or catching up on add budget.
+          if (!(isLateWeek || budgetBehind)) continue
+        } else if (
           !allowsMultiSpotOffNightUpgrade(
             todayBlock.tier,
             dayIndex,
             dayCount,
+            budgetBehind,
           )
         ) {
           continue
@@ -785,6 +793,7 @@ export const buildStreamingPlan = ({
                 candidateRank,
                 dayIndex,
                 dayCount,
+                budgetBehind,
               )
         if (!swapOk) continue
       }

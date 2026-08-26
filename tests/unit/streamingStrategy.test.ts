@@ -8,6 +8,8 @@ import {
   allowsMultiSpotOffNightUpgrade,
   allowsThinFill,
   dailyAddPaceLimit,
+  dailySwapPaceLimit,
+  isAddBudgetBehind,
   normalizeStreamingStrategyMode,
   softCapForSpot,
   suggestStreamingStrategyMode,
@@ -132,6 +134,15 @@ describe("mode policy helpers", () => {
     expect(dailyAddPaceLimit(0, 3)).toBe(0)
   })
 
+  it("dailySwapPaceLimit catches up when remaining adds meet remaining days", () => {
+    expect(isAddBudgetBehind(5, 4)).toBe(true)
+    expect(isAddBudgetBehind(5, 5)).toBe(true)
+    expect(isAddBudgetBehind(4, 5)).toBe(false)
+    expect(dailySwapPaceLimit(5, 4)).toBe(2)
+    expect(dailySwapPaceLimit(5, 5)).toBe(1)
+    expect(dailySwapPaceLimit(4, 5)).toBe(1)
+  })
+
   it("multi-spot early swap is stricter before the last 3 days", () => {
     // thin(0) → strong(2) is +2 → ok early week
     expect(allowsMultiSpotEarlySwap("aggressive", 0, 2, 0, 7)).toBe(true)
@@ -141,6 +152,8 @@ describe("mode policy helpers", () => {
     expect(allowsMultiSpotEarlySwap("aggressive", 2, 3, 0, 7)).toBe(true)
     // late week uses normal aggressive +1
     expect(allowsMultiSpotEarlySwap("aggressive", 0, 1, 4, 7)).toBe(true)
+    // budget catch-up allows same-tier churn on aggressive
+    expect(allowsMultiSpotEarlySwap("aggressive", 1, 1, 1, 7, true)).toBe(true)
   })
 
   it("multi-spot off-night needs strong+ early week; late week allows any tier", () => {

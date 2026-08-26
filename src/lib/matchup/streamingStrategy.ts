@@ -72,6 +72,30 @@ export const dailyAddPaceLimit = (
   return Math.max(1, Math.ceil(remainingAdds / remainingDays))
 }
 
+/**
+ * True when finishing the weekly add budget requires ≥1 add per remaining day.
+ * Used to loosen swap gates / raise swap pace (catch-up).
+ */
+export const isAddBudgetBehind = (
+  remainingAdds: number,
+  remainingDays: number,
+): boolean => remainingAdds >= remainingDays && remainingDays > 0 && remainingAdds > 0
+
+/**
+ * Swap-only daily cap. When behind, allow enough swaps today to still finish
+ * (leave at most one add per later day).
+ */
+export const dailySwapPaceLimit = (
+  remainingAdds: number,
+  remainingDays: number,
+): number => {
+  if (remainingAdds <= 0 || remainingDays <= 0) return 0
+  const even = dailyAddPaceLimit(remainingAdds, remainingDays)
+  if (!isAddBudgetBehind(remainingAdds, remainingDays)) return even
+  const catchUp = remainingAdds - (remainingDays - 1)
+  return Math.max(even, catchUp)
+}
+
 export const allowsThinFill = (
   mode: StreamingStrategyMode,
   dayIndex: number,
@@ -103,7 +127,7 @@ export const allowsEarlySwap = (
 
 /**
  * 2/3-spot early-week swaps: elite upgrade, or +2 tiers.
- * Late week falls back to allowsEarlySwap.
+ * Late week uses allowsEarlySwap; budget catch-up allows same-tier churn on aggressive.
  */
 export const allowsMultiSpotEarlySwap = (
   mode: StreamingStrategyMode,
@@ -111,7 +135,12 @@ export const allowsMultiSpotEarlySwap = (
   newRank: number,
   dayIndex: number,
   dayCount: number,
+  budgetBehind = false,
 ): boolean => {
+  if (budgetBehind) {
+    if (mode === "aggressive") return newRank >= heldRank
+    return allowsEarlySwap(mode, heldRank, newRank)
+  }
   if (isLateStreamingWeek(dayIndex, dayCount)) {
     return allowsEarlySwap(mode, heldRank, newRank)
   }
@@ -119,12 +148,15 @@ export const allowsMultiSpotEarlySwap = (
   return newRank - heldRank >= 2
 }
 
-/** Off-night upgrade: strong+ early week; late week any today block (incl. thin). */
+/**
+ * Off-night upgrade: strong+ early week; late week or catch-up any today block.
+ */
 export const allowsMultiSpotOffNightUpgrade = (
   tier: StreamingDensityTier,
   dayIndex: number,
   dayCount: number,
+  budgetBehind = false,
 ): boolean => {
-  if (isLateStreamingWeek(dayIndex, dayCount)) return true
+  if (budgetBehind || isLateStreamingWeek(dayIndex, dayCount)) return true
   return densityTierRank(tier) >= densityTierRank("strong")
 }

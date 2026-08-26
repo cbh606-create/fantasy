@@ -902,6 +902,61 @@ describe("starts-max adds and protected drops", () => {
     expect(plan.addsUsed).toBe(2)
   })
 
+  it("catch-up spends nearly all 2-spot add budget when FA slate stays dense", () => {
+    const days = [
+      "2025-11-03",
+      "2025-11-04",
+      "2025-11-05",
+      "2025-11-06",
+      "2025-11-07",
+      "2025-11-08",
+      "2025-11-09",
+    ]
+    const teams = [
+      "BOS",
+      "NYK",
+      "MIA",
+      "ATL",
+      "CHI",
+      "MIL",
+      "DET",
+      "CLE",
+      "IND",
+      "ORL",
+      "PHI",
+      "TOR",
+    ]
+    const fas = teams.map((team, index) =>
+      player(`fa-${team}`, team, {
+        projections: { ...baseProjections(), STL: 200 - index },
+      }),
+    )
+    const state = tinyState(
+      fas,
+      fas.map((fa) => fa.id),
+    )
+    const schedule = tinySchedule(
+      days,
+      days.flatMap((date, index) =>
+        teams.slice(0, 6).map((team, teamIndex) => ({
+          date,
+          homeAbbr: teams[(index + teamIndex) % teams.length]!,
+          awayAbbr: teamIndex % 2 === 0 ? "WAS" : "SAC",
+        })),
+      ),
+    )
+    const plan = buildStreamingPlan({
+      spotCount: 2,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 7,
+      strategyMode: "aggressive",
+    })
+    expect(plan.addsUsed).toBeGreaterThanOrEqual(6)
+    expect(plan.addsUsed).toBeLessThanOrEqual(7)
+  })
+
   it("does not roster-drop a healthy low-ADP player on first add", () => {
     const days = ["2025-11-03"]
     const faA = player("fa-a", "BOS", {
