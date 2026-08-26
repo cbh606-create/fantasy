@@ -1,7 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { Fragment, useEffect, useMemo, useRef, useState } from "react"
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
+import { createPortal } from "react-dom"
 import { formatPlayerPositions } from "@/lib/season/slotLabels"
 import type {
   ScheduleResponse,
@@ -252,61 +261,18 @@ const AddCell = ({
   )
 
   if (isAddAction(cell.action)) {
-    const alternativeNames = (cell.alternativePlayerIds ?? [])
-      .map((playerId) => playerName(playerId, playersById))
-      .filter((label) => label !== "—")
-    const gameLabel = hasGame ? "Game day" : "Off night"
-    const tipId = `add-alt-${date}-${cell.spotIndex}-${cell.playerId}`
-
     return (
-      <span className="group relative inline-flex max-w-full items-baseline">
-        <Link
-          aria-describedby={tipId}
-          className={`${nameClass} underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
-          href={`/waivers/${leagueId}?addPlayerId=${cell.playerId}`}
-        >
-          {name}
-        </Link>
-        {cell.addIndex != null ? (
-          <span
-            aria-label={`Add ${cell.addIndex}`}
-            className={`ml-0.5 text-[0.8125rem] font-semibold tabular-nums ${addIndexColorClass(cell.addIndex)}`}
-          >
-            {cell.addIndex}
-          </span>
-        ) : null}
-        {meta}
-        <span
-          className="pointer-events-none absolute left-0 top-full z-30 mt-1.5 w-[min(14rem,calc(100vw-2rem))] origin-top-left scale-95 rounded-xl border border-[var(--color-hairline)] bg-white p-2.5 text-left opacity-0 shadow-md transition duration-150 ease-out group-hover:scale-100 group-hover:opacity-100 group-focus-within:scale-100 group-focus-within:opacity-100"
-          id={tipId}
-          role="tooltip"
-        >
-          <span className="inline-flex rounded-md bg-[var(--color-soft-cloud)] px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
-            {gameLabel}
-          </span>
-          {alternativeNames.length > 0 ? (
-            <span className="mt-2 block">
-              <span className="text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
-                Also consider
-              </span>
-              <ul className="mt-1 space-y-0.5">
-                {alternativeNames.map((altName) => (
-                  <li
-                    className="text-[0.75rem] leading-snug font-medium text-[var(--color-ink)]"
-                    key={altName}
-                  >
-                    {altName}
-                  </li>
-                ))}
-              </ul>
-            </span>
-          ) : (
-            <span className="mt-1.5 block text-[0.7rem] leading-snug text-[var(--color-mute)]">
-              No close alternatives today
-            </span>
-          )}
-        </span>
-      </span>
+      <AddCellHoverTip
+        addIndex={cell.addIndex}
+        alternativePlayerIds={cell.alternativePlayerIds ?? []}
+        hasGame={hasGame}
+        leagueId={leagueId}
+        meta={meta}
+        name={name}
+        nameClass={nameClass}
+        playerId={cell.playerId}
+        playersById={playersById}
+      />
     )
   }
 
@@ -314,6 +280,138 @@ const AddCell = ({
     <span title={hasGame ? "Game day" : "Off night"}>
       <span className={nameClass}>{name}</span>
       {meta}
+    </span>
+  )
+}
+
+const AddCellHoverTip = ({
+  addIndex,
+  alternativePlayerIds,
+  hasGame,
+  leagueId,
+  meta,
+  name,
+  nameClass,
+  playerId,
+  playersById,
+}: {
+  addIndex: number | null
+  alternativePlayerIds: string[]
+  hasGame: boolean
+  leagueId: string
+  meta: ReactNode
+  name: string
+  nameClass: string
+  playerId: string
+  playersById: Record<string, SeasonPlayer>
+}) => {
+  const tipId = useId()
+  const rootRef = useRef<HTMLSpanElement>(null)
+  const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+
+  const alternativeNames = alternativePlayerIds
+    .map((id) => playerName(id, playersById))
+    .filter((label) => label !== "—")
+  const gameLabel = hasGame ? "Game day" : "Off night"
+
+  const placeTip = () => {
+    const rect = rootRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const width = 224
+    const left = Math.max(
+      8,
+      Math.min(rect.left, window.innerWidth - width - 8),
+    )
+    setPos({ top: rect.bottom + 6, left })
+  }
+
+  const show = () => {
+    placeTip()
+    setOpen(true)
+  }
+
+  const hide = () => setOpen(false)
+
+  useEffect(() => {
+    if (!open) return
+    const close = () => setOpen(false)
+    window.addEventListener("scroll", close, true)
+    window.addEventListener("resize", close)
+    return () => {
+      window.removeEventListener("scroll", close, true)
+      window.removeEventListener("resize", close)
+    }
+  }, [open])
+
+  return (
+    <span
+      className="relative inline-flex max-w-full items-baseline"
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      ref={rootRef}
+    >
+      <Link
+        aria-describedby={open ? tipId : undefined}
+        className={`${nameClass} underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
+        href={`/waivers/${leagueId}?addPlayerId=${playerId}`}
+        onBlur={(event) => {
+          if (!rootRef.current?.contains(event.relatedTarget as Node)) hide()
+        }}
+        onFocus={show}
+      >
+        {name}
+      </Link>
+      {addIndex != null ? (
+        <span
+          aria-label={`Add ${addIndex}`}
+          className={`ml-0.5 text-[0.8125rem] font-semibold tabular-nums ${addIndexColorClass(addIndex)}`}
+        >
+          {addIndex}
+        </span>
+      ) : null}
+      {meta}
+      {open
+        ? createPortal(
+            <span
+              className="w-56 rounded-xl border border-[var(--color-hairline)] bg-white p-2.5 text-left shadow-md"
+              id={tipId}
+              role="tooltip"
+              style={{
+                position: "fixed",
+                top: pos.top,
+                left: pos.left,
+                zIndex: 60,
+              }}
+            >
+              <span className="inline-flex rounded-md bg-[var(--color-soft-cloud)] px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
+                {gameLabel}
+              </span>
+              {alternativeNames.length > 0 ? (
+                <span className="mt-2 block">
+                  <span className="text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
+                    Also consider
+                  </span>
+                  <ul className="mt-1 space-y-0.5">
+                    {alternativeNames.map((altName) => (
+                      <li
+                        className="text-[0.75rem] leading-snug font-medium text-[var(--color-ink)]"
+                        key={altName}
+                      >
+                        {altName}
+                      </li>
+                    ))}
+                  </ul>
+                </span>
+              ) : (
+                <span className="mt-1.5 block text-[0.7rem] leading-snug text-[var(--color-mute)]">
+                  No close alternatives today
+                </span>
+              )}
+            </span>,
+            document.body,
+          )
+        : null}
     </span>
   )
 }

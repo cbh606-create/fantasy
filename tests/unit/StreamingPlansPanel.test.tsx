@@ -198,11 +198,10 @@ describe("StreamingPlansPanel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
 
-    const tips = screen.getAllByRole("tooltip")
-    expect(tips.length).toBeGreaterThan(0)
-    expect(
-      tips.some((tip) => /Also consider/i.test(tip.textContent ?? "")),
-    ).toBe(true)
+    const link = screen.getAllByRole("link", { name: /Streamer/i })[0]!
+    fireEvent.mouseEnter(link.parentElement!)
+
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/Also consider/i)
   })
 
   it("shows add ordinal next to streamer adds", () => {
@@ -233,9 +232,8 @@ describe("StreamingPlansPanel", () => {
     const gameDayLinks = screen.getAllByRole("link", { name: /Streamer A/i })
     expect(gameDayLinks.length).toBeGreaterThan(0)
     expect(gameDayLinks[0]?.className).toMatch(/font-bold/)
-    const tipId = gameDayLinks[0]?.getAttribute("aria-describedby")
-    expect(tipId).toBeTruthy()
-    expect(document.getElementById(tipId!)?.textContent).toMatch(/Game day/i)
+    fireEvent.mouseEnter(gameDayLinks[0]!.parentElement!)
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/Game day/i)
 
     const gameDayHeaders = screen.getAllByTitle("Streamer game day")
     expect(gameDayHeaders.length).toBeGreaterThan(0)
