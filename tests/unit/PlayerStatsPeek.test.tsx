@@ -41,4 +41,11 @@ describe("PlayerStatsPeek", () => {
     expect(screen.getByText("1200")).toBeInTheDocument()
     expect(screen.getByText("0.450")).toBeInTheDocument()
   })
+
+  it("shows an em dash when teamAbbr is missing", () => {
+    render(<PlayerStatsPeek player={{ ...player, teamAbbr: undefined }} />)
+    const peek = screen.getByLabelText(/player projections/i)
+    expect(peek).toHaveTextContent("—")
+    expect(peek).not.toHaveTextContent("??")
+  })
 })

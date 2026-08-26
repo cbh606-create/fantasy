@@ -37,7 +37,7 @@ export const PlayerStatsPeek = ({ player }: PlayerStatsPeekProps) => {
           <p className="text-sm font-semibold">
             {player.name}
             <span className="ml-1.5 font-normal text-[var(--color-mute)]">
-              {player.teamAbbr ?? "??"}
+              {player.teamAbbr ?? "—"}
             </span>
           </p>
           <dl className="mt-2 grid grid-cols-3 gap-x-3 gap-y-1 text-xs sm:grid-cols-5">

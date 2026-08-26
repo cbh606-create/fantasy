@@ -1,10 +1,11 @@
 "use client"
 
-import type { ChangeEvent } from "react"
+import { useState, type ChangeEvent } from "react"
 import { BoardGrid } from "@/components/draft/BoardGrid"
 import { MockDraftAnalysis } from "@/components/draft/MockDraftAnalysis"
 import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import { PlayerPool } from "@/components/draft/PlayerPool"
+import { PlayerStatsPeek } from "@/components/draft/PlayerStatsPeek"
 import { RecPanel } from "@/components/draft/RecPanel"
 import { Button } from "@/components/ui/Button"
 import { ESPN_TEAM_COUNTS } from "@/lib/domain/leagueSize"
@@ -66,6 +67,11 @@ export const MockDraftView = ({
   players,
   state,
 }: MockDraftViewProps) => {
+  const [hoveredPlayerId, setHoveredPlayerId] = useState<string | null>(null)
+  const hoveredPlayer =
+    hoveredPlayerId === null
+      ? null
+      : (players.find((player) => player.id === hoveredPlayerId) ?? null)
   const teams = state.settings.teams
   const mockState: LeagueState = {
     ...state,
@@ -168,6 +174,7 @@ export const MockDraftView = ({
           result={mockResult}
           showCategoryOutlook={false}
         />
+        <PlayerStatsPeek player={hoveredPlayer} />
       </div>
 
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -262,6 +269,7 @@ export const MockDraftView = ({
           adpSource={adpSource}
           compact
           disabled={busy || !userTurn || draftComplete}
+          onHoverPlayerId={setHoveredPlayerId}
           onMarkPicked={onMarkPicked}
           pickedPlayerIds={pickedPlayerIds}
           players={players}
