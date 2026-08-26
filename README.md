@@ -67,6 +67,18 @@ Optional env: `PLAYER_POOL_SOURCE=proj_2026_27` (default). Prior season cache: `
 
 Per-game CSV values are scaled by GP by default; pass `--per-game=false` for season totals. To patch a saved season after the draft pool write, pass `--season-league-id=<id>`.
 
+### Yahoo projections overlay (primary until ESPN proj)
+
+Use when ESPN season averages are missing (e.g. rookies) or you want one consistent Yahoo sheet for Draft + Season.
+
+1. Export Yahoo mock draft / analysis projections to a CSV with Player, Team, GP, FG%, FT%, 3PM, PTS, REB, AST, STL, BLK, TO.
+2. Preview: `npm run players:import-yahoo -- path/to/yahoo.csv --dry-run`
+3. Apply to draft pool **and all season leagues**: `npm run players:import-yahoo -- path/to/yahoo.csv`
+4. Pool only: add `--skip-seasons`. Single league: `--season-league-id=<id>`.
+5. Re-run after `players:refresh` or ESPN season Refresh (overlay is overwritten until re-applied).
+
+When ESPN projections are available, import an ESPN CSV with the same column shape (or a future `players:import-espn`) so `projectionOverlay` becomes `"espn"`.
+
 ## ESPN integration
 
 `ESPN_LIVE` defaults to `false`. The MVP uses **fixture-first** ESPN data (`data/fixtures/espn-league.json`) for import and sync flows. Manual league setup works without ESPN.
