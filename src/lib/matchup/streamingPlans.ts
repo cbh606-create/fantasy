@@ -56,7 +56,11 @@ export type BuildStreamingPlanInput = {
   strategyMode?: StreamingStrategyMode
   adpByPlayerId?: Record<string, number>
   injuryOutDaysByPlayerId?: Record<string, number>
+  forcedRosterDrops?: Record<string, string | "open_slot">
 }
+
+export const streamingAddDropKey = (date: string, spotIndex: number) =>
+  `${date}:${spotIndex}`
 
 const weakCategories = (board: MatchupBoard): CategoryId[] =>
   board.categories
@@ -314,6 +318,108 @@ const pickRosterDrop = (
   return { kind: "player", playerId: best.player.id, didProtect }
 }
 
+const isProtectedFromDrop = (
+  player: SeasonPlayer,
+  adpByPlayerId?: Record<string, number>,
+  injuryOutDaysByPlayerId?: Record<string, number>,
+): boolean => {
+  const outDays = injuryOutDaysByPlayerId?.[player.id] ?? 0
+  const adp = adpByPlayerId?.[player.id] ?? null
+  return (
+    isAdpProtected(adp) &&
+    !isLongTermInjuryException(outDays) &&
+    !isUnderperformingDropException(player)
+  )
+}
+
+const rosterHasProtectedPlayer = (
+  entries: SeasonRosterEntry[],
+  playersById: Map<string, SeasonPlayer>,
+  alreadyDropped: Set<string>,
+  adpByPlayerId?: Record<string, number>,
+  injuryOutDaysByPlayerId?: Record<string, number>,
+): boolean =>
+  entries
+    .filter((entry) => !isIlSlot(entry.slot) && entry.playerId)
+    .map((entry) => playersById.get(entry.playerId!))
+    .filter((p): p is SeasonPlayer => Boolean(p))
+    .filter((p) => !alreadyDropped.has(p.id))
+    .some((player) =>
+      isProtectedFromDrop(player, adpByPlayerId, injuryOutDaysByPlayerId),
+    )
+
+const isValidForcedPlayerDrop = (
+  playerId: string,
+  entries: SeasonRosterEntry[],
+  playersById: Map<string, SeasonPlayer>,
+  alreadyDropped: Set<string>,
+  adpByPlayerId?: Record<string, number>,
+  injuryOutDaysByPlayerId?: Record<string, number>,
+): boolean => {
+  if (alreadyDropped.has(playerId)) return false
+  if (!entries.some((entry) => entry.playerId === playerId)) return false
+  const player = playersById.get(playerId)
+  if (!player) return false
+  return !isProtectedFromDrop(player, adpByPlayerId, injuryOutDaysByPlayerId)
+}
+
+const resolveRosterDrop = (
+  entries: SeasonRosterEntry[],
+  playersById: Map<string, SeasonPlayer>,
+  date: string,
+  spotIndex: number,
+  schedule: ScheduleResponse,
+  weakCats: CategoryId[],
+  weekDroppedPlayers: Set<string>,
+  forcedRosterDrops: Record<string, string | "open_slot"> | undefined,
+  adpByPlayerId?: Record<string, number>,
+  injuryOutDaysByPlayerId?: Record<string, number>,
+): {
+  kind: StreamingPlanRosterDropKind
+  playerId: string | null
+  didProtect: boolean
+} => {
+  const forceKey = streamingAddDropKey(date, spotIndex)
+  const forced = forcedRosterDrops?.[forceKey]
+
+  if (forced === "open_slot" && hasOpenNonIlSlot(entries)) {
+    return { kind: "open_slot", playerId: null, didProtect: false }
+  }
+
+  if (typeof forced === "string" && forced !== "open_slot") {
+    if (
+      isValidForcedPlayerDrop(
+        forced,
+        entries,
+        playersById,
+        weekDroppedPlayers,
+        adpByPlayerId,
+        injuryOutDaysByPlayerId,
+      )
+    ) {
+      const didProtect = rosterHasProtectedPlayer(
+        entries,
+        playersById,
+        weekDroppedPlayers,
+        adpByPlayerId,
+        injuryOutDaysByPlayerId,
+      )
+      return { kind: "player", playerId: forced, didProtect }
+    }
+  }
+
+  return pickRosterDrop(
+    entries,
+    playersById,
+    date,
+    schedule,
+    weakCats,
+    weekDroppedPlayers,
+    adpByPlayerId,
+    injuryOutDaysByPlayerId,
+  )
+}
+
 export const buildStreamingPlan = ({
   spotCount,
   state,
@@ -323,6 +429,7 @@ export const buildStreamingPlan = ({
   strategyMode: inputStrategy,
   adpByPlayerId,
   injuryOutDaysByPlayerId,
+  forcedRosterDrops,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -342,6 +449,7 @@ export const buildStreamingPlan = ({
   let gameStarts = 0
   let didProtectDrops = false
   const days: StreamingPlanDay[] = []
+  const weekDroppedPlayers = new Set<string>()
 
   for (const [dayIndex, date] of schedule.matchup.days.entries()) {
     const cells: (StreamingPlanDayCell | null)[] = Array.from(
@@ -349,7 +457,6 @@ export const buildStreamingPlan = ({
       () => null,
     )
     const seatedToday = new Set<string>()
-    const rosterDroppedToday = new Set<string>()
     const previousOccupants = [...occupants]
 
     // Pass 1: keep streamers who still have games left this week (hold through
@@ -522,13 +629,15 @@ export const buildStreamingPlan = ({
       }
 
       if (action === "add") {
-        const rosterDrop = pickRosterDrop(
+        const rosterDrop = resolveRosterDrop(
           state.teams[state.perspectiveTeamIndex]!.entries,
           playersById,
           date,
+          spotIndex,
           schedule,
           weakCats,
-          rosterDroppedToday,
+          weekDroppedPlayers,
+          forcedRosterDrops,
           adpByPlayerId,
           injuryOutDaysByPlayerId,
         )
@@ -536,7 +645,7 @@ export const buildStreamingPlan = ({
         rosterDropPlayerId = rosterDrop.playerId
         if (rosterDrop.didProtect) didProtectDrops = true
         if (rosterDrop.kind === "player" && rosterDrop.playerId) {
-          rosterDroppedToday.add(rosterDrop.playerId)
+          weekDroppedPlayers.add(rosterDrop.playerId)
         }
       }
 

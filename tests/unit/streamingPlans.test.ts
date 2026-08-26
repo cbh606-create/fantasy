@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
-import { buildAllStreamingPlans, buildStreamingPlan } from "@/lib/matchup/streamingPlans"
+import {
+  buildAllStreamingPlans,
+  buildStreamingPlan,
+  streamingAddDropKey,
+} from "@/lib/matchup/streamingPlans"
 import {
   softCapForSpot,
   suggestStreamingStrategyMode,
@@ -894,6 +898,109 @@ describe("starts-max adds and protected drops", () => {
 
     expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).toBe("il-guy")
     expect(plan.days[0]!.cells[0]!.rosterDropKind).toBe("player")
+  })
+})
+
+describe("forcedRosterDrops", () => {
+  const rosterDropFixture = () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const noGameHighStl = player("you-idle", "CHI", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const playsLowStl = player("you-play", "ATL", {
+      projections: { ...baseProjections(), STL: 5 },
+    })
+    const state = tinyState(
+      [faA, faB, noGameHighStl, playsLowStl],
+      ["fa-a", "fa-b"],
+    )
+    state.teams[0]!.entries = [
+      { slot: "UTIL", playerId: "you-idle" },
+      { slot: "BE", playerId: "you-play" },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "MIA" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+    ])
+    const board = emptyBoardLosingStl()
+    const baseInput = {
+      spotCount: 2 as const,
+      state,
+      schedule,
+      board,
+      strategyMode: "aggressive" as const,
+    }
+    return { baseInput, date: days[0]! }
+  }
+
+  it("empty or omitted forcedRosterDrops matches baseline roster drops", () => {
+    const { baseInput } = rosterDropFixture()
+    const baseline = buildStreamingPlan(baseInput)
+    const withEmpty = buildStreamingPlan({ ...baseInput, forcedRosterDrops: {} })
+    const withOmitted = buildStreamingPlan(baseInput)
+
+    const baselineDrops = baseline.days[0]!.cells.map((c) => c.rosterDropPlayerId)
+    expect(withEmpty.days[0]!.cells.map((c) => c.rosterDropPlayerId)).toEqual(
+      baselineDrops,
+    )
+    expect(withOmitted.days[0]!.cells.map((c) => c.rosterDropPlayerId)).toEqual(
+      baselineDrops,
+    )
+    expect(baselineDrops[0]).toBe("you-idle")
+  })
+
+  it("honors forced player drop on first add", () => {
+    const { baseInput, date } = rosterDropFixture()
+    const forceKey = streamingAddDropKey(date, 0)
+    const plan = buildStreamingPlan({
+      ...baseInput,
+      forcedRosterDrops: { [forceKey]: "you-play" },
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      rosterDropKind: "player",
+      rosterDropPlayerId: "you-play",
+    })
+  })
+
+  it("does not roster-drop the same player twice after an early forced drop", () => {
+    const { baseInput, date } = rosterDropFixture()
+    const firstKey = streamingAddDropKey(date, 0)
+    const secondKey = streamingAddDropKey(date, 1)
+    const plan = buildStreamingPlan({
+      ...baseInput,
+      forcedRosterDrops: {
+        [firstKey]: "you-idle",
+        [secondKey]: "you-idle",
+      },
+    })
+
+    const drops = plan.days[0]!.cells.map((c) => c.rosterDropPlayerId)
+    expect(drops[0]).toBe("you-idle")
+    expect(drops[1]).not.toBe("you-idle")
+    expect(drops[1]).toBe("you-play")
+  })
+
+  it("passes forcedRosterDrops through buildAllStreamingPlans", () => {
+    const { baseInput, date } = rosterDropFixture()
+    const forceKey = streamingAddDropKey(date, 0)
+    const plans = buildAllStreamingPlans({
+      state: baseInput.state,
+      schedule: baseInput.schedule,
+      board: baseInput.board,
+      strategyMode: baseInput.strategyMode,
+      forcedRosterDrops: { [forceKey]: "you-play" },
+    })
+
+    expect(plans[1]!.days[0]!.cells[0]!.rosterDropPlayerId).toBe("you-play")
   })
 })
 
