@@ -111,7 +111,7 @@ describe("DraftWorkspace", () => {
     vi.unstubAllGlobals()
   })
 
-  it("loads league goals and runs a 40-count simulation", async () => {
+  it("loads the league and defaults to Mock without a Prep tab", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce({
         ok: true,
@@ -121,32 +121,51 @@ describe("DraftWorkspace", () => {
           stateJson: JSON.stringify(state),
         }),
       } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => simulationResult,
-      } as Response)
+      .mockImplementation(async (input) => {
+        if (String(input) === "/api/players") {
+          return {
+            ok: true,
+            json: async () => ({ players: state.players }),
+          } as Response
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            nextPicks: [],
+            topCombinations: [],
+            categoryOutlook: {
+              FG_PCT: 0,
+              FT_PCT: 0,
+              TPM: 0,
+              REB: 0,
+              AST: 0,
+              STL: 0,
+              BLK: 0,
+              TO: 0,
+              PTS: 0,
+            },
+            meta: {
+              simCount: 24,
+              seed: 1,
+              generatedAt: "2026-08-18T00:00:00.000Z",
+              latencyMs: 1,
+              source: "manual",
+            },
+          }),
+        } as Response
+      })
 
     render(<DraftWorkspace leagueId="league-1" />)
 
     expect(await screen.findByText("Test League")).toBeInTheDocument()
-    expect(screen.getByText("Focus AST")).toBeInTheDocument()
-    expect(screen.getByText("Punt TO")).toBeInTheDocument()
-    expect(screen.getByLabelText("Simulation count")).toHaveValue(40)
-
-    fireEvent.click(screen.getByRole("button", { name: "Run simulation" }))
-
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
-    expect(fetch).toHaveBeenNthCalledWith(
-      2,
-      "/api/draft/simulate",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({ state, simCount: 40 }),
-      }),
+    expect(screen.queryByRole("tab", { name: "Prep" })).not.toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "Mock" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     )
-    expect(await screen.findAllByText("First Player")).not.toHaveLength(0)
-    expect(screen.getByText("First Player + Second Player")).toBeInTheDocument()
-    expect(screen.getByText("AST")).toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "Live" })).toBeInTheDocument()
+    expect(await screen.findByText("Punt", {}, { timeout: 4_000 })).toBeInTheDocument()
+    expect(screen.getByText("Focus")).toBeInTheDocument()
   })
 
   it("shows a load error when the league request fails", async () => {
@@ -179,7 +198,7 @@ describe("DraftWorkspace", () => {
         json: async () => ({ message: "ESPN is unavailable" }),
       } as Response)
 
-    render(<DraftWorkspace leagueId="league-1" />)
+    render(<DraftWorkspace initialMode="live" leagueId="league-1" />)
 
     fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
     expect(screen.getByText("ESPN synced")).toBeInTheDocument()
@@ -211,7 +230,7 @@ describe("DraftWorkspace", () => {
         json: async () => ({ message: "ESPN is unavailable" }),
       } as Response)
 
-    render(<DraftWorkspace leagueId="league-1" />)
+    render(<DraftWorkspace initialMode="live" leagueId="league-1" />)
 
     fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
     fireEvent.click(screen.getByRole("button", { name: "Sync ESPN board" }))
@@ -278,7 +297,7 @@ describe("DraftWorkspace", () => {
         json: async () => simulationResult,
       } as Response)
 
-    render(<DraftWorkspace leagueId="league-1" />)
+    render(<DraftWorkspace initialMode="live" leagueId="league-1" />)
 
     fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
     fireEvent.change(screen.getByRole("searchbox", { name: "Search players" }), {
@@ -456,7 +475,7 @@ describe("DraftWorkspace", () => {
       simCount?: number
       fastRecommendations?: boolean
     }
-    expect(mockSimulateBody.simCount).toBe(12)
+    expect(mockSimulateBody.simCount).toBe(24)
     expect(mockSimulateBody.fastRecommendations).toBe(true)
     expect(mockSimulationSignals[0]?.aborted).toBe(false)
     expect(screen.getByText(/latest pick/i)).toBeInTheDocument()

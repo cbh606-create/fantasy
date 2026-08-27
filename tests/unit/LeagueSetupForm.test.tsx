@@ -71,7 +71,7 @@ describe("LeagueSetupForm", () => {
     expect(body.manualInput.userPickSlot).toBe(4)
     expect(body.manualInput.playerPoolSource).toBe("proj_2026_27")
     expect(body.manualInput.players).toBeUndefined()
-    expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft?tab=mock")
+    expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft")
   })
 
   it("imports an ESPN league and redirects", async () => {

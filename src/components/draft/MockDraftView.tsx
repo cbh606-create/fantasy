@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent } from "react"
 import { BoardGrid } from "@/components/draft/BoardGrid"
+import { DraftStrategyChips } from "@/components/draft/DraftStrategyChips"
 import { MockDraftAnalysis } from "@/components/draft/MockDraftAnalysis"
 import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import { PlayerPool } from "@/components/draft/PlayerPool"
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/Button"
 import { ESPN_TEAM_COUNTS } from "@/lib/domain/leagueSize"
 import { isUserTurn } from "@/lib/domain/snake"
 import type {
+  CategoryId,
   DraftBoard,
   LeagueState,
   Player,
@@ -32,6 +34,7 @@ export type MockLatestPick = {
 
 type MockDraftViewProps = {
   adpSource?: AdpSourceId
+  focusCategoryIds: CategoryId[]
   isAdvancing: boolean
   isPlayersLoading?: boolean
   isSavingPick: boolean
@@ -43,14 +46,20 @@ type MockDraftViewProps = {
   onMarkPicked: (playerId: string) => void
   onReset: () => void
   onSlotChange: (slot: number) => void
+  onStrategyChange: (next: {
+    puntCategoryIds: CategoryId[]
+    focusCategoryIds: CategoryId[]
+  }) => void
   onTeamsChange: (teams: number) => void
   perspectiveTeamIndex: number
   players: Player[]
+  puntCategoryIds: CategoryId[]
   state: LeagueState
 }
 
 export const MockDraftView = ({
   adpSource = DEFAULT_ADP_SOURCE,
+  focusCategoryIds,
   isAdvancing,
   isPlayersLoading = false,
   isSavingPick,
@@ -62,9 +71,11 @@ export const MockDraftView = ({
   onMarkPicked,
   onReset,
   onSlotChange,
+  onStrategyChange,
   onTeamsChange,
   perspectiveTeamIndex,
   players,
+  puntCategoryIds,
   state,
 }: MockDraftViewProps) => {
   const [hoveredPlayerId, setHoveredPlayerId] = useState<string | null>(null)
@@ -130,6 +141,12 @@ export const MockDraftView = ({
 
   return (
     <div>
+      <DraftStrategyChips
+        focusCategoryIds={focusCategoryIds}
+        onStrategyChange={onStrategyChange}
+        puntCategoryIds={puntCategoryIds}
+      />
+
       {latestPick ? (
         <div
           aria-live="polite"

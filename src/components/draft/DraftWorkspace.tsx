@@ -6,7 +6,6 @@ import {
   MockDraftView,
   type MockLatestPick,
 } from "@/components/draft/MockDraftView"
-import { PrepView } from "@/components/draft/PrepView"
 import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import {
   buildEmptyBoard,
@@ -20,6 +19,7 @@ import {
   ESPN_MIN_TEAMS,
 } from "@/lib/domain/leagueSize"
 import type {
+  CategoryId,
   DraftBoard,
   LeagueState,
   Player,
@@ -56,7 +56,7 @@ const toMockLeagueState = (
 })
 
 const MOCK_PICK_DELAY_MS = 280
-const MOCK_SIM_COUNT = 12
+const MOCK_SIM_COUNT = 24
 const MOCK_SIM_DEBOUNCE_MS = 50
 
 const buildQuickMockRecommendations = (
@@ -120,7 +120,7 @@ type LeagueResponse = {
   stateJson: string
 }
 
-type WorkspaceMode = "prep" | "mock" | "live"
+type WorkspaceMode = "mock" | "live"
 
 type DraftWorkspaceProps = {
   initialMode?: WorkspaceMode
@@ -128,7 +128,6 @@ type DraftWorkspaceProps = {
 }
 
 const MODE_LABELS: Record<WorkspaceMode, string> = {
-  prep: "Prep",
   mock: "Mock",
   live: "Live",
 }
@@ -165,7 +164,7 @@ const applyPickToBoard = (
 }
 
 export const DraftWorkspace = ({
-  initialMode = "prep",
+  initialMode = "mock",
   leagueId,
 }: DraftWorkspaceProps) => {
   const [leagueName, setLeagueName] = useState("")
@@ -183,7 +182,7 @@ export const DraftWorkspace = ({
   const [result, setResult] = useState<SimulationResult | null>(null)
   const [mockResult, setMockResult] = useState<SimulationResult | null>(null)
   const [mode, setMode] = useState<WorkspaceMode>(initialMode)
-  const [simCount, setSimCount] = useState(40)
+  const simCount = 40
   const [isLoading, setIsLoading] = useState(true)
   const [isSimulating, setIsSimulating] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -291,15 +290,6 @@ export const DraftWorkspace = ({
     } finally {
       if (!controller.signal.aborted) setIsSimulating(false)
     }
-  }
-
-  const handleRunSimulation = () => {
-    if (!state) return
-
-    simulationControllerRef.current?.abort()
-    const controller = new AbortController()
-    simulationControllerRef.current = controller
-    void runSimulation(state, controller)
   }
 
   const scheduleSimulation = (nextState: LeagueState) => {
@@ -709,6 +699,54 @@ export const DraftWorkspace = ({
     }
   }
 
+  const handleStrategyChange = async (next: {
+    puntCategoryIds: CategoryId[]
+    focusCategoryIds: CategoryId[]
+  }) => {
+    if (!state) return
+
+    const nextState: LeagueState = {
+      ...state,
+      settings: {
+        ...state.settings,
+        puntCategoryIds: next.puntCategoryIds,
+        focusCategoryIds: next.focusCategoryIds,
+      },
+    }
+
+    setError("")
+
+    try {
+      const response = await fetch(`/api/leagues/${leagueId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ state: nextState }),
+      })
+
+      if (!response.ok) throw new Error("Unable to save draft strategy")
+
+      setState(nextState)
+
+      if (mockBoard && mockPlayers) {
+        scheduleMockSimulation(
+          toMockLeagueState(
+            nextState,
+            mockPerspectiveTeamIndex,
+            mockPlayers,
+            mockBoard,
+            mockTeams,
+          ),
+        )
+      }
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to save draft strategy",
+      )
+    }
+  }
+
   if (isLoading) {
     return (
       <SeasonToolShell
@@ -744,7 +782,7 @@ export const DraftWorkspace = ({
           role="tablist"
           aria-label="Draft workspace mode"
         >
-          {(["prep", "mock", "live"] as const).map((workspaceMode) => (
+          {(["mock", "live"] as const).map((workspaceMode) => (
             <button
               aria-selected={mode === workspaceMode}
               className={`rounded-full px-6 py-2.5 font-medium capitalize ${
@@ -777,19 +815,10 @@ export const DraftWorkspace = ({
           </p>
         ) : null}
         <div role="tabpanel">
-          {mode === "prep" ? (
-            <PrepView
-              isSimulating={isSimulating}
-              onRunSimulation={handleRunSimulation}
-              onSimCountChange={setSimCount}
-              result={result}
-              simCount={simCount}
-              state={state}
-            />
-          ) : null}
           {mode === "mock" && mockBoard && mockPlayers ? (
             <MockDraftView
               adpSource={adpSource}
+              focusCategoryIds={state.settings.focusCategoryIds}
               isAdvancing={isMockAdvancing}
               isPlayersLoading={isMockPlayersLoading}
               isSavingPick={isSavingPick}
@@ -801,9 +830,11 @@ export const DraftWorkspace = ({
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
               onSlotChange={handleMockSlotChange}
+              onStrategyChange={handleStrategyChange}
               onTeamsChange={handleMockTeamsChange}
               perspectiveTeamIndex={mockPerspectiveTeamIndex}
               players={mockPlayers}
+              puntCategoryIds={state.settings.puntCategoryIds}
               state={toMockLeagueState(
                 state,
                 mockPerspectiveTeamIndex,

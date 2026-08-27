@@ -57,6 +57,7 @@ afterEach(() => {
 const renderView = () =>
   render(
     <MockDraftView
+      focusCategoryIds={[]}
       isAdvancing={false}
       isSavingPick={false}
       latestPick={null}
@@ -66,9 +67,11 @@ const renderView = () =>
       onMarkPicked={vi.fn()}
       onReset={vi.fn()}
       onSlotChange={vi.fn()}
+      onStrategyChange={vi.fn()}
       onTeamsChange={vi.fn()}
       perspectiveTeamIndex={0}
       players={players}
+      puntCategoryIds={[]}
       state={state}
     />,
   )

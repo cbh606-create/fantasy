@@ -114,7 +114,7 @@ export const LeagueSetupForm = () => {
   const createLeague = async (
     endpoint: string,
     body: Record<string, unknown>,
-    draftTab: "prep" | "mock" | "live" = "prep",
+    draftTab: "mock" | "live" = "mock",
   ) => {
     const response = await fetch(endpoint, {
       method: "POST",
@@ -147,7 +147,7 @@ export const LeagueSetupForm = () => {
       throw new Error(detail || "Unable to create your league")
     }
 
-    const tabQuery = draftTab === "prep" ? "" : `?tab=${draftTab}`
+    const tabQuery = draftTab === "mock" ? "" : `?tab=${draftTab}`
     router.push(`/leagues/${result.id}/draft${tabQuery}`)
   }
 
