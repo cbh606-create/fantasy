@@ -1,27 +1,40 @@
 import type { CategoryId, Player } from "@/lib/domain/types"
+import { positionNeedBonus } from "@/lib/sim/rosterNeeds"
 import {
   categoryWinExpectancies,
   leagueMeanTotals,
+  playerPoolStats,
   rosterTotals,
+  weightedPlayerZScore,
 } from "@/lib/sim/score"
 
 type CategoryWeights = Record<CategoryId, number>
 
 export const USER_PICK_TOP_K = 8
 export const USER_PICK_SOFTMAX_TAU = 0.08
+export const USER_PICK_POSITION_NEED_SCALE = 1 / 25
 
 const scorePlayer = (
   player: Player,
   userRoster: Player[],
   allRosters: Player[][],
+  poolStats: ReturnType<typeof playerPoolStats>,
   weights: CategoryWeights,
 ): number => {
-  const leagueMean = leagueMeanTotals(allRosters)
-
-  return categoryWinExpectancies(
+  // End-of-board style EV vs current league (matters once rosters diverge).
+  const categoryScore = categoryWinExpectancies(
     rosterTotals([...userRoster, player]),
-    leagueMean,
+    leagueMeanTotals(allRosters),
     weights,
+  )
+
+  // Pool-relative talent (matters on empty/early boards where league EV saturates).
+  const talentScore = weightedPlayerZScore(player, poolStats, weights)
+
+  return (
+    categoryScore +
+    talentScore +
+    USER_PICK_POSITION_NEED_SCALE * positionNeedBonus(player, userRoster)
   )
 }
 
@@ -36,9 +49,10 @@ export const greedyUserPick = (
     throw new RangeError("Cannot pick a user player from an empty pool")
   }
 
+  const poolStats = playerPoolStats(remaining)
   const scored = remaining.map((player) => ({
     player,
-    score: scorePlayer(player, userRoster, allRosters, weights),
+    score: scorePlayer(player, userRoster, allRosters, poolStats, weights),
   }))
 
   scored.sort((left, right) => {
@@ -76,6 +90,7 @@ export const evaluateForcePick = (
   weights: CategoryWeights,
   rng: () => number,
 ): { player: Player; path: Player[]; score: number } => {
+  const poolStats = playerPoolStats(remaining)
   const player = greedyUserPick(
     remaining.filter((candidate) => candidate.id === forcePick.id),
     userRoster,
@@ -87,6 +102,6 @@ export const evaluateForcePick = (
   return {
     player,
     path: [player],
-    score: scorePlayer(player, userRoster, allRosters, weights),
+    score: scorePlayer(player, userRoster, allRosters, poolStats, weights),
   }
 }
