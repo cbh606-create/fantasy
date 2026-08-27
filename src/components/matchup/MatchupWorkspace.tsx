@@ -627,6 +627,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const rosterPlayers = state.players.filter((player) =>
     rosterPlayerIds.has(player.id),
   )
+  const ilPlayerIds = new Set(
+    youTeam?.entries.flatMap((entry) =>
+      entry.slot === "IL" && entry.playerId ? [entry.playerId] : [],
+    ) ?? [],
+  )
 
   const extraPlayers = [...previewStreamerIds(previewPlan)]
     .map((playerId) => playersMap[playerId])
@@ -744,6 +749,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             previewPlan,
           )}
           extraPlayers={extraPlayers}
+          ilPlayerIds={ilPlayerIds}
           onReset={handleResetDaily}
           onTogglePlayerDay={handleTogglePlayerDay}
           previewActive={previewPlan != null}
@@ -762,6 +768,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           <StreamingPlansPanel
             adpByPlayerId={matchupData.adpByPlayerId}
             board={matchupData.board}
+            daily={daily ?? undefined}
             leagueId={leagueId}
             onPreviewPlanChange={handlePreviewPlanChange}
             playersById={matchupData.playersById}

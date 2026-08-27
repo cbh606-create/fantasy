@@ -3,6 +3,7 @@ import {
   dailyLineupsMatchDays,
   effectiveGamesByPlayerId,
   initDailyLineups,
+  isDailyLineupFullForDate,
   setSlotPlayer,
   togglePlayerDay,
   youTotalsFromDaily,
@@ -460,5 +461,54 @@ describe("togglePlayerDay", () => {
 
     expect(result.status).toBe("ineligible")
     expect(result.daily).toBe(daily)
+  })
+})
+
+describe("isDailyLineupFullForDate", () => {
+  it("is true when every active slot has a player with a game that day", () => {
+    const day = "2025-11-03"
+    const entries = Array.from({ length: 10 }, (_, index) => ({
+      slot: (index < 5
+        ? (["PG", "SG", "SF", "PF", "C"] as const)[index]!
+        : "UTIL") as SeasonRosterEntry["slot"],
+      playerId: `fill-${index}`,
+    }))
+    const playersById = Object.fromEntries(
+      entries.map((entry) => [
+        entry.playerId!,
+        {
+          ...star,
+          id: entry.playerId!,
+          teamAbbr: "BOS",
+          positions: ["PG"] as SeasonPlayer["positions"],
+        },
+      ]),
+    )
+    expect(
+      isDailyLineupFullForDate({ [day]: entries }, day, playersById, schedule),
+    ).toBe(true)
+  })
+
+  it("is false when any slot is empty or occupied by a no-game player", () => {
+    const day = "2025-11-03"
+    const entries: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: "star" },
+      { slot: "SG", playerId: null },
+    ]
+    expect(
+      isDailyLineupFullForDate({ [day]: entries }, day, { star }, schedule),
+    ).toBe(false)
+
+    const noGameDay = "2025-11-04"
+    expect(
+      isDailyLineupFullForDate(
+        {
+          [noGameDay]: [{ slot: "PG", playerId: "star" }],
+        },
+        noGameDay,
+        { star },
+        schedule,
+      ),
+    ).toBe(false)
   })
 })

@@ -18,6 +18,7 @@ import type {
   SeasonPlayer,
 } from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
+import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import {
   buildStreamingPlan,
   streamingAddDropKey,
@@ -62,6 +63,8 @@ type StreamingPlansPanelProps = {
   playersById: Record<string, SeasonPlayer>
   adpByPlayerId?: Record<string, number>
   onPreviewPlanChange?: (plan: StreamingPlan | null) => void
+  /** Base (non-preview) daily lineups — used to skip adds on full days. */
+  daily?: DailyLineups
 }
 
 const formatDayLabel = (day: string) => {
@@ -427,6 +430,7 @@ export const StreamingPlansPanel = ({
   playersById,
   adpByPlayerId,
   onPreviewPlanChange,
+  daily,
 }: StreamingPlansPanelProps) => {
   const suggested = suggestStreamingStrategyMode(board)
   const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
@@ -456,6 +460,7 @@ export const StreamingPlansPanel = ({
           adpByPlayerId,
           spotCount,
           forcedRosterDrops: forcedRosterDropsBySpotCount[spotCount],
+          daily,
         }),
       ),
     [
@@ -466,6 +471,7 @@ export const StreamingPlansPanel = ({
       strategyMode,
       adpByPlayerId,
       forcedRosterDropsBySpotCount,
+      daily,
     ],
   )
 

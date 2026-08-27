@@ -274,3 +274,44 @@ describe("DailyLineupPanel preview overlay", () => {
     expect(onTogglePlayerDay).toHaveBeenCalledWith("fa-a", "2025-11-04")
   })
 })
+
+describe("DailyLineupPanel IL game cells", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it("shades IR game cells and blocks start/sit without calling toggle", () => {
+    const onTogglePlayerDay = vi.fn()
+    const injured: SeasonPlayer = {
+      ...rostered,
+      id: "il-1",
+      name: "Injured Star",
+      teamAbbr: "CHI",
+    }
+
+    render(
+      <DailyLineupPanel
+        daily={{
+          "2025-11-03": [{ slot: "UTIL", playerId: null }],
+          "2025-11-04": [{ slot: "UTIL", playerId: null }],
+        }}
+        days={days}
+        ilPlayerIds={["il-1"]}
+        onReset={vi.fn()}
+        onTogglePlayerDay={onTogglePlayerDay}
+        rosterPlayers={[injured]}
+        schedule={schedule}
+      />,
+    )
+
+    const irCells = screen.getAllByRole("button", {
+      name: /Injured Star on IR/i,
+    })
+    expect(irCells.length).toBeGreaterThan(0)
+    expect(irCells[0]!.className).toMatch(/bg-\[var\(--color-soft-cloud\)\]/)
+    expect(irCells[0]!).toHaveTextContent("IR")
+    fireEvent.click(irCells[0]!)
+    expect(onTogglePlayerDay).not.toHaveBeenCalled()
+    expect(screen.getByText(/On IR — move off IL on Roster to start/i)).toBeInTheDocument()
+  })
+})

@@ -1659,4 +1659,53 @@ describe("2/3-spot density-first off nights", () => {
       playerId: "fa-chi",
     })
   })
+
+  it("skips adds on dates when daily active lineup is already full", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const state = tinyState([faA], ["fa-a"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "NYK" },
+    ])
+    const fullEntries = Array.from({ length: 10 }, (_, index) => ({
+      slot: (index < 5
+        ? (["PG", "SG", "SF", "PF", "C"] as const)[index]!
+        : "UTIL") as "PG" | "SG" | "SF" | "PF" | "C" | "UTIL",
+      playerId: `fill-${index}`,
+    }))
+    const fillers = fullEntries.map((entry) =>
+      player(entry.playerId!, "BOS", {
+        positions: ["PG"],
+      }),
+    )
+    state.players.push(...fillers)
+    const daily = {
+      "2025-11-03": fullEntries,
+      "2025-11-04": fullEntries.map((entry) => ({ ...entry, playerId: null })),
+    }
+
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      daily,
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "empty",
+      playerId: null,
+      addIndex: null,
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-a",
+      addIndex: 1,
+    })
+    expect(plan.addsUsed).toBe(1)
+  })
 })

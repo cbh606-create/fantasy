@@ -490,3 +490,32 @@ export const togglePlayerDay = (
     status: "started",
   }
 }
+
+/**
+ * True when every active slot that day is filled by a player with a game
+ * (same gate as `togglePlayerDay` → `"full"`).
+ */
+export const isDailyLineupFullForDate = (
+  daily: DailyLineups,
+  date: string,
+  playersById: Record<string, SeasonPlayer> | Map<string, SeasonPlayer>,
+  schedule: ScheduleResponse,
+): boolean => {
+  const entries = daily[date]
+  if (!entries?.length) return false
+
+  const resolvePlayer = (playerId: string) =>
+    playersById instanceof Map ? playersById.get(playerId) : playersById[playerId]
+
+  const slotIsOpenForStart = (entry: SeasonRosterEntry): boolean => {
+    if (entry.playerId === null) return true
+
+    const occupant = resolvePlayer(entry.playerId)
+    const teamAbbr = occupant?.teamAbbr
+    if (!teamAbbr) return false
+
+    return gameWeightForTeamDate(teamAbbr, date, schedule) === 0
+  }
+
+  return !entries.some(slotIsOpenForStart)
+}

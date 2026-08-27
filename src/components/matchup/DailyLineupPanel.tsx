@@ -36,6 +36,8 @@ type DailyLineupPanelProps = {
   extraPlayers?: SeasonPlayer[]
   /** Sit/start hints keyed by player id — shown on that player's game cells. */
   sitStartBadgesByPlayerId?: Record<string, string>
+  /** Players currently on the IL/IR roster slot — shade game cells only. */
+  ilPlayerIds?: Set<string> | string[]
 }
 
 const toDateSet = (
@@ -73,9 +75,11 @@ export const DailyLineupPanel = ({
   streamerOwnedDatesByPlayerId = {},
   extraPlayers,
   sitStartBadgesByPlayerId = {},
+  ilPlayerIds,
 }: DailyLineupPanelProps) => {
   const [hint, setHint] = useState("")
   const previewIds = toIdSet(previewPlayerIds)
+  const onIlIds = toIdSet(ilPlayerIds)
   const rowPlayers = [...rosterPlayers]
   const seenIds = new Set(rosterPlayers.map((player) => player.id))
   for (const extra of extraPlayers ?? []) {
@@ -89,8 +93,13 @@ export const DailyLineupPanel = ({
     day: string,
     hasGame: boolean,
     locked: boolean,
+    onIl: boolean,
   ) => {
     if (locked || !hasGame) return
+    if (onIl) {
+      setHint("On IR — move off IL on Roster to start")
+      return
+    }
 
     const status = onTogglePlayerDay(player.id, day)
     if (status === "full") {
@@ -158,6 +167,7 @@ export const DailyLineupPanel = ({
           <tbody>
             {rowPlayers.map((player) => {
               const isPreview = previewIds.has(player.id)
+              const onIl = onIlIds.has(player.id)
               const droppedFrom = droppedFromDateByPlayerId[player.id]
               const ownedDates = isPreview
                 ? toDateSet(streamerOwnedDatesByPlayerId[player.id])
@@ -236,6 +246,7 @@ export const DailyLineupPanel = ({
                     const lockedAriaLabel = isDropped
                       ? `${player.name} dropped in streaming plan on ${formatDayLabel(day)}`
                       : `${player.name} not on streaming plan on ${formatDayLabel(day)}`
+                    const irAriaLabel = `${player.name} on IR ${formatDayLabel(day)}`
 
                     if (!hasGame) {
                       return (
@@ -255,33 +266,49 @@ export const DailyLineupPanel = ({
                         <div className="inline-flex flex-col items-center gap-0.5">
                           <button
                             aria-label={
-                              isLocked
-                                ? lockedAriaLabel
-                                : sitStartHint
-                                  ? `${ariaLabel}. ${sitStartHint}`
-                                  : ariaLabel
+                              onIl
+                                ? irAriaLabel
+                                : isLocked
+                                  ? lockedAriaLabel
+                                  : sitStartHint
+                                    ? `${ariaLabel}. ${sitStartHint}`
+                                    : ariaLabel
                             }
-                            aria-pressed={isLocked ? undefined : started}
+                            aria-pressed={
+                              isLocked || onIl ? undefined : started
+                            }
                             className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
-                              isLocked
-                                ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
-                                : started
-                                  ? "bg-[var(--color-ink)] text-white hover:opacity-90"
-                                  : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
+                              onIl
+                                ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-80"
+                                : isLocked
+                                  ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
+                                  : started
+                                    ? "bg-[var(--color-ink)] text-white hover:opacity-90"
+                                    : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
                             }`}
                             disabled={isLocked}
                             onClick={() =>
-                              handleToggle(player, day, hasGame, isLocked)
+                              handleToggle(
+                                player,
+                                day,
+                                hasGame,
+                                isLocked,
+                                onIl,
+                              )
                             }
                             type="button"
                           >
-                            {startedSlot && !isLocked ? (
+                            {onIl ? (
+                              <span className="mr-1 font-semibold tracking-wide">
+                                IR
+                              </span>
+                            ) : startedSlot && !isLocked ? (
                               <span className="mr-1 font-semibold tracking-wide">
                                 {slotDisplayLabel(startedSlot)}
                               </span>
                             ) : null}
                             {shortLabel}
-                            {isB2b && !isLocked ? (
+                            {isB2b && !isLocked && !onIl ? (
                               <span
                                 className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
                                 title="B2B · ~75% expected"
@@ -290,7 +317,7 @@ export const DailyLineupPanel = ({
                               </span>
                             ) : null}
                           </button>
-                          {sitStartHint ? (
+                          {sitStartHint && !onIl ? (
                             <span
                               className="max-w-[4.75rem] text-center text-[0.5625rem] leading-tight font-medium text-[var(--color-ink)]"
                               title={sitStartHint}

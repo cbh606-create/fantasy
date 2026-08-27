@@ -6,6 +6,10 @@ import type {
   SeasonRosterEntry,
 } from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "./constants"
+import {
+  isDailyLineupFullForDate,
+  type DailyLineups,
+} from "./dailyLineups"
 import type {
   MatchupBoard,
   StreamingPlan,
@@ -68,6 +72,8 @@ export type BuildStreamingPlanInput = {
   adpByPlayerId?: Record<string, number>
   injuryOutDaysByPlayerId?: Record<string, number>
   forcedRosterDrops?: Record<string, string | "open_slot">
+  /** When set, skip add spends on dates whose Daily active lineup is already full. */
+  daily?: DailyLineups
 }
 
 export const streamingAddDropKey = (date: string, spotIndex: number) =>
@@ -519,6 +525,7 @@ export const buildStreamingPlan = ({
   adpByPlayerId,
   injuryOutDaysByPlayerId,
   forcedRosterDrops,
+  daily,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -547,6 +554,9 @@ export const buildStreamingPlan = ({
     )
     const seatedToday = new Set<string>()
     const previousOccupants = [...occupants]
+    const lineupFull =
+      daily != null &&
+      isDailyLineupFullForDate(daily, date, playersById, schedule)
 
     // Pass 1: keep streamers who still have games left this week (hold through
     // off nights). Only free the spot when they have zero remaining games.
@@ -590,7 +600,8 @@ export const buildStreamingPlan = ({
         ? addLimit
         : dailySwapPaceLimit(remainingAdds, remainingDays)
     let swapsToday = 0
-    const canSpendWeeklyAdd = () => addsUsed < addLimit
+    const canSpendWeeklyAdd = () =>
+      !lineupFull && addsUsed < addLimit
     const canSpendSwapAdd = () =>
       canSpendWeeklyAdd() &&
       (spotCount === 1 || swapsToday < daySwapPaceCap)
