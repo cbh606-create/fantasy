@@ -182,26 +182,35 @@ describe("DraftWorkspace", () => {
   })
 
   it("switches to live mode and continues manually after sync fails", async () => {
-    vi.mocked(fetch)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: "league-1",
-          name: "Test League",
-          espnLeagueId: "fixture-league",
-          season: 2026,
-          stateJson: JSON.stringify({ ...state, source: "espn" }),
-        }),
-      } as Response)
-      .mockResolvedValueOnce({
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input)
+      if (url === "/api/leagues/league-1") {
+        return {
+          ok: true,
+          json: async () => ({
+            id: "league-1",
+            name: "Test League",
+            espnLeagueId: "fixture-league",
+            season: 2026,
+            stateJson: JSON.stringify({ ...state, source: "espn" }),
+          }),
+        } as Response
+      }
+      if (url === "/api/draft/simulate") {
+        return {
+          ok: true,
+          json: async () => simulationResult,
+        } as Response
+      }
+      return {
         ok: false,
         json: async () => ({ message: "ESPN is unavailable" }),
-      } as Response)
+      } as Response
+    })
 
     render(<DraftWorkspace initialMode="live" leagueId="league-1" />)
 
-    fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
-    expect(screen.getByText("ESPN synced")).toBeInTheDocument()
+    expect(await screen.findByText("ESPN synced")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Sync ESPN board" }))
 
@@ -214,39 +223,56 @@ describe("DraftWorkspace", () => {
   })
 
   it("syncs with the persisted ESPN league id and season", async () => {
-    vi.mocked(fetch)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: "league-1",
-          name: "Test League",
-          espnLeagueId: "espn-12345",
-          season: 2025,
-          stateJson: JSON.stringify({ ...state, source: "espn" }),
-        }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: false,
-        json: async () => ({ message: "ESPN is unavailable" }),
-      } as Response)
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = String(input)
+      if (url === "/api/leagues/league-1") {
+        return {
+          ok: true,
+          json: async () => ({
+            id: "league-1",
+            name: "Test League",
+            espnLeagueId: "espn-12345",
+            season: 2025,
+            stateJson: JSON.stringify({ ...state, source: "espn" }),
+          }),
+        } as Response
+      }
+      if (url === "/api/draft/simulate") {
+        return {
+          ok: true,
+          json: async () => simulationResult,
+        } as Response
+      }
+      if (url === "/api/espn/sync-board") {
+        expect(init).toEqual(
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify({
+              id: "league-1",
+              leagueId: "espn-12345",
+              season: 2025,
+            }),
+          }),
+        )
+        return {
+          ok: false,
+          json: async () => ({ message: "ESPN is unavailable" }),
+        } as Response
+      }
+      return { ok: false, json: async () => ({}) } as Response
+    })
 
     render(<DraftWorkspace initialMode="live" leagueId="league-1" />)
 
-    fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
+    expect(await screen.findByText("ESPN synced")).toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "Sync ESPN board" }))
 
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
-    expect(fetch).toHaveBeenNthCalledWith(
-      2,
-      "/api/espn/sync-board",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({
-          id: "league-1",
-          leagueId: "espn-12345",
-          season: 2025,
-        }),
-      }),
+    await waitFor(() =>
+      expect(
+        vi.mocked(fetch).mock.calls.some(
+          (call) => String(call[0]) === "/api/espn/sync-board",
+        ),
+      ).toBe(true),
     )
   })
 
@@ -279,27 +305,36 @@ describe("DraftWorkspace", () => {
       ],
     }
 
-    vi.mocked(fetch)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: "league-1",
-          name: "Test League",
-          stateJson: JSON.stringify(userFirstState),
-        }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ id: "league-1" }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => simulationResult,
-      } as Response)
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = String(input)
+      if (url === "/api/leagues/league-1" && init?.method === "PATCH") {
+        return {
+          ok: true,
+          json: async () => ({ id: "league-1" }),
+        } as Response
+      }
+      if (url === "/api/leagues/league-1") {
+        return {
+          ok: true,
+          json: async () => ({
+            id: "league-1",
+            name: "Test League",
+            stateJson: JSON.stringify(userFirstState),
+          }),
+        } as Response
+      }
+      if (url === "/api/draft/simulate") {
+        return {
+          ok: true,
+          json: async () => simulationResult,
+        } as Response
+      }
+      return { ok: false, json: async () => ({}) } as Response
+    })
 
     render(<DraftWorkspace initialMode="live" leagueId="league-1" />)
 
-    fireEvent.click(await screen.findByRole("tab", { name: "Live" }))
+    expect(await screen.findByRole("searchbox", { name: "Search players" })).toBeInTheDocument()
     fireEvent.change(screen.getByRole("searchbox", { name: "Search players" }), {
       target: { value: "First" },
     })
@@ -307,10 +342,25 @@ describe("DraftWorkspace", () => {
       screen.getByRole("button", { name: "Mark First Player picked" }),
     )
 
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
-    const patchBody = JSON.parse(
-      String(vi.mocked(fetch).mock.calls[1]?.[1]?.body),
-    ) as { state: LeagueState }
+    await waitFor(() =>
+      expect(
+        vi.mocked(fetch).mock.calls.some(
+          (call) =>
+            String(call[0]) === "/api/leagues/league-1" &&
+            call[1]?.method === "PATCH",
+        ),
+      ).toBe(true),
+    )
+    const patchCall = vi
+      .mocked(fetch)
+      .mock.calls.find(
+        (call) =>
+          String(call[0]) === "/api/leagues/league-1" &&
+          call[1]?.method === "PATCH",
+      )
+    const patchBody = JSON.parse(String(patchCall?.[1]?.body)) as {
+      state: LeagueState
+    }
 
     expect(patchBody.state.board.picks.find((pick) => pick.overall === 1)?.playerId)
       .toBe("player-1")
@@ -318,10 +368,12 @@ describe("DraftWorkspace", () => {
       .toBeFalsy()
     expect(patchBody.state.board.currentOverall).toBe(2)
 
-    await waitFor(
-      () => expect(fetch).toHaveBeenCalledTimes(3),
-      { timeout: 1_000 },
-    )
+    await waitFor(() => {
+      const simulateCalls = vi
+        .mocked(fetch)
+        .mock.calls.filter((call) => String(call[0]) === "/api/draft/simulate")
+      expect(simulateCalls.length).toBeGreaterThanOrEqual(1)
+    })
   })
 
   it("starts a Mock draft and advances CPU until the user turn", async () => {

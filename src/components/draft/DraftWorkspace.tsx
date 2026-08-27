@@ -202,6 +202,7 @@ export const DraftWorkspace = ({
   const mockAdvanceControllerRef = useRef<AbortController | null>(null)
   const mockStartRequestIdRef = useRef(0)
   const didAutoEnterMockRef = useRef(false)
+  const didAutoScheduleLiveRef = useRef(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -591,11 +592,23 @@ export const DraftWorkspace = ({
     }
   }
 
+  const handleEnterLive = () => {
+    setMode("live")
+    if (state) scheduleSimulation(state)
+  }
+
   useEffect(() => {
     if (didAutoEnterMockRef.current) return
     if (initialMode !== "mock" || !state || isLoading) return
     didAutoEnterMockRef.current = true
     handleEnterMock()
+  }, [initialMode, state, isLoading])
+
+  useEffect(() => {
+    if (didAutoScheduleLiveRef.current) return
+    if (initialMode !== "live" || !state || isLoading) return
+    didAutoScheduleLiveRef.current = true
+    scheduleSimulation(state)
   }, [initialMode, state, isLoading])
 
   const handleResetMock = () => {
@@ -797,7 +810,7 @@ export const DraftWorkspace = ({
                   return
                 }
 
-                setMode(workspaceMode)
+                handleEnterLive()
               }}
               role="tab"
               type="button"

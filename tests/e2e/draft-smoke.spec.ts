@@ -21,6 +21,9 @@ const players = [
     positions: ["PG"],
     projections,
     adp: 1,
+    adpBySource: {
+      yahoo_draft_analysis_rank: 1,
+    },
   },
   {
     id: "p02",
@@ -28,6 +31,9 @@ const players = [
     positions: ["SG"],
     projections,
     adp: 2,
+    adpBySource: {
+      yahoo_draft_analysis_rank: 2,
+    },
   },
 ]
 
@@ -85,6 +91,9 @@ const simulationResult = (playerId: string) => ({
 })
 
 const mockDraftApis = async (page: Page) => {
+  await page.route("**/api/players", async (route) => {
+    await route.fulfill({ json: { players } })
+  })
   await page.route("**/api/leagues/e2e-manual", async (route) => {
     if (route.request().method() === "PATCH") {
       await route.fulfill({ json: { id: "e2e-manual" } })
@@ -101,7 +110,7 @@ const mockDraftApis = async (page: Page) => {
   })
 }
 
-test("manual setup reaches prep and shows simulated next picks", async ({
+test("manual setup reaches mock and shows strategy chips plus next picks", async ({
   page,
 }) => {
   await page.route("**/api/leagues", async (route) => {
@@ -130,20 +139,18 @@ test("manual setup reaches prep and shows simulated next picks", async ({
   await page.getByRole("button", { name: "Punt TO" }).click()
   await page.getByRole("button", { name: "Focus AST" }).click()
   await Promise.all([
-    page.waitForURL(/\/leagues\/e2e-manual\/draft$/),
-    page.getByRole("button", { name: "Enter manually" }).click(),
+    page.waitForURL(/\/leagues\/e2e-manual\/draft/),
+    page.getByRole("button", { name: "Start mock draft" }).click(),
   ])
 
-  await expect(page).toHaveURL(/\/leagues\/e2e-manual\/draft$/)
+  await expect(page).toHaveURL(/\/leagues\/e2e-manual\/draft/)
   await expect(page.getByRole("heading", { name: "Smoke League" })).toBeVisible()
-  await expect(page.getByRole("tab", { name: "Prep" })).toHaveAttribute(
+  await expect(page.getByRole("tab", { name: "Mock" })).toHaveAttribute(
     "aria-selected",
     "true",
   )
-  await expect(page.getByText("Focus AST")).toBeVisible()
-  await expect(page.getByText("Punt TO")).toBeVisible()
-
-  await page.getByRole("button", { name: "Run simulation" }).click()
+  await expect(page.getByRole("button", { name: "Punt TO" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "Focus AST" })).toBeVisible()
 
   const recommendations = page
     .getByRole("heading", { name: "Next picks" })
@@ -165,14 +172,13 @@ test("live pick refreshes recommendations", async ({ page }) => {
   })
 
   await page.goto("/leagues/e2e-manual/draft")
-  await page.getByRole("button", { name: "Run simulation" }).click()
+  await page.getByRole("tab", { name: "Live" }).click()
 
   const recommendations = page
     .getByRole("heading", { name: "Next picks" })
     .locator("..")
   await expect(recommendations).toContainText("Avery Cole")
 
-  await page.getByRole("tab", { name: "Live" }).click()
   await page.getByRole("button", { name: "Mark Avery Cole picked" }).click()
 
   await expect(recommendations).toContainText("Blake Reed")
