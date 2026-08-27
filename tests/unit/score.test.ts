@@ -4,7 +4,9 @@ import type { CategoryId, Player } from "@/lib/domain/types"
 import {
   categoryWinExpectancies,
   leagueMeanTotals,
+  playerPoolStats,
   rosterTotals,
+  weightedPlayerZScore,
 } from "@/lib/sim/score"
 
 const projections = (
@@ -146,5 +148,21 @@ describe("categoryWinExpectancies", () => {
 
     expect(score).toBeCloseTo(1 / (1 + Math.exp(-1)))
     expect(Number.isNaN(score)).toBe(false)
+  })
+})
+
+describe("weightedPlayerZScore", () => {
+  it("ranks the higher-PTS player above a weaker peer in the same pool", () => {
+    const pool = [
+      player("high", { PTS: 30 }),
+      player("low", { PTS: 10 }),
+      player("mid", { PTS: 20 }),
+    ]
+    const stats = playerPoolStats(pool)
+    const weights = { PTS: 1 } as Record<CategoryId, number>
+
+    expect(
+      weightedPlayerZScore(pool[0], stats, weights),
+    ).toBeGreaterThan(weightedPlayerZScore(pool[1], stats, weights))
   })
 })

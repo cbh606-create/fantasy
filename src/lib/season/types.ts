@@ -21,6 +21,8 @@ export type SeasonPlayer = {
   positions?: SeasonPosition[]
   availability?: "fa" | "waiver"
   projections: Record<CategoryId, number>
+  /** ESPN (or overlay) projected games; used for weekly scaling when set. */
+  projectedGames?: number
   shooting: {
     FGM: number
     FGA: number

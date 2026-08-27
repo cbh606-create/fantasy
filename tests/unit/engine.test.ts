@@ -189,4 +189,67 @@ describe("runDraftSimulation", () => {
     )
     expect(result.meta.simCount).toBe(1)
   })
+
+  it("recommends top projection talent at 1.01 on an empty board (fast path)", () => {
+    const star = (
+      id: string,
+      adp: number,
+      overrides: Partial<Record<CategoryId, number>>,
+    ): Player => ({
+      id,
+      name: id,
+      positions: ["C"],
+      adp,
+      projections: {
+        FG_PCT: 0.48,
+        FT_PCT: 0.8,
+        TPM: 100,
+        REB: 400,
+        AST: 300,
+        STL: 60,
+        BLK: 40,
+        TO: 180,
+        PTS: 1400,
+        ...overrides,
+      },
+    })
+
+    const players = [
+      star("durant", 1, { PTS: 1693, REB: 400, AST: 300, BLK: 70 }),
+      star("jokic", 14, {
+        FG_PCT: 0.58,
+        PTS: 2144,
+        REB: 940,
+        AST: 747,
+        STL: 100,
+        BLK: 60,
+      }),
+      star("wemby", 20, {
+        PTS: 1755,
+        REB: 800,
+        AST: 280,
+        BLK: 250,
+        STL: 90,
+      }),
+      star("curry", 25, { PTS: 1810, TPM: 320, AST: 400, REB: 350 }),
+      ...Array.from({ length: 20 }, (_, index) =>
+        star(`filler-${index}`, 40 + index, {
+          PTS: 900,
+          REB: 300,
+          AST: 200,
+        }),
+      ),
+    ]
+
+    const result = runDraftSimulation({
+      state: createState(createSettings({ rounds: 3 }), players),
+      simCount: 20,
+      seed: 42,
+      fastRecommendations: true,
+    })
+
+    expect(result.nextPicks.length).toBeGreaterThan(0)
+    expect(["jokic", "wemby"]).toContain(result.nextPicks[0].playerId)
+    expect(result.nextPicks[0].playerId).not.toBe("durant")
+  })
 })

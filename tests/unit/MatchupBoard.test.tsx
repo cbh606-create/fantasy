@@ -41,7 +41,7 @@ describe("MatchupBoard scoreboard table", () => {
     cleanup()
   })
 
-  it("renders horizontal You/Opp scoreboard with score up top", () => {
+  it("renders a fixed horizontal score bar with You/Opp cats", () => {
     render(<MatchupBoard board={board} />)
 
     expect(screen.getByRole("rowheader", { name: /^You$/i })).toBeInTheDocument()
@@ -59,7 +59,7 @@ describe("MatchupBoard scoreboard table", () => {
     expect(screen.queryByText(/YOU 2/i)).not.toBeInTheDocument()
 
     expect(screen.getByText("2–1–0")).toBeInTheDocument()
-    expect(screen.getByText(/Projected 5\.25 cat wins/i)).toBeInTheDocument()
+    expect(screen.getByText(/Proj 5\.25/i)).toBeInTheDocument()
     expect(screen.queryByText("62%")).not.toBeInTheDocument()
   })
 })

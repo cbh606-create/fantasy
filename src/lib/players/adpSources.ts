@@ -26,7 +26,7 @@ export const ADP_SOURCES: Record<
 > = {
   yahoo_draft_analysis_rank: {
     id: "yahoo_draft_analysis_rank",
-    label: "Yahoo ADP",
+    label: "Yahoo Rank",
     shortLabel: "Yahoo",
   },
   fantasypros_yahoo: {

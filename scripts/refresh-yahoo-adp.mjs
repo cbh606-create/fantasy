@@ -1,8 +1,9 @@
 /**
- * Overlay Yahoo mock/draft ADP (draft_analysis.average_pick) onto the player pool.
+ * Overlay Yahoo mock-draft Rank (player_ranks OR) onto the player pool.
  *
- * Free public API exposes average_pick via out=draft_analysis (same values shown
- * in Yahoo mock drafts). Stored as adpBySource.yahoo_draft_analysis_rank.
+ * Mock draft rooms default-sort by Yahoo overall Rank, which differs a lot from
+ * draftanalysis "All Drafts" average_pick ADP (e.g. Edwards Rank 8 vs ADP 26.7).
+ * Stored as adpBySource.yahoo_draft_analysis_rank.
  *
  * Usage:
  *   node scripts/refresh-yahoo-adp.mjs
@@ -11,6 +12,7 @@
  *   node scripts/refresh-yahoo-adp.mjs --write-fixture
  *
  * Source: https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard
+ *         (Fantasy → Rank column; same OR rank as mock draft player lists)
  */
 
 import { readFile, writeFile } from "node:fs/promises"
@@ -29,7 +31,7 @@ const SOURCE_ID = "yahoo_draft_analysis_rank"
 const PAGE_SIZE = 25
 const FIXTURE_REL = "data/players/yahoo_draft_analysis_rank_2026_27.json"
 const USER_AGENT =
-  "fantasy-draft-tool/0.1 (local Yahoo ADP refresh; +https://github.com/cbh606-create/fantasy)"
+  "fantasy-draft-tool/0.1 (local Yahoo Rank refresh; +https://github.com/cbh606-create/fantasy)"
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((arg) => {
@@ -58,17 +60,16 @@ const flattenPlayer = (playerNode) => {
   )
 }
 
-const averagePick = (player) => {
-  const raw =
-    player?.draft_analysis?.average_pick ??
-    player?.average_pick ??
-    null
-  if (raw === null || raw === undefined || raw === "-" || raw === "") {
-    return null
+const overallRank = (player) => {
+  const ranks = player?.player_ranks
+  if (!Array.isArray(ranks)) return null
+  for (const entry of ranks) {
+    const rank = entry?.player_rank
+    if (!rank || rank.rank_type !== "OR") continue
+    const value = Number.parseFloat(String(rank.rank_value))
+    if (Number.isFinite(value) && value > 0) return value
   }
-  const value = Number.parseFloat(String(raw))
-  if (!Number.isFinite(value) || value <= 0) return null
-  return value
+  return null
 }
 
 const parseYahooPlayersPayload = (json) => {
@@ -94,7 +95,7 @@ const parseYahooPlayersPayload = (json) => {
     const entry = playersBlock[i] ?? playersBlock[String(i)]
     const player = flattenPlayer(entry?.player)
     if (!player?.name?.full) continue
-    const adp = averagePick(player)
+    const adp = overallRank(player)
     if (adp === null) continue
     rows.push({
       name: player.name.full,
@@ -107,7 +108,7 @@ const parseYahooPlayersPayload = (json) => {
 }
 
 const buildApiUrl = (start, count) =>
-  `${YAHOO_API_BASE};position=ALL;start=${start};count=${count};sort=average_pick;out=draft_analysis?format=json_f`
+  `${YAHOO_API_BASE};position=ALL;start=${start};count=${count};sort=OR;out=ranks?format=json_f`
 
 const fetchYahooPage = async (start) => {
   const response = await fetch(buildApiUrl(start, PAGE_SIZE), {
@@ -144,7 +145,7 @@ const fetchYahooAdpLive = async () => {
 
   const unique = [...byKey.values()].sort((a, b) => a.adp - b.adp)
   if (unique.length < 50) {
-    throw new Error(`Yahoo API returned only ${unique.length} ADP rows`)
+    throw new Error(`Yahoo API returned only ${unique.length} Rank rows`)
   }
   return unique
 }
@@ -172,12 +173,12 @@ const saveFixture = async (rows) => {
       api: YAHOO_API_BASE,
       fetchedAt: new Date().toISOString(),
       count: rows.length,
-      note: "Yahoo draft_analysis.average_pick (mock/draft ADP)",
+      note: "Yahoo player_ranks OR (mock draft Rank / draftanalysis Rank column)",
     },
     rankings: rows.map((row) => ({ name: row.name, adp: row.adp })),
   }
   await writeFile(fixturePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8")
-  console.log(`Wrote fixture ${fixturePath} (${rows.length} ADP rows)`)
+  console.log(`Wrote fixture ${fixturePath} (${rows.length} Rank rows)`)
 }
 
 const loadRows = async () => {
@@ -233,7 +234,7 @@ const main = async () => {
 
   await writeFile(outPath, `${JSON.stringify(next, null, 2)}\n`, "utf8")
 
-  console.log(`Yahoo ADP rows (${source}): ${rows.length}`)
+  console.log(`Yahoo Rank rows (${source}): ${rows.length}`)
   console.log(`Matched onto pool: ${matched}/${pool.players.length}`)
   console.log(`Unmatched (kept prior ADP): ${unmatched}`)
   console.log(

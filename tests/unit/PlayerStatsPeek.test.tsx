@@ -10,6 +10,7 @@ const player: Player = {
   name: "Alpha",
   positions: ["PG"],
   teamAbbr: "NYK",
+  projectedGames: 80,
   projections: {
     FG_PCT: 0.45,
     FT_PCT: 0.8,
@@ -27,19 +28,33 @@ const player: Player = {
 afterEach(() => cleanup())
 
 describe("PlayerStatsPeek", () => {
-  it("shows empty copy when no player", () => {
+  it("keeps category labels and row labels when empty", () => {
     render(<PlayerStatsPeek player={null} />)
     expect(
       screen.getByText(/Hover a player to see projections/i),
     ).toBeInTheDocument()
+    expect(screen.getByText("PTS")).toBeInTheDocument()
+    expect(screen.getByText("GP")).toBeInTheDocument()
+    expect(screen.getByText("Season")).toBeInTheDocument()
+    expect(screen.getByText("Per game")).toBeInTheDocument()
   })
 
-  it("shows nine-cat projections for the player", () => {
+  it("divides counting stats by projectedGames, not a fixed 82", () => {
     render(<PlayerStatsPeek player={player} />)
     expect(screen.getByText("Alpha")).toBeInTheDocument()
-    expect(screen.getByText("PTS")).toBeInTheDocument()
+    expect(screen.getByText("80")).toBeInTheDocument()
     expect(screen.getByText("1200")).toBeInTheDocument()
-    expect(screen.getByText("0.450")).toBeInTheDocument()
+    expect(screen.getByText("15.0")).toBeInTheDocument() // 1200/80
+    expect(screen.queryByText((1200 / 82).toFixed(1))).not.toBeInTheDocument()
+    expect(screen.getAllByText("0.450")).toHaveLength(2)
+  })
+
+  it("shows em dash for per-game counts when projectedGames is missing", () => {
+    const { projectedGames: _ignored, ...withoutGp } = player
+    render(<PlayerStatsPeek player={withoutGp} />)
+    expect(screen.getByText("1200")).toBeInTheDocument()
+    expect(screen.queryByText("15.0")).not.toBeInTheDocument()
+    expect(screen.getAllByText("0.450")).toHaveLength(2)
   })
 
   it("shows an em dash when teamAbbr is missing", () => {

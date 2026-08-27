@@ -62,7 +62,7 @@ describe("adpSources", () => {
     expect(DEFAULT_ADP_SOURCE).toBe("yahoo_draft_analysis_rank")
   })
 
-  it("exposes only Yahoo ADP and ESPN ADP as selectable sources", () => {
+  it("exposes only Yahoo Rank and ESPN ADP as selectable sources", () => {
     expect([...SELECTABLE_ADP_SOURCE_IDS]).toEqual([
       "yahoo_draft_analysis_rank",
       "espn_article_h2h_points",

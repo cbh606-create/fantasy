@@ -11,6 +11,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "players:refresh": "node scripts/refresh-players.mjs",
+    "players:refresh-projections": "node scripts/refresh-espn-projections.mjs && tsx scripts/patch-seasons-from-pool.ts",
+    "players:sync-seasons-from-pool": "tsx scripts/patch-seasons-from-pool.ts",
     "players:import-hashtag": "tsx scripts/import-hashtag-projections.ts",
     "players:import-yahoo": "tsx scripts/import-yahoo-projections.ts",
     "players:espn-rankings": "node scripts/refresh-espn-rankings.mjs",

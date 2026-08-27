@@ -16,9 +16,6 @@ const valueClass = (
   const won =
     (side === "you" && outcome === "W") ||
     (side === "opp" && outcome === "L")
-  const lost =
-    (side === "you" && outcome === "L") ||
-    (side === "opp" && outcome === "W")
 
   if (won) {
     return side === "you"
@@ -31,27 +28,27 @@ const valueClass = (
 export const MatchupBoard = ({ board }: MatchupBoardProps) => (
   <section
     aria-label="Matchup board"
-    className="rounded-3xl bg-[var(--color-soft-cloud)] p-5"
+    className="rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
   >
-    <div className="mb-4 text-center">
-      <p className="font-[family-name:var(--font-bebas-neue)] text-4xl tracking-wide tabular-nums text-[var(--color-ink)] sm:text-5xl">
-        {board.wins}–{board.losses}–{board.ties}
-      </p>
-      <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
-        Projected {board.projectedCatWins.toFixed(2)} cat wins
-      </p>
-    </div>
+    <div className="flex min-h-[4.75rem] items-stretch gap-4 overflow-x-auto">
+      <div className="flex shrink-0 flex-col justify-center border-r border-[var(--color-hairline)] pr-4">
+        <p className="font-[family-name:var(--font-bebas-neue)] text-3xl leading-none tracking-wide tabular-nums text-[var(--color-ink)] sm:text-4xl">
+          {board.wins}–{board.losses}–{board.ties}
+        </p>
+        <p className="mt-1 whitespace-nowrap text-[0.8125rem] text-[var(--color-mute)]">
+          Proj {board.projectedCatWins.toFixed(2)}
+        </p>
+      </div>
 
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[20rem] border-collapse text-[0.875rem]">
+      <table className="w-full min-w-[28rem] flex-1 border-collapse text-base">
         <thead>
-          <tr className="text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
-            <th className="px-2 py-1.5 text-left font-medium" scope="col">
+          <tr className="text-[0.75rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
+            <th className="px-1.5 py-1 text-left font-medium" scope="col">
               <span className="sr-only">Team</span>
             </th>
             {board.categories.map((row) => (
               <th
-                className="px-2 py-1.5 text-center font-medium"
+                className="px-1.5 py-1 text-center font-medium"
                 key={row.categoryId}
                 scope="col"
               >
@@ -61,32 +58,32 @@ export const MatchupBoard = ({ board }: MatchupBoardProps) => (
           </tr>
         </thead>
         <tbody>
-          <tr className="border-t border-[var(--color-hairline)]">
+          <tr>
             <th
-              className="whitespace-nowrap px-2 py-1.5 text-left text-[0.75rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+              className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
               scope="row"
             >
               You
             </th>
             {board.categories.map((row) => (
               <td
-                className={`px-2 py-1.5 text-center ${valueClass("you", row.outcome)}`}
+                className={`px-1.5 py-0.5 text-center ${valueClass("you", row.outcome)}`}
                 key={`you-${row.categoryId}`}
               >
                 {formatCategoryStat(row.categoryId, row.you)}
               </td>
             ))}
           </tr>
-          <tr className="border-t border-[var(--color-hairline)]">
+          <tr>
             <th
-              className="whitespace-nowrap px-2 py-1.5 text-left text-[0.75rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+              className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
               scope="row"
             >
               Opp
             </th>
             {board.categories.map((row) => (
               <td
-                className={`px-2 py-1.5 text-center ${valueClass("opp", row.outcome)}`}
+                className={`px-1.5 py-0.5 text-center ${valueClass("opp", row.outcome)}`}
                 key={`opp-${row.categoryId}`}
               >
                 {formatCategoryStat(row.categoryId, row.opp)}

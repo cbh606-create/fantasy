@@ -15,49 +15,102 @@ const CATEGORY_LABELS: Record<CategoryId, string> = {
   PTS: "PTS",
 }
 
-const formatProjection = (categoryId: CategoryId, value: number) => {
-  if (categoryId === "FG_PCT" || categoryId === "FT_PCT") {
-    return value.toFixed(3)
-  }
+const isRateCategory = (categoryId: CategoryId) =>
+  categoryId === "FG_PCT" || categoryId === "FT_PCT"
+
+const formatSeason = (categoryId: CategoryId, value: number) => {
+  if (isRateCategory(categoryId)) return value.toFixed(3)
   return Number.isInteger(value) ? String(value) : value.toFixed(1)
 }
+
+const formatPerGame = (
+  categoryId: CategoryId,
+  seasonValue: number,
+  projectedGames: number | undefined,
+) => {
+  if (isRateCategory(categoryId)) return seasonValue.toFixed(3)
+  if (projectedGames == null || projectedGames <= 0) return "—"
+  return (seasonValue / projectedGames).toFixed(1)
+}
+
+const GRID_COLS =
+  "grid-cols-[7.5rem_2.75rem_repeat(9,minmax(3.25rem,1fr))] sm:grid-cols-[9rem_3rem_repeat(9,minmax(3.5rem,1fr))]"
 
 type PlayerStatsPeekProps = {
   player: Player | null
 }
 
 export const PlayerStatsPeek = ({ player }: PlayerStatsPeekProps) => {
+  const gp = player?.projectedGames
+
   return (
     <section
       aria-label="Player projections"
-      className="mt-3 rounded-2xl border border-[var(--color-hairline)] bg-white px-4 py-3"
+      className="mt-3 rounded-2xl border border-[var(--color-hairline)] bg-white px-3 py-2.5 sm:px-4"
     >
-      {player ? (
-        <>
-          <p className="text-sm font-semibold">
-            {player.name}
-            <span className="ml-1.5 font-normal text-[var(--color-mute)]">
-              {player.teamAbbr ?? "—"}
-            </span>
-          </p>
-          <dl className="mt-2 grid grid-cols-3 gap-x-3 gap-y-1 text-xs sm:grid-cols-5">
-            {ALL_CATEGORY_IDS.map((categoryId) => (
-              <div className="flex justify-between gap-1" key={categoryId}>
-                <dt className="text-[var(--color-mute)]">
-                  {CATEGORY_LABELS[categoryId]}
-                </dt>
-                <dd className="tabular-nums font-medium">
-                  {formatProjection(categoryId, player.projections[categoryId])}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </>
-      ) : (
-        <p className="text-sm text-[var(--color-mute)]">
-          Hover a player to see projections
-        </p>
-      )}
+      <div className="overflow-x-auto">
+        <div className={`grid ${GRID_COLS} gap-x-1 gap-y-1 text-[0.8125rem]`}>
+          <div className="min-w-0 truncate pr-2 text-[0.9375rem] font-semibold">
+            {player ? (
+              <>
+                <span className="truncate">{player.name}</span>
+                <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                  {player.teamAbbr ?? "—"}
+                </span>
+              </>
+            ) : (
+              <span className="font-normal text-[var(--color-mute)]">
+                Hover a player to see projections
+              </span>
+            )}
+          </div>
+          <div className="text-center text-[0.7rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
+            GP
+          </div>
+          {ALL_CATEGORY_IDS.map((categoryId) => (
+            <div
+              className="text-center text-[0.7rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+              key={`label-${categoryId}`}
+            >
+              {CATEGORY_LABELS[categoryId]}
+            </div>
+          ))}
+
+          <div className="pr-2 text-[var(--color-mute)]">Season</div>
+          <div className="text-center tabular-nums font-medium">
+            {gp != null && gp > 0 ? String(gp) : "—"}
+          </div>
+          {ALL_CATEGORY_IDS.map((categoryId) => (
+            <div
+              className="text-center tabular-nums font-medium"
+              key={`season-${categoryId}`}
+            >
+              {player
+                ? formatSeason(categoryId, player.projections[categoryId])
+                : "—"}
+            </div>
+          ))}
+
+          <div className="pr-2 text-[var(--color-mute)]">Per game</div>
+          <div className="text-center tabular-nums font-medium text-[var(--color-mute)]">
+            —
+          </div>
+          {ALL_CATEGORY_IDS.map((categoryId) => (
+            <div
+              className="text-center tabular-nums font-medium"
+              key={`pg-${categoryId}`}
+            >
+              {player
+                ? formatPerGame(
+                    categoryId,
+                    player.projections[categoryId],
+                    gp,
+                  )
+                : "—"}
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   )
 }

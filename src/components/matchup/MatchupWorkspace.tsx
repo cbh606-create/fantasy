@@ -702,35 +702,35 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           />
         </header>
 
-        {showIncompleteBanner ? (
-          <Banner className="mb-6" tone="mute">
-            Incomplete lineup — fill active slots for a fair projection
-          </Banner>
-        ) : null}
+        <div className="mb-4 min-h-[3.25rem] space-y-2">
+          {showIncompleteBanner ? (
+            <Banner tone="mute">
+              Incomplete lineup — fill active slots for a fair projection
+            </Banner>
+          ) : null}
 
-        {opponentError ? (
-          <Banner className="mb-6" tone="danger">
-            {opponentError}
-          </Banner>
-        ) : null}
+          {opponentError ? (
+            <Banner tone="danger">{opponentError}</Banner>
+          ) : null}
 
-        {applyError ? (
-          <Banner className="mb-6" tone="danger">
-            {applyError}
-          </Banner>
-        ) : null}
+          {applyError ? (
+            <Banner tone="danger">{applyError}</Banner>
+          ) : null}
 
-        {successMessage ? (
-          <Banner className="mb-6" tone="success">
-            {successMessage}
-          </Banner>
-        ) : null}
+          {successMessage ? (
+            <Banner tone="success">{successMessage}</Banner>
+          ) : null}
+        </div>
 
-        {isRefreshing ? (
-          <p className="mb-4 text-[0.8125rem] text-[var(--color-mute)]" role="status">
-            Refreshing projections…
-          </p>
-        ) : null}
+        <p
+          aria-live="polite"
+          className={`mb-2 text-[0.8125rem] text-[var(--color-mute)] ${
+            isRefreshing ? "visible" : "invisible"
+          }`}
+          role="status"
+        >
+          Refreshing projections…
+        </p>
 
         <p className="mb-2 text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
           Using your day-by-day lineups
