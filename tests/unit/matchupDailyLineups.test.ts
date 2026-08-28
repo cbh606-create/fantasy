@@ -565,7 +565,7 @@ describe("buildLineupDisplayRows", () => {
       "be-3",
     ])
     expect(rows.filter((row) => row.slot === "PG")).toHaveLength(1)
-    expect(rows.filter((row) => row.slot === "UTIL")).toHaveLength(3)
+    expect(rows.filter((row) => row.slot === "UTIL")).toHaveLength(0)
   })
 
   it("does not reorder when extra args look like a different focus day", () => {
@@ -581,7 +581,7 @@ describe("buildLineupDisplayRows", () => {
     ])
     expect(rows.find((row) => row.slot === "PG")?.playerId).toBeNull()
     expect(rows.find((row) => row.slot === "C")?.playerId).toBe("c-1")
-    expect(rows.filter((row) => row.slot === "BE")).toHaveLength(3)
+    expect(rows.filter((row) => row.slot === "BE")).toHaveLength(0)
   })
 
   it("appends preview streamers as PV rows and does not put them in PG", () => {
@@ -590,5 +590,37 @@ describe("buildLineupDisplayRows", () => {
     const preview = rows.filter((row) => row.slot === "PV")
     expect(preview.map((row) => row.playerId)).toEqual(["fa-a"])
     expect(rows.at(-1)?.slot).toBe("PV")
+  })
+
+  it("renders every league seat including extra G, UTIL, and BE", () => {
+    const rows = buildLineupDisplayRows([
+      { slot: "PG", playerId: "pg-1" },
+      { slot: "G", playerId: "g-1" },
+      { slot: "G", playerId: "g-2" },
+      { slot: "UTIL", playerId: "u-1" },
+      { slot: "UTIL", playerId: "u-2" },
+      { slot: "UTIL", playerId: "u-3" },
+      { slot: "UTIL", playerId: "u-4" },
+      { slot: "BE", playerId: "be-1" },
+      { slot: "BE", playerId: "be-2" },
+      { slot: "BE", playerId: "be-3" },
+      { slot: "BE", playerId: "be-4" },
+    ])
+    expect(rows.filter((row) => row.slot === "G").map((row) => row.playerId)).toEqual([
+      "g-1",
+      "g-2",
+    ])
+    expect(rows.filter((row) => row.slot === "UTIL").map((row) => row.playerId)).toEqual([
+      "u-1",
+      "u-2",
+      "u-3",
+      "u-4",
+    ])
+    expect(rows.filter((row) => row.slot === "BE").map((row) => row.playerId)).toEqual([
+      "be-1",
+      "be-2",
+      "be-3",
+      "be-4",
+    ])
   })
 })

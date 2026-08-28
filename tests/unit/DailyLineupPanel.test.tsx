@@ -394,6 +394,12 @@ describe("DailyLineupPanel slot column and day sort", () => {
         rosterEntries={[
           { slot: "PG", playerId: null },
           { slot: "C", playerId: "c-1" },
+          { slot: "UTIL", playerId: null },
+          { slot: "UTIL", playerId: null },
+          { slot: "UTIL", playerId: null },
+          { slot: "BE", playerId: null },
+          { slot: "BE", playerId: null },
+          { slot: "BE", playerId: null },
         ]}
         rosterPlayers={[center]}
         schedule={schedule}
@@ -518,6 +524,6 @@ describe("DailyLineupPanel slot column and day sort", () => {
       bodyText.indexOf("Bench Wing"),
     )
     expect(screen.getByRole("rowheader", { name: "PG" })).toBeInTheDocument()
-    expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(3)
+    expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(1)
   })
 })

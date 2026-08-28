@@ -474,31 +474,29 @@ export type DailySlotRow = {
 }
 
 /**
- * Weekly roster seats as display rows: PG→BE from the template, expandable IL,
- * then preview streamers as PV. Sit/start does not move players between rows.
+ * Weekly roster seats as display rows: one row per league seat (including extra
+ * G/UTIL/BE), expandable IL, then preview streamers as PV. Sit/start does not
+ * move players between rows.
  */
 export const buildLineupDisplayRows = (
   rosterEntries: SeasonRosterEntry[],
   extraPlayerIds: string[] = [],
   extraIlPlayerIds: string[] = [],
 ): DailySlotRow[] => {
-  const unused = [...rosterEntries]
-  const takeNext = (slot: SeasonSlot): SeasonRosterEntry | undefined => {
-    const index = unused.findIndex((entry) => entry.slot === slot)
-    if (index < 0) return undefined
-    return unused.splice(index, 1)[0]
-  }
+  const seats =
+    rosterEntries.length > 0
+      ? rosterEntries
+      : SEASON_ROSTER_SLOTS.map((slot) => ({ slot, playerId: null }))
 
   const rows: DailySlotRow[] = []
   const seen: Partial<Record<SeasonSlot, number>> = {}
-  for (const slot of SEASON_ROSTER_SLOTS) {
-    if (slot === "IL") break
-    const slotOccurrence = seen[slot] ?? 0
-    seen[slot] = slotOccurrence + 1
-    const entry = takeNext(slot)
+  for (const entry of seats) {
+    if (entry.slot === "IL") continue
+    const slotOccurrence = seen[entry.slot] ?? 0
+    seen[entry.slot] = slotOccurrence + 1
     rows.push({
-      slot,
-      playerId: entry?.playerId ?? null,
+      slot: entry.slot,
+      playerId: entry.playerId,
       slotOccurrence,
     })
   }
