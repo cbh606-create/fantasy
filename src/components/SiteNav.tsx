@@ -81,11 +81,11 @@ export const SiteNav = () => {
     <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]">
       <div className="mx-auto flex max-w-[96rem] items-center justify-between gap-4 px-6 py-3 sm:px-10 lg:px-14">
         <Link
-          aria-label="Fantasy home"
-          className="shrink-0 font-[family-name:var(--font-bebas-neue)] text-2xl tracking-[0.12em] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+          aria-label="Week Winner home"
+          className="shrink-0 font-[family-name:var(--font-bebas-neue)] text-xl tracking-[0.1em] text-[var(--color-ink)] whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)] sm:text-2xl"
           href="/"
         >
-          FANTASY
+          WEEK WINNER
         </Link>
         <label className="sr-only" htmlFor="active-season-roster">
           Active season roster

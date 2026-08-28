@@ -18,7 +18,7 @@ const bebasNeue = Bebas_Neue({
 })
 
 export const metadata: Metadata = {
-  title: "Fantasy",
+  title: "Week Winner",
   description: "ESPN fantasy basketball draft prep and season roster tools",
 }
 
