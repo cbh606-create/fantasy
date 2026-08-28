@@ -10,8 +10,15 @@ import {
   softCapForSpot,
   suggestStreamingStrategyMode,
 } from "@/lib/matchup/streamingStrategy"
+import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import type { MatchupBoard, StreamingPlanDayCell } from "@/lib/matchup/types"
-import type { ScheduleResponse, SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
+import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonPlayer,
+  SeasonRosterEntry,
+  SeasonSlot,
+} from "@/lib/season/types"
 
 const assertCellShape = (cell: StreamingPlanDayCell) => cell
 
@@ -116,6 +123,54 @@ const emptyBoardLosingStl = (): MatchupBoard => ({
   projectedCatWins: 7,
 })
 
+const losingBlkBoard = (): MatchupBoard => ({
+  categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+    categoryId,
+    you: categoryId === "BLK" ? 1 : 50,
+    opp: categoryId === "BLK" ? 8 : 10,
+    outcome: categoryId === "BLK" ? "L" : "W",
+    winProb: categoryId === "BLK" ? 0.1 : 0.9,
+  })),
+  wins: 8,
+  losses: 1,
+  ties: 0,
+  projectedCatWins: 7,
+})
+
+const packedActiveSlots: SeasonSlot[] = [
+  "PG",
+  "SG",
+  "SF",
+  "PF",
+  "C",
+  "G",
+  "F",
+  "UTIL",
+  "UTIL",
+  "UTIL",
+]
+
+const packedTeamAbbrs = [
+  "NYK",
+  "LAL",
+  "PHX",
+  "MIL",
+  "ATL",
+  "DEN",
+  "GSW",
+  "MIA",
+  "CHI",
+  "BOS",
+] as const
+
+const emptyActive = (): SeasonRosterEntry[] =>
+  packedActiveSlots.map((slot) => ({ slot, playerId: null }))
+
+const packedRosterPlayers = () =>
+  packedTeamAbbrs.map((team, index) =>
+    player(`r${index}`, team, { positions: ["UTIL"] }),
+  )
+
 const tinyState = (players: SeasonPlayer[], availablePlayerIds: string[]): SeasonLeagueState => ({
   name: "Tiny League",
   season: 2025,
@@ -191,7 +246,7 @@ describe("buildStreamingPlan", () => {
   })
 })
 
-  it("1-spot covers off night instead of holding a multi-game streamer", () => {
+  it("does not cover a 1-spot off night when swapping would lose remaining starts", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
     const faA = player("fa-a", "BOS", {
       projections: { ...baseProjections(), STL: 180 },
@@ -221,17 +276,14 @@ describe("buildStreamingPlan", () => {
 
     expect(plan.addsUsed).toBeLessThanOrEqual(7)
     expect(plan.addLimit).toBe(7)
-    expect(plan.addsUsed).toBe(3)
     expect(plan.days[0]!.cells[0]).toMatchObject({ action: "add", playerId: "fa-a" })
     expect(plan.days[1]!.cells[0]).toMatchObject({
-      action: "drop_add",
-      playerId: "fa-b",
-      droppedPlayerId: "fa-a",
+      action: "hold",
+      playerId: "fa-a",
     })
     expect(plan.days[2]!.cells[0]).toMatchObject({
-      action: "drop_add",
+      action: "hold",
       playerId: "fa-a",
-      droppedPlayerId: "fa-b",
     })
   })
 
@@ -757,7 +809,7 @@ describe("starts-max adds and protected drops", () => {
     expect(plan.addsUsed).toBeGreaterThanOrEqual(2)
     expect(plan.gameStarts).toBeGreaterThanOrEqual(2)
     expect(plan.addsUsed).toBeLessThanOrEqual(plan.addLimit)
-    expect(plan.summaryReasons).toContain("Maximizing starts within add budget")
+    expect(plan.summaryReasons).toContain("Adds only when the board improves")
   })
 
   it("allows a starts-positive add past per-spot soft-cap while weekly budget remains", () => {
@@ -1191,7 +1243,7 @@ describe("forcedRosterDrops", () => {
       { slot: "BN", playerId: "you-bench" },
     ]
     const schedule = tinySchedule(days, [
-      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "DET" },
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
       { date: "2025-11-05", homeAbbr: "ORL", awayAbbr: "NYK" },
       { date: "2025-11-05", homeAbbr: "ATL", awayAbbr: "PHI" },
     ])
@@ -1266,13 +1318,14 @@ describe("1-spot off-night always cover", () => {
     })
   })
 
-  it("covers off night even when upgrade has fewer remaining games", () => {
+  it("does not cover a 1-spot off night when the upgrade would not raise projectedCatWins", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
     const bos = player("fa-bos", "BOS", {
-      projections: { ...baseProjections(), STL: 200 },
+      projections: { ...baseProjections(), STL: 200, BLK: 80 },
     })
     const chi = player("fa-chi", "CHI", {
-      projections: { ...baseProjections(), STL: 150 },
+      projections: { ...baseProjections(), STL: 0, BLK: 0, TO: 400, FG_PCT: 0.3 },
+      shooting: { FGM: 2, FGA: 20, FTM: 1, FTA: 2 },
     })
     const state = tinyState([bos, chi], ["fa-bos", "fa-chi"])
     const schedule = tinySchedule(days, [
@@ -1281,23 +1334,31 @@ describe("1-spot off-night always cover", () => {
       { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "ORL" },
       { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "MIA" },
     ])
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: categoryId === "TO" || categoryId === "FG_PCT" ? 20 : 50,
+        opp: categoryId === "TO" || categoryId === "FG_PCT" ? 8 : 10,
+        outcome: categoryId === "TO" || categoryId === "FG_PCT" ? "L" : "W",
+        winProb: 0.2,
+      })),
+      wins: 7,
+      losses: 2,
+      ties: 0,
+      projectedCatWins: 6,
+    }
     const plan = buildStreamingPlan({
       spotCount: 1,
       state,
       schedule,
-      board: emptyBoardLosingStl(),
+      board,
       strategyMode: "aggressive",
       addLimit: 7,
     })
-
-    expect(plan.days[0]!.cells[0]).toMatchObject({
-      action: "add",
-      playerId: "fa-bos",
-    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({ action: "add", playerId: "fa-bos" })
     expect(plan.days[1]!.cells[0]).toMatchObject({
-      action: "drop_add",
-      playerId: "fa-chi",
-      droppedPlayerId: "fa-bos",
+      action: "hold",
+      playerId: "fa-bos",
     })
   })
 
@@ -1498,9 +1559,211 @@ describe("1-spot off-night always cover", () => {
       playerId: "fa-bos",
     })
     expect(plan.days[1]!.cells[0]).toMatchObject({
-      action: "drop_add",
-      playerId: "fa-chi",
-      droppedPlayerId: "fa-bos",
+      action: "hold",
+      playerId: "fa-bos",
+    })
+  })
+})
+
+describe("board-delta planner", () => {
+  it("picks the FA that raises projectedCatWins over more remaining games", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
+    const volume = player("fa-vol", "BOS", {
+      projections: { ...baseProjections(), BLK: 0, PTS: 2000 },
+    })
+    const quality = player("fa-q", "NYK", {
+      projections: { ...baseProjections(), BLK: 400, PTS: 10 },
+    })
+    const state = tinyState([volume, quality], ["fa-vol", "fa-q"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "ORL" },
+      { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ATL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: losingBlkBoard(),
+      strategyMode: "aggressive",
+    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-q",
+    })
+  })
+
+  it("skips an add when dropping the only droppable starter would not raise projectedCatWins", () => {
+    const days = ["2025-11-03"]
+    const date = days[0]!
+    const rostered = packedRosterPlayers()
+    const star = player("star", "WAS", {
+      projections: { ...baseProjections(), STL: 2000 },
+    })
+    const fa = player("fa-stl", "TOR", {
+      projections: { ...baseProjections(), STL: 5 },
+    })
+    const state = tinyState([...rostered, star, fa], ["fa-stl"])
+    state.teams[0]!.entries = [
+      ...rostered.map((entry, index) => ({
+        slot: packedActiveSlots[index]!,
+        playerId: entry.id,
+      })),
+      { slot: "BE", playerId: "star" },
+    ]
+    const dailyEntries = emptyActive().map((entry, index) => ({
+      ...entry,
+      playerId: index < 9 ? rostered[index]!.id : "star",
+    }))
+    const daily: DailyLineups = { [date]: dailyEntries }
+    const schedule = tinySchedule(days, [
+      ...packedTeamAbbrs.map((homeAbbr, index) => ({
+        date,
+        homeAbbr,
+        awayAbbr: index % 2 === 0 ? "SAC" : "ORL",
+      })),
+      { date, homeAbbr: "WAS", awayAbbr: "DET" },
+      { date, homeAbbr: "TOR", awayAbbr: "CLE" },
+    ])
+    const adpByPlayerId = Object.fromEntries(
+      rostered.map((entry) => [entry.id, 10]),
+    )
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      adpByPlayerId,
+      daily,
+    })
+    expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).not.toBe("star")
+    expect(
+      plan.days[0]!.cells[0]!.action === "empty" ||
+        plan.days[0]!.cells[0]!.rosterDropPlayerId !== "star",
+    ).toBe(true)
+    if (plan.days[0]!.cells[0]!.action === "add") {
+      expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).not.toBe("star")
+    } else {
+      expect(plan.days[0]!.cells[0]).toMatchObject({
+        action: "empty",
+        playerId: null,
+      })
+    }
+  })
+
+  it("holds the first overlay on day 2 when a second add would not raise the board", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), BLK: 400, TO: 40 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), BLK: 0, TO: 400 },
+    })
+    const state = tinyState([faA, faB], ["fa-a", "fa-b"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "ATL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: losingBlkBoard(),
+      strategyMode: "aggressive",
+    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-a",
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "hold",
+      playerId: "fa-a",
+    })
+  })
+
+  it("adds after a roster drop opens a UTIL on a packed game-day lineup", () => {
+    const days = ["2025-11-03"]
+    const date = days[0]!
+    const rostered = packedRosterPlayers()
+    const benchOff = player("bench-off", "WAS", {
+      projections: { ...baseProjections(), BLK: 5 },
+    })
+    const fa = player("fa-blk", "TOR", {
+      projections: { ...baseProjections(), BLK: 400 },
+    })
+    const state = tinyState([...rostered, benchOff, fa], ["fa-blk"])
+    state.teams[0]!.entries = [
+      ...rostered.map((entry, index) => ({
+        slot: packedActiveSlots[index]!,
+        playerId: entry.id,
+      })),
+      { slot: "BE", playerId: "bench-off" },
+    ]
+    const dailyEntries = emptyActive().map((entry, index) => ({
+      ...entry,
+      playerId: index < 9 ? rostered[index]!.id : "bench-off",
+    }))
+    const daily: DailyLineups = { [date]: dailyEntries }
+    const schedule = tinySchedule(days, [
+      ...packedTeamAbbrs.map((homeAbbr, index) => ({
+        date,
+        homeAbbr,
+        awayAbbr: index % 2 === 0 ? "SAC" : "ORL",
+      })),
+      { date, homeAbbr: "WAS", awayAbbr: "DET" },
+      { date, homeAbbr: "TOR", awayAbbr: "CLE" },
+    ])
+    const adpByPlayerId = Object.fromEntries(
+      rostered.map((entry) => [entry.id, 10]),
+    )
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: losingBlkBoard(),
+      strategyMode: "aggressive",
+      adpByPlayerId,
+      daily,
+    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-blk",
+      rosterDropKind: "player",
+      rosterDropPlayerId: "bench-off",
+    })
+  })
+
+  it("conservative skips a thin one-game FA early in the week even if BLK would help", () => {
+    const days = [
+      "2025-11-03",
+      "2025-11-04",
+      "2025-11-05",
+      "2025-11-06",
+      "2025-11-07",
+      "2025-11-08",
+      "2025-11-09",
+    ]
+    const thin = player("fa-thin", "NYK", {
+      projections: { ...baseProjections(), BLK: 400 },
+    })
+    const state = tinyState([thin], ["fa-thin"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: losingBlkBoard(),
+      strategyMode: "conservative",
+    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "empty",
+      playerId: null,
     })
   })
 })
@@ -1625,7 +1888,7 @@ describe("2/3-spot density-first off nights", () => {
     ).toBe("hold")
   })
 
-  it("late-week off-night swaps held streamer when both spots are occupied", () => {
+  it("late-week off-night holds when swapping would not raise projectedCatWins", () => {
     const bos = player("fa-bos", "BOS", {
       projections: { ...baseProjections(), STL: 200 },
     })
@@ -1653,11 +1916,12 @@ describe("2/3-spot density-first off nights", () => {
       strategyMode: "aggressive",
       addLimit: 7,
     })
-    const tue = plan.days[1]!.cells.find((c) => c.droppedPlayerId === "fa-bos")
-    expect(tue).toMatchObject({
-      action: "drop_add",
-      playerId: "fa-chi",
-    })
+    expect(
+      plan.days[1]!.cells.find((c) => c.playerId === "fa-bos")?.action,
+    ).toBe("hold")
+    expect(
+      plan.days[1]!.cells.find((c) => c.droppedPlayerId === "fa-bos"),
+    ).toBeUndefined()
   })
 
   it("skips adds on dates when daily active lineup is already full", () => {

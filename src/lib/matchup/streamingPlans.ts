@@ -7,9 +7,15 @@ import type {
 } from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "./constants"
 import {
+  initDailyLineups,
   isDailyLineupFullForDate,
   type DailyLineups,
 } from "./dailyLineups"
+import { rosterSlotsFor } from "./eligibility"
+import {
+  pickBestStreamerMove,
+  type StreamerMoveDrop,
+} from "./streamerMove"
 import type {
   MatchupBoard,
   StreamingPlan,
@@ -147,8 +153,6 @@ const nearTermStretch = (
   return window.filter((day) => playsOn(player, day, schedule)).length
 }
 
-const ALTERNATIVE_FA_LIMIT = 3
-
 type StreamPosFamily = "guard" | "wing" | "big"
 
 const streamPositionFamily = (
@@ -206,16 +210,6 @@ const rankEligibleFas = (
   return eligible.map((entry) => entry.player)
 }
 
-const alternativePlayerIdsFrom = (
-  chosen: SeasonPlayer,
-  ranked: SeasonPlayer[],
-): string[] =>
-  ranked
-    .filter((player) => player.id !== chosen.id)
-    .filter((player) => isCompatibleStreamerAlternative(chosen, player))
-    .slice(0, ALTERNATIVE_FA_LIMIT)
-    .map((player) => player.id)
-
 const compareBlocks = (
   left: StreamingBlock,
   right: StreamingBlock,
@@ -262,31 +256,6 @@ const listTodayBlocks = (
   })
 }
 
-const alternativeIdsFromBlocks = (
-  chosenId: string,
-  ranked: StreamingBlock[],
-  playersById: Map<string, SeasonPlayer>,
-): string[] => {
-  const chosenBlock = ranked.find((block) => block.playerId === chosenId)
-  const chosen = playersById.get(chosenId)
-  if (!chosenBlock || !chosen) return []
-
-  const sameFamily = ranked.filter((block) => {
-    if (block.playerId === chosenId) return false
-    const candidate = playersById.get(block.playerId)
-    return (
-      Boolean(candidate) &&
-      isCompatibleStreamerAlternative(chosen, candidate!)
-    )
-  })
-  const sameTier = sameFamily.filter(
-    (block) => block.tier === chosenBlock.tier,
-  )
-  const pool = sameTier.length > 0 ? sameTier : sameFamily
-
-  return pool.slice(0, ALTERNATIVE_FA_LIMIT).map((block) => block.playerId)
-}
-
 const buildSummaryReasons = (
   strategyMode: StreamingStrategyMode,
   suggestedStrategyMode: StreamingStrategyMode,
@@ -294,7 +263,7 @@ const buildSummaryReasons = (
 ): string[] => {
   const summaryReasons = [
     "Prioritized 3-in-4 / B2B blocks",
-    "Maximizing starts within add budget",
+    "Adds only when the board improves",
   ]
   if (didProtectDrops) {
     summaryReasons.push("Protected ADP ≤ 60")
@@ -546,6 +515,22 @@ export const buildStreamingPlan = ({
   let didProtectDrops = false
   const days: StreamingPlanDay[] = []
   const weekDroppedPlayers = new Set<string>()
+  const youTeam = state.teams[state.perspectiveTeamIndex]
+  const rosterSlots = rosterSlotsFor(state)
+  let workingDaily: DailyLineups =
+    daily ??
+    initDailyLineups(
+      schedule.matchup.days,
+      youTeam?.entries ?? [],
+      rosterSlots,
+      state.players,
+      schedule,
+    )
+  const isCompatibleAlternative = (chosenId: string, otherId: string) => {
+    const chosen = playersById.get(chosenId)
+    const other = playersById.get(otherId)
+    return Boolean(chosen && other && isCompatibleStreamerAlternative(chosen, other))
+  }
 
   for (const [dayIndex, date] of schedule.matchup.days.entries()) {
     const cells: (StreamingPlanDayCell | null)[] = Array.from(
@@ -554,9 +539,6 @@ export const buildStreamingPlan = ({
     )
     const seatedToday = new Set<string>()
     const previousOccupants = [...occupants]
-    const lineupFull =
-      daily != null &&
-      isDailyLineupFullForDate(daily, date, playersById, schedule)
 
     // Pass 1: keep streamers who still have games left this week (hold through
     // off nights). Only free the spot when they have zero remaining games.
@@ -600,8 +582,7 @@ export const buildStreamingPlan = ({
         ? addLimit
         : dailySwapPaceLimit(remainingAdds, remainingDays)
     let swapsToday = 0
-    const canSpendWeeklyAdd = () =>
-      !lineupFull && addsUsed < addLimit
+    const canSpendWeeklyAdd = () => addsUsed < addLimit
     const canSpendSwapAdd = () =>
       canSpendWeeklyAdd() &&
       (spotCount === 1 || swapsToday < daySwapPaceCap)
@@ -614,7 +595,33 @@ export const buildStreamingPlan = ({
       return left - right
     })
 
-    const pendingAdds: number[] = []
+    const dropBySpot = new Map<
+      number,
+      {
+        kind: StreamingPlanRosterDropKind
+        playerId: string | null
+        didProtect: boolean
+      }
+    >()
+    for (const spotIndex of [...needFill].sort((left, right) => left - right)) {
+      if (previousOccupants[spotIndex]) continue
+      const rosterDrop = resolveRosterDrop(
+        youTeam?.entries ?? [],
+        playersById,
+        date,
+        spotIndex,
+        schedule,
+        weakCats,
+        weekDroppedPlayers,
+        forcedRosterDrops,
+        adpByPlayerId,
+        injuryOutDaysByPlayerId,
+      )
+      dropBySpot.set(spotIndex, rosterDrop)
+      if (rosterDrop.kind === "player" && rosterDrop.playerId) {
+        weekDroppedPlayers.add(rosterDrop.playerId)
+      }
+    }
 
     for (const spotIndex of needFill) {
       const previousId = previousOccupants[spotIndex] ?? null
@@ -623,6 +630,9 @@ export const buildStreamingPlan = ({
       let droppedPlayerId: string | null = null
       let addIndex: number | null = null
       let alternativePlayerIds: string[] = []
+      let rosterDropKind: StreamingPlanRosterDropKind = "none"
+      let rosterDropPlayerId: string | null = null
+      const rosterDrop = previousId ? undefined : dropBySpot.get(spotIndex)
 
       if (canSpendWeeklyAdd()) {
         const rankedBlocks = listTodayBlocks(
@@ -635,47 +645,63 @@ export const buildStreamingPlan = ({
           dayIndex,
           dayCount,
         )
-        const todayBlock = rankedBlocks[0] ?? null
-        let best: SeasonPlayer | null = null
-        if (todayBlock) {
-          best = playersById.get(todayBlock.playerId) ?? null
-          if (best) {
-            alternativePlayerIds = alternativeIdsFromBlocks(
-              best.id,
-              rankedBlocks,
-              playersById,
-            )
-          }
-        } else if (allowsThinFill(strategyMode, dayIndex, dayCount)) {
-          const rankedFas = rankEligibleFas(
-            freeAgents,
-            date,
-            schedule,
-            weakCats,
-            seatedToday,
-          )
-          best = rankedFas[0] ?? null
-          if (best) {
-            alternativePlayerIds = alternativePlayerIdsFrom(best, rankedFas)
-          }
-        }
-        const expectedStarts = best
-          ? remainingGameDays(best, date, schedule)
-          : 0
-        if (best && expectedStarts > 0) {
-          playerId = best.id
+        const candidateIds =
+          rankedBlocks.length > 0
+            ? rankedBlocks.map((block) => block.playerId)
+            : allowsThinFill(strategyMode, dayIndex, dayCount)
+              ? rankEligibleFas(
+                  freeAgents,
+                  date,
+                  schedule,
+                  weakCats,
+                  seatedToday,
+                ).map((entry) => entry.id)
+              : []
+        const drop: StreamerMoveDrop = previousId
+          ? { kind: "player", playerId: previousId }
+          : rosterDrop?.kind === "player" && rosterDrop.playerId
+            ? { kind: "player", playerId: rosterDrop.playerId }
+            : { kind: "none", playerId: null }
+        const skipBecauseFull =
+          drop.kind === "none" &&
+          isDailyLineupFullForDate(workingDaily, date, playersById, schedule)
+        const picked =
+          candidateIds.length === 0 || skipBecauseFull
+            ? null
+            : pickBestStreamerMove(
+                candidateIds,
+                workingDaily,
+                date,
+                drop,
+                state.players,
+                schedule,
+                board,
+                isCompatibleAlternative,
+              )
+        if (picked) {
+          workingDaily = picked.nextDaily
+          playerId = picked.playerId
+          alternativePlayerIds = picked.alternativePlayerIds
           if (previousId) {
             action = "drop_add"
             droppedPlayerId = previousId
           } else {
             action = "add"
-            pendingAdds.push(spotIndex)
+            if (rosterDrop) {
+              if (rosterDrop.didProtect) didProtectDrops = true
+              rosterDropKind = rosterDrop.kind
+              rosterDropPlayerId = rosterDrop.playerId
+            }
           }
           addsUsed += 1
           addsBySpot[spotIndex]! += 1
           addIndex = addsUsed
-          seatedToday.add(best.id)
+          seatedToday.add(picked.playerId)
+        } else if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
+          weekDroppedPlayers.delete(rosterDrop.playerId)
         }
+      } else if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
+        weekDroppedPlayers.delete(rosterDrop.playerId)
       }
 
       occupants[spotIndex] = playerId
@@ -684,14 +710,14 @@ export const buildStreamingPlan = ({
         playerId,
         action,
         droppedPlayerId,
-        rosterDropPlayerId: null,
-        rosterDropKind: "none",
+        rosterDropPlayerId,
+        rosterDropKind,
         addIndex,
         alternativePlayerIds,
       }
     }
 
-    // Early swap: 1-spot always-cover; 2/3-spot stricter early week + paced.
+    // Early swap: keep density / multi-spot off-night when-gates; score by board.
     const isLateWeek = dayIndex >= Math.max(0, dayCount - 3)
     const spotOrder = [...Array(spotCount).keys()].sort(
       (left, right) => addsBySpot[left]! - addsBySpot[right]! || left - right,
@@ -707,13 +733,9 @@ export const buildStreamingPlan = ({
       const heldRemaining = remainingGameDays(occupant, date, schedule)
       if (heldRemaining <= 0) continue
 
-      const isOneSpotAlwaysCover =
-        spotCount === 1 && !heldPlaysToday && heldRemaining > 0
       const isMultiSpotOffNight =
         spotCount > 1 && !heldPlaysToday && heldRemaining > 0
 
-      let upgradePlayer: SeasonPlayer | null = null
-      let alternativePlayerIds: string[] = []
       const rankedBlocks = listTodayBlocks(
         blocks,
         date,
@@ -724,55 +746,24 @@ export const buildStreamingPlan = ({
         dayIndex,
         dayCount,
       )
-      const todayBlock = rankedBlocks[0] ?? null
-      if (todayBlock) {
-        upgradePlayer = playersById.get(todayBlock.playerId) ?? null
-        alternativePlayerIds = alternativeIdsFromBlocks(
-          todayBlock.playerId,
-          rankedBlocks,
-          playersById,
-        )
-      } else if (isOneSpotAlwaysCover) {
-        const rankedFas = rankEligibleFas(
+      let candidateIds = rankedBlocks.map((block) => block.playerId)
+      if (
+        candidateIds.length === 0 &&
+        isMultiSpotOffNight &&
+        (isLateWeek || budgetBehind)
+      ) {
+        candidateIds = rankEligibleFas(
           freeAgents,
           date,
           schedule,
           weakCats,
           seatedToday,
-        )
-        upgradePlayer = rankedFas[0] ?? null
-        if (upgradePlayer) {
-          alternativePlayerIds = alternativePlayerIdsFrom(
-            upgradePlayer,
-            rankedFas,
-          )
-        }
-      } else if (isMultiSpotOffNight && (isLateWeek || budgetBehind)) {
-        const rankedFas = rankEligibleFas(
-          freeAgents,
-          date,
-          schedule,
-          weakCats,
-          seatedToday,
-        )
-        upgradePlayer = rankedFas[0] ?? null
-        if (upgradePlayer) {
-          alternativePlayerIds = alternativePlayerIdsFrom(
-            upgradePlayer,
-            rankedFas,
-          )
-        }
+        ).map((entry) => entry.id)
       }
 
-      if (!upgradePlayer || !playsOn(upgradePlayer, date, schedule)) continue
-      const upgradeRemaining = remainingGameDays(upgradePlayer, date, schedule)
-      if (upgradeRemaining <= 0) continue
-
-      if (isOneSpotAlwaysCover) {
-        // Accept any today-playing FA; no remaining-games gate.
-      } else if (isMultiSpotOffNight) {
+      const todayBlock = rankedBlocks[0] ?? null
+      if (isMultiSpotOffNight) {
         if (todayBlock == null) {
-          // Thin FA fallback only when late week or catching up on add budget.
           if (!(isLateWeek || budgetBehind)) continue
         } else if (
           !allowsMultiSpotOffNightUpgrade(
@@ -784,72 +775,70 @@ export const buildStreamingPlan = ({
         ) {
           continue
         }
-      } else {
-        if (!heldPlaysToday) continue
+      } else if (heldPlaysToday) {
         const held = blockFromDate(occupant, date, schedule)
         const heldRank = held ? densityTierRank(held.tier) : 0
-        const upgradeBlock = blockFromDate(upgradePlayer, date, schedule)
-        const upgradeRank = upgradeBlock
-          ? densityTierRank(upgradeBlock.tier)
-          : densityTierRank(todayBlock?.tier ?? "thin")
-        const candidateRank = todayBlock
-          ? densityTierRank(todayBlock.tier)
-          : upgradeRank
-        const swapOk =
-          spotCount === 1
-            ? allowsEarlySwap(strategyMode, heldRank, candidateRank)
+        candidateIds = candidateIds.filter((upgradeId) => {
+          const upgradePlayer = playersById.get(upgradeId)
+          if (!upgradePlayer || !playsOn(upgradePlayer, date, schedule)) {
+            return false
+          }
+          const upgradeBlock = blockFromDate(upgradePlayer, date, schedule)
+          const upgradeRank = upgradeBlock
+            ? densityTierRank(upgradeBlock.tier)
+            : 0
+          return spotCount === 1
+            ? allowsEarlySwap(strategyMode, heldRank, upgradeRank)
             : allowsMultiSpotEarlySwap(
                 strategyMode,
                 heldRank,
-                candidateRank,
+                upgradeRank,
                 dayIndex,
                 dayCount,
                 budgetBehind,
               )
-        if (!swapOk) continue
+        })
       }
+      // 1-spot off-night: no always-cover accept; score schedule-filtered FAs only.
+
+      candidateIds = candidateIds.filter((upgradeId) => {
+        const upgradePlayer = playersById.get(upgradeId)
+        return Boolean(
+          upgradePlayer &&
+            playsOn(upgradePlayer, date, schedule) &&
+            remainingGameDays(upgradePlayer, date, schedule) > 0,
+        )
+      })
+      if (candidateIds.length === 0) continue
+
+      const picked = pickBestStreamerMove(
+        candidateIds,
+        workingDaily,
+        date,
+        { kind: "player", playerId: cell.playerId },
+        state.players,
+        schedule,
+        board,
+        isCompatibleAlternative,
+      )
+      if (!picked) continue
 
       seatedToday.delete(cell.playerId)
-      seatedToday.add(upgradePlayer.id)
-      occupants[spotIndex] = upgradePlayer.id
+      seatedToday.add(picked.playerId)
+      occupants[spotIndex] = picked.playerId
+      workingDaily = picked.nextDaily
       addsUsed += 1
       swapsToday += 1
       addsBySpot[spotIndex]! += 1
       cells[spotIndex] = {
         spotIndex,
-        playerId: upgradePlayer.id,
+        playerId: picked.playerId,
         action: "drop_add",
         droppedPlayerId: cell.playerId,
         rosterDropPlayerId: null,
         rosterDropKind: "none",
         addIndex: addsUsed,
-        alternativePlayerIds,
-      }
-    }
-
-    pendingAdds.sort((left, right) => left - right)
-    for (const spotIndex of pendingAdds) {
-      const rosterDrop = resolveRosterDrop(
-        state.teams[state.perspectiveTeamIndex]!.entries,
-        playersById,
-        date,
-        spotIndex,
-        schedule,
-        weakCats,
-        weekDroppedPlayers,
-        forcedRosterDrops,
-        adpByPlayerId,
-        injuryOutDaysByPlayerId,
-      )
-      if (rosterDrop.didProtect) didProtectDrops = true
-      if (rosterDrop.kind === "player" && rosterDrop.playerId) {
-        weekDroppedPlayers.add(rosterDrop.playerId)
-      }
-      const cell = cells[spotIndex]!
-      cells[spotIndex] = {
-        ...cell,
-        rosterDropKind: rosterDrop.kind,
-        rosterDropPlayerId: rosterDrop.playerId,
+        alternativePlayerIds: picked.alternativePlayerIds,
       }
     }
 
