@@ -21,15 +21,14 @@ export default function Home() {
           Head-to-head performance
         </p>
         <h1
-          aria-label="Week Winner"
+          aria-label="The Edge"
           className="athletic-rise-delay mt-4 font-[family-name:var(--font-bebas-neue)] text-[clamp(3.5rem,12vw,9rem)] leading-[0.78] tracking-[-0.01em] text-[var(--color-ink)] uppercase"
         >
-          <span className="block whitespace-nowrap">Week</span>
-          <span className="block">Winner</span>
+          <span className="block whitespace-nowrap">The</span>
+          <span className="block">Edge</span>
         </h1>
         <p className="athletic-rise-delay mt-8 max-w-lg text-base leading-7 text-[var(--color-mute)] sm:text-lg">
-          Category projections, sit/start calls, and streamers for H2H
-          basketball.
+          Win the week.
         </p>
 
         <div className="athletic-rise-delay-2 mt-10 flex flex-wrap items-center gap-3">

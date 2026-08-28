@@ -10,8 +10,9 @@ describe("Home", () => {
     render(<Home />)
 
     expect(
-      screen.getByRole("heading", { name: "Week Winner" }),
+      screen.getByRole("heading", { name: "The Edge" }),
     ).toBeInTheDocument()
+    expect(screen.getByText("Win the week.")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Open matchup" })).toHaveAttribute(
       "href",
       "/matchup",
