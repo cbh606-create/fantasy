@@ -348,7 +348,7 @@ describe("applyStreamingPlanPreview", () => {
     expect(day0[0]?.playerId).toBe("jjj")
   })
 
-  it("seats a streamer on a full game-day lineup when roster drop is none", () => {
+  it("does not displace a game-day starter on a full night when roster drop is none", () => {
     const schedule: ScheduleResponse = {
       source: "fixture",
       matchup: {
@@ -411,7 +411,7 @@ describe("applyStreamingPlanPreview", () => {
       schedule,
     )
 
-    expect(playerIdsOn(preview, DAYS[0])).toContain("fa-was")
+    expect(playerIdsOn(preview, DAYS[0])).not.toContain("fa-was")
     expect(playerIdsOn(preview, DAYS[0])).toHaveLength(10)
   })
 
@@ -452,5 +452,46 @@ describe("applyStreamingPlanPreview", () => {
     )
 
     expect(playerIdsOn(preview, DAYS[0])).not.toContain("fa-stl")
+  })
+
+  it("seats a center streamer in C, not the first empty PG slot", () => {
+    const streamer = player("fa-c", "NYK", { positions: ["C"] })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [{ date: DAYS[0], homeAbbr: "NYK", awayAbbr: "PHI" }],
+    }
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: emptyActiveEntries() },
+      plan(1, [
+        {
+          date: DAYS[0],
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-c",
+              action: "add",
+              droppedPlayerId: null,
+              rosterDropPlayerId: null,
+              rosterDropKind: "open_slot",
+              addIndex: 1,
+              alternativePlayerIds: [],
+            },
+          ],
+        },
+      ]),
+      { "fa-c": streamer },
+      schedule,
+    )
+
+    const seated = preview[DAYS[0]]?.find((entry) => entry.playerId === "fa-c")
+    expect(seated?.slot).toBe("C")
+    expect(preview[DAYS[0]]?.[0]?.playerId).not.toBe("fa-c")
   })
 })
