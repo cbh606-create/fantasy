@@ -1,10 +1,14 @@
+import type { CategoryId } from "@/lib/domain/types"
 import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
+import { buildMatchupBoard } from "./board"
 import {
   isDailyLineupFullForDate,
   type DailyLineups,
+  youTotalsFromDaily,
 } from "./dailyLineups"
 import { eligibleForSlot } from "./eligibility"
 import { gameWeightForTeamDate } from "./games"
+import type { MatchupBoard } from "./types"
 
 export type StreamerMoveDrop = {
   kind: "none" | "player"
@@ -110,4 +114,110 @@ export const applyStreamerMoveToDaily = (
   }
 
   return { daily: next, seatedGameDays }
+}
+
+export const oppTotalsFromBoard = (
+  board: MatchupBoard,
+): Record<CategoryId, number> =>
+  Object.fromEntries(
+    board.categories.map((row) => [row.categoryId, row.opp]),
+  ) as Record<CategoryId, number>
+
+export const categoryIdsFromBoard = (board: MatchupBoard): CategoryId[] =>
+  board.categories.map((row) => row.categoryId)
+
+const projectedCatWinsFromDaily = (
+  daily: DailyLineups,
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  board: MatchupBoard,
+): number => {
+  const categoryIds = categoryIdsFromBoard(board)
+  if (categoryIds.length === 0) return 0
+  const you = youTotalsFromDaily(daily, players, schedule)
+  const opp = oppTotalsFromBoard(board)
+  return buildMatchupBoard(you, opp, categoryIds).projectedCatWins
+}
+
+export const scoreStreamerMove = (
+  workingDaily: DailyLineups,
+  fromDate: string,
+  addPlayerId: string,
+  drop: StreamerMoveDrop,
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  board: MatchupBoard,
+): { delta: number; seatedGameDays: number; nextDaily: DailyLineups } | null => {
+  const playersById = new Map(players.map((player) => [player.id, player]))
+  const applied = applyStreamerMoveToDaily(
+    workingDaily,
+    fromDate,
+    addPlayerId,
+    drop,
+    playersById,
+    schedule,
+  )
+  if (applied.seatedGameDays === 0) return null
+  const before = projectedCatWinsFromDaily(workingDaily, players, schedule, board)
+  const after = projectedCatWinsFromDaily(applied.daily, players, schedule, board)
+  return {
+    delta: after - before,
+    seatedGameDays: applied.seatedGameDays,
+    nextDaily: applied.daily,
+  }
+}
+
+export const pickBestStreamerMove = (
+  candidateIds: string[],
+  workingDaily: DailyLineups,
+  fromDate: string,
+  drop: StreamerMoveDrop,
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  board: MatchupBoard,
+  isCompatibleAlternative: (chosenId: string, otherId: string) => boolean,
+): {
+  playerId: string
+  delta: number
+  nextDaily: DailyLineups
+  alternativePlayerIds: string[]
+} | null => {
+  const scored = candidateIds.flatMap((playerId, index) => {
+    const result = scoreStreamerMove(
+      workingDaily,
+      fromDate,
+      playerId,
+      drop,
+      players,
+      schedule,
+      board,
+    )
+    if (!result) return []
+    return [{ playerId, index, ...result }]
+  })
+  const positive = scored
+    .filter((row) => row.delta > 0)
+    .sort((left, right) => {
+      if (right.delta !== left.delta) return right.delta - left.delta
+      return left.index - right.index
+    })
+  const winner = positive[0]
+  if (!winner) return null
+
+  const alternativePlayerIds = scored
+    .filter((row) => row.playerId !== winner.playerId)
+    .sort((left, right) => {
+      if (right.delta !== left.delta) return right.delta - left.delta
+      return left.index - right.index
+    })
+    .filter((row) => isCompatibleAlternative(winner.playerId, row.playerId))
+    .slice(0, 3)
+    .map((row) => row.playerId)
+
+  return {
+    playerId: winner.playerId,
+    delta: winner.delta,
+    nextDaily: winner.nextDaily,
+    alternativePlayerIds,
+  }
 }

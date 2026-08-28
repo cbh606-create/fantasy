@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { applyStreamerMoveToDaily } from "@/lib/matchup/streamerMove"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import {
+  applyStreamerMoveToDaily,
+  pickBestStreamerMove,
+  scoreStreamerMove,
+} from "@/lib/matchup/streamerMove"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
+import type { MatchupBoard } from "@/lib/matchup/types"
 import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
 const DAY = "2025-11-03"
@@ -93,5 +99,88 @@ describe("applyStreamerMoveToDaily", () => {
     expect(result.seatedGameDays).toBe(0)
     expect(result.daily[DAY]!.some((e) => e.playerId === "fa-was")).toBe(false)
     expect(result.daily[DAY]!.map((e) => e.playerId)).toEqual(entries.map((e) => e.playerId))
+  })
+})
+
+const losingBlkBoard = (): MatchupBoard => ({
+  categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+    categoryId,
+    you: categoryId === "BLK" ? 1 : 50,
+    opp: categoryId === "BLK" ? 8 : 10,
+    outcome: categoryId === "BLK" ? "L" : "W",
+    winProb: categoryId === "BLK" ? 0.1 : 0.9,
+  })),
+  wins: 8,
+  losses: 1,
+  ties: 0,
+  projectedCatWins: 7,
+})
+
+describe("scoreStreamerMove", () => {
+  it("scoreStreamerMove is null when the FA cannot sit", () => {
+    const roster = ["r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9"].map(
+      (id, i) =>
+        player(id, ["NYK", "LAL", "PHX", "MIL", "ATL", "DEN", "GSW", "MIA", "CHI", "BOS"][i]!, [
+          "UTIL",
+        ]),
+    )
+    const entries = emptyActive().map((entry, index) => ({
+      ...entry,
+      playerId: roster[index]!.id,
+    }))
+    const fa = player("fa-was", "WAS", ["C"])
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "MIA" },
+        { date: DAY, homeAbbr: "LAL", awayAbbr: "GSW" },
+        { date: DAY, homeAbbr: "PHX", awayAbbr: "DEN" },
+        { date: DAY, homeAbbr: "MIL", awayAbbr: "ATL" },
+        { date: DAY, homeAbbr: "WAS", awayAbbr: "TOR" },
+      ],
+    }
+    const scored = scoreStreamerMove(
+      { [DAY]: entries },
+      DAY,
+      "fa-was",
+      { kind: "none", playerId: null },
+      [...roster, fa],
+      schedule,
+      losingBlkBoard(),
+    )
+    expect(scored).toBeNull()
+  })
+})
+
+describe("pickBestStreamerMove", () => {
+  it("pickBestStreamerMove prefers the FA that raises projectedCatWins over more remaining games", () => {
+    const volume = player("fa-vol", "BOS", ["C"])
+    volume.projections = { ...volume.projections, BLK: 0, PTS: 2000 }
+    const quality = player("fa-q", "NYK", ["C"])
+    quality.projections = { ...quality.projections, BLK: 400, PTS: 10 }
+    const daily: DailyLineups = { [DAY]: emptyActive(), [DAY2]: emptyActive() }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY2, days: [DAY, DAY2] },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY2, homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "ATL" },
+      ],
+    }
+    const picked = pickBestStreamerMove(
+      ["fa-vol", "fa-q"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [volume, quality],
+      schedule,
+      losingBlkBoard(),
+      () => true,
+    )
+    expect(picked?.playerId).toBe("fa-q")
+    expect(picked!.delta).toBeGreaterThan(0)
   })
 })
