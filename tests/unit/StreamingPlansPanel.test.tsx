@@ -300,7 +300,7 @@ describe("StreamingPlansPanel", () => {
       screen.getAllByText(/Prioritized 3-in-4|blocks|Skipped thin|Board/i).length,
     ).toBeGreaterThan(0)
     expect(
-      screen.getAllByText(/Maximizing starts within add budget/).length,
+      screen.getAllByText(/Adds only when the board improves/).length,
     ).toBeGreaterThan(0)
   })
 
