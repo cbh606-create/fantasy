@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { MatchupBoard } from "@/lib/matchup/types"
+import { formatMatchupDayLabel } from "@/lib/matchup/weekCalendarLayout"
 import type {
   ScheduleResponse,
   SeasonLeagueState,
@@ -166,7 +167,13 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    expect(screen.getAllByText(/Mon,/i).length).toBeGreaterThan(0)
+    const monday = screen.getAllByText(formatMatchupDayLabel("2025-11-03"))[0]
+    expect(monday?.closest("th")).toHaveClass("w-24", "min-w-24", "max-w-24")
+    expect(screen.getAllByRole("columnheader", { name: /^Move$/i })[0]).toHaveClass(
+      "w-[16rem]",
+      "min-w-[16rem]",
+      "max-w-[16rem]",
+    )
     expect(screen.getAllByRole("rowheader", { name: /^Add$/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole("rowheader", { name: /^Drop$/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole("link", { name: /Streamer A/i })[0]).toHaveAttribute(

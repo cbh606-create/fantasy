@@ -764,8 +764,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           sitStartBadgesByPlayerId={sitStartBadgesByPlayerId}
         />
 
-        <div className="mt-8 space-y-8">
-          <InjuryAlertsPanel leagueId={leagueId} />
+        <div className="mt-8">
           <StreamingPlansPanel
             adpByPlayerId={matchupData.adpByPlayerId}
             board={matchupData.board}
@@ -776,6 +775,10 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             schedule={matchupData.schedule}
             state={state}
           />
+        </div>
+
+        <div className="mt-8 space-y-8">
+          <InjuryAlertsPanel leagueId={leagueId} />
           <SitStartPanel
             applyingSwapKey={applyingSwapKey}
             onApply={handleApplySwap}

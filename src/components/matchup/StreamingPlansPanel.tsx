@@ -18,6 +18,12 @@ import type {
   SeasonPlayer,
 } from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
+import {
+  MATCHUP_WEEK_DAY_COL_CLASS,
+  MATCHUP_WEEK_GUTTER_COL_CLASS,
+  MATCHUP_WEEK_TABLE_CLASS,
+  formatMatchupDayLabel,
+} from "@/lib/matchup/weekCalendarLayout"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import {
   buildStreamingPlan,
@@ -65,15 +71,6 @@ type StreamingPlansPanelProps = {
   onPreviewPlanChange?: (plan: StreamingPlan | null) => void
   /** Base (non-preview) daily lineups — used to skip adds on full days. */
   daily?: DailyLineups
-}
-
-const formatDayLabel = (day: string) => {
-  const date = new Date(`${day}T12:00:00`)
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "numeric",
-    day: "numeric",
-  })
 }
 
 const playerName = (
@@ -212,7 +209,7 @@ const DropCell = ({
 
   return (
     <select
-      aria-label={`Roster drop ${formatDayLabel(date)} spot ${cell.spotIndex + 1}`}
+      aria-label={`Roster drop ${formatMatchupDayLabel(date)} spot ${cell.spotIndex + 1}`}
       className="max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
       onChange={(event) => {
         const next = event.target.value
@@ -653,11 +650,22 @@ export const StreamingPlansPanel = ({
 
               {dates.length > 0 ? (
                 <div className="mt-2 overflow-x-auto">
-                  <table className="w-full border-collapse text-left text-[0.75rem] leading-snug">
+                  <table
+                    className={`${MATCHUP_WEEK_TABLE_CLASS} text-left text-[0.75rem] leading-snug`}
+                  >
+                    <colgroup>
+                      <col className={MATCHUP_WEEK_GUTTER_COL_CLASS} />
+                      {dates.map((date) => (
+                        <col
+                          className={MATCHUP_WEEK_DAY_COL_CLASS}
+                          key={date}
+                        />
+                      ))}
+                    </colgroup>
                     <thead>
                       <tr className="border-t border-[var(--color-hairline)]">
                         <th
-                          className="w-[5.5rem] py-1.5 pr-2 font-medium text-[var(--color-mute)]"
+                          className={`${MATCHUP_WEEK_GUTTER_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
                           scope="col"
                         >
                           Move
@@ -683,11 +691,11 @@ export const StreamingPlansPanel = ({
 
                           return (
                             <th
-                              className={
+                              className={`${MATCHUP_WEEK_DAY_COL_CLASS} px-1 py-1.5 text-center text-[0.7rem] tracking-[0.08em] uppercase whitespace-nowrap ${
                                 hasStreamerGame
-                                  ? "min-w-[5.5rem] py-1.5 pr-3 font-bold text-[var(--color-ink)]"
-                                  : "min-w-[5.5rem] py-1.5 pr-3 font-medium text-[var(--color-mute)]"
-                              }
+                                  ? "font-bold text-[var(--color-ink)]"
+                                  : "font-medium text-[var(--color-mute)]"
+                              }`}
                               key={date}
                               scope="col"
                               title={
@@ -696,7 +704,7 @@ export const StreamingPlansPanel = ({
                                   : undefined
                               }
                             >
-                              {formatDayLabel(date)}
+                              {formatMatchupDayLabel(date)}
                             </th>
                           )
                         })}
@@ -712,7 +720,7 @@ export const StreamingPlansPanel = ({
                               className={`border-t border-[var(--color-hairline)] ${rowTone}`}
                             >
                               <th
-                                className="py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]"
+                                className={`${MATCHUP_WEEK_GUTTER_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
                                 scope="row"
                               >
                                 {plan.spotCount > 1
@@ -721,7 +729,7 @@ export const StreamingPlansPanel = ({
                               </th>
                               {dates.map((date) => (
                                 <td
-                                  className="py-1.5 pr-3 align-top"
+                                  className={`${MATCHUP_WEEK_DAY_COL_CLASS} px-1 py-1.5 align-top`}
                                   key={`${date}-add-${spotIndex}`}
                                 >
                                   <AddCell
@@ -738,7 +746,7 @@ export const StreamingPlansPanel = ({
                               className={`border-t border-[var(--color-hairline)] ${rowTone}`}
                             >
                               <th
-                                className="py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]"
+                                className={`${MATCHUP_WEEK_GUTTER_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
                                 scope="row"
                               >
                                 {plan.spotCount > 1
@@ -750,7 +758,7 @@ export const StreamingPlansPanel = ({
 
                                 return (
                                   <td
-                                    className="py-1.5 pr-3 align-top text-[var(--color-mute)]"
+                                    className={`${MATCHUP_WEEK_DAY_COL_CLASS} px-1 py-1.5 align-top text-[var(--color-mute)]`}
                                     key={`${date}-drop-${spotIndex}`}
                                   >
                                     <DropCell
