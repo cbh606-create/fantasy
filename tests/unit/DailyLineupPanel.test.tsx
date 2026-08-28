@@ -73,6 +73,7 @@ describe("DailyLineupPanel sit/start badges", () => {
         days={days}
         onReset={vi.fn()}
         onTogglePlayerDay={vi.fn()}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
         sitStartBadgesByPlayerId={{ "you-1": "Start over Streamer A" }}
@@ -86,6 +87,39 @@ describe("DailyLineupPanel sit/start badges", () => {
         name: /Start over Streamer A/i,
       }).length,
     ).toBeGreaterThan(0)
+  })
+})
+
+describe("DailyLineupPanel game count row", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it("shows started game counts per day at the top of the table", () => {
+    const twoDayDaily: DailyLineups = {
+      "2025-11-03": [
+        { slot: "UTIL", playerId: "you-1" },
+        { slot: "SG", playerId: "fa-a" },
+      ],
+      "2025-11-04": [{ slot: "UTIL", playerId: "you-1" }],
+    }
+
+    render(
+      <DailyLineupPanel
+        daily={twoDayDaily}
+        days={days}
+        extraPlayers={[streamer]}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+      />,
+    )
+
+    expect(screen.getByRole("rowheader", { name: "Games" })).toBeInTheDocument()
+    expect(screen.getByLabelText(/^2 games /)).toHaveTextContent("2")
+    expect(screen.getByLabelText(/^1 games /)).toHaveTextContent("1")
   })
 })
 
@@ -105,6 +139,7 @@ describe("DailyLineupPanel preview overlay", () => {
         onTogglePlayerDay={onTogglePlayerDay}
         previewActive
         previewSpotCount={1}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
       />,
@@ -136,6 +171,7 @@ describe("DailyLineupPanel preview overlay", () => {
         previewActive
         previewPlayerIds={["fa-a"]}
         previewSpotCount={1}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
         streamerOwnedDatesByPlayerId={{ "fa-a": ["2025-11-03", "2025-11-04"] }}
@@ -167,6 +203,7 @@ describe("DailyLineupPanel preview overlay", () => {
         previewActive
         previewPlayerIds={["fa-a"]}
         previewSpotCount={1}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
       />,
@@ -191,6 +228,7 @@ describe("DailyLineupPanel preview overlay", () => {
         onTogglePlayerDay={vi.fn()}
         previewActive
         previewSpotCount={2}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
       />,
@@ -212,6 +250,7 @@ describe("DailyLineupPanel preview overlay", () => {
         onTogglePlayerDay={onTogglePlayerDay}
         previewActive
         previewSpotCount={1}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
       />,
@@ -252,6 +291,7 @@ describe("DailyLineupPanel preview overlay", () => {
         previewActive
         previewPlayerIds={["fa-a"]}
         previewSpotCount={1}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
         streamerOwnedDatesByPlayerId={{ "fa-a": ["2025-11-04"] }}
@@ -299,6 +339,7 @@ describe("DailyLineupPanel IL game cells", () => {
         ilPlayerIds={["il-1"]}
         onReset={vi.fn()}
         onTogglePlayerDay={onTogglePlayerDay}
+        rosterEntries={[{ slot: "IL", playerId: "il-1" }]}
         rosterPlayers={[injured]}
         schedule={schedule}
       />,
@@ -313,5 +354,170 @@ describe("DailyLineupPanel IL game cells", () => {
     fireEvent.click(irCells[0]!)
     expect(onTogglePlayerDay).not.toHaveBeenCalled()
     expect(screen.getByText(/On IR — move off IL on Roster to start/i)).toBeInTheDocument()
+  })
+})
+
+describe("DailyLineupPanel slot column and day sort", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  const pg: SeasonPlayer = {
+    ...rostered,
+    id: "pg-1",
+    name: "Point Guard",
+    positions: ["PG"],
+  }
+  const bench: SeasonPlayer = {
+    ...rostered,
+    id: "be-1",
+    name: "Bench Wing",
+    positions: ["SF"],
+  }
+  const center: SeasonPlayer = {
+    ...rostered,
+    id: "c-1",
+    name: "The Center",
+    positions: ["C"],
+  }
+
+  it("keeps fixed PG→Bench slot rows even when only a later slot is filled", () => {
+    render(
+      <DailyLineupPanel
+        daily={{
+          "2025-11-03": [{ slot: "C", playerId: "c-1" }],
+          "2025-11-04": [{ slot: "C", playerId: "c-1" }],
+        }}
+        days={days}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[
+          { slot: "PG", playerId: null },
+          { slot: "C", playerId: "c-1" },
+        ]}
+        rosterPlayers={[center]}
+        schedule={schedule}
+      />,
+    )
+
+    const headers = screen.getAllByRole("rowheader").map((el) => el.textContent)
+    expect(headers.indexOf("PG")).toBeLessThan(headers.indexOf("C"))
+    expect(headers.indexOf("C")).toBeLessThan(headers.indexOf("BE"))
+    expect(screen.getAllByRole("rowheader", { name: "UTIL" })).toHaveLength(3)
+    expect(screen.getAllByRole("rowheader", { name: "BE" })).toHaveLength(3)
+    expect(screen.getByRole("columnheader", { name: "Slot" })).toHaveClass(
+      "w-12",
+      "min-w-12",
+    )
+    expect(
+      screen.getAllByRole("button", { name: /Highlight /i })[0]?.closest("th"),
+    ).toHaveClass("w-24", "min-w-24", "max-w-24")
+
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /Highlight /i })[0]!,
+    )
+
+    const pgRow = screen.getAllByRole("row").find((row) => {
+      const header = row.querySelector("th")
+      return header?.textContent === "PG"
+    })
+    expect(pgRow?.textContent).toContain("—")
+    expect(pgRow?.textContent).not.toContain("The Center")
+
+    const cRow = screen.getAllByRole("row").find((row) => {
+      const header = row.querySelector("th")
+      return header?.textContent === "C"
+    })
+    expect(cRow?.textContent).toContain("The Center")
+    const centerButtons = screen.getAllByRole("button", {
+      name: /The Center/i,
+    })
+    expect(
+      centerButtons.every((button) =>
+        /The Center/.test(button.getAttribute("aria-label") ?? ""),
+      ),
+    ).toBe(true)
+  })
+
+  it("keeps a sitting PG on the PG row", () => {
+    render(
+      <DailyLineupPanel
+        daily={{
+          "2025-11-03": [{ slot: "C", playerId: "c-1" }],
+          "2025-11-04": [{ slot: "C", playerId: "c-1" }],
+        }}
+        days={days}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[
+          { slot: "PG", playerId: "pg-1" },
+          { slot: "C", playerId: "c-1" },
+          { slot: "BE", playerId: "be-1" },
+          { slot: "BE", playerId: "be-2" },
+          { slot: "BE", playerId: "be-3" },
+        ]}
+        rosterPlayers={[pg, bench, center]}
+        schedule={schedule}
+      />,
+    )
+
+    expect(screen.getAllByRole("rowheader", { name: "BE" })).toHaveLength(3)
+    const pgRow = screen.getAllByRole("row").find((row) => {
+      const header = row.querySelector("th")
+      return header?.textContent === "PG"
+    })
+    expect(pgRow?.textContent).toContain("Point Guard")
+  })
+
+  it("puts preview streamers on PV rows not PG", () => {
+    render(
+      <DailyLineupPanel
+        daily={daily}
+        days={days}
+        extraPlayers={[streamer]}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        previewActive
+        previewPlayerIds={["fa-a"]}
+        previewSpotCount={1}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+      />,
+    )
+
+    const pgRow = screen.getAllByRole("row").find((row) => {
+      const header = row.querySelector("th")
+      return header?.textContent === "PG"
+    })
+    expect(pgRow?.textContent).toContain("Roster Cut")
+    expect(pgRow?.textContent).not.toContain("Streamer A")
+    expect(screen.getByRole("rowheader", { name: "PV" })).toBeInTheDocument()
+    expect(screen.getByText("Streamer A")).toBeInTheDocument()
+  })
+
+  it("shows weekly PG before Bench without packing sitters to the top", () => {
+    render(
+      <DailyLineupPanel
+        daily={daily}
+        days={days}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[
+          { slot: "PG", playerId: "pg-1" },
+          { slot: "BE", playerId: "be-1" },
+        ]}
+        rosterPlayers={[bench, pg]}
+        schedule={schedule}
+      />,
+    )
+
+    const rows = screen.getAllByRole("row")
+    const bodyText = rows.map((row) => row.textContent).join("\n")
+    expect(bodyText.indexOf("Point Guard")).toBeLessThan(
+      bodyText.indexOf("Bench Wing"),
+    )
+    expect(screen.getByRole("rowheader", { name: "PG" })).toBeInTheDocument()
+    expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(3)
   })
 })

@@ -3,9 +3,11 @@
 import { useState } from "react"
 import type {
   DailyLineups,
+  DailySlotRow,
   TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
 import {
+  buildLineupDisplayRows,
   dayOpponentLabel,
   findPlayerSlotIndex,
 } from "@/lib/matchup/dailyLineups"
@@ -13,8 +15,19 @@ import {
   gameWeightForTeamDate,
   isB2bSecondNight,
 } from "@/lib/matchup/games"
+import {
+  MATCHUP_WEEK_DAY_COL_CLASS,
+  MATCHUP_WEEK_PLAYER_COL_CLASS,
+  MATCHUP_WEEK_SLOT_COL_CLASS,
+  MATCHUP_WEEK_TABLE_CLASS,
+  formatMatchupDayLabel,
+} from "@/lib/matchup/weekCalendarLayout"
 import { formatPlayerPositions, slotDisplayLabel } from "@/lib/season/slotLabels"
-import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
+import type {
+  ScheduleResponse,
+  SeasonPlayer,
+  SeasonRosterEntry,
+} from "@/lib/season/types"
 
 type DailyLineupPanelProps = {
   days: string[]
@@ -38,6 +51,8 @@ type DailyLineupPanelProps = {
   sitStartBadgesByPlayerId?: Record<string, string>
   /** Players currently on the IL/IR roster slot — shade game cells only. */
   ilPlayerIds?: Set<string> | string[]
+  /** Weekly roster seats (PG→IR). Empty slots stay as empty rows. */
+  rosterEntries?: SeasonRosterEntry[]
 }
 
 const toDateSet = (
@@ -47,19 +62,13 @@ const toDateSet = (
 const toIdSet = (ids?: Set<string> | string[]) =>
   ids instanceof Set ? ids : new Set(ids ?? [])
 
-const formatDayLabel = (day: string) => {
-  const date = new Date(`${day}T12:00:00`)
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "numeric",
-    day: "numeric",
-  })
-}
-
 const shortOpponentLabel = (label: string) => {
   if (label === "no game") return "—"
   return label.replace(/^vs\s+/i, "v ").replace(/\s+/g, " ")
 }
+
+const slotLabel = (slot: DailySlotRow["slot"]) =>
+  slot === "BE" ? "BE" : slot === "PV" ? "PV" : slotDisplayLabel(slot)
 
 export const DailyLineupPanel = ({
   days,
@@ -76,8 +85,10 @@ export const DailyLineupPanel = ({
   extraPlayers,
   sitStartBadgesByPlayerId = {},
   ilPlayerIds,
+  rosterEntries = [],
 }: DailyLineupPanelProps) => {
   const [hint, setHint] = useState("")
+  const [focusDay, setFocusDay] = useState(days[0] ?? "")
   const previewIds = toIdSet(previewPlayerIds)
   const onIlIds = toIdSet(ilPlayerIds)
   const rowPlayers = [...rosterPlayers]
@@ -86,6 +97,33 @@ export const DailyLineupPanel = ({
     if (seenIds.has(extra.id)) continue
     rowPlayers.push(extra)
     seenIds.add(extra.id)
+  }
+
+  const playersById = new Map(rowPlayers.map((player) => [player.id, player]))
+  const activeFocusDay = days.includes(focusDay) ? focusDay : (days[0] ?? "")
+  const slotRows = buildLineupDisplayRows(
+    rosterEntries,
+    [...previewIds],
+    [...onIlIds],
+  )
+  const dayColClassName = (day: string, extras: string) =>
+    `${MATCHUP_WEEK_DAY_COL_CLASS} ${extras}${
+      day === activeFocusDay ? " bg-[var(--color-soft-cloud)]/80" : ""
+    }`
+
+  const startedGameCountForDay = (day: string) => {
+    const entries = daily[day] ?? []
+    let count = 0
+
+    for (const entry of entries) {
+      if (!entry.playerId) continue
+      const player = playersById.get(entry.playerId)
+      const teamAbbr = player?.teamAbbr
+      if (!teamAbbr) continue
+      if (gameWeightForTeamDate(teamAbbr, day, schedule) > 0) count += 1
+    }
+
+    return count
   }
 
   const handleToggle = (
@@ -115,14 +153,135 @@ export const DailyLineupPanel = ({
     setHint("")
   }
 
+  const renderDayCell = (
+    player: SeasonPlayer | null,
+    day: string,
+    onIl: boolean,
+    homeSlot: DailySlotRow["slot"],
+  ) => {
+    if (!player) {
+      return (
+        <td className={dayColClassName(day, "px-1 py-1 text-center")} key={day}>
+          <span className="inline-flex h-9 min-w-[3.75rem] items-center justify-center text-[var(--color-mute)]">
+            —
+          </span>
+        </td>
+      )
+    }
+
+    const isPreview = previewIds.has(player.id)
+    const droppedFrom = droppedFromDateByPlayerId[player.id]
+    const ownedDates = isPreview
+      ? toDateSet(streamerOwnedDatesByPlayerId[player.id])
+      : null
+    const isDropped = Boolean(droppedFrom && day >= droppedFrom)
+    const isOutsideStreamerWindow = Boolean(
+      ownedDates && !ownedDates.has(day),
+    )
+    const isLocked = isDropped || isOutsideStreamerWindow
+    const teamAbbr = player.teamAbbr ?? ""
+    const gameWeight = teamAbbr
+      ? gameWeightForTeamDate(teamAbbr, day, schedule)
+      : 0
+    const hasGame = gameWeight > 0
+    const isB2b = teamAbbr
+      ? isB2bSecondNight(teamAbbr, day, schedule)
+      : false
+    const startedIndex = findPlayerSlotIndex(daily, day, player.id)
+    const started = startedIndex >= 0
+    const startedSlot =
+      startedIndex >= 0 ? daily[day]?.[startedIndex]?.slot : null
+    const label = dayOpponentLabel(player, day, schedule)
+    const shortLabel = shortOpponentLabel(label)
+    const sitStartHint = sitStartBadgesByPlayerId[player.id]
+    const action = started ? "Sit" : "Start"
+    const ariaLabel = startedSlot
+      ? `${action} ${player.name} on ${formatMatchupDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
+      : `${action} ${player.name} on ${formatMatchupDayLabel(day)}`
+    const lockedAriaLabel = isDropped
+      ? `${player.name} dropped in streaming plan on ${formatMatchupDayLabel(day)}`
+      : `${player.name} not on streaming plan on ${formatMatchupDayLabel(day)}`
+    const irAriaLabel = `${player.name} on IR ${formatMatchupDayLabel(day)}`
+
+    if (!hasGame) {
+      return (
+        <td className={dayColClassName(day, "px-1 py-1 text-center")} key={day}>
+          <span
+            aria-label={`${player.name} no game ${formatMatchupDayLabel(day)}`}
+            className="inline-flex h-9 min-w-[3.75rem] items-center justify-center text-[var(--color-mute)]"
+          >
+            —
+          </span>
+        </td>
+      )
+    }
+
+    return (
+      <td className={dayColClassName(day, "px-1 py-1 text-center align-top")} key={day}>
+        <div className="inline-flex flex-col items-center gap-0.5">
+          <button
+            aria-label={
+              onIl
+                ? irAriaLabel
+                : isLocked
+                  ? lockedAriaLabel
+                  : sitStartHint
+                    ? `${ariaLabel}. ${sitStartHint}`
+                    : ariaLabel
+            }
+            aria-pressed={isLocked || onIl ? undefined : started}
+            className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
+              onIl
+                ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-80"
+                : isLocked
+                  ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
+                  : started
+                    ? "bg-[var(--color-ink)] text-white hover:opacity-90"
+                    : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
+            }`}
+            disabled={isLocked}
+            onClick={() =>
+              handleToggle(player, day, hasGame, isLocked, onIl)
+            }
+            type="button"
+          >
+            {onIl ? (
+              <span className="mr-1 font-semibold tracking-wide">IR</span>
+            ) : started && startedSlot && startedSlot !== homeSlot ? (
+              <span className="mr-1 font-semibold tracking-wide">
+                {slotDisplayLabel(startedSlot)}
+              </span>
+            ) : null}
+            {shortLabel}
+            {isB2b && !isLocked && !onIl ? (
+              <span
+                className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
+                title="B2B · ~75% expected"
+              >
+                B2B
+              </span>
+            ) : null}
+          </button>
+          {sitStartHint && !onIl ? (
+            <span
+              className="max-w-[4.75rem] text-center text-[0.5625rem] leading-tight font-medium text-[var(--color-ink)]"
+              title={sitStartHint}
+            >
+              {sitStartHint}
+            </span>
+          ) : null}
+        </div>
+      </td>
+    )
+  }
+
   return (
     <section aria-label="Daily lineup" className="mt-8">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Daily lineup</h2>
           <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
-            Daily league: click a game box to start or sit anyone on your roster
-            (including bench). The board above updates from these lineups.
+            Roster slots stay put for the week. Click a day to highlight it; click a game cell to start or sit.
           </p>
         </div>
         <button
@@ -147,32 +306,90 @@ export const DailyLineupPanel = ({
       ) : null}
 
       <div className="overflow-x-auto rounded-2xl border border-[var(--color-hairline)]">
-        <table className="w-full min-w-[36rem] border-collapse text-left text-[0.8125rem] leading-snug">
+        <table
+          className={`${MATCHUP_WEEK_TABLE_CLASS} text-left text-[0.8125rem] leading-snug`}
+        >
+          <colgroup>
+            <col className={MATCHUP_WEEK_SLOT_COL_CLASS} />
+            <col className={MATCHUP_WEEK_PLAYER_COL_CLASS} />
+            {days.map((day) => (
+              <col className={MATCHUP_WEEK_DAY_COL_CLASS} key={day} />
+            ))}
+          </colgroup>
           <thead className="bg-[var(--color-soft-cloud)] text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
             <tr>
-              <th className="sticky left-0 z-10 bg-[var(--color-soft-cloud)] px-2.5 py-1.5 font-medium" scope="col">
+              <th
+                className={`${MATCHUP_WEEK_SLOT_COL_CLASS} sticky left-0 z-10 bg-[var(--color-soft-cloud)] px-2 py-1.5 font-medium`}
+                scope="col"
+              >
+                Slot
+              </th>
+              <th
+                className={`${MATCHUP_WEEK_PLAYER_COL_CLASS} sticky left-12 z-10 bg-[var(--color-soft-cloud)] px-2.5 py-1.5 font-medium`}
+                scope="col"
+              >
                 Player
               </th>
               {days.map((day) => (
                 <th
-                  className="min-w-[4.5rem] px-1 py-1.5 text-center font-medium"
+                  className={dayColClassName(day, "px-1 py-1.5 text-center font-medium")}
                   key={day}
                   scope="col"
                 >
-                  {formatDayLabel(day)}
+                  <button
+                    aria-label={`Highlight ${formatMatchupDayLabel(day)}`}
+                    aria-pressed={activeFocusDay === day}
+                    className={`rounded-full px-1 py-1 font-medium tracking-[0.08em] uppercase whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                      activeFocusDay === day
+                        ? "bg-[var(--color-ink)] text-white"
+                        : "hover:bg-white/70 hover:text-[var(--color-ink)]"
+                    }`}
+                    onClick={() => setFocusDay(day)}
+                    type="button"
+                  >
+                    {formatMatchupDayLabel(day)}
+                  </button>
                 </th>
               ))}
             </tr>
+            <tr className="border-t border-[var(--color-hairline)] text-[var(--color-ink)]">
+              <th
+                className="sticky left-0 z-10 bg-[var(--color-soft-cloud)] px-2.5 py-1.5 text-left font-medium normal-case tracking-normal"
+                colSpan={2}
+                scope="row"
+              >
+                Games
+              </th>
+              {days.map((day) => {
+                const count = startedGameCountForDay(day)
+
+                return (
+                  <td
+                    aria-label={`${count} games ${formatMatchupDayLabel(day)}`}
+                    className={dayColClassName(
+                      day,
+                      "px-1 py-1.5 text-center font-medium tabular-nums normal-case tracking-normal",
+                    )}
+                    key={`${day}-games`}
+                  >
+                    {count}
+                  </td>
+                )
+              })}
+            </tr>
           </thead>
           <tbody>
-            {rowPlayers.map((player) => {
-              const isPreview = previewIds.has(player.id)
-              const onIl = onIlIds.has(player.id)
-              const droppedFrom = droppedFromDateByPlayerId[player.id]
-              const ownedDates = isPreview
-                ? toDateSet(streamerOwnedDatesByPlayerId[player.id])
+            {slotRows.map((row, rowIndex) => {
+              const namePlayer = row.playerId
+                ? playersById.get(row.playerId) ?? null
                 : null
-              const isPlanDropped = Boolean(droppedFrom)
+              const isPreview = Boolean(
+                namePlayer && previewIds.has(namePlayer.id),
+              )
+              const onIl = row.slot === "IL"
+              const isPlanDropped = Boolean(
+                namePlayer && droppedFromDateByPlayerId[namePlayer.id],
+              )
 
               return (
                 <tr
@@ -181,154 +398,51 @@ export const DailyLineupPanel = ({
                       ? "border-t border-dashed border-[var(--color-hairline)]"
                       : "border-t border-[var(--color-hairline)]"
                   }
-                  key={player.id}
+                  key={`${row.slot}-${rowIndex}`}
                 >
                   <th
-                    className="sticky left-0 z-10 whitespace-nowrap bg-[var(--color-canvas)] px-2.5 py-1.5 font-medium"
+                    className={`${MATCHUP_WEEK_SLOT_COL_CLASS} sticky left-0 z-10 whitespace-nowrap bg-[var(--color-canvas)] px-2 py-1.5 font-semibold tracking-wide text-[var(--color-mute)]`}
                     scope="row"
                   >
-                    <span
-                      className={
-                        isPlanDropped
-                          ? "text-[var(--color-mute)] line-through"
-                          : undefined
-                      }
-                    >
-                      {player.name}
-                    </span>
-                    {isPreview ? (
-                      <span className="ml-1.5 rounded-full border border-dashed border-[var(--color-hairline)] px-1.5 py-0.5 text-[0.625rem] font-normal tracking-wide text-[var(--color-mute)] uppercase">
-                        preview
-                      </span>
-                    ) : null}
-                    <span className="ml-1.5 font-normal text-[var(--color-mute)]">
-                      {formatPlayerPositions(player)}
-                    </span>
-                    {player.teamAbbr ? (
-                      <span className="ml-1.5 font-normal text-[var(--color-mute)]">
-                        {player.teamAbbr}
-                      </span>
-                    ) : null}
+                    {slotLabel(row.slot)}
                   </th>
-                  {days.map((day) => {
-                    const isDropped = Boolean(
-                      droppedFrom && day >= droppedFrom,
-                    )
-                    const isOutsideStreamerWindow = Boolean(
-                      ownedDates && !ownedDates.has(day),
-                    )
-                    const isLocked = isDropped || isOutsideStreamerWindow
-                    const teamAbbr = player.teamAbbr ?? ""
-                    const gameWeight = teamAbbr
-                      ? gameWeightForTeamDate(teamAbbr, day, schedule)
-                      : 0
-                    const hasGame = gameWeight > 0
-                    const isB2b = teamAbbr
-                      ? isB2bSecondNight(teamAbbr, day, schedule)
-                      : false
-                    const startedIndex = findPlayerSlotIndex(
-                      daily,
-                      day,
-                      player.id,
-                    )
-                    const started = startedIndex >= 0
-                    const startedSlot =
-                      startedIndex >= 0
-                        ? daily[day]?.[startedIndex]?.slot
-                        : null
-                    const label = dayOpponentLabel(player, day, schedule)
-                    const shortLabel = shortOpponentLabel(label)
-                    const sitStartHint = sitStartBadgesByPlayerId[player.id]
-                    const action = started ? "Sit" : "Start"
-                    const ariaLabel = startedSlot
-                      ? `${action} ${player.name} on ${formatDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
-                      : `${action} ${player.name} on ${formatDayLabel(day)}`
-                    const lockedAriaLabel = isDropped
-                      ? `${player.name} dropped in streaming plan on ${formatDayLabel(day)}`
-                      : `${player.name} not on streaming plan on ${formatDayLabel(day)}`
-                    const irAriaLabel = `${player.name} on IR ${formatDayLabel(day)}`
-
-                    if (!hasGame) {
-                      return (
-                        <td className="px-1 py-1 text-center" key={day}>
-                          <span
-                            aria-label={`${player.name} no game ${formatDayLabel(day)}`}
-                            className="inline-flex h-9 min-w-[3.75rem] items-center justify-center text-[var(--color-mute)]"
-                          >
-                            —
+                  <td
+                    className={`${MATCHUP_WEEK_PLAYER_COL_CLASS} sticky left-12 z-10 overflow-hidden bg-[var(--color-canvas)] px-2.5 py-1.5 font-medium`}
+                  >
+                    {namePlayer ? (
+                      <>
+                        <span
+                          className={
+                            isPlanDropped
+                              ? "text-[var(--color-mute)] line-through"
+                              : undefined
+                          }
+                        >
+                          {namePlayer.name}
+                        </span>
+                        {isPreview ? (
+                          <span className="ml-1.5 rounded-full border border-dashed border-[var(--color-hairline)] px-1.5 py-0.5 text-[0.625rem] font-normal tracking-wide text-[var(--color-mute)] uppercase">
+                            preview
                           </span>
-                        </td>
-                      )
-                    }
-
-                    return (
-                      <td className="px-1 py-1 text-center align-top" key={day}>
-                        <div className="inline-flex flex-col items-center gap-0.5">
-                          <button
-                            aria-label={
-                              onIl
-                                ? irAriaLabel
-                                : isLocked
-                                  ? lockedAriaLabel
-                                  : sitStartHint
-                                    ? `${ariaLabel}. ${sitStartHint}`
-                                    : ariaLabel
-                            }
-                            aria-pressed={
-                              isLocked || onIl ? undefined : started
-                            }
-                            className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
-                              onIl
-                                ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-80"
-                                : isLocked
-                                  ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
-                                  : started
-                                    ? "bg-[var(--color-ink)] text-white hover:opacity-90"
-                                    : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
-                            }`}
-                            disabled={isLocked}
-                            onClick={() =>
-                              handleToggle(
-                                player,
-                                day,
-                                hasGame,
-                                isLocked,
-                                onIl,
-                              )
-                            }
-                            type="button"
-                          >
-                            {onIl ? (
-                              <span className="mr-1 font-semibold tracking-wide">
-                                IR
-                              </span>
-                            ) : startedSlot && !isLocked ? (
-                              <span className="mr-1 font-semibold tracking-wide">
-                                {slotDisplayLabel(startedSlot)}
-                              </span>
-                            ) : null}
-                            {shortLabel}
-                            {isB2b && !isLocked && !onIl ? (
-                              <span
-                                className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
-                                title="B2B · ~75% expected"
-                              >
-                                B2B
-                              </span>
-                            ) : null}
-                          </button>
-                          {sitStartHint && !onIl ? (
-                            <span
-                              className="max-w-[4.75rem] text-center text-[0.5625rem] leading-tight font-medium text-[var(--color-ink)]"
-                              title={sitStartHint}
-                            >
-                              {sitStartHint}
-                            </span>
-                          ) : null}
-                        </div>
-                      </td>
-                    )
-                  })}
+                        ) : null}
+                        <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                          {formatPlayerPositions(namePlayer)}
+                        </span>
+                        {namePlayer.teamAbbr ? (
+                          <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                            {namePlayer.teamAbbr}
+                          </span>
+                        ) : null}
+                      </>
+                    ) : (
+                      <span className="font-normal text-[var(--color-mute)]">
+                        —
+                      </span>
+                    )}
+                  </td>
+                  {days.map((day) =>
+                    renderDayCell(namePlayer, day, onIl, row.slot),
+                  )}
                 </tr>
               )
             })}
