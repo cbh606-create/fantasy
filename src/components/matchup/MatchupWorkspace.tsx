@@ -756,6 +756,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           previewPlayerIds={previewStreamerIds(previewPlan)}
           previewSpotCount={previewPlan?.spotCount}
           rosterPlayers={rosterPlayers}
+          rosterEntries={youTeam?.entries}
           schedule={matchupData.schedule}
           streamerOwnedDatesByPlayerId={previewStreamerOwnedDatesByPlayerId(
             previewPlan,
