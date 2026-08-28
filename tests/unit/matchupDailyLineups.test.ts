@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest"
 import {
+  buildLineupDisplayRows,
   dailyLineupsMatchDays,
   effectiveGamesByPlayerId,
   initDailyLineups,
   isDailyLineupFullForDate,
   setSlotPlayer,
+  sortPlayerIdsByLineupSlots,
   togglePlayerDay,
   youTotalsFromDaily,
   type DailyLineups,
@@ -510,5 +512,83 @@ describe("isDailyLineupFullForDate", () => {
         schedule,
       ),
     ).toBe(false)
+  })
+})
+
+describe("sortPlayerIdsByLineupSlots", () => {
+  it("defaults to weekly roster index (PG before Bench)", () => {
+    expect(
+      sortPlayerIdsByLineupSlots(
+        ["bench", "pg"],
+        {},
+        null,
+        { pg: 0, bench: 10 },
+      ),
+    ).toEqual(["pg", "bench"])
+  })
+
+  it("sorts started players by that day's slot order first", () => {
+    const daily: DailyLineups = {
+      "2025-11-03": [
+        { slot: "PG", playerId: "bench" },
+        { slot: "UTIL", playerId: "util" },
+      ],
+    }
+
+    expect(
+      sortPlayerIdsByLineupSlots(
+        ["pg", "util", "bench"],
+        daily,
+        "2025-11-03",
+        { pg: 0, util: 7, bench: 10 },
+      ),
+    ).toEqual(["bench", "util", "pg"])
+  })
+})
+
+describe("buildLineupDisplayRows", () => {
+  const roster: SeasonRosterEntry[] = [
+    { slot: "PG", playerId: "pg-1" },
+    { slot: "C", playerId: "c-1" },
+    { slot: "BE", playerId: "be-1" },
+    { slot: "BE", playerId: "be-2" },
+    { slot: "BE", playerId: "be-3" },
+  ]
+
+  it("keeps off-night and sit players on roster home slots", () => {
+    const rows = buildLineupDisplayRows(roster)
+    expect(rows.find((row) => row.slot === "PG")?.playerId).toBe("pg-1")
+    expect(rows.find((row) => row.slot === "C")?.playerId).toBe("c-1")
+    expect(rows.filter((row) => row.slot === "BE").map((row) => row.playerId)).toEqual([
+      "be-1",
+      "be-2",
+      "be-3",
+    ])
+    expect(rows.filter((row) => row.slot === "PG")).toHaveLength(1)
+    expect(rows.filter((row) => row.slot === "UTIL")).toHaveLength(3)
+  })
+
+  it("does not reorder when extra args look like a different focus day", () => {
+    const first = buildLineupDisplayRows(roster)
+    const second = buildLineupDisplayRows(roster, [], [])
+    expect(first.map((row) => row.playerId)).toEqual(second.map((row) => row.playerId))
+  })
+
+  it("renders empty active seats as empty rows", () => {
+    const rows = buildLineupDisplayRows([
+      { slot: "PG", playerId: null },
+      { slot: "C", playerId: "c-1" },
+    ])
+    expect(rows.find((row) => row.slot === "PG")?.playerId).toBeNull()
+    expect(rows.find((row) => row.slot === "C")?.playerId).toBe("c-1")
+    expect(rows.filter((row) => row.slot === "BE")).toHaveLength(3)
+  })
+
+  it("appends preview streamers as PV rows and does not put them in PG", () => {
+    const rows = buildLineupDisplayRows(roster, ["fa-a"])
+    expect(rows.find((row) => row.slot === "PG")?.playerId).toBe("pg-1")
+    const preview = rows.filter((row) => row.slot === "PV")
+    expect(preview.map((row) => row.playerId)).toEqual(["fa-a"])
+    expect(rows.at(-1)?.slot).toBe("PV")
   })
 })

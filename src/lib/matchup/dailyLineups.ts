@@ -432,6 +432,108 @@ export const findPlayerSlotIndex = (
   return entries.findIndex((entry) => entry.playerId === playerId)
 }
 
+/** Weekly roster order: PG, SG, SF, PF, C, G, F, UTIL×3, BE×3, IL. */
+export const sortPlayerIdsByLineupSlots = (
+  playerIds: string[],
+  daily: DailyLineups,
+  sortDay: string | null,
+  weeklyIndexByPlayerId: Record<string, number>,
+): string[] => {
+  const startedIndex = (playerId: string) =>
+    sortDay ? findPlayerSlotIndex(daily, sortDay, playerId) : -1
+
+  return [...playerIds].sort((left, right) => {
+    if (sortDay) {
+      const leftStarted = startedIndex(left)
+      const rightStarted = startedIndex(right)
+      const leftKey =
+        leftStarted >= 0
+          ? leftStarted
+          : 100 + (weeklyIndexByPlayerId[left] ?? 999)
+      const rightKey =
+        rightStarted >= 0
+          ? rightStarted
+          : 100 + (weeklyIndexByPlayerId[right] ?? 999)
+      if (leftKey !== rightKey) return leftKey - rightKey
+    } else {
+      const leftKey = weeklyIndexByPlayerId[left] ?? 999
+      const rightKey = weeklyIndexByPlayerId[right] ?? 999
+      if (leftKey !== rightKey) return leftKey - rightKey
+    }
+
+    return left.localeCompare(right)
+  })
+}
+
+export type LineupDisplaySlot = SeasonSlot | "PV"
+
+export type DailySlotRow = {
+  slot: LineupDisplaySlot
+  playerId: string | null
+  slotOccurrence: number
+}
+
+/**
+ * Weekly roster seats as display rows: PG→BE from the template, expandable IL,
+ * then preview streamers as PV. Sit/start does not move players between rows.
+ */
+export const buildLineupDisplayRows = (
+  rosterEntries: SeasonRosterEntry[],
+  extraPlayerIds: string[] = [],
+  extraIlPlayerIds: string[] = [],
+): DailySlotRow[] => {
+  const unused = [...rosterEntries]
+  const takeNext = (slot: SeasonSlot): SeasonRosterEntry | undefined => {
+    const index = unused.findIndex((entry) => entry.slot === slot)
+    if (index < 0) return undefined
+    return unused.splice(index, 1)[0]
+  }
+
+  const rows: DailySlotRow[] = []
+  const seen: Partial<Record<SeasonSlot, number>> = {}
+  for (const slot of SEASON_ROSTER_SLOTS) {
+    if (slot === "IL") break
+    const slotOccurrence = seen[slot] ?? 0
+    seen[slot] = slotOccurrence + 1
+    const entry = takeNext(slot)
+    rows.push({
+      slot,
+      playerId: entry?.playerId ?? null,
+      slotOccurrence,
+    })
+  }
+
+  const ilIds = [
+    ...rosterEntries.flatMap((entry) =>
+      entry.slot === "IL" && entry.playerId ? [entry.playerId] : [],
+    ),
+    ...extraIlPlayerIds,
+  ].filter((id, index, all) => all.indexOf(id) === index)
+
+  const ilRows: DailySlotRow[] =
+    ilIds.length > 0
+      ? ilIds.map((playerId, slotOccurrence) => ({
+          slot: "IL" as const,
+          playerId,
+          slotOccurrence,
+        }))
+      : [{ slot: "IL", playerId: null, slotOccurrence: 0 }]
+
+  const placed = new Set(
+    [...rows, ...ilRows].flatMap((row) => (row.playerId ? [row.playerId] : [])),
+  )
+  const previewRows: DailySlotRow[] = extraPlayerIds
+    .filter((playerId) => !placed.has(playerId))
+    .filter((playerId, index, all) => all.indexOf(playerId) === index)
+    .map((playerId, slotOccurrence) => ({
+      slot: "PV" as const,
+      playerId,
+      slotOccurrence,
+    }))
+
+  return [...rows, ...ilRows, ...previewRows]
+}
+
 export const togglePlayerDay = (
   daily: DailyLineups,
   day: string,
