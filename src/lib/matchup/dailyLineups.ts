@@ -648,6 +648,31 @@ export const buildLineupDisplayRows = (
     }
   }
 
+  const playerHasGame = (playerId: string) => {
+    const teamAbbr = lookup(playerId)?.teamAbbr
+    if (!teamAbbr) return false
+    return gameWeightForTeamDate(teamAbbr, focusDay, schedule) > 0
+  }
+
+  const placeOffNight = (playerId: string) => {
+    const player = lookup(playerId)
+    const home = homeRowFor(playerId)
+    if (
+      home &&
+      isActiveDisplaySlot(home.slot) &&
+      eligibleForSlot(player, home.slot)
+    ) {
+      if (placeOn(home, playerId)) return true
+    }
+    return placeEligibleActive(playerId)
+  }
+
+  for (const entry of rosterEntries) {
+    if (entry.slot === "IL" || !entry.playerId) continue
+    if (placed.has(entry.playerId) || playerHasGame(entry.playerId)) continue
+    if (placeOffNight(entry.playerId)) placed.add(entry.playerId)
+  }
+
   for (const entry of rosterEntries) {
     if (entry.slot === "IL" || !entry.playerId) continue
     if (placed.has(entry.playerId)) continue

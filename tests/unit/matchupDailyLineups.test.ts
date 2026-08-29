@@ -711,7 +711,7 @@ describe("buildLineupDisplayRows focus-day seats", () => {
     slot: string,
   ) => rows.find((row) => row.slot === slot)?.playerId
 
-  it("seats only Monday starts on actives; leftovers go to BE; PV stays under IL", () => {
+  it("fills empty actives with off-nights; Sit and PV stay down", () => {
     const rows = buildLineupDisplayRows(roster, ["streamer"], [], focus)
 
     expect(rows.map((row) => row.slot)).toEqual([
@@ -722,20 +722,18 @@ describe("buildLineupDisplayRows focus-day seats", () => {
       "C",
       "UTIL",
       "BE",
-      "BE",
       "IL",
       "PV",
     ])
     expect(occupant(rows, "PG")).toBe("a")
-    expect(occupant(rows, "SG")).toBeNull()
+    expect(occupant(rows, "SG")).toBe("b")
     expect(occupant(rows, "SF")).toBe("c")
-    expect(occupant(rows, "PF")).toBeNull()
+    expect(occupant(rows, "PF")).toBe("e")
     expect(occupant(rows, "C")).toBe("d")
     expect(occupant(rows, "UTIL")).toBe("f")
-    expect(rows.filter((row) => row.slot === "BE").map((row) => row.playerId)).toEqual([
-      "b",
-      "e",
-    ])
+    expect(rows.filter((row) => row.slot === "BE").every((row) => row.playerId === null)).toBe(
+      true,
+    )
     expect(occupant(rows, "IL")).toBe("injured")
     expect(rows.filter((row) => row.slot === "PV").map((row) => row.playerId)).toEqual([
       "streamer",
@@ -765,7 +763,13 @@ describe("buildLineupDisplayRows focus-day seats", () => {
     expect(rows.find((row) => row.playerId === "a")?.slot).toBe("BE")
   })
 
-  it("re-seats from Tuesday starts when focusDay changes", () => {
+  it("does not write an off-night fill into daily", () => {
+    const rows = buildLineupDisplayRows(roster, [], [], focus)
+    expect(occupant(rows, "SG")).toBe("b")
+    expect(focus.daily[mon]?.find((entry) => entry.slot === "SG")?.playerId).toBeNull()
+  })
+
+  it("re-seats Tuesday starts and fills leftover actives with off-nights", () => {
     const daily: DailyLineups = {
       ...mondayStarts,
       [tue]: [
@@ -784,8 +788,10 @@ describe("buildLineupDisplayRows focus-day seats", () => {
     })
     expect(occupant(rows, "SG")).toBe("b")
     expect(occupant(rows, "PF")).toBe("e")
-    expect(occupant(rows, "PG")).toBeNull()
-    expect(occupant(rows, "UTIL")).toBeNull()
+    expect(occupant(rows, "PG")).toBe("a")
+    expect(occupant(rows, "SF")).toBe("c")
+    expect(occupant(rows, "C")).toBe("d")
+    expect(occupant(rows, "UTIL")).toBe("f")
     expect(rows.filter((row) => row.slot === "PV").map((row) => row.playerId)).toEqual([
       "streamer",
     ])
