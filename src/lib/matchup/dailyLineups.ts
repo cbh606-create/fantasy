@@ -552,11 +552,6 @@ export const buildLineupDisplayRows = (
   }
 
   const lookup = (playerId: string) => playersById[playerId]
-  const playerHasGame = (playerId: string) => {
-    const teamAbbr = lookup(playerId)?.teamAbbr
-    if (!teamAbbr) return false
-    return gameWeightForTeamDate(teamAbbr, focusDay, schedule) > 0
-  }
 
   const homeRowFor = (playerId: string): DailySlotRow | undefined => {
     const homeSeen: Partial<Record<SeasonSlot, number>> = {}
@@ -655,40 +650,17 @@ export const buildLineupDisplayRows = (
 
   for (const entry of rosterEntries) {
     if (entry.slot === "IL" || !entry.playerId) continue
-    if (placed.has(entry.playerId) || startedIds.has(entry.playerId)) continue
-    if (!playerHasGame(entry.playerId)) continue
-    if (placeSitOrStart(entry.playerId)) placed.add(entry.playerId)
-  }
-
-  for (const playerId of extraPlayerIds) {
-    if (placed.has(playerId) || !playerHasGame(playerId)) continue
-    if (placeEligibleActive(playerId)) placed.add(playerId)
-  }
-
-  for (const entry of rosterEntries) {
-    if (entry.slot === "IL" || !entry.playerId) continue
-    if (placed.has(entry.playerId) || playerHasGame(entry.playerId)) continue
-    const player = lookup(entry.playerId)
-    const home = homeRowFor(entry.playerId)
-    if (home && (home.slot === "BE" || eligibleForSlot(player, home.slot))) {
-      if (placeOn(home, entry.playerId)) {
-        placed.add(entry.playerId)
-        continue
-      }
-    }
-    if (placeEligibleActive(entry.playerId)) placed.add(entry.playerId)
-  }
-
-  for (const entry of rosterEntries) {
-    if (entry.slot === "IL" || !entry.playerId) continue
     if (placed.has(entry.playerId)) continue
     if (placeOn(firstEmpty((row) => row.slot === "BE"), entry.playerId)) {
       placed.add(entry.playerId)
       continue
     }
-    if (placeOn(firstEmpty(() => true), entry.playerId)) {
-      placed.add(entry.playerId)
-    }
+    rows.push({
+      slot: "BE",
+      playerId: entry.playerId,
+      slotOccurrence: rows.filter((row) => row.slot === "BE").length,
+    })
+    placed.add(entry.playerId)
   }
 
   return [...rows, ...ilRows, ...previewFromExtras(placed)]

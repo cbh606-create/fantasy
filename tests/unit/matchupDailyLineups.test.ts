@@ -711,7 +711,7 @@ describe("buildLineupDisplayRows focus-day seats", () => {
     slot: string,
   ) => rows.find((row) => row.slot === slot)?.playerId
 
-  it("seats Monday starts, off-nights, and PV into the fixed slot column", () => {
+  it("seats only Monday starts on actives; leftovers go to BE; PV stays under IL", () => {
     const rows = buildLineupDisplayRows(roster, ["streamer"], [], focus)
 
     expect(rows.map((row) => row.slot)).toEqual([
@@ -722,31 +722,76 @@ describe("buildLineupDisplayRows focus-day seats", () => {
       "C",
       "UTIL",
       "BE",
+      "BE",
       "IL",
+      "PV",
     ])
     expect(occupant(rows, "PG")).toBe("a")
-    expect(occupant(rows, "SG")).toBe("b")
+    expect(occupant(rows, "SG")).toBeNull()
     expect(occupant(rows, "SF")).toBe("c")
-    expect(occupant(rows, "PF")).toBe("streamer")
+    expect(occupant(rows, "PF")).toBeNull()
     expect(occupant(rows, "C")).toBe("d")
     expect(occupant(rows, "UTIL")).toBe("f")
-    expect(occupant(rows, "BE")).toBe("e")
+    expect(rows.filter((row) => row.slot === "BE").map((row) => row.playerId)).toEqual([
+      "b",
+      "e",
+    ])
     expect(occupant(rows, "IL")).toBe("injured")
-    expect(rows.filter((row) => row.slot === "PV")).toHaveLength(0)
+    expect(rows.filter((row) => row.slot === "PV").map((row) => row.playerId)).toEqual([
+      "streamer",
+    ])
   })
 
-  it("puts a Sit player with a game on their empty home slot", () => {
+  it("puts a Sit player with a game on BE and leaves the home active empty", () => {
     const daily: DailyLineups = {
       [mon]: mondayStarts[mon]!.map((entry) =>
         entry.slot === "C" ? { ...entry, playerId: null } : entry,
       ),
     }
     const rows = buildLineupDisplayRows(roster, [], [], { ...focus, daily })
-    expect(occupant(rows, "C")).toBe("d")
+    expect(occupant(rows, "C")).toBeNull()
+    expect(rows.filter((row) => row.slot === "BE").map((row) => row.playerId)).toContain("d")
     expect(daily[mon]?.find((entry) => entry.slot === "C")?.playerId).toBeNull()
   })
 
-  it("keeps a PV with a game under IL when every active seat is filled", () => {
+  it("does not put a plan-dropped-style roster id on an active when they are not started", () => {
+    const daily: DailyLineups = {
+      [mon]: mondayStarts[mon]!.map((entry) =>
+        entry.slot === "PG" ? { ...entry, playerId: null } : entry,
+      ),
+    }
+    const rows = buildLineupDisplayRows(roster, [], [], { ...focus, daily })
+    expect(occupant(rows, "PG")).toBeNull()
+    expect(rows.find((row) => row.playerId === "a")?.slot).toBe("BE")
+  })
+
+  it("re-seats from Tuesday starts when focusDay changes", () => {
+    const daily: DailyLineups = {
+      ...mondayStarts,
+      [tue]: [
+        { slot: "PG", playerId: null },
+        { slot: "SG", playerId: "b" },
+        { slot: "SF", playerId: null },
+        { slot: "PF", playerId: "e" },
+        { slot: "C", playerId: null },
+        { slot: "UTIL", playerId: null },
+      ],
+    }
+    const rows = buildLineupDisplayRows(roster, ["streamer"], [], {
+      ...focus,
+      focusDay: tue,
+      daily,
+    })
+    expect(occupant(rows, "SG")).toBe("b")
+    expect(occupant(rows, "PF")).toBe("e")
+    expect(occupant(rows, "PG")).toBeNull()
+    expect(occupant(rows, "UTIL")).toBeNull()
+    expect(rows.filter((row) => row.slot === "PV").map((row) => row.playerId)).toEqual([
+      "streamer",
+    ])
+  })
+
+  it("keeps a started preview on the engine slot and a full-day preview on PV", () => {
     const daily: DailyLineups = {
       [mon]: [
         { slot: "PG", playerId: "a" },
@@ -757,15 +802,30 @@ describe("buildLineupDisplayRows focus-day seats", () => {
         { slot: "UTIL", playerId: "f" },
       ],
     }
-    const rows = buildLineupDisplayRows(roster, ["streamer"], [], {
+    const full = buildLineupDisplayRows(roster, ["streamer"], [], {
       ...focus,
       daily,
     })
-    expect(occupant(rows, "PF")).toBe("e")
-    expect(rows.filter((row) => row.slot === "PV").map((row) => row.playerId)).toEqual([
+    expect(occupant(full, "PF")).toBe("e")
+    expect(full.filter((row) => row.slot === "PV").map((row) => row.playerId)).toEqual([
       "streamer",
     ])
-    expect(rows.at(-1)?.slot).toBe("PV")
+
+    const withStart = buildLineupDisplayRows(roster, ["streamer"], [], {
+      ...focus,
+      daily: {
+        [mon]: [
+          { slot: "PG", playerId: "a" },
+          { slot: "SG", playerId: null },
+          { slot: "SF", playerId: "c" },
+          { slot: "PF", playerId: "streamer" },
+          { slot: "C", playerId: "d" },
+          { slot: "UTIL", playerId: "f" },
+        ],
+      },
+    })
+    expect(occupant(withStart, "PF")).toBe("streamer")
+    expect(withStart.filter((row) => row.slot === "PV")).toHaveLength(0)
   })
 
   it("keeps IL on the IL row even when that player has a game", () => {
