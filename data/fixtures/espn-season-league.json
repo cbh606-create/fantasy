@@ -1727,27 +1727,27 @@
     },
     {
       "id": "t3p11",
-      "name": "Troy Williams",
-      "teamAbbr": "SAC",
+      "name": "Collin Murray-Boyles",
+      "teamAbbr": "TOR",
       "positions": [
-        "SF"
+        "PF"
       ],
       "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
+        "FG_PCT": 0.545,
+        "FT_PCT": 0.709,
+        "TPM": 4,
+        "REB": 410,
+        "AST": 115,
+        "STL": 58,
+        "BLK": 72,
+        "TO": 130,
+        "PTS": 860
       },
       "shooting": {
-        "FGM": 0,
-        "FGA": 0,
-        "FTM": 0,
-        "FTA": 0
+        "FGM": 326.8,
+        "FGA": 599.6330275229358,
+        "FTM": 154.8,
+        "FTA": 218.33568406205924
       }
     },
     {
