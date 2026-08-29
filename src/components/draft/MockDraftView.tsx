@@ -25,6 +25,7 @@ import {
   formatAdpReferenceLine,
   type AdpSourceId,
 } from "@/lib/players/adpSources"
+import { FAST_NEXT_PICK_COUNT } from "@/lib/sim/constants"
 
 export type MockLatestPick = {
   overall: number
@@ -186,7 +187,7 @@ export const MockDraftView = ({
           }
           isSimulating={isSimulating && userTurn && !draftComplete}
           layout="row"
-          maxNextPicks={3}
+          maxNextPicks={FAST_NEXT_PICK_COUNT}
           players={players}
           result={mockResult}
           showCategoryOutlook={false}

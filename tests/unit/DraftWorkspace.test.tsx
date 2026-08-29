@@ -529,7 +529,7 @@ describe("DraftWorkspace", () => {
       simCount?: number
       fastRecommendations?: boolean
     }
-    expect(mockSimulateBody.simCount).toBe(24)
+    expect(mockSimulateBody.simCount).toBe(48)
     expect(mockSimulateBody.fastRecommendations).toBe(true)
     expect(mockSimulationSignals[0]?.aborted).toBe(false)
     expect(screen.getByText(/latest pick/i)).toBeInTheDocument()

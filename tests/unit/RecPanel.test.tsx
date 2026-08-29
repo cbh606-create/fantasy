@@ -23,6 +23,8 @@ const players: Player[] = [
   { id: "b", name: "Bravo", positions: ["SG"], projections, adp: 2 },
   { id: "c", name: "Charlie", positions: ["SF"], projections, adp: 3 },
   { id: "d", name: "Delta", positions: ["PF"], projections, adp: 4 },
+  { id: "e", name: "Echo", positions: ["C"], projections, adp: 5 },
+  { id: "f", name: "Foxtrot", positions: ["PG"], projections, adp: 6 },
 ]
 
 const result: SimulationResult = {
@@ -31,6 +33,8 @@ const result: SimulationResult = {
     { playerId: "b", score: 0.9, frequency: 0.3 },
     { playerId: "c", score: 0.8, frequency: 0.15 },
     { playerId: "d", score: 0.7, frequency: 0.05 },
+    { playerId: "e", score: 0.6, frequency: 0.04 },
+    { playerId: "f", score: 0.5, frequency: 0.03 },
   ],
   topCombinations: [],
   categoryOutlook: {
@@ -109,19 +113,35 @@ describe("RecPanel", () => {
     expect(screen.getByText(/Based on 10 sims/i)).toBeInTheDocument()
   })
 
-  it("renders a horizontal row layout without outlook", () => {
+  it("renders a compact six-cell row without avatars", () => {
     render(
       <RecPanel
         layout="row"
-        maxNextPicks={3}
+        maxNextPicks={6}
         players={players}
         result={result}
         showCategoryOutlook={false}
       />,
     )
 
-    expect(screen.getByRole("list")).toBeInTheDocument()
+    expect(screen.getByRole("list")).toHaveClass("grid-cols-6")
     expect(screen.getByText("Alpha")).toBeInTheDocument()
+    expect(screen.getByText("Foxtrot")).toBeInTheDocument()
+    expect(screen.queryByTitle("Alpha")).not.toBeInTheDocument()
     expect(screen.queryByRole("heading", { name: /category outlook/i })).not.toBeInTheDocument()
+  })
+
+  it("shows six next picks when maxNextPicks is 6", () => {
+    render(
+      <RecPanel
+        maxNextPicks={6}
+        players={players}
+        result={result}
+        showCategoryOutlook={false}
+      />,
+    )
+
+    expect(screen.getByText("Echo")).toBeInTheDocument()
+    expect(screen.getByText("Foxtrot")).toBeInTheDocument()
   })
 })

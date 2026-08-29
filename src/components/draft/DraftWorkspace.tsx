@@ -34,6 +34,7 @@ import {
   type AdpSourceId,
 } from "@/lib/players/adpSources"
 import { filterDraftEligible } from "@/lib/players/draftEligible"
+import { FAST_NEXT_PICK_COUNT, MOCK_SIM_COUNT } from "@/lib/sim/constants"
 
 const toMockLeagueState = (
   baseState: LeagueState,
@@ -56,7 +57,6 @@ const toMockLeagueState = (
 })
 
 const MOCK_PICK_DELAY_MS = 280
-const MOCK_SIM_COUNT = 24
 const MOCK_SIM_DEBOUNCE_MS = 50
 
 const buildQuickMockRecommendations = (
@@ -73,7 +73,7 @@ const buildQuickMockRecommendations = (
       (left, right) =>
         left.adp - right.adp || left.id.localeCompare(right.id),
     )
-    .slice(0, 3)
+    .slice(0, FAST_NEXT_PICK_COUNT)
   const categoryOutlook = Object.fromEntries(
     ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
   ) as SimulationResult["categoryOutlook"]

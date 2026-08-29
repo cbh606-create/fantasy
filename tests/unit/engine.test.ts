@@ -65,7 +65,7 @@ describe("runDraftSimulation", () => {
     )
   })
 
-  it("returns at most three next picks quickly with fastRecommendations", () => {
+  it("returns at most six next picks quickly with fastRecommendations", () => {
     const result = runDraftSimulation({
       state: createState(),
       simCount: 8,
@@ -74,7 +74,8 @@ describe("runDraftSimulation", () => {
     })
 
     expect(result.nextPicks.length).toBeGreaterThan(0)
-    expect(result.nextPicks.length).toBeLessThanOrEqual(3)
+    expect(result.nextPicks.length).toBeLessThanOrEqual(6)
+    expect(result.nextPicks.length).toBe(6)
     expect(result.meta.latencyMs).toBeLessThan(5_000)
   })
 
