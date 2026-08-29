@@ -473,15 +473,26 @@ export type DailySlotRow = {
   slotOccurrence: number
 }
 
+export type LineupDisplayFocus = {
+  focusDay?: string
+  schedule?: ScheduleResponse
+  playersById?: Record<string, SeasonPlayer>
+  daily?: DailyLineups
+}
+
+const isActiveDisplaySlot = (slot: LineupDisplaySlot) =>
+  slot !== "BE" && slot !== "IL" && slot !== "PV"
+
 /**
  * Weekly roster seats as display rows: one row per league seat (including extra
- * G/UTIL/BE), expandable IL, then preview streamers as PV. Sit/start does not
- * move players between rows.
+ * G/UTIL/BE), expandable IL, then leftover preview streamers as PV. When focus
+ * inputs are present, occupants are the focused day's daily seats.
  */
 export const buildLineupDisplayRows = (
   rosterEntries: SeasonRosterEntry[],
   extraPlayerIds: string[] = [],
   extraIlPlayerIds: string[] = [],
+  focus?: LineupDisplayFocus,
 ): DailySlotRow[] => {
   const seats =
     rosterEntries.length > 0
@@ -517,19 +528,170 @@ export const buildLineupDisplayRows = (
         }))
       : [{ slot: "IL", playerId: null, slotOccurrence: 0 }]
 
-  const placed = new Set(
-    [...rows, ...ilRows].flatMap((row) => (row.playerId ? [row.playerId] : [])),
-  )
-  const previewRows: DailySlotRow[] = extraPlayerIds
-    .filter((playerId) => !placed.has(playerId))
-    .filter((playerId, index, all) => all.indexOf(playerId) === index)
-    .map((playerId, slotOccurrence) => ({
-      slot: "PV" as const,
-      playerId,
-      slotOccurrence,
-    }))
+  const previewFromExtras = (placed: Set<string>): DailySlotRow[] =>
+    extraPlayerIds
+      .filter((playerId) => !placed.has(playerId))
+      .filter((playerId, index, all) => all.indexOf(playerId) === index)
+      .map((playerId, slotOccurrence) => ({
+        slot: "PV" as const,
+        playerId,
+        slotOccurrence,
+      }))
 
-  return [...rows, ...ilRows, ...previewRows]
+  const focusDay = focus?.focusDay
+  const schedule = focus?.schedule
+  const playersById = focus?.playersById
+  const daily = focus?.daily
+  if (!focusDay || !schedule || !playersById || !daily) {
+    const placed = new Set(
+      [...rows, ...ilRows].flatMap((row) =>
+        row.playerId ? [row.playerId] : [],
+      ),
+    )
+    return [...rows, ...ilRows, ...previewFromExtras(placed)]
+  }
+
+  const lookup = (playerId: string) => playersById[playerId]
+  const playerHasGame = (playerId: string) => {
+    const teamAbbr = lookup(playerId)?.teamAbbr
+    if (!teamAbbr) return false
+    return gameWeightForTeamDate(teamAbbr, focusDay, schedule) > 0
+  }
+
+  const homeRowFor = (playerId: string): DailySlotRow | undefined => {
+    const homeSeen: Partial<Record<SeasonSlot, number>> = {}
+    for (const entry of rosterEntries) {
+      if (entry.slot === "IL") continue
+      const slotOccurrence = homeSeen[entry.slot] ?? 0
+      homeSeen[entry.slot] = slotOccurrence + 1
+      if (entry.playerId === playerId) {
+        return rows.find(
+          (row) =>
+            row.slot === entry.slot && row.slotOccurrence === slotOccurrence,
+        )
+      }
+    }
+  }
+
+  const placeOn = (row: DailySlotRow | undefined, playerId: string) => {
+    if (!row || row.playerId !== null) return false
+    row.playerId = playerId
+    return true
+  }
+
+  const firstEmpty = (matches: (row: DailySlotRow) => boolean) =>
+    rows.find((row) => row.playerId === null && matches(row))
+
+  const placeEligibleActive = (playerId: string) => {
+    const player = lookup(playerId)
+    return placeOn(
+      firstEmpty(
+        (row) =>
+          isActiveDisplaySlot(row.slot) &&
+          eligibleForSlot(player, row.slot as SeasonSlot),
+      ),
+      playerId,
+    )
+  }
+
+  const placeSitOrStart = (playerId: string) => {
+    const player = lookup(playerId)
+    const home = homeRowFor(playerId)
+    if (
+      home &&
+      isActiveDisplaySlot(home.slot) &&
+      eligibleForSlot(player, home.slot)
+    ) {
+      if (placeOn(home, playerId)) return true
+    }
+    if (placeEligibleActive(playerId)) return true
+    return placeOn(firstEmpty((row) => row.slot === "BE"), playerId)
+  }
+
+  for (const row of rows) {
+    row.playerId = null
+  }
+
+  const placed = new Set(
+    ilRows.flatMap((row) => (row.playerId ? [row.playerId] : [])),
+  )
+  const displayable = new Set([
+    ...rosterEntries.flatMap((entry) =>
+      entry.playerId && entry.slot !== "IL" ? [entry.playerId] : [],
+    ),
+    ...extraPlayerIds,
+  ])
+  const dayEntries = daily[focusDay] ?? []
+  const startedIds = new Set(
+    dayEntries.flatMap((entry) =>
+      entry.playerId && displayable.has(entry.playerId) ? [entry.playerId] : [],
+    ),
+  )
+
+  const usedOcc: Partial<Record<SeasonSlot, number>> = {}
+  for (const entry of dayEntries) {
+    const slotOccurrence = usedOcc[entry.slot] ?? 0
+    usedOcc[entry.slot] = slotOccurrence + 1
+    if (
+      !entry.playerId ||
+      placed.has(entry.playerId) ||
+      !displayable.has(entry.playerId)
+    ) {
+      continue
+    }
+    const row = rows.find(
+      (candidate) =>
+        candidate.slot === entry.slot &&
+        candidate.slotOccurrence === slotOccurrence,
+    )
+    if (placeOn(row, entry.playerId)) placed.add(entry.playerId)
+  }
+  for (const playerId of startedIds) {
+    if (placed.has(playerId)) continue
+    if (placeSitOrStart(playerId) || placeOn(firstEmpty(() => true), playerId)) {
+      placed.add(playerId)
+    }
+  }
+
+  for (const entry of rosterEntries) {
+    if (entry.slot === "IL" || !entry.playerId) continue
+    if (placed.has(entry.playerId) || startedIds.has(entry.playerId)) continue
+    if (!playerHasGame(entry.playerId)) continue
+    if (placeSitOrStart(entry.playerId)) placed.add(entry.playerId)
+  }
+
+  for (const playerId of extraPlayerIds) {
+    if (placed.has(playerId) || !playerHasGame(playerId)) continue
+    if (placeEligibleActive(playerId)) placed.add(playerId)
+  }
+
+  for (const entry of rosterEntries) {
+    if (entry.slot === "IL" || !entry.playerId) continue
+    if (placed.has(entry.playerId) || playerHasGame(entry.playerId)) continue
+    const player = lookup(entry.playerId)
+    const home = homeRowFor(entry.playerId)
+    if (home && (home.slot === "BE" || eligibleForSlot(player, home.slot))) {
+      if (placeOn(home, entry.playerId)) {
+        placed.add(entry.playerId)
+        continue
+      }
+    }
+    if (placeEligibleActive(entry.playerId)) placed.add(entry.playerId)
+  }
+
+  for (const entry of rosterEntries) {
+    if (entry.slot === "IL" || !entry.playerId) continue
+    if (placed.has(entry.playerId)) continue
+    if (placeOn(firstEmpty((row) => row.slot === "BE"), entry.playerId)) {
+      placed.add(entry.playerId)
+      continue
+    }
+    if (placeOn(firstEmpty(() => true), entry.playerId)) {
+      placed.add(entry.playerId)
+    }
+  }
+
+  return [...rows, ...ilRows, ...previewFromExtras(placed)]
 }
 
 export const togglePlayerDay = (

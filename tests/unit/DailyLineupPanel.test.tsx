@@ -422,6 +422,15 @@ describe("DailyLineupPanel slot column and day sort", () => {
     fireEvent.click(
       screen.getAllByRole("button", { name: /Highlight /i })[0]!,
     )
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /Highlight /i })[1]!,
+    )
+
+    const headersAfter = screen
+      .getAllByRole("rowheader")
+      .map((el) => el.textContent)
+    expect(headersAfter.indexOf("PG")).toBeLessThan(headersAfter.indexOf("C"))
+    expect(headersAfter.indexOf("C")).toBeLessThan(headersAfter.indexOf("BE"))
 
     const pgRow = screen.getAllByRole("row").find((row) => {
       const header = row.querySelector("th")
@@ -473,6 +482,38 @@ describe("DailyLineupPanel slot column and day sort", () => {
       return header?.textContent === "PG"
     })
     expect(pgRow?.textContent).toContain("Point Guard")
+  })
+
+  it("seats a preview streamer with a game into an empty eligible slot", () => {
+    render(
+      <DailyLineupPanel
+        daily={{
+          "2025-11-03": [{ slot: "PG", playerId: "you-1" }],
+          "2025-11-04": [{ slot: "PG", playerId: "you-1" }],
+        }}
+        days={days}
+        extraPlayers={[streamer]}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        previewActive
+        previewPlayerIds={["fa-a"]}
+        previewSpotCount={1}
+        rosterEntries={[
+          { slot: "PG", playerId: "you-1" },
+          { slot: "SG", playerId: null },
+        ]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+      />,
+    )
+
+    const sgRow = screen.getAllByRole("row").find((row) => {
+      const header = row.querySelector("th")
+      return header?.textContent === "SG"
+    })
+    expect(sgRow?.textContent).toContain("Streamer A")
+    expect(sgRow?.textContent).toMatch(/preview/i)
+    expect(screen.queryByRole("rowheader", { name: "PV" })).not.toBeInTheDocument()
   })
 
   it("puts preview streamers on PV rows not PG", () => {

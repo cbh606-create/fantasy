@@ -105,6 +105,12 @@ export const DailyLineupPanel = ({
     rosterEntries,
     [...previewIds],
     [...onIlIds],
+    {
+      focusDay: activeFocusDay,
+      schedule,
+      playersById: Object.fromEntries(playersById),
+      daily,
+    },
   )
   const dayColClassName = (day: string, extras: string) =>
     `${MATCHUP_WEEK_DAY_COL_CLASS} ${extras}${
@@ -157,7 +163,6 @@ export const DailyLineupPanel = ({
     player: SeasonPlayer | null,
     day: string,
     onIl: boolean,
-    homeSlot: DailySlotRow["slot"],
   ) => {
     if (!player) {
       return (
@@ -191,6 +196,9 @@ export const DailyLineupPanel = ({
     const started = startedIndex >= 0
     const startedSlot =
       startedIndex >= 0 ? daily[day]?.[startedIndex]?.slot : null
+    const weeklyHome = rosterEntries.find(
+      (entry) => entry.playerId === player.id && entry.slot !== "IL",
+    )?.slot
     const label = dayOpponentLabel(player, day, schedule)
     const shortLabel = shortOpponentLabel(label)
     const sitStartHint = sitStartBadgesByPlayerId[player.id]
@@ -247,7 +255,7 @@ export const DailyLineupPanel = ({
           >
             {onIl ? (
               <span className="mr-1 font-semibold tracking-wide">IR</span>
-            ) : started && startedSlot && startedSlot !== homeSlot ? (
+            ) : started && startedSlot && weeklyHome && startedSlot !== weeklyHome ? (
               <span className="mr-1 font-semibold tracking-wide">
                 {slotDisplayLabel(startedSlot)}
               </span>
@@ -281,7 +289,7 @@ export const DailyLineupPanel = ({
         <div>
           <h2 className="text-lg font-semibold">Daily lineup</h2>
           <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
-            Roster slots stay put for the week. Click a day to highlight it; click a game cell to start or sit.
+            Slots stay put. Click a day to see that day’s seats; click a game cell to start or sit.
           </p>
         </div>
         <button
@@ -441,7 +449,7 @@ export const DailyLineupPanel = ({
                     )}
                   </td>
                   {days.map((day) =>
-                    renderDayCell(namePlayer, day, onIl, row.slot),
+                    renderDayCell(namePlayer, day, onIl),
                   )}
                 </tr>
               )
