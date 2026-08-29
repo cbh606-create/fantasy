@@ -1,7 +1,7 @@
 # Daily Lineup Focus-Day Seats — Design Spec
 
 **Date:** 2026-08-29  
-**Status:** Draft for user review  
+**Status:** Superseded for seating passes — see [Starts-Only Seats](./2026-08-29-daily-lineup-starts-only-seats-design.md)  
 **Product:** Daily lineup grid — fixed slot column; occupants are that day’s daily-league seats  
 **Builds on:** [Daily Lineup ESPN Roster Grid](./2026-08-28-daily-lineup-espn-roster-grid-design.md), `DailyLineups` / `togglePlayerDay` / `eligibleForSlot`  
 **Branch context:** `feat/published-nba-schedule`
