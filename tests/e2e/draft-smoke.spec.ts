@@ -136,8 +136,6 @@ test("manual setup reaches mock and shows strategy chips plus next picks", async
   await leagueNameField.fill("")
   await leagueNameField.pressSequentially("Smoke League")
   await page.getByRole("button", { name: "Pick slot 4" }).click()
-  await page.getByRole("button", { name: "Punt TO" }).click()
-  await page.getByRole("button", { name: "Focus AST" }).click()
   await Promise.all([
     page.waitForURL(/\/leagues\/e2e-manual\/draft/),
     page.getByRole("button", { name: "Start mock draft" }).click(),

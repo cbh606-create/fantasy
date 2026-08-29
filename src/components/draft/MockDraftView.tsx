@@ -191,7 +191,11 @@ export const MockDraftView = ({
           result={mockResult}
           showCategoryOutlook={false}
         />
-        <PlayerStatsPeek player={hoveredPlayer} />
+        <PlayerStatsPeek
+          focusCategoryIds={focusCategoryIds}
+          player={hoveredPlayer}
+          puntCategoryIds={puntCategoryIds}
+        />
       </div>
 
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">

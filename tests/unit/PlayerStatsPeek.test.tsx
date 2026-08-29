@@ -63,4 +63,25 @@ describe("PlayerStatsPeek", () => {
     expect(peek).toHaveTextContent("—")
     expect(peek).not.toHaveTextContent("??")
   })
+
+  it("badges punted and focused category headers", () => {
+    render(
+      <PlayerStatsPeek
+        focusCategoryIds={["STL"]}
+        player={player}
+        puntCategoryIds={["TO"]}
+      />,
+    )
+    expect(screen.getByLabelText("TO Punt")).toBeInTheDocument()
+    expect(screen.getByLabelText("STL Focus")).toBeInTheDocument()
+    expect(screen.getByLabelText("PTS")).toBeInTheDocument()
+    expect(screen.queryByLabelText("PTS Punt")).not.toBeInTheDocument()
+    expect(screen.queryByLabelText("PTS Focus")).not.toBeInTheDocument()
+  })
+
+  it("omits strategy badges when both lists are empty", () => {
+    render(<PlayerStatsPeek player={player} />)
+    expect(screen.queryByText("Punt")).not.toBeInTheDocument()
+    expect(screen.queryByText("Focus")).not.toBeInTheDocument()
+  })
 })

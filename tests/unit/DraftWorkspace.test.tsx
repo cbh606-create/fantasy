@@ -164,8 +164,10 @@ describe("DraftWorkspace", () => {
       "true",
     )
     expect(screen.getByRole("tab", { name: "Live" })).toBeInTheDocument()
-    expect(await screen.findByText("Punt", {}, { timeout: 4_000 })).toBeInTheDocument()
-    expect(screen.getByText("Focus")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("button", { name: "Punt TO" }, { timeout: 4_000 }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Focus AST" })).toBeInTheDocument()
   })
 
   it("shows a load error when the league request fails", async () => {

@@ -8,6 +8,8 @@
 
 Hover still shows all 9-cat numbers. Headers for strategy cats get a small badge so ADP-sorted pool numbers are not mistaken for “this counts in recs.”
 
+Punt / Focus chips stay on **Mock only**. League setup (first page) no longer duplicates them; new leagues start with empty `puntCategoryIds` / `focusCategoryIds`.
+
 ---
 
 ## 1. Goal
@@ -22,6 +24,7 @@ On the Mock peek grid, a category in `puntCategoryIds` shows a `Punt` badge on i
 - Empty peek (no hovered player) still shows headers with the same badges.
 - Numbers and GP column unchanged.
 - Unit tests cover punt, focus, and neither.
+- League setup form has no Punt/Focus chip rows. Create payload still sends empty arrays (API unchanged).
 
 ### Non-goals
 
@@ -41,6 +44,7 @@ On the Mock peek grid, a category in `puntCategoryIds` shows a `Punt` badge on i
 | Chrome | Small muted badge next to the existing uppercase label |
 | Wire | `MockDraftView` passes `puntCategoryIds` and `focusCategoryIds` it already has |
 | Empty hover | Headers still badged |
+| League setup | Remove punt/focus UI; Mock chips are the only editor |
 
 ---
 

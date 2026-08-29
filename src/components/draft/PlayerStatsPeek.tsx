@@ -37,11 +37,24 @@ const GRID_COLS =
   "grid-cols-[7.5rem_2.75rem_repeat(9,minmax(3.25rem,1fr))] sm:grid-cols-[9rem_3rem_repeat(9,minmax(3.5rem,1fr))]"
 
 type PlayerStatsPeekProps = {
+  focusCategoryIds?: CategoryId[]
   player: Player | null
+  puntCategoryIds?: CategoryId[]
 }
 
-export const PlayerStatsPeek = ({ player }: PlayerStatsPeekProps) => {
+export const PlayerStatsPeek = ({
+  focusCategoryIds = [],
+  player,
+  puntCategoryIds = [],
+}: PlayerStatsPeekProps) => {
   const gp = player?.projectedGames
+  const punt = new Set(puntCategoryIds)
+  const focus = new Set(focusCategoryIds)
+  const headerBadge = (categoryId: CategoryId) => {
+    if (punt.has(categoryId)) return "Punt"
+    if (focus.has(categoryId)) return "Focus"
+    return null
+  }
 
   return (
     <section
@@ -67,14 +80,25 @@ export const PlayerStatsPeek = ({ player }: PlayerStatsPeekProps) => {
           <div className="text-center text-[0.7rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
             GP
           </div>
-          {ALL_CATEGORY_IDS.map((categoryId) => (
-            <div
-              className="text-center text-[0.7rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
-              key={`label-${categoryId}`}
-            >
-              {CATEGORY_LABELS[categoryId]}
-            </div>
-          ))}
+          {ALL_CATEGORY_IDS.map((categoryId) => {
+            const label = CATEGORY_LABELS[categoryId]
+            const badge = headerBadge(categoryId)
+
+            return (
+              <div
+                aria-label={badge ? `${label} ${badge}` : label}
+                className="text-center text-[0.7rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+                key={`label-${categoryId}`}
+              >
+                {label}
+                {badge ? (
+                  <span className="mt-0.5 block font-medium normal-case tracking-normal">
+                    {badge}
+                  </span>
+                ) : null}
+              </div>
+            )
+          })}
 
           <div className="pr-2 text-[var(--color-mute)]">Season</div>
           <div className="text-center tabular-nums font-medium">
