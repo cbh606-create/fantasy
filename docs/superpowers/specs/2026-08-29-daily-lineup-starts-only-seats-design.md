@@ -1,8 +1,8 @@
 # Daily Lineup Starts-Only Seats — Design Spec
 
 **Date:** 2026-08-29  
-**Status:** Draft for user review  
-**Product:** Daily lineup grid — active rows show that day’s starts only; Sit / drops / off-nights stay down  
+**Status:** Amended — off-nights fill empty actives; see [Off-Night Fill](./2026-08-29-daily-lineup-offnight-fill-design.md)  
+**Product:** Daily lineup grid — active rows show that day’s starts only; Sit / drops stay down  
 **Builds on:** [Focus-Day Seats](./2026-08-29-daily-lineup-focus-day-sort-design.md), [ESPN Roster Grid](./2026-08-28-daily-lineup-espn-roster-grid-design.md)  
 **Branch context:** `feat/published-nba-schedule`
 
