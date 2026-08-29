@@ -1972,3 +1972,90 @@ describe("2/3-spot density-first off nights", () => {
     expect(plan.addsUsed).toBe(1)
   })
 })
+
+describe("streaming waiver cooldown", () => {
+  const days = [
+    "2025-11-03",
+    "2025-11-04",
+    "2025-11-05",
+    "2025-11-06",
+    "2025-11-07",
+  ]
+  const bos = () =>
+    player("fa-bos", "BOS", { projections: { ...baseProjections(), STL: 200 } })
+  const nyk = () =>
+    player("fa-nyk", "NYK", { projections: { ...baseProjections(), STL: 150 } })
+  const chi = () =>
+    player("fa-chi", "CHI", { projections: { ...baseProjections(), STL: 80 } })
+  const schedule = tinySchedule(days, [
+    { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+    { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "WAS" },
+    { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "ORL" },
+    { date: "2025-11-05", homeAbbr: "CHI", awayAbbr: "MIA" },
+    { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "ATL" },
+    { date: "2025-11-06", homeAbbr: "CHI", awayAbbr: "DET" },
+    { date: "2025-11-07", homeAbbr: "BOS", awayAbbr: "PHI" },
+  ])
+
+  it("does not re-add a Tuesday drop on Wednesday under the default 2-day waiver", () => {
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state: tinyState([bos(), nyk(), chi()], ["fa-bos", "fa-nyk", "fa-chi"]),
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-bos",
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "drop_add",
+      playerId: "fa-nyk",
+      droppedPlayerId: "fa-bos",
+    })
+    expect(plan.days[2]!.cells[0]?.playerId).not.toBe("fa-bos")
+  })
+
+  it("can re-add the dropped streamer on Friday after a 2-day cooldown", () => {
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state: tinyState([bos(), nyk(), chi()], ["fa-bos", "fa-nyk", "fa-chi"]),
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+    })
+    expect(plan.days[4]!.cells[0]?.playerId).toBe("fa-bos")
+  })
+
+  it("lets a 1-day waiver return the drop on Thursday", () => {
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state: tinyState([bos(), nyk(), chi()], ["fa-bos", "fa-nyk", "fa-chi"]),
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+      waiverPeriodDays: 1,
+    })
+    expect(plan.days[2]!.cells[0]?.playerId).not.toBe("fa-bos")
+    expect(plan.days[3]!.cells[0]?.playerId).toBe("fa-bos")
+  })
+
+  it("reads waiverPeriodDays from the league state when the call omits it", () => {
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state: {
+        ...tinyState([bos(), nyk(), chi()], ["fa-bos", "fa-nyk", "fa-chi"]),
+        waiverPeriodDays: 3,
+      },
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+    })
+    expect(plan.days[4]!.cells[0]?.playerId).not.toBe("fa-bos")
+  })
+})

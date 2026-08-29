@@ -72,6 +72,8 @@ export type SeasonLeagueState = {
   players: SeasonPlayer[]
   availablePlayerIds: string[]
   waiverOrder: number[]
+  /** Matchup days a dropped player stays on waivers. Unset → planner default (2). */
+  waiverPeriodDays?: number
   rosterSlots?: SeasonSlot[]
   source: "espn" | "manual" | "mixed"
   lastSyncedAt?: string

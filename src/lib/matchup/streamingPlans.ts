@@ -50,6 +50,10 @@ import {
   suggestStreamingStrategyMode,
 } from "./streamingStrategy"
 import { weeklyPlayerStats } from "./weekly"
+import {
+  isOnWaiverCooldown,
+  resolveWaiverPeriodDays,
+} from "./streamingWaiver"
 
 const PRIMARY_STREAMER_CATEGORIES: CategoryId[] = [
   "TPM",
@@ -80,6 +84,8 @@ export type BuildStreamingPlanInput = {
   forcedRosterDrops?: Record<string, string | "open_slot">
   /** When set, skip add spends on dates whose Daily active lineup is already full. */
   daily?: DailyLineups
+  /** Overrides `state.waiverPeriodDays`. Default 2 matchup days. */
+  waiverPeriodDays?: number
 }
 
 export const streamingAddDropKey = (date: string, spotIndex: number) =>
@@ -495,17 +501,42 @@ export const buildStreamingPlan = ({
   injuryOutDaysByPlayerId,
   forcedRosterDrops,
   daily,
+  waiverPeriodDays: waiverPeriodDaysInput,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
     .map((id) => playersById.get(id))
     .filter((player): player is SeasonPlayer => Boolean(player?.teamAbbr))
+  const waiverPeriodDays = resolveWaiverPeriodDays({
+    inputDays: waiverPeriodDaysInput,
+    leagueDays: state.waiverPeriodDays,
+  })
+  const droppedOnByPlayerId = new Map<string, string>()
+  const markDropped = (playerId: string | null | undefined, date: string) => {
+    if (playerId) droppedOnByPlayerId.set(playerId, date)
+  }
+  const canAddPlayer = (playerId: string, date: string) => {
+    const droppedOn = droppedOnByPlayerId.get(playerId)
+    if (!droppedOn) return true
+    return !isOnWaiverCooldown(
+      droppedOn,
+      date,
+      schedule.matchup.days,
+      waiverPeriodDays,
+    )
+  }
+  const addableFreeAgents = (date: string) =>
+    freeAgents.filter((player) => canAddPlayer(player.id, date))
+  const onlyAddable = (playerIds: string[], date: string) =>
+    playerIds.filter((playerId) => canAddPlayer(playerId, date))
 
   const suggestedStrategyMode = suggestStreamingStrategyMode(board)
   const strategyMode = normalizeStreamingStrategyMode(
     inputStrategy ?? suggestedStrategyMode,
   )
   const blocks = findStreamingBlocks(freeAgents, schedule)
+  const addableBlocks = (date: string) =>
+    blocks.filter((block) => canAddPlayer(block.playerId, date))
   const weakCats = weakCategories(board)
   const occupants: (string | null)[] = Array.from({ length: spotCount }, () => null)
   const addsBySpot = Array.from({ length: spotCount }, () => 0)
@@ -636,7 +667,7 @@ export const buildStreamingPlan = ({
 
       if (canSpendWeeklyAdd()) {
         const rankedBlocks = listTodayBlocks(
-          blocks,
+          addableBlocks(date),
           date,
           seatedToday,
           playersById,
@@ -650,7 +681,7 @@ export const buildStreamingPlan = ({
             ? rankedBlocks.map((block) => block.playerId)
             : allowsThinFill(strategyMode, dayIndex, dayCount)
               ? rankEligibleFas(
-                  freeAgents,
+                  addableFreeAgents(date),
                   date,
                   schedule,
                   weakCats,
@@ -665,11 +696,12 @@ export const buildStreamingPlan = ({
         const skipBecauseFull =
           drop.kind === "none" &&
           isDailyLineupFullForDate(workingDaily, date, playersById, schedule)
+        const addableIds = onlyAddable(candidateIds, date)
         const picked =
-          candidateIds.length === 0 || skipBecauseFull
+          addableIds.length === 0 || skipBecauseFull
             ? null
             : pickBestStreamerMove(
-                candidateIds,
+                addableIds,
                 workingDaily,
                 date,
                 drop,
@@ -697,6 +729,10 @@ export const buildStreamingPlan = ({
           addsBySpot[spotIndex]! += 1
           addIndex = addsUsed
           seatedToday.add(picked.playerId)
+          if (previousId) markDropped(previousId, date)
+          if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
+            markDropped(rosterDrop.playerId, date)
+          }
         } else if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
           weekDroppedPlayers.delete(rosterDrop.playerId)
         }
@@ -739,7 +775,7 @@ export const buildStreamingPlan = ({
         spotCount > 1 && !heldPlaysToday && heldRemaining > 0
 
       const rankedBlocks = listTodayBlocks(
-        blocks,
+        addableBlocks(date),
         date,
         seatedToday,
         playersById,
@@ -755,7 +791,7 @@ export const buildStreamingPlan = ({
           (isMultiSpotOffNight && (isLateWeek || budgetBehind)))
       ) {
         candidateIds = rankEligibleFas(
-          freeAgents,
+          addableFreeAgents(date),
           date,
           schedule,
           weakCats,
@@ -809,6 +845,7 @@ export const buildStreamingPlan = ({
             remainingGameDays(upgradePlayer, date, schedule) > 0,
         )
       })
+      candidateIds = onlyAddable(candidateIds, date)
       if (candidateIds.length === 0) continue
 
       const picked = pickBestStreamerMove(
@@ -824,6 +861,7 @@ export const buildStreamingPlan = ({
       )
       if (!picked) continue
 
+      markDropped(cell.playerId, date)
       seatedToday.delete(cell.playerId)
       seatedToday.add(picked.playerId)
       occupants[spotIndex] = picked.playerId
