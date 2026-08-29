@@ -176,12 +176,14 @@ export const pickBestStreamerMove = (
   schedule: ScheduleResponse,
   board: MatchupBoard,
   isCompatibleAlternative: (chosenId: string, otherId: string) => boolean,
+  options?: { requirePositiveDelta?: boolean },
 ): {
   playerId: string
   delta: number
   nextDaily: DailyLineups
   alternativePlayerIds: string[]
 } | null => {
+  const requirePositiveDelta = options?.requirePositiveDelta ?? true
   const scored = candidateIds.flatMap((playerId, index) => {
     const result = scoreStreamerMove(
       workingDaily,
@@ -195,13 +197,13 @@ export const pickBestStreamerMove = (
     if (!result) return []
     return [{ playerId, index, ...result }]
   })
-  const positive = scored
-    .filter((row) => row.delta > 0)
+  const ranked = scored
+    .filter((row) => (requirePositiveDelta ? row.delta > 0 : true))
     .sort((left, right) => {
       if (right.delta !== left.delta) return right.delta - left.delta
       return left.index - right.index
     })
-  const winner = positive[0]
+  const winner = ranked[0]
   if (!winner) return null
 
   const alternativePlayerIds = scored

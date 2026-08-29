@@ -17,7 +17,7 @@ Streaming plans still rank free agents by **schedule** (density blocks, remainin
 
 - An add or `drop_add` runs only if the **drop + add pair**, applied for the **rest of the matchup week**, raises `projectedCatWins` vs the current `workingDaily` board.
 - Among FAs that pass **existing schedule/strategy gates**, pick the **largest positive** delta. If the best delta is `≤ 0`, skip (hold or leave empty).
-- 1-spot off-night **always-cover is removed**. Off-nights use the same board gate as every other add/swap.
+- 1-spot off-night **always-cover is restored** for accept (see [1-spot off-night cover](./2026-08-29-onespot-offnight-always-cover-design.md)). Board delta still ranks **who**. Empty first adds still require `delta > 0`.
 - Preview overlay and planner scoring **agree**: streamers sit only in open / off-night slots after the planned drop; they do not displace other game-day starters.
 - Unit tests cover the cases in §7.
 

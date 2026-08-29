@@ -246,7 +246,7 @@ describe("buildStreamingPlan", () => {
   })
 })
 
-  it("does not cover a 1-spot off night when swapping would lose remaining starts", () => {
+  it("covers a 1-spot off night even when the upgrade has fewer remaining games", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
     const faA = player("fa-a", "BOS", {
       projections: { ...baseProjections(), STL: 180 },
@@ -278,12 +278,9 @@ describe("buildStreamingPlan", () => {
     expect(plan.addLimit).toBe(7)
     expect(plan.days[0]!.cells[0]).toMatchObject({ action: "add", playerId: "fa-a" })
     expect(plan.days[1]!.cells[0]).toMatchObject({
-      action: "hold",
-      playerId: "fa-a",
-    })
-    expect(plan.days[2]!.cells[0]).toMatchObject({
-      action: "hold",
-      playerId: "fa-a",
+      action: "drop_add",
+      playerId: "fa-b",
+      droppedPlayerId: "fa-a",
     })
   })
 
@@ -1318,7 +1315,7 @@ describe("1-spot off-night always cover", () => {
     })
   })
 
-  it("does not cover a 1-spot off night when the upgrade would not raise projectedCatWins", () => {
+  it("covers a 1-spot off night even when the upgrade would not raise projectedCatWins", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
     const bos = player("fa-bos", "BOS", {
       projections: { ...baseProjections(), STL: 200, BLK: 80 },
@@ -1357,8 +1354,9 @@ describe("1-spot off-night always cover", () => {
     })
     expect(plan.days[0]!.cells[0]).toMatchObject({ action: "add", playerId: "fa-bos" })
     expect(plan.days[1]!.cells[0]).toMatchObject({
-      action: "hold",
-      playerId: "fa-bos",
+      action: "drop_add",
+      playerId: "fa-chi",
+      droppedPlayerId: "fa-bos",
     })
   })
 
@@ -1559,8 +1557,9 @@ describe("1-spot off-night always cover", () => {
       playerId: "fa-bos",
     })
     expect(plan.days[1]!.cells[0]).toMatchObject({
-      action: "hold",
-      playerId: "fa-bos",
+      action: "drop_add",
+      playerId: "fa-chi",
+      droppedPlayerId: "fa-bos",
     })
   })
 })

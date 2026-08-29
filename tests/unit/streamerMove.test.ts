@@ -183,4 +183,58 @@ describe("pickBestStreamerMove", () => {
     expect(picked?.playerId).toBe("fa-q")
     expect(picked!.delta).toBeGreaterThan(0)
   })
+
+  it("can pick the best-scoring FA even when every delta is not positive", () => {
+    const worse = player("fa-worse", "BOS", ["C"])
+    worse.projections = { ...worse.projections, TO: 400, BLK: 0, FG_PCT: 0.3 }
+    worse.shooting = { FGM: 2, FGA: 20, FTM: 1, FTA: 2 }
+    const lessBad = player("fa-less", "NYK", ["C"])
+    lessBad.projections = { ...lessBad.projections, TO: 80, BLK: 0 }
+    const daily: DailyLineups = { [DAY]: emptyActive() }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "ATL" },
+      ],
+    }
+    const losingToBoard: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: categoryId === "TO" || categoryId === "FG_PCT" ? 20 : 50,
+        opp: categoryId === "TO" || categoryId === "FG_PCT" ? 8 : 10,
+        outcome: categoryId === "TO" || categoryId === "FG_PCT" ? "L" : "W",
+        winProb: 0.2,
+      })),
+      wins: 7,
+      losses: 2,
+      ties: 0,
+      projectedCatWins: 6,
+    }
+    expect(
+      pickBestStreamerMove(
+        ["fa-worse", "fa-less"],
+        daily,
+        DAY,
+        { kind: "none", playerId: null },
+        [worse, lessBad],
+        schedule,
+        losingToBoard,
+        () => true,
+      ),
+    ).toBeNull()
+    const picked = pickBestStreamerMove(
+      ["fa-worse", "fa-less"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [worse, lessBad],
+      schedule,
+      losingToBoard,
+      () => true,
+      { requirePositiveDelta: false },
+    )
+    expect(picked?.playerId).toBe("fa-less")
+  })
 })

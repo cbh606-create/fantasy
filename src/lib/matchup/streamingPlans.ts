@@ -733,6 +733,8 @@ export const buildStreamingPlan = ({
       const heldRemaining = remainingGameDays(occupant, date, schedule)
       if (heldRemaining <= 0) continue
 
+      const isOneSpotOffNight =
+        spotCount === 1 && !heldPlaysToday && heldRemaining > 0
       const isMultiSpotOffNight =
         spotCount > 1 && !heldPlaysToday && heldRemaining > 0
 
@@ -749,8 +751,8 @@ export const buildStreamingPlan = ({
       let candidateIds = rankedBlocks.map((block) => block.playerId)
       if (
         candidateIds.length === 0 &&
-        isMultiSpotOffNight &&
-        (isLateWeek || budgetBehind)
+        (isOneSpotOffNight ||
+          (isMultiSpotOffNight && (isLateWeek || budgetBehind)))
       ) {
         candidateIds = rankEligibleFas(
           freeAgents,
@@ -799,8 +801,6 @@ export const buildStreamingPlan = ({
               )
         })
       }
-      // 1-spot off-night: no always-cover accept; score schedule-filtered FAs only.
-
       candidateIds = candidateIds.filter((upgradeId) => {
         const upgradePlayer = playersById.get(upgradeId)
         return Boolean(
@@ -820,6 +820,7 @@ export const buildStreamingPlan = ({
         schedule,
         board,
         isCompatibleAlternative,
+        isOneSpotOffNight ? { requirePositiveDelta: false } : undefined,
       )
       if (!picked) continue
 
