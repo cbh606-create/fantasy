@@ -17,9 +17,9 @@ Stop packing off-night and Sit players onto Bench. The grid should read like ESP
 ### Success criteria
 
 - Rows follow **weekly roster seats** (PG → UTIL ×3 → BE ×3 → IL), including empty seats.
-- A player’s row does not change when the focus day changes, when they have no game, or when they are Sat.
-- Day-header click **highlights that column** and sets the focus day for Games count / `aria-pressed`. It does **not** reorder rows.
-- Preview streamers appear as **extra dashed rows below** roster/IL, not in PG/C/UTIL seats.
+- The **slot column** stays the league template when the focus day changes. Who sits in each slot is [Focus-Day Seats](./2026-08-29-daily-lineup-focus-day-sort-design.md).
+- Day-header click **highlights that column** and sets the focus day for Games count / `aria-pressed`. Occupants follow the focus-day seat spec.
+- Preview streamers keep preview chrome. On the focus day they may occupy an empty eligible active slot; leftover PV rows stay below IL.
 - `DailyLineups` storage and start/sit scoring rules stay as they are (eligible-slot seating, full-day, IL block).
 - Unit tests cover the five cases in §7.
 
@@ -37,18 +37,18 @@ Stop packing off-night and Sit players onto Bench. The grid should read like ESP
 
 | Topic | Choice |
 | --- | --- |
-| Row identity | Weekly roster slot from `rosterEntries`, ESPN stats-style |
-| Off-night | Stay on home row; cell `—` |
-| Sit (has game) | Stay on home row; cell shows Sit state |
-| Day header | Column highlight + focus day only |
-| Preview streamers | Extra rows under IL; do not occupy roster rows |
-| Engine vs display | Display row ≠ daily start slot. Engine still seats Start into an eligible empty slot |
+| Slot column | League template; never reorders |
+| Off-night | Cell `—`; may fill an empty eligible slot on the focus day |
+| Sit (has game) | Cell Sit; may occupy an empty eligible slot (prefer home) |
+| Day header | Column highlight + focus day; occupants in the focus-day seat spec |
+| Preview streamers | Preview chrome; may occupy an empty eligible active slot when they have a game |
+| Engine vs display | Display can rematch occupants for the focus day. Engine still seats Start into an eligible empty slot |
 
 ---
 
 ## 3. Approach (locked)
 
-**Roster-home grid.** Rejected: packing sitters to BE; re-sorting rows by focus-day starts.
+**Fixed slot column.** Rejected: packing sitters to BE as the only home. Focus-day **occupants** are specified in [Focus-Day Seats](./2026-08-29-daily-lineup-focus-day-sort-design.md).
 
 ---
 
@@ -63,9 +63,7 @@ Build from `rosterEntries` in `SEASON_ROSTER_SLOTS` order:
 3. IL row(s) as today (current IL occupants; keep at least one IL row).
 4. Then, if preview is on, one extra row per preview streamer id **not already shown** on a roster/IL row. Slot label is `PV`. Keep the existing dashed row + name `preview` badge.
 
-Each row is **one player for the whole week**. Week cells are that player’s real schedule (`dayOpponentLabel` / existing game buttons).
-
-Replace `buildLineupDisplayRows` focus-day occupant mapping + sitter→BE packing. Focus day must not pick `playerId` for active rows.
+The slot list is **one seat for the week**. The occupant (and that player’s week cells) is chosen for the **focus day**; see the focus-day seat spec.
 
 ### Cells (player × day)
 
@@ -73,11 +71,11 @@ Replace `buildLineupDisplayRows` focus-day occupant mapping + sitter→BE packin
 | --- | --- |
 | No game | `—` (unchanged) |
 | Has game and in `DailyLineups[day]` | Start button, opponent, existing B2B / sit-start hints |
-| Has game and not started | Same opponent control in **Sit** pressed/unstarted state; row unchanged |
+| Has game and not started | Same opponent control in **Sit** pressed/unstarted state; occupant may sit in an empty eligible slot |
 | IL + has game | Existing IR shade + block toggle |
 | Plan-dropped / preview lock | Existing lock / strikethrough on **that day’s cell and/or name** |
 
-If the engine started the player in a slot other than the home roster slot, show a compact **started-slot badge** on that day’s cell (e.g. UTIL). Do not move the row.
+If the engine started the player in a slot other than the weekly home slot, show a compact **started-slot badge** on that day’s cell (e.g. UTIL). Focus-day row placement follows the seat spec.
 
 ### Focus day
 
@@ -87,7 +85,7 @@ If the engine started the player in a slot other than the home roster slot, show
 
 ### Copy
 
-Replace the Daily lineup subtitle that says sitters go to Bench. New sense: slots stay put; click a day to highlight it; click a game cell to start/sit.
+Replace the Daily lineup subtitle that says sitters go to Bench. New sense: slots stay put; click a day to see that day’s seats; click a game cell to start/sit.
 
 ---
 
@@ -100,17 +98,14 @@ Replace the Daily lineup subtitle that says sitters go to Bench. New sense: slot
 - Day header does not write storage.
 - Reset still refills days with players who have games.
 
-Projections keep using started entries, including preview overlay from `applyStreamingPlanPreview`. The **visible** roster rows ignore that overlay for who sits in PG; preview names appear only on extra rows.
+Projections keep using started entries, including preview overlay from `applyStreamingPlanPreview`. Visible occupants on the focus day follow the focus-day seat spec (may show a preview streamer in an empty active slot).
 
 ---
 
 ## 6. Preview overlay (display)
 
-Rostered occupants never leave their home row to make room for a streamer.
-
-- Preview streamer schedule: extra rows only.
-- If the plan drops a rostered player from a date, that player **stays on the home row**; that day’s cell uses the existing dropped/locked treatment.
-- Do not insert streamers into empty PG/UTIL **display** seats.
+- If the plan drops a rostered player from a date, that day’s cell uses the existing dropped/locked treatment.
+- A preview streamer with a game on the focus day may occupy an empty eligible **display** seat; leftover streamers stay extra `PV` rows. See the focus-day seat spec.
 
 ---
 
@@ -120,11 +115,11 @@ Update `matchupDailyLineups` / `DailyLineupPanel` tests that assume sitters pack
 
 Must pass:
 
-1. Player with no game on the focus day still occupies their roster home slot; that day’s cell is `—`.
-2. Sit on a game day leaves the player on the same row; they are absent from `DailyLineups[day]`.
-3. Changing focus day does not change row player order.
-4. Empty active roster seats render as empty rows (not filled by sitters).
-5. Preview streamer ids render as extra rows and do not appear as the PG/C/UTIL row occupant when that seat has a rostered player.
+1. Off-night cell is `—`. Occupant may be the home player or an eligible fill; see the focus-day seat spec.
+2. Sit on a game day: player is absent from `DailyLineups[day]`; cell is Sit; they may occupy an empty eligible display slot.
+3. Changing focus day keeps the slot column fixed; occupants follow the focus-day seat spec.
+4. Empty active seats are filled only by the seat-spec passes (not by packing sitters to BE).
+5. Preview streamer with a game may occupy an empty eligible active row; otherwise they render as a `PV` row.
 
 ---
 
