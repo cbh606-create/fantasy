@@ -4,7 +4,7 @@ import type {
   Player,
   SimulationResult,
 } from "@/lib/domain/types"
-import { formatNextPickFrequency } from "@/lib/sim/formatNextPickFrequency"
+import { formatNextPickShares } from "@/lib/sim/formatNextPickFrequency"
 
 const CATEGORY_LABELS: Record<CategoryId, string> = {
   FG_PCT: "FG%",
@@ -44,6 +44,10 @@ export const RecPanel = ({
       : result.nextPicks.slice(0, maxNextPicks)
     : []
   const isRow = layout === "row"
+  const hasSimCounts = (result?.meta.simCount ?? 0) > 0
+  const shareLabels = hasSimCounts
+    ? formatNextPickShares(nextPicks.map((pick) => pick.frequency))
+    : nextPicks.map(() => "")
 
   return (
     <aside
@@ -75,7 +79,7 @@ export const RecPanel = ({
             >
               Next picks
             </h2>
-            {result ? (
+            {hasSimCounts ? (
               <p className="text-xs text-[var(--color-mute)]">
                 Based on {result.meta.simCount} sims
               </p>
@@ -136,15 +140,17 @@ export const RecPanel = ({
                       )}
                     </span>
                   </div>
-                  <span
-                    className={
-                      isRow
-                        ? "shrink-0 text-[0.65rem] tabular-nums text-[var(--color-mute)]"
-                        : "shrink-0 text-sm tabular-nums text-[var(--color-mute)]"
-                    }
-                  >
-                    {formatNextPickFrequency(pick.frequency)}
-                  </span>
+                  {shareLabels[index] ? (
+                    <span
+                      className={
+                        isRow
+                          ? "shrink-0 text-[0.65rem] tabular-nums text-[var(--color-mute)]"
+                          : "shrink-0 text-sm tabular-nums text-[var(--color-mute)]"
+                      }
+                    >
+                      {shareLabels[index]}
+                    </span>
+                  ) : null}
                 </li>
               )
             })}

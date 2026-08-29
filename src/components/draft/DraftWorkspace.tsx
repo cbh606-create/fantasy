@@ -79,10 +79,10 @@ const buildQuickMockRecommendations = (
   ) as SimulationResult["categoryOutlook"]
 
   return {
-    nextPicks: topAvailable.map((player, index) => ({
+    nextPicks: topAvailable.map((player) => ({
       playerId: player.id,
-      score: topAvailable.length - index,
-      frequency: (topAvailable.length - index) / 6,
+      score: 0,
+      frequency: 0,
     })),
     topCombinations: [],
     categoryOutlook,

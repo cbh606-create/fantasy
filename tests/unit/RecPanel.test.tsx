@@ -98,19 +98,54 @@ describe("RecPanel", () => {
     expect(screen.getByText(/simulating/i)).toBeInTheDocument()
   })
 
-  it("shows approximate frequencies and sim count", () => {
+  it("shows first-pick shares that sum to 100% and the sim count", () => {
     render(
       <RecPanel
         maxNextPicks={3}
         players={players}
-        result={result}
+        result={{
+          ...result,
+          nextPicks: [
+            { playerId: "a", score: 5, frequency: 0.5 },
+            { playerId: "b", score: 3, frequency: 0.3 },
+            { playerId: "c", score: 2, frequency: 0.2 },
+          ],
+        }}
         showCategoryOutlook={false}
       />,
     )
 
-    expect(screen.getByText("~50%")).toBeInTheDocument()
-    expect(screen.getByText("~30%")).toBeInTheDocument()
+    expect(screen.getByText("50%")).toBeInTheDocument()
+    expect(screen.getByText("30%")).toBeInTheDocument()
+    expect(screen.getByText("20%")).toBeInTheDocument()
+    expect(screen.queryByText("~50%")).not.toBeInTheDocument()
     expect(screen.getByText(/Based on 10 sims/i)).toBeInTheDocument()
+  })
+
+  it("hides rank-style placeholder percents before sims finish", () => {
+    render(
+      <RecPanel
+        layout="row"
+        players={players}
+        result={{
+          ...result,
+          nextPicks: players.map((player, index) => ({
+            playerId: player.id,
+            score: 6 - index,
+            frequency: (6 - index) / 6,
+          })),
+          meta: { ...result.meta, simCount: 0 },
+        }}
+        showCategoryOutlook={false}
+      />,
+    )
+
+    expect(screen.getByText("Alpha")).toBeInTheDocument()
+    expect(screen.queryByText("100%")).not.toBeInTheDocument()
+    expect(screen.queryByText("~100%")).not.toBeInTheDocument()
+    expect(screen.queryByText("83%")).not.toBeInTheDocument()
+    expect(screen.queryByText("~83%")).not.toBeInTheDocument()
+    expect(screen.queryByText(/Based on/i)).not.toBeInTheDocument()
   })
 
   it("renders a compact six-cell row without avatars", () => {
