@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { DailyLineupPanel } from "@/components/matchup/DailyLineupPanel"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
+import { formatMatchupDayLabel } from "@/lib/matchup/weekCalendarLayout"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 
 const projections: SeasonPlayer["projections"] = {
@@ -218,7 +219,7 @@ describe("DailyLineupPanel preview overlay", () => {
     expect(screen.getByText("preview")).toBeInTheDocument()
   })
 
-  it("mutes dropped roster names during preview", () => {
+  it("mutes a dropped roster name only on or after the focus day", () => {
     render(
       <DailyLineupPanel
         daily={daily}
@@ -234,8 +235,14 @@ describe("DailyLineupPanel preview overlay", () => {
       />,
     )
 
-    const name = screen.getByText("Roster Cut")
-    expect(name.className).toMatch(/line-through/)
+    expect(screen.getByText("Roster Cut").className).not.toMatch(/line-through/)
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `Highlight ${formatMatchupDayLabel("2025-11-04")}`,
+      }),
+    )
+    expect(screen.getByText("Roster Cut").className).toMatch(/line-through/)
   })
 
   it("locks game cells only on and after the plan drop date", () => {
@@ -454,7 +461,7 @@ describe("DailyLineupPanel slot column and day sort", () => {
     ).toBe(true)
   })
 
-  it("keeps a sitting PG on the PG row", () => {
+  it("puts a sitting PG on BE and leaves the PG row empty", () => {
     render(
       <DailyLineupPanel
         daily={{
@@ -476,15 +483,21 @@ describe("DailyLineupPanel slot column and day sort", () => {
       />,
     )
 
-    expect(screen.getAllByRole("rowheader", { name: "BE" })).toHaveLength(3)
     const pgRow = screen.getAllByRole("row").find((row) => {
       const header = row.querySelector("th")
       return header?.textContent === "PG"
     })
-    expect(pgRow?.textContent).toContain("Point Guard")
+    expect(pgRow?.textContent).not.toContain("Point Guard")
+    expect(
+      screen.getAllByRole("row").some(
+        (row) =>
+          row.querySelector("th")?.textContent === "BE" &&
+          row.textContent?.includes("Point Guard"),
+      ),
+    ).toBe(true)
   })
 
-  it("seats a preview streamer with a game into an empty eligible slot", () => {
+  it("keeps an unstarted preview streamer on PV when an active is empty", () => {
     render(
       <DailyLineupPanel
         daily={{
@@ -511,9 +524,9 @@ describe("DailyLineupPanel slot column and day sort", () => {
       const header = row.querySelector("th")
       return header?.textContent === "SG"
     })
-    expect(sgRow?.textContent).toContain("Streamer A")
-    expect(sgRow?.textContent).toMatch(/preview/i)
-    expect(screen.queryByRole("rowheader", { name: "PV" })).not.toBeInTheDocument()
+    expect(sgRow?.textContent).not.toContain("Streamer A")
+    expect(screen.getByRole("rowheader", { name: "PV" })).toBeInTheDocument()
+    expect(screen.getByText("Streamer A")).toBeInTheDocument()
   })
 
   it("puts preview streamers on PV rows not PG", () => {
@@ -565,6 +578,6 @@ describe("DailyLineupPanel slot column and day sort", () => {
       bodyText.indexOf("Bench Wing"),
     )
     expect(screen.getByRole("rowheader", { name: "PG" })).toBeInTheDocument()
-    expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(1)
+    expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(2)
   })
 })

@@ -395,8 +395,11 @@ export const DailyLineupPanel = ({
                 namePlayer && previewIds.has(namePlayer.id),
               )
               const onIl = row.slot === "IL"
+              const droppedFrom = namePlayer
+                ? droppedFromDateByPlayerId[namePlayer.id]
+                : undefined
               const isPlanDropped = Boolean(
-                namePlayer && droppedFromDateByPlayerId[namePlayer.id],
+                droppedFrom && activeFocusDay >= droppedFrom,
               )
 
               return (
