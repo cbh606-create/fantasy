@@ -12,6 +12,10 @@ import type { SeasonPlayer } from "@/lib/season/types"
 const FETCH_TIMEOUT_MS = 15_000
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000
 const MAX_SCOREBOARD_PERIODS = 20
+const MAX_TRANSACTION_DAYS = 14
+const TRANSACTION_FILTER = JSON.stringify({
+  transactions: { filterType: { value: ["FREEAGENT", "WAIVER"] } },
+})
 
 const ESPN_STAT_TO_CATEGORY: Record<string, CategoryId> = {
   "0": "PTS",
@@ -261,12 +265,14 @@ const parseEspnJson = async (response: Response): Promise<unknown | null> => {
 const fetchEspnPayload = async (
   url: URL,
   cookies: EspnCookies,
+  fetchImpl: typeof fetch,
+  extraHeaders?: Record<string, string>,
 ): Promise<EspnWinnerStreamPayload | null> => {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
   try {
-    const response = await fetch(url, {
-      headers: espnHeaders(cookies),
+    const response = await fetchImpl(url, {
+      headers: { ...espnHeaders(cookies), ...extraHeaders },
       redirect: "manual",
       signal: controller.signal,
     })
@@ -319,26 +325,28 @@ const lastScoringDay = (
   return matchupPeriodId
 }
 
-const mergePayloads = (
-  base: EspnWinnerStreamPayload,
-  extras: EspnWinnerStreamPayload[],
-): EspnWinnerStreamPayload => {
-  const schedule = [...(base.schedule ?? [])]
-  const seen = new Set(
-    schedule.map(
-      (row) =>
-        `${row.matchupPeriodId}:${row.home?.teamId}:${row.away?.teamId}`,
-    ),
-  )
-  for (const extra of extras) {
-    for (const row of extra.schedule ?? []) {
-      const key = `${row.matchupPeriodId}:${row.home?.teamId}:${row.away?.teamId}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      schedule.push(row)
+const scoringDaysForPeriods = (
+  payload: EspnWinnerStreamPayload,
+  periodIds: number[],
+): number[] =>
+  periodIds.flatMap((matchupPeriodId) => {
+    const days =
+      payload.settings?.scheduleSettings?.matchupPeriods?.[String(matchupPeriodId)]
+    if (Array.isArray(days) && days.length > 0) {
+      return days.filter((day): day is number => typeof day === "number")
     }
-  }
-  return { ...base, schedule }
+    return [matchupPeriodId]
+  })
+
+const cacheRecipes = (
+  cacheKey: string,
+  recipes: WinnerStreamRecipe[],
+): WinnerStreamRecipe[] => {
+  recipeCache.set(cacheKey, {
+    expiresAt: Date.now() + CACHE_TTL_MS,
+    recipes,
+  })
+  return recipes
 }
 
 export const loadWinnerStreamRecipes = async (params: {
@@ -348,51 +356,84 @@ export const loadWinnerStreamRecipes = async (params: {
   players: SeasonPlayer[]
   enabledCats: CategoryId[]
   currentMatchupPeriod?: number
+  fetchImpl?: typeof fetch
 }): Promise<WinnerStreamRecipe[]> => {
   const cacheKey = `${params.leagueId}:${params.season}`
   const cached = recipeCache.get(cacheKey)
   if (cached && cached.expiresAt > Date.now()) return cached.recipes
+  const fetchImpl = params.fetchImpl ?? fetch
 
   try {
-    const indexUrl = leagueUrl(params.season, params.leagueId)
-    indexUrl.searchParams.append("view", "mTransactions")
-    indexUrl.searchParams.append("view", "mSettings")
-    const indexPayload = await fetchEspnPayload(indexUrl, params.cookies)
-    if (!indexPayload) return []
+    const settingsUrl = leagueUrl(params.season, params.leagueId)
+    settingsUrl.searchParams.append("view", "mSettings")
+    const settingsPayload = await fetchEspnPayload(
+      settingsUrl,
+      params.cookies,
+      fetchImpl,
+    )
+    if (!settingsPayload) return []
 
     const current =
       params.currentMatchupPeriod ??
-      asNumber(indexPayload.status?.currentMatchupPeriod) ??
-      1
-    const periodIds = completedMatchupPeriodIds(indexPayload, current).slice(
+      asNumber(settingsPayload.status?.currentMatchupPeriod)
+    if (current == null || current < 2) {
+      return cacheRecipes(cacheKey, [])
+    }
+
+    const periodIds = completedMatchupPeriodIds(settingsPayload, current).slice(
       -MAX_SCOREBOARD_PERIODS,
     )
-    const scoreboards = await Promise.all(
-      periodIds.map((matchupPeriodId) => {
+    if (periodIds.length === 0) {
+      return cacheRecipes(cacheKey, [])
+    }
+
+    const scoringDays = scoringDaysForPeriods(settingsPayload, periodIds).slice(
+      -MAX_TRANSACTION_DAYS,
+    )
+    const latestCompleted = periodIds[periodIds.length - 1] ?? current - 1
+    const scoreboardUrl = leagueUrl(params.season, params.leagueId)
+    scoreboardUrl.searchParams.append("view", "mScoreboard")
+    scoreboardUrl.searchParams.append("view", "mMatchupScore")
+    scoreboardUrl.searchParams.set(
+      "scoringPeriodId",
+      String(lastScoringDay(settingsPayload, latestCompleted)),
+    )
+    const scoreboardPayload = await fetchEspnPayload(
+      scoreboardUrl,
+      params.cookies,
+      fetchImpl,
+      {
+        "X-Fantasy-Filter": JSON.stringify({
+          schedule: { filterMatchupPeriodIds: { value: periodIds } },
+        }),
+      },
+    )
+
+    const transactionPayloads = await Promise.all(
+      scoringDays.map((day) => {
         const url = leagueUrl(params.season, params.leagueId)
-        url.searchParams.set("view", "mScoreboard")
-        url.searchParams.set(
-          "scoringPeriodId",
-          String(lastScoringDay(indexPayload, matchupPeriodId)),
-        )
-        return fetchEspnPayload(url, params.cookies)
+        url.searchParams.set("view", "mTransactions2")
+        url.searchParams.set("scoringPeriodId", String(day))
+        return fetchEspnPayload(url, params.cookies, fetchImpl, {
+          "X-Fantasy-Filter": TRANSACTION_FILTER,
+        })
       }),
     )
-    const merged = mergePayloads(
-      indexPayload,
-      scoreboards.filter((row): row is EspnWinnerStreamPayload => row != null),
-    )
+
     const recipes = mapEspnWinnerStreamPayload(
-      merged,
+      {
+        status: settingsPayload.status,
+        settings: settingsPayload.settings,
+        schedule: scoreboardPayload?.schedule ?? [],
+        transactions: transactionPayloads.flatMap(
+          (payload) => payload?.transactions ?? [],
+        ),
+      },
       params.players,
       params.enabledCats,
       current,
     )
-    recipeCache.set(cacheKey, {
-      expiresAt: Date.now() + CACHE_TTL_MS,
-      recipes,
-    })
-    return recipes
+    return cacheRecipes(cacheKey, recipes)
   } catch {
     return []
   }
