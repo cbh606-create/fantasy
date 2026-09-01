@@ -155,6 +155,49 @@ describe("suggestStreamers", () => {
 
     expect(suggestions[0]?.reasons[0]).toBe("Helps STL · 3 games · 1 B2B")
   })
+
+  it("breaks equal streamer scores with a matching winner recipe", () => {
+    const volumeTwin: SeasonPlayer = {
+      id: "aaa-volume",
+      name: "Volume Twin",
+      teamAbbr: "BOS",
+      availability: "fa",
+      positions: ["SF"],
+      projections: { ...baseProjections(), STL: 180, PTS: 4000, REB: 10, AST: 10, TPM: 10, BLK: 10 },
+      shooting: { FGM: 300, FGA: 650, FTM: 120, FTA: 150 },
+    }
+    const stlTwin: SeasonPlayer = {
+      id: "zzz-stl",
+      name: "STL Twin",
+      teamAbbr: "BOS",
+      availability: "fa",
+      positions: ["PG"],
+      projections: { ...baseProjections(), STL: 180, PTS: 10, REB: 10, AST: 10, TPM: 10, BLK: 10 },
+      shooting: { FGM: 300, FGA: 650, FTM: 120, FTA: 150 },
+    }
+    const suggestions = suggestStreamers({
+      state: {
+        ...state,
+        players: [...state.players, volumeTwin, stlTwin],
+        availablePlayerIds: ["aaa-volume", "zzz-stl"],
+      },
+      board: boardWithStlLoss(),
+      gamesMap: new Map([
+        ["aaa-volume", 3],
+        ["zzz-stl", 3],
+      ]),
+      recipes: [
+        {
+          situationCat: "STL",
+          addKind: "STL",
+          addGroup: "G",
+          count: 4,
+        },
+      ],
+    })
+
+    expect(suggestions[0]?.playerId).toBe("zzz-stl")
+  })
 })
 
 describe("adviseMatchup", () => {
@@ -200,6 +243,24 @@ describe("adviseMatchup", () => {
       expect(plan.strategyMode).toBe(plan.suggestedStrategyMode)
       expect(plan.summaryReasons.length).toBeGreaterThan(0)
     }
+  })
+
+  it("echoes winnerStreamRecipes onto advice", () => {
+    const recipes = [
+      {
+        situationCat: "STL" as const,
+        addKind: "STL" as const,
+        addGroup: "G" as const,
+        count: 3,
+      },
+    ]
+    const advice = adviseMatchup(state, schedule, 1, {
+      winnerStreamRecipes: recipes,
+    })
+
+    expect(advice).not.toHaveProperty("error")
+    if ("error" in advice) return
+    expect(advice.winnerStreamRecipes).toEqual(recipes)
   })
 
   it("passes addLimit through to streaming plans", () => {

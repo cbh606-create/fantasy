@@ -13,7 +13,7 @@ import { suggestSitStart } from "./sitStart"
 import { suggestStreamers } from "./streamers"
 import { buildAdpByPlayerIdFromProjPool } from "./streamingDropPolicy"
 import { buildAllStreamingPlans } from "./streamingPlans"
-import type { MatchupAdvice } from "./types"
+import type { MatchupAdvice, WinnerStreamRecipe } from "./types"
 import { activeTeamWeeklyTotals } from "./weekly"
 
 type ProjAdpPlayer = {
@@ -46,7 +46,10 @@ export const adviseMatchup = (
   state: SeasonLeagueState,
   schedule: ScheduleResponse,
   opponentTeamIndex: number,
-  options: { addLimit?: number } = {},
+  options: {
+    addLimit?: number
+    winnerStreamRecipes?: WinnerStreamRecipe[]
+  } = {},
 ): MatchupAdvice | { error: string } => {
   if (opponentTeamIndex === state.perspectiveTeamIndex) {
     return { error: "invalid_opponent" }
@@ -85,6 +88,7 @@ export const adviseMatchup = (
     board,
     gamesMap: streamerGamesMap,
     b2bMap: streamerB2bMap,
+    recipes: options.winnerStreamRecipes,
   })
 
   const adpByPlayerId = buildAdpByPlayerIdFromProjPool(
@@ -97,6 +101,7 @@ export const adviseMatchup = (
     board,
     addLimit: options.addLimit,
     adpByPlayerId,
+    winnerStreamRecipes: options.winnerStreamRecipes,
   })
 
   return {
@@ -107,5 +112,6 @@ export const adviseMatchup = (
     streamers,
     streamingPlans,
     adpByPlayerId,
+    winnerStreamRecipes: options.winnerStreamRecipes ?? [],
   }
 }

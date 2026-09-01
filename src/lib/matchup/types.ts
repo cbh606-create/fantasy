@@ -99,6 +99,15 @@ export type StreamingPlan = {
   days: StreamingPlanDay[]
 }
 
+export type SlotGroup = "G" | "F" | "C"
+
+export type WinnerStreamRecipe = {
+  situationCat: CategoryId
+  addKind: CategoryId
+  addGroup: SlotGroup
+  count: number
+}
+
 export type MatchupAdvice = {
   opponentTeamIndex: number
   scoringPeriod: {
@@ -112,4 +121,5 @@ export type MatchupAdvice = {
   streamers: StreamerSuggestion[]
   streamingPlans: StreamingPlan[]
   adpByPlayerId?: Record<string, number>
+  winnerStreamRecipes?: WinnerStreamRecipe[]
 }

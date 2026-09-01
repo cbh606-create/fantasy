@@ -168,11 +168,11 @@ describe("StreamingPlansPanel", () => {
     )
 
     const monday = screen.getAllByText(formatMatchupDayLabel("2025-11-03"))[0]
-    expect(monday?.closest("th")).toHaveClass("w-24", "min-w-24", "max-w-24")
+    expect(monday?.closest("th")).toHaveClass("w-20", "min-w-20", "max-w-20")
     expect(screen.getAllByRole("columnheader", { name: /^Move$/i })[0]).toHaveClass(
-      "w-[16rem]",
-      "min-w-[16rem]",
-      "max-w-[16rem]",
+      "w-28",
+      "min-w-28",
+      "max-w-28",
     )
     expect(screen.getAllByRole("rowheader", { name: /^Add$/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole("rowheader", { name: /^Drop$/i }).length).toBeGreaterThan(0)
@@ -652,5 +652,43 @@ describe("StreamingPlansPanel", () => {
     const twoSpotPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
     expect(twoSpotPlan?.spotCount).toBe(2)
     expect(twoSpotPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
+  })
+
+  it("shows a mute hint when winner recipes hit trailing cats", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        winnerStreamRecipes={[
+          {
+            situationCat: "STL",
+            addKind: "STL",
+            addGroup: "G",
+            count: 4,
+          },
+        ]}
+      />,
+    )
+
+    expect(
+      screen.getByText("Winners here streamed STL when trailing those cats"),
+    ).toBeInTheDocument()
+  })
+
+  it("hides the winner-stream hint when prior was skipped", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+      />,
+    )
+
+    expect(screen.queryByText(/Winners here streamed/i)).not.toBeInTheDocument()
   })
 })

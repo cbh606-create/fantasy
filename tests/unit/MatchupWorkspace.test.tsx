@@ -225,7 +225,7 @@ describe("MatchupWorkspace", () => {
     expect(screen.getByText("Using your day-by-day lineups")).toBeInTheDocument()
     expect(screen.getByText("Schedule: fixture fallback")).toBeInTheDocument()
     expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/4–5–0/)
-    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/Projected 3\.58 cat wins/)
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/Proj 3\.58/)
     expect(screen.getByRole("rowheader", { name: /^You$/i })).toBeInTheDocument()
     expect(screen.getByRole("rowheader", { name: /^Opp$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Daily lineup" })).toBeInTheDocument()
@@ -330,6 +330,15 @@ describe("MatchupWorkspace", () => {
     expect(
       await screen.findByRole("heading", { name: /streaming plans/i }),
     ).toBeInTheDocument()
+
+    const dailySection = screen.getByRole("region", { name: "Daily lineup" })
+    const streamingSection = screen
+      .getByRole("heading", { name: /streaming plans/i })
+      .closest("section")
+    expect(dailySection.parentElement).toHaveClass(
+      "xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]",
+    )
+    expect(streamingSection?.parentElement).toBe(dailySection.parentElement)
 
     await waitFor(() => {
       const injuryGets = vi.mocked(fetch).mock.calls.filter(([request]) =>

@@ -424,7 +424,7 @@ describe("DailyLineupPanel slot column and day sort", () => {
     )
     expect(
       screen.getAllByRole("button", { name: /Highlight /i })[0]?.closest("th"),
-    ).toHaveClass("w-24", "min-w-24", "max-w-24")
+    ).toHaveClass("w-20", "min-w-20", "max-w-20")
 
     fireEvent.click(
       screen.getAllByRole("button", { name: /Highlight /i })[0]!,

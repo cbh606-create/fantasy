@@ -666,8 +666,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         })
 
   return (
-    <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-h-screen bg-[var(--color-canvas)] px-3 py-8 sm:px-4 lg:px-5">
+      <div className="mx-auto max-w-[100rem]">
         <div className="mb-6">
           <Link
             className="w-fit font-medium text-sm text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
@@ -742,29 +742,29 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         </p>
         <MatchupBoard board={liveBoard} />
 
-        <DailyLineupPanel
-          daily={displayDaily}
-          days={matchupData.schedule.matchup.days}
-          droppedFromDateByPlayerId={previewDroppedFromDateByPlayerId(
-            previewPlan,
-          )}
-          extraPlayers={extraPlayers}
-          ilPlayerIds={ilPlayerIds}
-          onReset={handleResetDaily}
-          onTogglePlayerDay={handleTogglePlayerDay}
-          previewActive={previewPlan != null}
-          previewPlayerIds={previewStreamerIds(previewPlan)}
-          previewSpotCount={previewPlan?.spotCount}
-          rosterPlayers={rosterPlayers}
-          rosterEntries={youTeam?.entries}
-          schedule={matchupData.schedule}
-          streamerOwnedDatesByPlayerId={previewStreamerOwnedDatesByPlayerId(
-            previewPlan,
-          )}
-          sitStartBadgesByPlayerId={sitStartBadgesByPlayerId}
-        />
+        <div className="mt-6 grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] xl:gap-3">
+          <DailyLineupPanel
+            daily={displayDaily}
+            days={matchupData.schedule.matchup.days}
+            droppedFromDateByPlayerId={previewDroppedFromDateByPlayerId(
+              previewPlan,
+            )}
+            extraPlayers={extraPlayers}
+            ilPlayerIds={ilPlayerIds}
+            onReset={handleResetDaily}
+            onTogglePlayerDay={handleTogglePlayerDay}
+            previewActive={previewPlan != null}
+            previewPlayerIds={previewStreamerIds(previewPlan)}
+            previewSpotCount={previewPlan?.spotCount}
+            rosterPlayers={rosterPlayers}
+            rosterEntries={youTeam?.entries}
+            schedule={matchupData.schedule}
+            streamerOwnedDatesByPlayerId={previewStreamerOwnedDatesByPlayerId(
+              previewPlan,
+            )}
+            sitStartBadgesByPlayerId={sitStartBadgesByPlayerId}
+          />
 
-        <div className="mt-8">
           <StreamingPlansPanel
             adpByPlayerId={matchupData.adpByPlayerId}
             board={matchupData.board}
@@ -774,6 +774,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             playersById={matchupData.playersById}
             schedule={matchupData.schedule}
             state={state}
+            winnerStreamRecipes={matchupData.winnerStreamRecipes}
           />
         </div>
 

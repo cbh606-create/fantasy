@@ -20,8 +20,8 @@ import type {
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
 import {
   MATCHUP_WEEK_DAY_COL_CLASS,
-  MATCHUP_WEEK_GUTTER_COL_CLASS,
-  MATCHUP_WEEK_TABLE_CLASS,
+  MATCHUP_WEEK_MOVE_COL_CLASS,
+  MATCHUP_WEEK_STREAMING_TABLE_CLASS,
   formatMatchupDayLabel,
 } from "@/lib/matchup/weekCalendarLayout"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
@@ -38,11 +38,13 @@ import {
   rosterDropSelectOptions,
 } from "@/lib/matchup/streamingDropOptions"
 import { suggestStreamingStrategyMode } from "@/lib/matchup/streamingStrategy"
+import { winnerStreamHint } from "@/lib/matchup/winnerStreamPrior"
 import type {
   MatchupBoard,
   StreamingPlan,
   StreamingPlanDayCell,
   StreamingStrategyMode,
+  WinnerStreamRecipe,
 } from "@/lib/matchup/types"
 
 const MIN_ADD_BUDGET = 1
@@ -61,6 +63,8 @@ const PREVIEW_OPTIONS: { id: 1 | 2 | 3 | null; label: string }[] = [
   { id: 3, label: "3-spot" },
 ]
 
+const EMPTY_WINNER_STREAM_RECIPES: WinnerStreamRecipe[] = []
+
 type StreamingPlansPanelProps = {
   leagueId: string
   state: SeasonLeagueState
@@ -71,6 +75,7 @@ type StreamingPlansPanelProps = {
   onPreviewPlanChange?: (plan: StreamingPlan | null) => void
   /** Base (non-preview) daily lineups — used to skip adds on full days. */
   daily?: DailyLineups
+  winnerStreamRecipes?: WinnerStreamRecipe[]
 }
 
 const playerName = (
@@ -428,6 +433,7 @@ export const StreamingPlansPanel = ({
   adpByPlayerId,
   onPreviewPlanChange,
   daily,
+  winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
 }: StreamingPlansPanelProps) => {
   const suggested = suggestStreamingStrategyMode(board)
   const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
@@ -458,6 +464,7 @@ export const StreamingPlansPanel = ({
           spotCount,
           forcedRosterDrops: forcedRosterDropsBySpotCount[spotCount],
           daily,
+          winnerStreamRecipes,
         }),
       ),
     [
@@ -469,8 +476,11 @@ export const StreamingPlansPanel = ({
       adpByPlayerId,
       forcedRosterDropsBySpotCount,
       daily,
+      winnerStreamRecipes,
     ],
   )
+
+  const streamHint = winnerStreamHint(board, winnerStreamRecipes)
 
   const handleForcedRosterDropChange = (
     spotCount: 1 | 2 | 3,
@@ -520,7 +530,7 @@ export const StreamingPlansPanel = ({
   )
 
   return (
-    <section>
+    <section className="min-w-0">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Streaming plans</h2>
@@ -571,29 +581,36 @@ export const StreamingPlansPanel = ({
               +
             </button>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
-            <span className="text-[var(--color-mute)]">Strategy</span>
-            {STRATEGY_OPTIONS.map((option) => (
-              <button
-                aria-pressed={strategyMode === option.id}
-                className={
-                  strategyMode === option.id
-                    ? "rounded-full border border-[var(--color-ink)] px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-                    : "rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-                }
-                key={option.id}
-                onClick={() => setStrategyMode(option.id)}
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))}
-            {strategyMode !== suggested ? (
-              <span className="text-[var(--color-mute)]">
-                Suggested:{" "}
-                {STRATEGY_OPTIONS.find((option) => option.id === suggested)
-                  ?.label ?? suggested}
-              </span>
+          <div>
+            <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
+              <span className="text-[var(--color-mute)]">Strategy</span>
+              {STRATEGY_OPTIONS.map((option) => (
+                <button
+                  aria-pressed={strategyMode === option.id}
+                  className={
+                    strategyMode === option.id
+                      ? "rounded-full border border-[var(--color-ink)] px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                      : "rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                  }
+                  key={option.id}
+                  onClick={() => setStrategyMode(option.id)}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+              {strategyMode !== suggested ? (
+                <span className="text-[var(--color-mute)]">
+                  Suggested:{" "}
+                  {STRATEGY_OPTIONS.find((option) => option.id === suggested)
+                    ?.label ?? suggested}
+                </span>
+              ) : null}
+            </div>
+            {streamHint ? (
+              <p className="mt-1 max-w-md text-[0.75rem] text-[var(--color-mute)]">
+                {streamHint}
+              </p>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
@@ -651,10 +668,10 @@ export const StreamingPlansPanel = ({
               {dates.length > 0 ? (
                 <div className="mt-2 overflow-x-auto">
                   <table
-                    className={`${MATCHUP_WEEK_TABLE_CLASS} text-left text-[0.75rem] leading-snug`}
+                    className={`${MATCHUP_WEEK_STREAMING_TABLE_CLASS} text-left text-[0.75rem] leading-snug`}
                   >
                     <colgroup>
-                      <col className={MATCHUP_WEEK_GUTTER_COL_CLASS} />
+                      <col className={MATCHUP_WEEK_MOVE_COL_CLASS} />
                       {dates.map((date) => (
                         <col
                           className={MATCHUP_WEEK_DAY_COL_CLASS}
@@ -665,7 +682,7 @@ export const StreamingPlansPanel = ({
                     <thead>
                       <tr className="border-t border-[var(--color-hairline)]">
                         <th
-                          className={`${MATCHUP_WEEK_GUTTER_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
+                          className={`${MATCHUP_WEEK_MOVE_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
                           scope="col"
                         >
                           Move
@@ -720,7 +737,7 @@ export const StreamingPlansPanel = ({
                               className={`border-t border-[var(--color-hairline)] ${rowTone}`}
                             >
                               <th
-                                className={`${MATCHUP_WEEK_GUTTER_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
+                                className={`${MATCHUP_WEEK_MOVE_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
                                 scope="row"
                               >
                                 {plan.spotCount > 1
@@ -746,7 +763,7 @@ export const StreamingPlansPanel = ({
                               className={`border-t border-[var(--color-hairline)] ${rowTone}`}
                             >
                               <th
-                                className={`${MATCHUP_WEEK_GUTTER_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
+                                className={`${MATCHUP_WEEK_MOVE_COL_CLASS} py-1.5 pr-2 pl-2 font-medium text-[var(--color-mute)]`}
                                 scope="row"
                               >
                                 {plan.spotCount > 1

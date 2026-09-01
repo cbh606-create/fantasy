@@ -8,7 +8,8 @@ import {
 } from "./dailyLineups"
 import { eligibleForSlot } from "./eligibility"
 import { gameWeightForTeamDate } from "./games"
-import type { MatchupBoard } from "./types"
+import type { MatchupBoard, WinnerStreamRecipe } from "./types"
+import { compareStreamerRank, winnerPriorHits } from "./winnerStreamPrior"
 
 export type StreamerMoveDrop = {
   kind: "none" | "player"
@@ -176,7 +177,10 @@ export const pickBestStreamerMove = (
   schedule: ScheduleResponse,
   board: MatchupBoard,
   isCompatibleAlternative: (chosenId: string, otherId: string) => boolean,
-  options?: { requirePositiveDelta?: boolean },
+  options?: {
+    requirePositiveDelta?: boolean
+    recipes?: WinnerStreamRecipe[]
+  },
 ): {
   playerId: string
   delta: number
@@ -184,6 +188,13 @@ export const pickBestStreamerMove = (
   alternativePlayerIds: string[]
 } | null => {
   const requirePositiveDelta = options?.requirePositiveDelta ?? true
+  const recipes = options?.recipes ?? []
+  const playersById = new Map(players.map((player) => [player.id, player]))
+  const hitsFor = (playerId: string) => {
+    const player = playersById.get(playerId)
+    if (!player) return 0
+    return winnerPriorHits(player, board, recipes)
+  }
   const scored = candidateIds.flatMap((playerId, index) => {
     const result = scoreStreamerMove(
       workingDaily,
@@ -199,19 +210,23 @@ export const pickBestStreamerMove = (
   })
   const ranked = scored
     .filter((row) => (requirePositiveDelta ? row.delta > 0 : true))
-    .sort((left, right) => {
-      if (right.delta !== left.delta) return right.delta - left.delta
-      return left.index - right.index
-    })
+    .sort((left, right) =>
+      compareStreamerRank(
+        { delta: left.delta, hits: hitsFor(left.playerId), index: left.index },
+        { delta: right.delta, hits: hitsFor(right.playerId), index: right.index },
+      ),
+    )
   const winner = ranked[0]
   if (!winner) return null
 
   const alternativePlayerIds = scored
     .filter((row) => row.playerId !== winner.playerId)
-    .sort((left, right) => {
-      if (right.delta !== left.delta) return right.delta - left.delta
-      return left.index - right.index
-    })
+    .sort((left, right) =>
+      compareStreamerRank(
+        { delta: left.delta, hits: hitsFor(left.playerId), index: left.index },
+        { delta: right.delta, hits: hitsFor(right.playerId), index: right.index },
+      ),
+    )
     .filter((row) => isCompatibleAlternative(winner.playerId, row.playerId))
     .slice(0, 3)
     .map((row) => row.playerId)

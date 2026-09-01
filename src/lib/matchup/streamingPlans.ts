@@ -25,6 +25,7 @@ import type {
   StreamingPlanRosterDropKind,
   StreamingPlanSpotCount,
   StreamingStrategyMode,
+  WinnerStreamRecipe,
 } from "./types"
 import {
   blockFromDate,
@@ -86,6 +87,7 @@ export type BuildStreamingPlanInput = {
   daily?: DailyLineups
   /** Overrides `state.waiverPeriodDays`. Default 2 matchup days. */
   waiverPeriodDays?: number
+  winnerStreamRecipes?: WinnerStreamRecipe[]
 }
 
 export const streamingAddDropKey = (date: string, spotIndex: number) =>
@@ -502,6 +504,7 @@ export const buildStreamingPlan = ({
   forcedRosterDrops,
   daily,
   waiverPeriodDays: waiverPeriodDaysInput,
+  winnerStreamRecipes = [],
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -709,6 +712,7 @@ export const buildStreamingPlan = ({
                 schedule,
                 board,
                 isCompatibleAlternative,
+                { recipes: winnerStreamRecipes },
               )
         if (picked) {
           workingDaily = picked.nextDaily
@@ -857,7 +861,9 @@ export const buildStreamingPlan = ({
         schedule,
         board,
         isCompatibleAlternative,
-        isOneSpotOffNight ? { requirePositiveDelta: false } : undefined,
+        isOneSpotOffNight
+          ? { requirePositiveDelta: false, recipes: winnerStreamRecipes }
+          : { recipes: winnerStreamRecipes },
       )
       if (!picked) continue
 

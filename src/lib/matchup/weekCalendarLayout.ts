@@ -1,15 +1,16 @@
-/** Shared week table so Daily lineup and Streaming plan date columns line up. */
+/** Week table column widths. Daily is slightly wider; Streaming days share the same day-col size. */
 
 export const MATCHUP_WEEK_SLOT_COL_CLASS = "w-12 min-w-12 max-w-12"
 export const MATCHUP_WEEK_PLAYER_COL_CLASS =
-  "w-[13rem] min-w-[13rem] max-w-[13rem]"
-/** Slot + player — use as the Streaming plan first column. */
-export const MATCHUP_WEEK_GUTTER_COL_CLASS =
-  "w-[16rem] min-w-[16rem] max-w-[16rem]"
+  "w-[10rem] min-w-[10rem] max-w-[10rem]"
+/** Add/Drop label column on Streaming plans. */
+export const MATCHUP_WEEK_MOVE_COL_CLASS = "w-28 min-w-28 max-w-28"
 export const MATCHUP_WEEK_DAY_COL_CLASS =
-  "w-24 min-w-24 max-w-24"
+  "w-20 min-w-20 max-w-20"
 export const MATCHUP_WEEK_TABLE_CLASS =
-  "w-full min-w-[58rem] table-fixed border-collapse"
+  "w-full min-w-[48rem] table-fixed border-collapse"
+export const MATCHUP_WEEK_STREAMING_TABLE_CLASS =
+  "w-full min-w-[42rem] table-fixed border-collapse"
 
 export const formatMatchupDayLabel = (day: string) =>
   new Date(`${day}T12:00:00`).toLocaleDateString(undefined, {

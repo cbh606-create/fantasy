@@ -1,8 +1,9 @@
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { MAX_STREAMERS, MIN_STREAMER_GAMES } from "./constants"
-import type { MatchupBoard, StreamerSuggestion } from "./types"
+import type { MatchupBoard, StreamerSuggestion, WinnerStreamRecipe } from "./types"
 import { weeklyPlayerStats } from "./weekly"
+import { winnerPriorHits } from "./winnerStreamPrior"
 
 const STREAMER_COUNTING_CATEGORIES: CategoryId[] = [
   "TPM",
@@ -19,6 +20,7 @@ type SuggestStreamersInput = {
   board: MatchupBoard
   gamesMap: Map<string, number>
   b2bMap?: Map<string, number>
+  recipes?: WinnerStreamRecipe[]
 }
 
 const weakCategories = (board: MatchupBoard): CategoryId[] =>
@@ -86,9 +88,28 @@ export const suggestStreamers = ({
   board,
   gamesMap,
   b2bMap = new Map(),
+  recipes = [],
 }: SuggestStreamersInput): StreamerSuggestion[] => {
   const weakCats = weakCategories(board)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
+  const rankHits = (playerId: string) => {
+    const player = playersById.get(playerId)
+    if (!player) return 0
+    return winnerPriorHits(player, board, recipes)
+  }
+
+  const compareSuggestions = (
+    left: StreamerSuggestion,
+    right: StreamerSuggestion,
+  ) => {
+    if (right.score !== left.score) return right.score - left.score
+    if (right.gamesThisWeek !== left.gamesThisWeek) {
+      return right.gamesThisWeek - left.gamesThisWeek
+    }
+    const hitDelta = rankHits(right.playerId) - rankHits(left.playerId)
+    if (hitDelta !== 0) return hitDelta
+    return left.playerId.localeCompare(right.playerId)
+  }
 
   const buildCandidates = (minGames: number): StreamerSuggestion[] =>
     state.availablePlayerIds
@@ -113,13 +134,7 @@ export const suggestStreamers = ({
           },
         ]
       })
-      .sort((left, right) => {
-        if (right.score !== left.score) return right.score - left.score
-        if (right.gamesThisWeek !== left.gamesThisWeek) {
-          return right.gamesThisWeek - left.gamesThisWeek
-        }
-        return left.playerId.localeCompare(right.playerId)
-      })
+      .sort(compareSuggestions)
 
   let candidates = buildCandidates(MIN_STREAMER_GAMES)
 
@@ -134,13 +149,7 @@ export const suggestStreamers = ({
     }
 
     candidates = candidates
-      .sort((left, right) => {
-        if (right.score !== left.score) return right.score - left.score
-        if (right.gamesThisWeek !== left.gamesThisWeek) {
-          return right.gamesThisWeek - left.gamesThisWeek
-        }
-        return left.playerId.localeCompare(right.playerId)
-      })
+      .sort(compareSuggestions)
       .slice(0, MAX_STREAMERS)
   } else {
     candidates = candidates.slice(0, MAX_STREAMERS)

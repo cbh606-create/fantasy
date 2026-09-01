@@ -284,7 +284,7 @@ export const DailyLineupPanel = ({
   }
 
   return (
-    <section aria-label="Daily lineup" className="mt-8">
+    <section aria-label="Daily lineup" className="min-w-0">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Daily lineup</h2>
