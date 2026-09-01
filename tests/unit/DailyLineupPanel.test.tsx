@@ -580,4 +580,61 @@ describe("DailyLineupPanel slot column and day sort", () => {
     expect(screen.getByRole("rowheader", { name: "PG" })).toBeInTheDocument()
     expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(2)
   })
+
+  it("keeps the player label on one line and shows an ESPN headshot", () => {
+    const star: SeasonPlayer = {
+      id: "3975",
+      name: "Stephen Curry",
+      teamAbbr: "GSW",
+      positions: ["PG"],
+      projections,
+      shooting,
+    }
+
+    render(
+      <DailyLineupPanel
+        daily={{
+          "2025-11-03": [{ slot: "PG", playerId: "3975" }],
+          "2025-11-04": [{ slot: "PG", playerId: "3975" }],
+        }}
+        days={days}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[{ slot: "PG", playerId: "3975" }]}
+        rosterPlayers={[star]}
+        schedule={{
+          ...schedule,
+          games: [
+            { date: "2025-11-03", homeAbbr: "GSW", awayAbbr: "LAL" },
+            { date: "2025-11-04", homeAbbr: "GSW", awayAbbr: "SAC" },
+          ],
+        }}
+      />,
+    )
+
+    const cell = screen.getByText("Stephen Curry").closest("td")
+    expect(cell?.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://a.espncdn.com/i/headshots/nba/players/full/3975.png",
+    )
+    expect(cell).toHaveClass("whitespace-nowrap")
+  })
+
+  it("does not show initials when a player has no headshot", () => {
+    render(
+      <DailyLineupPanel
+        daily={daily}
+        days={days}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+      />,
+    )
+
+    const cell = screen.getByText("Roster Cut").closest("td")
+    expect(cell?.querySelector("img")).toBeNull()
+    expect(cell?.textContent).not.toMatch(/\bRC\b/)
+  })
 })

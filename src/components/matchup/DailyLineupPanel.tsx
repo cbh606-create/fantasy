@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import type {
   DailyLineups,
   DailySlotRow,
@@ -167,7 +168,7 @@ export const DailyLineupPanel = ({
     if (!player) {
       return (
         <td className={dayColClassName(day, "px-1 py-1 text-center")} key={day}>
-          <span className="inline-flex h-9 min-w-[3.75rem] items-center justify-center text-[var(--color-mute)]">
+          <span className="inline-flex h-8 min-w-[3.5rem] items-center justify-center text-[var(--color-mute)]">
             —
           </span>
         </td>
@@ -216,7 +217,7 @@ export const DailyLineupPanel = ({
         <td className={dayColClassName(day, "px-1 py-1 text-center")} key={day}>
           <span
             aria-label={`${player.name} no game ${formatMatchupDayLabel(day)}`}
-            className="inline-flex h-9 min-w-[3.75rem] items-center justify-center text-[var(--color-mute)]"
+            className="inline-flex h-8 min-w-[3.5rem] items-center justify-center text-[var(--color-mute)]"
           >
             —
           </span>
@@ -238,7 +239,7 @@ export const DailyLineupPanel = ({
                     : ariaLabel
             }
             aria-pressed={isLocked || onIl ? undefined : started}
-            className={`inline-flex h-9 min-w-[3.75rem] items-center justify-center rounded-md px-1.5 text-[0.7rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
+            className={`inline-flex h-8 min-w-[3.5rem] items-center justify-center whitespace-nowrap rounded-md px-1 text-[0.625rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
               onIl
                 ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-80"
                 : isLocked
@@ -315,7 +316,7 @@ export const DailyLineupPanel = ({
 
       <div className="overflow-x-auto rounded-2xl border border-[var(--color-hairline)]">
         <table
-          className={`${MATCHUP_WEEK_TABLE_CLASS} text-left text-[0.8125rem] leading-snug`}
+          className={`${MATCHUP_WEEK_TABLE_CLASS} text-left text-[0.75rem] leading-tight`}
         >
           <colgroup>
             <col className={MATCHUP_WEEK_SLOT_COL_CLASS} />
@@ -418,33 +419,30 @@ export const DailyLineupPanel = ({
                     {slotLabel(row.slot)}
                   </th>
                   <td
-                    className={`${MATCHUP_WEEK_PLAYER_COL_CLASS} sticky left-12 z-10 overflow-hidden bg-[var(--color-canvas)] px-2.5 py-1.5 font-medium`}
+                    className={`${MATCHUP_WEEK_PLAYER_COL_CLASS} sticky left-12 z-10 overflow-hidden bg-[var(--color-canvas)] px-1.5 py-1 font-medium whitespace-nowrap`}
                   >
                     {namePlayer ? (
-                      <>
+                      <span className="flex min-w-0 items-center gap-1">
+                        <PlayerAvatar fallback="none" player={namePlayer} size="xs" />
                         <span
-                          className={
+                          className={`min-w-0 truncate text-[0.7rem] leading-none ${
                             isPlanDropped
                               ? "text-[var(--color-mute)] line-through"
-                              : undefined
-                          }
+                              : ""
+                          }`}
                         >
                           {namePlayer.name}
-                        </span>
-                        {isPreview ? (
-                          <span className="ml-1.5 rounded-full border border-dashed border-[var(--color-hairline)] px-1.5 py-0.5 text-[0.625rem] font-normal tracking-wide text-[var(--color-mute)] uppercase">
-                            preview
+                          {isPreview ? (
+                            <span className="ml-1 rounded-full border border-dashed border-[var(--color-hairline)] px-1 py-px text-[0.5rem] font-normal tracking-wide text-[var(--color-mute)] uppercase">
+                              preview
+                            </span>
+                          ) : null}
+                          <span className="ml-1 font-normal text-[var(--color-mute)]">
+                            {formatPlayerPositions(namePlayer)}
+                            {namePlayer.teamAbbr ? ` · ${namePlayer.teamAbbr}` : ""}
                           </span>
-                        ) : null}
-                        <span className="ml-1.5 font-normal text-[var(--color-mute)]">
-                          {formatPlayerPositions(namePlayer)}
                         </span>
-                        {namePlayer.teamAbbr ? (
-                          <span className="ml-1.5 font-normal text-[var(--color-mute)]">
-                            {namePlayer.teamAbbr}
-                          </span>
-                        ) : null}
-                      </>
+                      </span>
                     ) : (
                       <span className="font-normal text-[var(--color-mute)]">
                         —
