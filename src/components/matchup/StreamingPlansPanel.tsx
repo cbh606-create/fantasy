@@ -8,9 +8,11 @@ import {
   useMemo,
   useRef,
   useState,
+  type ChangeEvent,
   type ReactNode,
 } from "react"
 import { createPortal } from "react-dom"
+import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import { formatPlayerPositions } from "@/lib/season/slotLabels"
 import type {
   ScheduleResponse,
@@ -37,6 +39,11 @@ import {
   perspectiveRosterEntries,
   rosterDropSelectOptions,
 } from "@/lib/matchup/streamingDropOptions"
+import {
+  formatHelpsCatsLine,
+  formatSuggestedDropTooltip,
+  suggestStreamingDrop,
+} from "@/lib/matchup/streamingDropExplain"
 import { suggestStreamingStrategyMode } from "@/lib/matchup/streamingStrategy"
 import { winnerStreamHint } from "@/lib/matchup/winnerStreamPrior"
 import type {
@@ -46,6 +53,7 @@ import type {
   StreamingStrategyMode,
   WinnerStreamRecipe,
 } from "@/lib/matchup/types"
+import type { CategoryId } from "@/lib/domain/types"
 
 const MIN_ADD_BUDGET = 1
 const MAX_ADD_BUDGET = 14
@@ -65,6 +73,29 @@ const PREVIEW_OPTIONS: { id: 1 | 2 | 3 | null; label: string }[] = [
 
 const EMPTY_WINNER_STREAM_RECIPES: WinnerStreamRecipe[] = []
 
+type ForcedRosterDropValue = string | "open_slot" | "hold"
+
+const localIsoDate = () => {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+const withTodayHolds = (
+  forced: Record<string, ForcedRosterDropValue> | undefined,
+  today: string,
+  spotCount: number,
+  days: string[],
+): Record<string, ForcedRosterDropValue> | undefined => {
+  if (!days.includes(today)) return forced
+  const next: Record<string, ForcedRosterDropValue> = { ...forced }
+  for (let spotIndex = 0; spotIndex < spotCount; spotIndex += 1) {
+    const key = streamingAddDropKey(today, spotIndex)
+    if (next[key] == null) next[key] = "hold"
+  }
+  return next
+}
+
 type StreamingPlansPanelProps = {
   leagueId: string
   state: SeasonLeagueState
@@ -76,6 +107,7 @@ type StreamingPlansPanelProps = {
   /** Base (non-preview) daily lineups — used to skip adds on full days. */
   daily?: DailyLineups
   winnerStreamRecipes?: WinnerStreamRecipe[]
+  today?: string
 }
 
 const playerName = (
@@ -150,88 +182,250 @@ const cellFor = (
     .find((day) => day.date === date)
     ?.cells.find((cell) => cell.spotIndex === spotIndex)
 
-const dropLabel = (
+const pastDropLabel = (
   cell: StreamingPlanDayCell | undefined,
   playersById: Record<string, SeasonPlayer>,
 ): string => {
   if (!cell) return "—"
+  if (cell.rosterDropKind === "open_slot") return "Open slot"
+  if (cell.rosterDropPlayerId) {
+    return playerName(cell.rosterDropPlayerId, playersById)
+  }
   if (cell.action === "drop_add") {
     return playerName(cell.droppedPlayerId, playersById)
   }
+  if (cell.action === "hold") return "Hold"
   return "—"
 }
 
-const DropCell = ({
-  cell,
+const targetCatChips = (categoryIds: CategoryId[]) =>
+  categoryIds.map((categoryId) => (
+    <span
+      className="ml-0.5 inline-flex rounded-md bg-[var(--color-soft-cloud)] px-1 py-px text-[0.625rem] font-medium text-[var(--color-mute)]"
+      key={categoryId}
+    >
+      {CATEGORY_SHORT_LABELS[categoryId]}
+    </span>
+  ))
+
+const DropSuggestTip = ({
+  board,
+  children,
+  daily,
   date,
+  players,
+  playersById,
+  rosterPlayerIds,
+  schedule,
+}: {
+  board: MatchupBoard
+  children: ReactNode
+  daily?: DailyLineups
+  date: string
+  players: SeasonPlayer[]
+  playersById: Record<string, SeasonPlayer>
+  rosterPlayerIds: string[]
+  schedule: ScheduleResponse
+}) => {
+  const tipId = useId()
+  const rootRef = useRef<HTMLSpanElement>(null)
+  const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+
+  const tooltip = (() => {
+    if (!daily) return null
+    const suggestion = suggestStreamingDrop({
+      rosterPlayerIds,
+      players,
+      workingDaily: daily,
+      fromDate: date,
+      schedule,
+      board,
+    })
+    if (!suggestion) return null
+    return formatSuggestedDropTooltip(
+      playerName(suggestion.playerId, playersById),
+      suggestion.categoryIds,
+    )
+  })()
+
+  const placeTip = () => {
+    const rect = rootRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const width = 224
+    const left = Math.max(
+      8,
+      Math.min(rect.left, window.innerWidth - width - 8),
+    )
+    setPos({ top: rect.bottom + 6, left })
+  }
+
+  const handleShow = () => {
+    if (!tooltip) return
+    placeTip()
+    setOpen(true)
+  }
+
+  const handleHide = () => setOpen(false)
+
+  useEffect(() => {
+    if (!open) return
+    const close = () => setOpen(false)
+    window.addEventListener("scroll", close, true)
+    window.addEventListener("resize", close)
+    return () => {
+      window.removeEventListener("scroll", close, true)
+      window.removeEventListener("resize", close)
+    }
+  }, [open])
+
+  return (
+    <span
+      className="relative inline-flex max-w-full items-baseline"
+      onBlur={handleHide}
+      onFocus={handleShow}
+      onMouseEnter={handleShow}
+      onMouseLeave={handleHide}
+      ref={rootRef}
+    >
+      {children}
+      {open && tooltip
+        ? createPortal(
+            <span
+              className="w-56 rounded-xl border border-[var(--color-hairline)] bg-white p-2.5 text-left text-[0.75rem] leading-snug text-[var(--color-ink)] shadow-md"
+              id={tipId}
+              role="tooltip"
+              style={{
+                position: "fixed",
+                top: pos.top,
+                left: pos.left,
+                zIndex: 60,
+              }}
+            >
+              {tooltip}
+            </span>,
+            document.body,
+          )
+        : null}
+    </span>
+  )
+}
+
+const DropCell = ({
+  adpByPlayerId,
+  board,
+  cell,
+  daily,
+  date,
+  onForcedRosterDropChange,
   plan,
+  players,
   playersById,
   rosterEntries,
-  adpByPlayerId,
-  onForcedRosterDropChange,
+  rosterPlayerIds,
+  schedule,
+  spotIndex,
+  today,
+  todayInWeek,
 }: {
+  adpByPlayerId?: Record<string, number>
+  board: MatchupBoard
   cell: StreamingPlanDayCell | undefined
+  daily?: DailyLineups
   date: string
+  onForcedRosterDropChange: (key: string, value: ForcedRosterDropValue) => void
   plan: StreamingPlan
+  players: SeasonPlayer[]
   playersById: Record<string, SeasonPlayer>
   rosterEntries: SeasonLeagueState["teams"][number]["entries"]
-  adpByPlayerId?: Record<string, number>
-  onForcedRosterDropChange: (
-    key: string,
-    value: string | "open_slot",
-  ) => void
+  rosterPlayerIds: string[]
+  schedule: ScheduleResponse
+  spotIndex: number
+  today: string
+  todayInWeek: boolean
 }) => {
-  if (!cell || cell.action !== "add") {
+  const suggestTip = (child: ReactNode) => (
+    <DropSuggestTip
+      board={board}
+      daily={daily}
+      date={date}
+      players={players}
+      playersById={playersById}
+      rosterPlayerIds={rosterPlayerIds}
+      schedule={schedule}
+    >
+      {child}
+    </DropSuggestTip>
+  )
+
+  if (todayInWeek && date === today) {
+    const key = streamingAddDropKey(date, spotIndex)
+    const earlierDroppedIds = collectEarlierRosterDropIds(
+      plan,
+      date,
+      spotIndex,
+    )
+    const eligiblePlayerIds = eligibleRosterDropPlayerIds(
+      rosterEntries,
+      playersById,
+      earlierDroppedIds,
+      adpByPlayerId,
+      undefined,
+      { includeProtected: true },
+    )
+    const options = rosterDropSelectOptions({
+      eligiblePlayerIds,
+      earlierDroppedIds,
+      allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
+      includeHold: true,
+      playersById,
+    })
+    const value =
+      cell?.rosterDropKind === "open_slot"
+        ? "open_slot"
+        : (cell?.rosterDropPlayerId ?? "hold")
+
+    const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+      const next = event.target.value
+      if (next === "open_slot") {
+        onForcedRosterDropChange(key, "open_slot")
+        return
+      }
+      if (next === "hold") {
+        onForcedRosterDropChange(key, "hold")
+        return
+      }
+      onForcedRosterDropChange(key, next)
+    }
+
+    return suggestTip(
+      <select
+        aria-label={`Roster drop ${formatMatchupDayLabel(date)} spot ${spotIndex + 1}`}
+        className="max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+        onChange={handleChange}
+        value={value}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>,
+    )
+  }
+
+  if (todayInWeek && date < today) {
     return (
       <span className="text-[var(--color-mute)]">
-        {dropLabel(cell, playersById)}
+        {pastDropLabel(cell, playersById)}
       </span>
     )
   }
 
-  const key = streamingAddDropKey(date, cell.spotIndex)
-  const earlierDroppedIds = collectEarlierRosterDropIds(
-    plan,
-    date,
-    cell.spotIndex,
-  )
-  const eligiblePlayerIds = eligibleRosterDropPlayerIds(
-    rosterEntries,
-    playersById,
-    earlierDroppedIds,
-    adpByPlayerId,
-  )
-  const options = rosterDropSelectOptions({
-    eligiblePlayerIds,
-    earlierDroppedIds,
-    allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
-    playersById,
-  })
-  const value =
-    cell.rosterDropKind === "open_slot"
-      ? "open_slot"
-      : (cell.rosterDropPlayerId ?? "")
-
-  return (
-    <select
-      aria-label={`Roster drop ${formatMatchupDayLabel(date)} spot ${cell.spotIndex + 1}`}
-      className="max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-      onChange={(event) => {
-        const next = event.target.value
-        if (next === "open_slot") {
-          onForcedRosterDropChange(key, "open_slot")
-          return
-        }
-        onForcedRosterDropChange(key, next)
-      }}
-      value={value}
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+  return suggestTip(
+    <span className="text-[var(--color-mute)]" tabIndex={0}>
+      —
+    </span>,
   )
 }
 
@@ -265,6 +459,8 @@ const AddCell = ({
     </span>
   )
 
+  const chips = targetCatChips(cell.targetCategoryIds ?? [])
+
   if (isAddAction(cell.action)) {
     return (
       <AddCellHoverTip
@@ -272,11 +468,17 @@ const AddCell = ({
         alternativePlayerIds={cell.alternativePlayerIds ?? []}
         hasGame={hasGame}
         leagueId={leagueId}
-        meta={meta}
+        meta={
+          <>
+            {meta}
+            {chips}
+          </>
+        }
         name={name}
         nameClass={nameClass}
         playerId={cell.playerId}
         playersById={playersById}
+        targetCategoryIds={cell.targetCategoryIds ?? []}
       />
     )
   }
@@ -299,6 +501,7 @@ const AddCellHoverTip = ({
   nameClass,
   playerId,
   playersById,
+  targetCategoryIds,
 }: {
   addIndex: number | null
   alternativePlayerIds: string[]
@@ -309,6 +512,7 @@ const AddCellHoverTip = ({
   nameClass: string
   playerId: string
   playersById: Record<string, SeasonPlayer>
+  targetCategoryIds: CategoryId[]
 }) => {
   const tipId = useId()
   const rootRef = useRef<HTMLSpanElement>(null)
@@ -413,6 +617,11 @@ const AddCellHoverTip = ({
                   No close alternatives today
                 </span>
               )}
+              {targetCategoryIds.length > 0 ? (
+                <span className="mt-1.5 block text-[0.7rem] leading-snug text-[var(--color-mute)]">
+                  {formatHelpsCatsLine(targetCategoryIds)}
+                </span>
+              ) : null}
             </span>,
             document.body,
           )
@@ -434,6 +643,7 @@ export const StreamingPlansPanel = ({
   onPreviewPlanChange,
   daily,
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
+  today = localIsoDate(),
 }: StreamingPlansPanelProps) => {
   const suggested = suggestStreamingStrategyMode(board)
   const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
@@ -444,7 +654,7 @@ export const StreamingPlansPanel = ({
   )
   const [forcedRosterDropsBySpotCount, setForcedRosterDropsBySpotCount] =
     useState<
-      Partial<Record<1 | 2 | 3, Record<string, string | "open_slot">>>
+      Partial<Record<1 | 2 | 3, Record<string, ForcedRosterDropValue>>>
     >({})
 
   useEffect(() => {
@@ -462,9 +672,15 @@ export const StreamingPlansPanel = ({
           strategyMode,
           adpByPlayerId,
           spotCount,
-          forcedRosterDrops: forcedRosterDropsBySpotCount[spotCount],
+          forcedRosterDrops: withTodayHolds(
+            forcedRosterDropsBySpotCount[spotCount],
+            today,
+            spotCount,
+            schedule.matchup.days,
+          ),
           daily,
           winnerStreamRecipes,
+          today,
         }),
       ),
     [
@@ -477,6 +693,7 @@ export const StreamingPlansPanel = ({
       forcedRosterDropsBySpotCount,
       daily,
       winnerStreamRecipes,
+      today,
     ],
   )
 
@@ -485,7 +702,7 @@ export const StreamingPlansPanel = ({
   const handleForcedRosterDropChange = (
     spotCount: 1 | 2 | 3,
     key: string,
-    value: string | "open_slot",
+    value: ForcedRosterDropValue,
   ) => {
     setForcedRosterDropsBySpotCount((prev) => {
       const nextForSpot = { ...(prev[spotCount] ?? {}), [key]: value }
@@ -524,6 +741,11 @@ export const StreamingPlansPanel = ({
     ...Object.fromEntries(state.players.map((player) => [player.id, player])),
     ...playersById,
   }
+  const rosterEntries = perspectiveRosterEntries(state)
+  const rosterPlayerIds = rosterEntries
+    .filter((entry) => entry.slot !== "IL" && entry.playerId)
+    .map((entry) => entry.playerId!)
+  const todayInWeek = schedule.matchup.days.includes(today)
 
   const softCaps = [1, 2, 3].map((spotCount) =>
     Math.ceil(addBudget / spotCount),
@@ -780,7 +1002,9 @@ export const StreamingPlansPanel = ({
                                   >
                                     <DropCell
                                       adpByPlayerId={adpByPlayerId}
+                                      board={board}
                                       cell={cell}
+                                      daily={daily}
                                       date={date}
                                       onForcedRosterDropChange={(key, value) =>
                                         handleForcedRosterDropChange(
@@ -790,10 +1014,14 @@ export const StreamingPlansPanel = ({
                                         )
                                       }
                                       plan={plan}
+                                      players={state.players}
                                       playersById={resolvedPlayers}
-                                      rosterEntries={perspectiveRosterEntries(
-                                        state,
-                                      )}
+                                      rosterEntries={rosterEntries}
+                                      rosterPlayerIds={rosterPlayerIds}
+                                      schedule={schedule}
+                                      spotIndex={spotIndex}
+                                      today={today}
+                                      todayInWeek={todayInWeek}
                                     />
                                   </td>
                                 )

@@ -108,6 +108,103 @@ const state: SeasonLeagueState = {
   source: "manual",
 }
 
+const star: SeasonPlayer = {
+  id: "star",
+  name: "Star",
+  teamAbbr: "CHI",
+  positions: ["PF"],
+  projections,
+  shooting,
+}
+
+const scrub: SeasonPlayer = {
+  id: "scrub",
+  name: "Scrub",
+  teamAbbr: "ATL",
+  positions: ["C"],
+  projections,
+  shooting,
+}
+
+const protectedState: SeasonLeagueState = {
+  ...state,
+  players: [streamerA, star, scrub],
+  availablePlayerIds: ["fa-a"],
+  teams: [
+    {
+      teamIndex: 0,
+      name: "You",
+      entries: [
+        { slot: "UTIL", playerId: "star" },
+        { slot: "BE", playerId: "scrub" },
+      ],
+    },
+    state.teams[1]!,
+  ],
+}
+
+const protectedSchedule: ScheduleResponse = {
+  source: "fixture",
+  matchup: {
+    scoringPeriodId: 1,
+    startDate: "2025-11-03",
+    endDate: "2025-11-03",
+    days: ["2025-11-03"],
+  },
+  games: [
+    { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+    { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+  ],
+}
+
+const noGameCut: SeasonPlayer = {
+  id: "you-idle",
+  name: "No Game Cut",
+  teamAbbr: "CHI",
+  positions: ["PF"],
+  projections,
+  shooting,
+}
+
+const playsCut: SeasonPlayer = {
+  id: "you-play",
+  name: "Plays Cut",
+  teamAbbr: "ATL",
+  positions: ["C"],
+  projections,
+  shooting,
+}
+
+const dropState: SeasonLeagueState = {
+  ...state,
+  players: [streamerA, streamerB, noGameCut, playsCut],
+  teams: [
+    {
+      teamIndex: 0,
+      name: "You",
+      entries: [
+        { slot: "UTIL", playerId: "you-idle" },
+        { slot: "BE", playerId: "you-play" },
+      ],
+    },
+    state.teams[1]!,
+  ],
+}
+
+const dropSchedule: ScheduleResponse = {
+  source: "fixture",
+  matchup: {
+    scoringPeriodId: 1,
+    startDate: "2025-11-03",
+    endDate: "2025-11-03",
+    days: ["2025-11-03"],
+  },
+  games: [
+    { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+    { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
+  ],
+}
+
 describe("StreamingPlansPanel", () => {
   afterEach(() => {
     cleanup()
@@ -312,52 +409,6 @@ describe("StreamingPlansPanel", () => {
   })
 
   it("rebuilds with adpByPlayerId so ADP≤60 roster drops stay protected", () => {
-    const star: SeasonPlayer = {
-      id: "star",
-      name: "Star",
-      teamAbbr: "CHI",
-      positions: ["PF"],
-      projections,
-      shooting,
-    }
-    const scrub: SeasonPlayer = {
-      id: "scrub",
-      name: "Scrub",
-      teamAbbr: "ATL",
-      positions: ["C"],
-      projections,
-      shooting,
-    }
-    const protectedState: SeasonLeagueState = {
-      ...state,
-      players: [streamerA, star, scrub],
-      availablePlayerIds: ["fa-a"],
-      teams: [
-        {
-          teamIndex: 0,
-          name: "You",
-          entries: [
-            { slot: "UTIL", playerId: "star" },
-            { slot: "BE", playerId: "scrub" },
-          ],
-        },
-        state.teams[1]!,
-      ],
-    }
-    const protectedSchedule: ScheduleResponse = {
-      source: "fixture",
-      matchup: {
-        scoringPeriodId: 1,
-        startDate: "2025-11-03",
-        endDate: "2025-11-03",
-        days: ["2025-11-03"],
-      },
-      games: [
-        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
-        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
-      ],
-    }
-
     render(
       <StreamingPlansPanel
         adpByPlayerId={{ star: 25, scrub: 200 }}
@@ -366,14 +417,56 @@ describe("StreamingPlansPanel", () => {
         playersById={{}}
         schedule={protectedSchedule}
         state={protectedState}
+        today="2025-11-03"
       />,
     )
 
     fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
 
-    expect(screen.getAllByText(/Protected ADP ≤ 60/).length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Scrub").length).toBeGreaterThan(0)
-    expect(screen.queryAllByText("Star")).toHaveLength(0)
+    const select = screen.getAllByRole("combobox", { name: /Roster drop/i })[0]
+    expect(select).toHaveTextContent("Star")
+  })
+
+  it("lists ADP-protected players in today's dropbox", () => {
+    render(
+      <StreamingPlansPanel
+        adpByPlayerId={{ star: 25, scrub: 200 }}
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={protectedSchedule}
+        state={protectedState}
+        today="2025-11-03"
+      />,
+    )
+    const select = screen.getAllByRole("combobox", { name: /Roster drop/i })[0]
+    expect(select).toHaveTextContent("Star")
+  })
+
+  it("shows a Hold dropbox only on today and chips on a chosen drop", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-11-03"
+      />,
+    )
+    const todaySelect = screen.getAllByRole("combobox", {
+      name: /Roster drop.*spot 1/i,
+    })
+    expect(todaySelect.length).toBeGreaterThan(0)
+    expect(todaySelect[0]).toHaveDisplayValue("Hold")
+    expect(
+      screen.queryByRole("combobox", {
+        name: new RegExp(formatMatchupDayLabel("2025-11-04"), "i"),
+      }),
+    ).not.toBeInTheDocument()
+
+    fireEvent.change(todaySelect[0]!, { target: { value: "you-1" } })
+    expect(screen.getAllByText("STL").length).toBeGreaterThan(0)
   })
 
   it("renders None/1/2/3 preview selector defaulting to None", () => {
@@ -441,51 +534,6 @@ describe("StreamingPlansPanel", () => {
   })
 
   it("renders roster drop selects on add cells and rebuilds on change", () => {
-    const noGameCut: SeasonPlayer = {
-      id: "you-idle",
-      name: "No Game Cut",
-      teamAbbr: "CHI",
-      positions: ["PF"],
-      projections,
-      shooting,
-    }
-    const playsCut: SeasonPlayer = {
-      id: "you-play",
-      name: "Plays Cut",
-      teamAbbr: "ATL",
-      positions: ["C"],
-      projections,
-      shooting,
-    }
-    const dropState: SeasonLeagueState = {
-      ...state,
-      players: [streamerA, streamerB, noGameCut, playsCut],
-      teams: [
-        {
-          teamIndex: 0,
-          name: "You",
-          entries: [
-            { slot: "UTIL", playerId: "you-idle" },
-            { slot: "BE", playerId: "you-play" },
-          ],
-        },
-        state.teams[1]!,
-      ],
-    }
-    const dropSchedule: ScheduleResponse = {
-      source: "fixture",
-      matchup: {
-        scoringPeriodId: 1,
-        startDate: "2025-11-03",
-        endDate: "2025-11-03",
-        days: ["2025-11-03"],
-      },
-      games: [
-        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
-        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
-      ],
-    }
-
     render(
       <StreamingPlansPanel
         board={board}
@@ -493,6 +541,7 @@ describe("StreamingPlansPanel", () => {
         playersById={{}}
         schedule={dropSchedule}
         state={dropState}
+        today="2025-11-03"
       />,
     )
 
@@ -502,6 +551,8 @@ describe("StreamingPlansPanel", () => {
     expect(selects.length).toBeGreaterThan(0)
 
     const firstSelect = selects[0]!
+    expect(firstSelect).toHaveValue("hold")
+    fireEvent.change(firstSelect, { target: { value: "you-idle" } })
     expect(firstSelect).toHaveValue("you-idle")
     fireEvent.change(firstSelect, { target: { value: "you-play" } })
     expect(firstSelect).toHaveValue("you-play")
@@ -509,50 +560,6 @@ describe("StreamingPlansPanel", () => {
 
   it("rebuilds preview plan when roster drop override changes", () => {
     const onPreviewPlanChange = vi.fn()
-    const noGameCut: SeasonPlayer = {
-      id: "you-idle",
-      name: "No Game Cut",
-      teamAbbr: "CHI",
-      positions: ["PF"],
-      projections,
-      shooting,
-    }
-    const playsCut: SeasonPlayer = {
-      id: "you-play",
-      name: "Plays Cut",
-      teamAbbr: "ATL",
-      positions: ["C"],
-      projections,
-      shooting,
-    }
-    const dropState: SeasonLeagueState = {
-      ...state,
-      players: [streamerA, streamerB, noGameCut, playsCut],
-      teams: [
-        {
-          teamIndex: 0,
-          name: "You",
-          entries: [
-            { slot: "UTIL", playerId: "you-idle" },
-            { slot: "BE", playerId: "you-play" },
-          ],
-        },
-        state.teams[1]!,
-      ],
-    }
-    const dropSchedule: ScheduleResponse = {
-      source: "fixture",
-      matchup: {
-        scoringPeriodId: 1,
-        startDate: "2025-11-03",
-        endDate: "2025-11-03",
-        days: ["2025-11-03"],
-      },
-      games: [
-        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
-        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
-      ],
-    }
 
     render(
       <StreamingPlansPanel
@@ -562,71 +569,28 @@ describe("StreamingPlansPanel", () => {
         playersById={{}}
         schedule={dropSchedule}
         state={dropState}
+        today="2025-11-03"
       />,
     )
 
     fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
-    fireEvent.click(screen.getByRole("button", { name: /^2-spot$/i }))
+    fireEvent.click(screen.getByRole("button", { name: /^1-spot$/i }))
 
     const initialPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
-    expect(initialPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
+    expect(initialPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBeNull()
 
-    // Selects render 1-spot → 2-spot → 3-spot; index 1 is 2-spot spot 0.
-    const twoSpotSelect = screen.getAllByRole("combobox", {
-      name: /roster drop/i,
-    })[1]!
-    fireEvent.change(twoSpotSelect, { target: { value: "you-play" } })
+    const oneSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop .* spot 1/i,
+    })[0]!
+    expect(oneSpotSelect).toHaveValue("hold")
+    fireEvent.change(oneSpotSelect, { target: { value: "you-idle" } })
 
     const rebuiltPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
-    expect(rebuiltPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-play")
+    expect(rebuiltPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
   })
 
   it("keeps roster drop overrides isolated per spot-count plan", () => {
     const onPreviewPlanChange = vi.fn()
-    const noGameCut: SeasonPlayer = {
-      id: "you-idle",
-      name: "No Game Cut",
-      teamAbbr: "CHI",
-      positions: ["PF"],
-      projections,
-      shooting,
-    }
-    const playsCut: SeasonPlayer = {
-      id: "you-play",
-      name: "Plays Cut",
-      teamAbbr: "ATL",
-      positions: ["C"],
-      projections,
-      shooting,
-    }
-    const dropState: SeasonLeagueState = {
-      ...state,
-      players: [streamerA, streamerB, noGameCut, playsCut],
-      teams: [
-        {
-          teamIndex: 0,
-          name: "You",
-          entries: [
-            { slot: "UTIL", playerId: "you-idle" },
-            { slot: "BE", playerId: "you-play" },
-          ],
-        },
-        state.teams[1]!,
-      ],
-    }
-    const dropSchedule: ScheduleResponse = {
-      source: "fixture",
-      matchup: {
-        scoringPeriodId: 1,
-        startDate: "2025-11-03",
-        endDate: "2025-11-03",
-        days: ["2025-11-03"],
-      },
-      games: [
-        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
-        { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "ORL" },
-      ],
-    }
 
     render(
       <StreamingPlansPanel
@@ -636,6 +600,7 @@ describe("StreamingPlansPanel", () => {
         playersById={{}}
         schedule={dropSchedule}
         state={dropState}
+        today="2025-11-03"
       />,
     )
 
@@ -644,14 +609,18 @@ describe("StreamingPlansPanel", () => {
     const oneSpotSelect = screen.getAllByRole("combobox", {
       name: /roster drop .* spot 1/i,
     })[0]!
-    expect(oneSpotSelect).toHaveValue("you-idle")
+    expect(oneSpotSelect).toHaveValue("hold")
     fireEvent.change(oneSpotSelect, { target: { value: "you-play" } })
     expect(oneSpotSelect).toHaveValue("you-play")
 
     fireEvent.click(screen.getByRole("button", { name: /^2-spot$/i }))
     const twoSpotPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
     expect(twoSpotPlan?.spotCount).toBe(2)
-    expect(twoSpotPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
+    expect(twoSpotPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBeNull()
+    const twoSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop .* spot 1/i,
+    })[1]!
+    expect(twoSpotSelect).toHaveValue("hold")
   })
 
   it("shows a mute hint when winner recipes hit trailing cats", () => {
