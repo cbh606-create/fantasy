@@ -511,6 +511,7 @@ export const buildStreamingPlan = ({
   daily,
   waiverPeriodDays: waiverPeriodDaysInput,
   winnerStreamRecipes = [],
+  today,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -598,6 +599,7 @@ export const buildStreamingPlan = ({
     const seatedToday = new Set<string>()
     const previousOccupants = [...occupants]
     const forceFillForSpot = (spotIndex: number): boolean => {
+      if (date !== today) return false
       const forced = forcedRosterDrops?.[streamingAddDropKey(date, spotIndex)]
       return (
         forced === "open_slot" ||
@@ -784,6 +786,12 @@ export const buildStreamingPlan = ({
         }
       } else if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
         weekDroppedPlayers.delete(rosterDrop.playerId)
+      }
+
+      if (forceFill && previousId && !playerId) {
+        action = "hold"
+        playerId = previousId
+        seatedToday.add(previousId)
       }
 
       occupants[spotIndex] = playerId
