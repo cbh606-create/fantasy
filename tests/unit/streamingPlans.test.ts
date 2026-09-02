@@ -1235,10 +1235,55 @@ describe("forcedRosterDrops", () => {
     expect(plan.days[0]!.cells[0]).toMatchObject({
       action: "hold",
       rosterDropKind: "none",
+      addIndex: null,
       targetCategoryIds: [],
     })
+    expect(plan.addsUsed).toBe(1)
+    expect(plan.days[1]!.cells[0]?.playerId).toBeTruthy()
+    expect(["add", "drop_add"]).toContain(plan.days[1]!.cells[0]?.action)
     expect(plan.days[1]!.cells[0]?.rosterDropPlayerId).toBeNull()
     expect(plan.days[1]!.cells[0]?.rosterDropKind).toBe("none")
+  })
+
+  it("today hold keeps a seated streamer and skips early-swap", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
+    const held = player("fa-held", "NYK", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const elite = player("fa-elite", "BOS", {
+      projections: { ...baseProjections(), STL: 50 },
+    })
+    const state = tinyState([held, elite], ["fa-held", "fa-elite"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "WAS" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "DET" },
+      { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "ORL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+      today: "2025-11-04",
+      forcedRosterDrops: { "2025-11-04:0": "hold" },
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-held",
+      addIndex: 1,
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "hold",
+      playerId: "fa-held",
+      addIndex: null,
+    })
+    expect(plan.days[1]!.cells[0]?.action).not.toBe("drop_add")
   })
 
   it("forced protected player is an allowed today drop", () => {

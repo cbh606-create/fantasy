@@ -696,7 +696,7 @@ export const buildStreamingPlan = ({
       const rosterDrop = previousId ? undefined : dropBySpot.get(spotIndex)
       const forced = forcedRosterDrops?.[streamingAddDropKey(date, spotIndex)]
 
-      if (canSpendWeeklyAdd() && rosterDrop?.kind === "none" && forced === "hold") {
+      if (forced === "hold") {
         action = "hold"
         playerId = previousId
       } else if (canSpendWeeklyAdd()) {
@@ -798,6 +798,9 @@ export const buildStreamingPlan = ({
     for (const spotIndex of spotOrder) {
       const cell = cells[spotIndex]
       if (!cell || cell.action !== "hold" || !cell.playerId) continue
+      if (forcedRosterDrops?.[streamingAddDropKey(date, spotIndex)] === "hold") {
+        continue
+      }
       const occupant = playersById.get(cell.playerId)
       if (!occupant) continue
       if (!canSpendSwapAdd()) continue
