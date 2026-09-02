@@ -8,7 +8,7 @@ export const ADP_SOURCE_IDS = [
 
 export const SOURCE_META = {
   yahoo_draft_analysis_rank: {
-    label: "Yahoo rank",
+    label: "Yahoo Rank",
     url: "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
   },
   fantasypros_yahoo: {
@@ -16,8 +16,8 @@ export const SOURCE_META = {
     url: "https://www.fantasypros.com/nba/adp/overall.php",
   },
   espn_article_h2h_points: {
-    label: "ESPN article",
-    url: null,
+    label: "ESPN ADP",
+    url: "https://fantasy.espn.com/basketball/",
   },
 }
 

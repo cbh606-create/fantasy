@@ -1,3 +1,4 @@
+import { formatPlayerPositions } from "@/lib/season/slotLabels"
 import type {
   ScheduleResponse,
   SeasonPlayer,
@@ -11,6 +12,7 @@ export type PlayerScheduleRow = {
   slot: SeasonSlot
   playerId: string | null
   name: string
+  positions: string
   teamAbbr: string | null
   teamUnknown: boolean
   games: number | null
@@ -42,6 +44,7 @@ export const buildPlayerMatchupSchedule = ({
         slot: entry.slot,
         playerId: null,
         name: "Empty",
+        positions: "—",
         teamAbbr: null,
         teamUnknown: false,
         games: null,
@@ -73,6 +76,7 @@ export const buildPlayerMatchupSchedule = ({
       slot: entry.slot,
       playerId: entry.playerId,
       name: player?.name ?? "Unknown",
+      positions: formatPlayerPositions(player),
       teamAbbr,
       teamUnknown,
       games,

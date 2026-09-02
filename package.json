@@ -11,11 +11,15 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "players:refresh": "node scripts/refresh-players.mjs",
+    "players:refresh-projections": "node scripts/refresh-espn-projections.mjs && tsx scripts/patch-seasons-from-pool.ts",
+    "players:sync-seasons-from-pool": "tsx scripts/patch-seasons-from-pool.ts",
     "players:import-hashtag": "tsx scripts/import-hashtag-projections.ts",
+    "players:import-yahoo": "tsx scripts/import-yahoo-projections.ts",
     "players:espn-rankings": "node scripts/refresh-espn-rankings.mjs",
     "players:yahoo-adp": "node scripts/refresh-yahoo-adp.mjs",
     "players:fantasypros-adp": "node scripts/refresh-fantasypros-adp.mjs",
     "players:adp-merge": "node scripts/merge-adp-sources.mjs",
+    "players:adp-refresh": "node scripts/refresh-all-adp.mjs",
     "players:enrich-identity": "node scripts/enrich-player-identity.mjs"
   },
   "dependencies": {

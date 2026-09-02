@@ -48,6 +48,7 @@ describe("buildPlayerMatchupSchedule", () => {
     expect(rows[0]).toMatchObject({
       slot: "PG",
       name: "Home Star",
+      positions: "—",
       teamAbbr: "BOS",
       games: 2,
       teamUnknown: false,
@@ -60,6 +61,7 @@ describe("buildPlayerMatchupSchedule", () => {
       slot: "SG",
       playerId: null,
       name: "Empty",
+      positions: "—",
       games: null,
       teamUnknown: false,
     })

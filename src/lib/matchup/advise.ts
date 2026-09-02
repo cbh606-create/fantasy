@@ -1,12 +1,41 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
 import { buildMatchupBoard } from "./board"
-import { weightedGamesThisWeekByPlayerId } from "./games"
+import {
+  b2bSecondNightsThisWeekByPlayerId,
+  gamesThisWeekByPlayerId,
+  weightedGamesThisWeekByPlayerId,
+} from "./games"
 import { suggestSitStart } from "./sitStart"
 import { suggestStreamers } from "./streamers"
-import type { MatchupAdvice } from "./types"
+import { buildAdpByPlayerIdFromProjPool } from "./streamingDropPolicy"
+import { buildAllStreamingPlans } from "./streamingPlans"
+import type { MatchupAdvice, WinnerStreamRecipe } from "./types"
 import { activeTeamWeeklyTotals } from "./weekly"
+
+type ProjAdpPlayer = {
+  id: string
+  name: string
+  teamAbbr?: string
+  adp?: number
+}
+
+let cachedProjAdpPlayers: ProjAdpPlayer[] | undefined
+
+const loadProjAdpPlayers = (): ProjAdpPlayer[] => {
+  if (cachedProjAdpPlayers) return cachedProjAdpPlayers
+  const parsed = JSON.parse(
+    readFileSync(
+      path.join(process.cwd(), "data", "players", "proj_2026_27.json"),
+      "utf8",
+    ),
+  ) as { players?: ProjAdpPlayer[] }
+  cachedProjAdpPlayers = parsed.players ?? []
+  return cachedProjAdpPlayers
+}
 
 const enabledCategoryIds = (state: SeasonLeagueState): CategoryId[] => {
   const enabled = state.categories.filter((category) => category.enabled).map((category) => category.id)
@@ -17,6 +46,10 @@ export const adviseMatchup = (
   state: SeasonLeagueState,
   schedule: ScheduleResponse,
   opponentTeamIndex: number,
+  options: {
+    addLimit?: number
+    winnerStreamRecipes?: WinnerStreamRecipe[]
+  } = {},
 ): MatchupAdvice | { error: string } => {
   if (opponentTeamIndex === state.perspectiveTeamIndex) {
     return { error: "invalid_opponent" }
@@ -32,6 +65,8 @@ export const adviseMatchup = (
   }
 
   const gamesMap = weightedGamesThisWeekByPlayerId(state.players, schedule)
+  const streamerGamesMap = gamesThisWeekByPlayerId(state.players, schedule)
+  const streamerB2bMap = b2bSecondNightsThisWeekByPlayerId(state.players, schedule)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const categoryIds = enabledCategoryIds(state)
 
@@ -47,7 +82,27 @@ export const adviseMatchup = (
     categoryIds,
   })
 
-  const streamers = suggestStreamers({ state, board, gamesMap })
+  // Streamers: integer game-days + separate B2B count (not 0.75 weighting).
+  const streamers = suggestStreamers({
+    state,
+    board,
+    gamesMap: streamerGamesMap,
+    b2bMap: streamerB2bMap,
+    recipes: options.winnerStreamRecipes,
+  })
+
+  const adpByPlayerId = buildAdpByPlayerIdFromProjPool(
+    state.players,
+    loadProjAdpPlayers(),
+  )
+  const streamingPlans = buildAllStreamingPlans({
+    state,
+    schedule,
+    board,
+    addLimit: options.addLimit,
+    adpByPlayerId,
+    winnerStreamRecipes: options.winnerStreamRecipes,
+  })
 
   return {
     opponentTeamIndex,
@@ -55,5 +110,8 @@ export const adviseMatchup = (
     board,
     sitStart,
     streamers,
+    streamingPlans,
+    adpByPlayerId,
+    winnerStreamRecipes: options.winnerStreamRecipes ?? [],
   }
 }

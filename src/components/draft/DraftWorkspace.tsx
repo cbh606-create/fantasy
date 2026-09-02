@@ -6,7 +6,7 @@ import {
   MockDraftView,
   type MockLatestPick,
 } from "@/components/draft/MockDraftView"
-import { PrepView } from "@/components/draft/PrepView"
+import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import {
   buildEmptyBoard,
   DEFAULT_DRAFT_ROUNDS,
@@ -19,6 +19,7 @@ import {
   ESPN_MIN_TEAMS,
 } from "@/lib/domain/leagueSize"
 import type {
+  CategoryId,
   DraftBoard,
   LeagueState,
   Player,
@@ -28,10 +29,12 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { advanceOneCpuPick } from "@/lib/sim/advanceCpuPicks"
 import {
   DEFAULT_ADP_SOURCE,
+  normalizeSelectableAdpSource,
   withProjectedAdp,
   type AdpSourceId,
 } from "@/lib/players/adpSources"
 import { filterDraftEligible } from "@/lib/players/draftEligible"
+import { FAST_NEXT_PICK_COUNT, MOCK_SIM_COUNT } from "@/lib/sim/constants"
 
 const toMockLeagueState = (
   baseState: LeagueState,
@@ -54,7 +57,6 @@ const toMockLeagueState = (
 })
 
 const MOCK_PICK_DELAY_MS = 280
-const MOCK_SIM_COUNT = 12
 const MOCK_SIM_DEBOUNCE_MS = 50
 
 const buildQuickMockRecommendations = (
@@ -71,16 +73,16 @@ const buildQuickMockRecommendations = (
       (left, right) =>
         left.adp - right.adp || left.id.localeCompare(right.id),
     )
-    .slice(0, 3)
+    .slice(0, FAST_NEXT_PICK_COUNT)
   const categoryOutlook = Object.fromEntries(
     ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
   ) as SimulationResult["categoryOutlook"]
 
   return {
-    nextPicks: topAvailable.map((player, index) => ({
+    nextPicks: topAvailable.map((player) => ({
       playerId: player.id,
-      score: topAvailable.length - index,
-      frequency: (topAvailable.length - index) / 6,
+      score: 0,
+      frequency: 0,
     })),
     topCombinations: [],
     categoryOutlook,
@@ -118,7 +120,7 @@ type LeagueResponse = {
   stateJson: string
 }
 
-type WorkspaceMode = "prep" | "mock" | "live"
+type WorkspaceMode = "mock" | "live"
 
 type DraftWorkspaceProps = {
   initialMode?: WorkspaceMode
@@ -126,7 +128,6 @@ type DraftWorkspaceProps = {
 }
 
 const MODE_LABELS: Record<WorkspaceMode, string> = {
-  prep: "Prep",
   mock: "Mock",
   live: "Live",
 }
@@ -163,7 +164,7 @@ const applyPickToBoard = (
 }
 
 export const DraftWorkspace = ({
-  initialMode = "prep",
+  initialMode = "mock",
   leagueId,
 }: DraftWorkspaceProps) => {
   const [leagueName, setLeagueName] = useState("")
@@ -181,7 +182,7 @@ export const DraftWorkspace = ({
   const [result, setResult] = useState<SimulationResult | null>(null)
   const [mockResult, setMockResult] = useState<SimulationResult | null>(null)
   const [mode, setMode] = useState<WorkspaceMode>(initialMode)
-  const [simCount, setSimCount] = useState(40)
+  const simCount = 40
   const [isLoading, setIsLoading] = useState(true)
   const [isSimulating, setIsSimulating] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -201,6 +202,7 @@ export const DraftWorkspace = ({
   const mockAdvanceControllerRef = useRef<AbortController | null>(null)
   const mockStartRequestIdRef = useRef(0)
   const didAutoEnterMockRef = useRef(false)
+  const didAutoScheduleLiveRef = useRef(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -213,6 +215,7 @@ export const DraftWorkspace = ({
           signal: controller.signal,
         })
 
+        if (response.status === 401) throw new Error("unauthorized")
         if (!response.ok) throw new Error("Unable to load this league")
 
         const league = (await response.json()) as LeagueResponse
@@ -288,15 +291,6 @@ export const DraftWorkspace = ({
     } finally {
       if (!controller.signal.aborted) setIsSimulating(false)
     }
-  }
-
-  const handleRunSimulation = () => {
-    if (!state) return
-
-    simulationControllerRef.current?.abort()
-    const controller = new AbortController()
-    simulationControllerRef.current = controller
-    void runSimulation(state, controller)
   }
 
   const scheduleSimulation = (nextState: LeagueState) => {
@@ -577,12 +571,13 @@ export const DraftWorkspace = ({
   }
 
   const handleAdpSourceChange = (next: AdpSourceId) => {
-    setAdpSource(next)
+    const source = normalizeSelectableAdpSource(next)
+    setAdpSource(source)
     if (!state) return
     void startMockDraft(state, mockPerspectiveTeamIndex, {
       refreshPlayers: true,
       teams: mockTeams,
-      adpSource: next,
+      adpSource: source,
     })
   }
 
@@ -597,11 +592,23 @@ export const DraftWorkspace = ({
     }
   }
 
+  const handleEnterLive = () => {
+    setMode("live")
+    if (state) scheduleSimulation(state)
+  }
+
   useEffect(() => {
     if (didAutoEnterMockRef.current) return
     if (initialMode !== "mock" || !state || isLoading) return
     didAutoEnterMockRef.current = true
     handleEnterMock()
+  }, [initialMode, state, isLoading])
+
+  useEffect(() => {
+    if (didAutoScheduleLiveRef.current) return
+    if (initialMode !== "live" || !state || isLoading) return
+    didAutoScheduleLiveRef.current = true
+    scheduleSimulation(state)
   }, [initialMode, state, isLoading])
 
   const handleResetMock = () => {
@@ -705,23 +712,72 @@ export const DraftWorkspace = ({
     }
   }
 
+  const handleStrategyChange = async (next: {
+    puntCategoryIds: CategoryId[]
+    focusCategoryIds: CategoryId[]
+  }) => {
+    if (!state) return
+
+    const nextState: LeagueState = {
+      ...state,
+      settings: {
+        ...state.settings,
+        puntCategoryIds: next.puntCategoryIds,
+        focusCategoryIds: next.focusCategoryIds,
+      },
+    }
+
+    setError("")
+
+    try {
+      const response = await fetch(`/api/leagues/${leagueId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ state: nextState }),
+      })
+
+      if (!response.ok) throw new Error("Unable to save draft strategy")
+
+      setState(nextState)
+
+      if (mockBoard && mockPlayers) {
+        scheduleMockSimulation(
+          toMockLeagueState(
+            nextState,
+            mockPerspectiveTeamIndex,
+            mockPlayers,
+            mockBoard,
+            mockTeams,
+          ),
+        )
+      }
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to save draft strategy",
+      )
+    }
+  }
+
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-mute)]" role="status">
-          Loading draft workspace…
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/leagues/new"
+        backLabel="← Draft setup"
+        status="Loading draft workspace…"
+      />
     )
   }
 
   if (!state) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-sale)]" role="alert">
-          {error || "Unable to load this league"}
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/leagues/new"
+        backLabel="← Draft setup"
+        error={error || "Unable to load this league"}
+        unauthorizedHint="Sign in to load this draft league."
+      />
     )
   }
 
@@ -739,7 +795,7 @@ export const DraftWorkspace = ({
           role="tablist"
           aria-label="Draft workspace mode"
         >
-          {(["prep", "mock", "live"] as const).map((workspaceMode) => (
+          {(["mock", "live"] as const).map((workspaceMode) => (
             <button
               aria-selected={mode === workspaceMode}
               className={`rounded-full px-6 py-2.5 font-medium capitalize ${
@@ -754,7 +810,7 @@ export const DraftWorkspace = ({
                   return
                 }
 
-                setMode(workspaceMode)
+                handleEnterLive()
               }}
               role="tab"
               type="button"
@@ -772,19 +828,10 @@ export const DraftWorkspace = ({
           </p>
         ) : null}
         <div role="tabpanel">
-          {mode === "prep" ? (
-            <PrepView
-              isSimulating={isSimulating}
-              onRunSimulation={handleRunSimulation}
-              onSimCountChange={setSimCount}
-              result={result}
-              simCount={simCount}
-              state={state}
-            />
-          ) : null}
           {mode === "mock" && mockBoard && mockPlayers ? (
             <MockDraftView
               adpSource={adpSource}
+              focusCategoryIds={state.settings.focusCategoryIds}
               isAdvancing={isMockAdvancing}
               isPlayersLoading={isMockPlayersLoading}
               isSavingPick={isSavingPick}
@@ -796,9 +843,11 @@ export const DraftWorkspace = ({
               onMarkPicked={handleMockMarkPicked}
               onReset={handleResetMock}
               onSlotChange={handleMockSlotChange}
+              onStrategyChange={handleStrategyChange}
               onTeamsChange={handleMockTeamsChange}
               perspectiveTeamIndex={mockPerspectiveTeamIndex}
               players={mockPlayers}
+              puntCategoryIds={state.settings.puntCategoryIds}
               state={toMockLeagueState(
                 state,
                 mockPerspectiveTeamIndex,

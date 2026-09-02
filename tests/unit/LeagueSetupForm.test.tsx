@@ -28,24 +28,22 @@ describe("LeagueSetupForm", () => {
     vi.unstubAllGlobals()
   })
 
-  it("lets users configure their pick slot and category strategy", () => {
+  it("lets users configure their pick slot and category weights", () => {
     render(<LeagueSetupForm />)
 
     fireEvent.click(screen.getByRole("button", { name: "Pick slot 7" }))
     fireEvent.click(screen.getByRole("button", { name: "Disable PTS" }))
     fireEvent.click(screen.getByRole("button", { name: "Increase AST weight" }))
-    fireEvent.click(screen.getByRole("button", { name: "Punt TO" }))
-    fireEvent.click(screen.getByRole("button", { name: "Focus REB" }))
 
     expect(screen.getByRole("button", { name: "Pick slot 7" })).toHaveAttribute(
       "aria-pressed",
       "true",
     )
     expect(screen.getByText("AST weight 1.5")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Punt TO" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
+    expect(screen.queryByRole("button", { name: "Punt TO" })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "Focus REB" }),
+    ).not.toBeInTheDocument()
   })
 
   it("starts a mock draft without ESPN league ID and opens the Mock tab", async () => {
@@ -71,7 +69,7 @@ describe("LeagueSetupForm", () => {
     expect(body.manualInput.userPickSlot).toBe(4)
     expect(body.manualInput.playerPoolSource).toBe("proj_2026_27")
     expect(body.manualInput.players).toBeUndefined()
-    expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft?tab=mock")
+    expect(push).toHaveBeenCalledWith("/leagues/league-manual/draft")
   })
 
   it("imports an ESPN league and redirects", async () => {

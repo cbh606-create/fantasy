@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+import { RouteSegmentLoading } from "@/components/season/SeasonToolShell"
 import { WaiversWorkspace } from "@/components/waivers/WaiversWorkspace"
 
 type WaiversWorkspacePageProps = {
@@ -9,5 +11,9 @@ export default async function WaiversWorkspacePage({
 }: WaiversWorkspacePageProps) {
   const { id } = await params
 
-  return <WaiversWorkspace leagueId={id} />
+  return (
+    <Suspense fallback={<RouteSegmentLoading label="Loading waivers…" />}>
+      <WaiversWorkspace leagueId={id} />
+    </Suspense>
+  )
 }

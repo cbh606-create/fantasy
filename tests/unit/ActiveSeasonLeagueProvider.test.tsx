@@ -11,8 +11,20 @@ import {
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { ACTIVE_SEASON_LEAGUE_STORAGE_KEY } from "@/lib/season/activeSeasonLeague"
 
+const navigationState = {
+  pathname: "/",
+  push: vi.fn(),
+}
+
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/",
+  usePathname: () => navigationState.pathname,
+  useRouter: () => ({ push: navigationState.push }),
+}))
+
+vi.mock("@clerk/nextjs", () => ({
+  useAuth: () => ({ isSignedIn: true }),
+  SignInButton: ({ children }: { children: React.ReactNode }) => children,
+  UserButton: () => null,
 }))
 
 const leagues = [
@@ -43,6 +55,8 @@ const SyncActiveLeague = ({ leagueId }: { leagueId: string }) => {
 }
 
 beforeEach(() => {
+  navigationState.pathname = "/"
+  navigationState.push.mockReset()
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -86,15 +100,36 @@ describe("ActiveSeasonLeagueProvider with SiteNav", () => {
       "href",
       "/roster/league-1",
     )
+    expect(navigationState.push).not.toHaveBeenCalled()
   })
 
-  it("hydrates a valid stored selection after mount", async () => {
+  it("navigates to the selected league when already on a season tool", async () => {
+    navigationState.pathname = "/roster/league-1"
+    renderNavigation()
+
+    const select = await screen.findByRole("combobox", {
+      name: "Active season roster",
+    })
+    fireEvent.change(select, { target: { value: "league-2" } })
+
+    expect(window.localStorage.getItem(ACTIVE_SEASON_LEAGUE_STORAGE_KEY)).toBe(
+      "league-2",
+    )
+    expect(navigationState.push).toHaveBeenCalledWith("/roster/league-2")
+  })
+
+  it("hydrates a stored selection on first paint for deep links", async () => {
     window.localStorage.setItem(
       ACTIVE_SEASON_LEAGUE_STORAGE_KEY,
       "league-2",
     )
 
     renderNavigation()
+
+    expect(screen.getByRole("link", { name: "Matchup" })).toHaveAttribute(
+      "href",
+      "/matchup/league-2",
+    )
 
     await waitFor(() => {
       expect(

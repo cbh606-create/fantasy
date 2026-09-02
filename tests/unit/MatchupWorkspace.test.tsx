@@ -71,7 +71,7 @@ const scoringDays = ["2025-11-03", "2025-11-05"] as const
 
 const matchupAdvice: MatchupAdvice & {
   schedule: {
-    source: "fixture"
+    source: "live" | "season" | "fixture"
     matchup: {
       scoringPeriodId: number
       startDate: string
@@ -136,6 +136,7 @@ const matchupAdvice: MatchupAdvice & {
     },
   ],
   streamers: [],
+  streamingPlans: [],
   playersById: {
     "bench-1": state.players[0],
     "active-1": state.players[1],
@@ -223,7 +224,10 @@ describe("MatchupWorkspace", () => {
 
     expect(screen.getByText("Using your day-by-day lineups")).toBeInTheDocument()
     expect(screen.getByText("Schedule: fixture fallback")).toBeInTheDocument()
-    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/YOU \d+/)
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/4–5–0/)
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/Proj 3\.58/)
+    expect(screen.getByRole("rowheader", { name: /^You$/i })).toBeInTheDocument()
+    expect(screen.getByRole("rowheader", { name: /^Opp$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Daily lineup" })).toBeInTheDocument()
     expect(
       screen.getByTitle("B2B · ~75% expected"),
@@ -232,7 +236,7 @@ describe("MatchupWorkspace", () => {
       screen.getAllByRole("button", { name: /Sit Cold Starter on/i }).length,
     ).toBeGreaterThan(0)
     expect(
-      screen.getAllByRole("button", { name: /Start Bench Star on/i }).length,
+      screen.getAllByRole("button", { name: /Sit Bench Star on/i }).length,
     ).toBeGreaterThan(0)
     expect(
       screen.getByText(
@@ -324,8 +328,17 @@ describe("MatchupWorkspace", () => {
     render(<MatchupWorkspace leagueId="season-1" />)
 
     expect(
-      await screen.findByRole("heading", { name: "Streamers" }),
+      await screen.findByRole("heading", { name: /streaming plans/i }),
     ).toBeInTheDocument()
+
+    const dailySection = screen.getByRole("region", { name: "Daily lineup" })
+    const streamingSection = screen
+      .getByRole("heading", { name: /streaming plans/i })
+      .closest("section")
+    expect(dailySection.parentElement).toHaveClass(
+      "xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]",
+    )
+    expect(streamingSection?.parentElement).toBe(dailySection.parentElement)
 
     await waitFor(() => {
       const injuryGets = vi.mocked(fetch).mock.calls.filter(([request]) =>
@@ -337,5 +350,43 @@ describe("MatchupWorkspace", () => {
     expect(
       screen.queryByRole("heading", { name: "Injury alerts" }),
     ).not.toBeInTheDocument()
+  })
+
+  it("labels the schedule chip for published season fallback", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input, init) => {
+      const url = String(input)
+      const method = init?.method ?? "GET"
+
+      if (url.startsWith("/api/matchup?") && !url.includes("apply-lineup")) {
+        return new Response(
+          JSON.stringify({
+            ...matchupAdvice,
+            state,
+            schedule: { ...matchupAdvice.schedule, source: "season" },
+          }),
+          { status: 200 },
+        )
+      }
+
+      if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
+        return new Response(JSON.stringify(injuryPickupsResponse), {
+          status: 200,
+        })
+      }
+
+      if (url === "/api/matchup/apply-lineup" && method === "POST") {
+        return new Response(JSON.stringify({ ok: true, entries: [] }), {
+          status: 200,
+        })
+      }
+
+      return new Response("missing", { status: 404 })
+    }))
+
+    render(<MatchupWorkspace leagueId="season-1" />)
+
+    expect(
+      await screen.findByText("Schedule: published · next week with games"),
+    ).toBeInTheDocument()
   })
 })

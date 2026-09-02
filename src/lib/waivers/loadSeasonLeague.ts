@@ -5,6 +5,7 @@ import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
 
 export type LoadedSeasonLeague = {
   id: string
+  espnLeagueId: string | null
   state: SeasonLeagueState
 }
 
@@ -34,6 +35,7 @@ export const loadOwnedSeasonLeague = async (
 
   return {
     id: league.id,
+    espnLeagueId: league.espnLeagueId,
     state: normalizeSeasonAvailability(applyLocalLineup(state, localLineup)),
   }
 }

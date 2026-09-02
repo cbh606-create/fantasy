@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import { getUserEspnCookies } from "@/lib/espn/credentials"
+import { loadWinnerStreamRecipes } from "@/lib/espn/winnerStreamHistory"
 import { adviseMatchup } from "@/lib/matchup/advise"
 import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
-import type { MatchupAdvice } from "@/lib/matchup/types"
+import type { MatchupAdvice, WinnerStreamRecipe } from "@/lib/matchup/types"
 import type { SeasonLeagueState } from "@/lib/season/types"
-import { loadOwnedSeasonLeague } from "@/lib/waivers/loadSeasonLeague"
+import {
+  loadOwnedSeasonLeague,
+  type LoadedSeasonLeague,
+} from "@/lib/waivers/loadSeasonLeague"
 
 const parseOpponentTeamIndex = (value: string | null): number | null => {
   if (value === null || value.trim() === "") return null
@@ -20,6 +26,29 @@ const defaultOpponentIndex = (state: SeasonLeagueState): number | null => {
     (team) => team.teamIndex !== state.perspectiveTeamIndex,
   )
   return opponent?.teamIndex ?? null
+}
+
+const loadMatchupWinnerRecipes = async (
+  loaded: LoadedSeasonLeague,
+  userId: string,
+): Promise<WinnerStreamRecipe[]> => {
+  if (loaded.state.source !== "espn" || !loaded.espnLeagueId) return []
+  try {
+    const cookies = await getUserEspnCookies(userId)
+    if (!cookies) return []
+    const enabled = loaded.state.categories
+      .filter((category) => category.enabled)
+      .map((category) => category.id)
+    return await loadWinnerStreamRecipes({
+      leagueId: loaded.espnLeagueId,
+      season: loaded.state.season,
+      cookies,
+      players: loaded.state.players,
+      enabledCats: enabled.length > 0 ? enabled : ALL_CATEGORY_IDS,
+    })
+  } catch {
+    return []
+  }
 }
 
 const collectReferencedPlayerIds = (
@@ -52,6 +81,16 @@ const collectReferencedPlayerIds = (
 
   for (const streamer of advice.streamers) {
     ids.add(streamer.playerId)
+  }
+
+  for (const plan of advice.streamingPlans) {
+    for (const day of plan.days) {
+      for (const cell of day.cells) {
+        if (cell.playerId) ids.add(cell.playerId)
+        if (cell.droppedPlayerId) ids.add(cell.droppedPlayerId)
+        if (cell.rosterDropPlayerId) ids.add(cell.rosterDropPlayerId)
+      }
+    }
   }
 
   return ids
@@ -98,7 +137,10 @@ export const GET = async (request: Request): Promise<Response> => {
   }
 
   const schedule = await getMatchupSchedule()
-  const advice = adviseMatchup(loaded.state, schedule, opponentTeamIndex)
+  const winnerStreamRecipes = await loadMatchupWinnerRecipes(loaded, userId)
+  const advice = adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
+    winnerStreamRecipes,
+  })
 
   if ("error" in advice) {
     return NextResponse.json({ error: advice.error }, { status: 400 })

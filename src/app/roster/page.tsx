@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { FormEvent, useCallback, useEffect, useState } from "react"
 import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
 import { FieldHelpTip } from "@/components/ui/FieldHelpTip"
@@ -28,8 +29,13 @@ type VerifyPayload = {
 }
 
 export default function RosterListPage() {
-  const { activeId, leagues: activeSeasonLeagues, removeLeague } =
-    useActiveSeasonLeague()
+  const router = useRouter()
+  const {
+    activeId,
+    leagues: activeSeasonLeagues,
+    removeLeague,
+    setActiveId,
+  } = useActiveSeasonLeague()
   const [leagues, setLeagues] = useState<SeasonLeagueListItem[]>([])
   const [name, setName] = useState("")
   const [espnName, setEspnName] = useState("")
@@ -54,6 +60,14 @@ export default function RosterListPage() {
   const activeLeague = activeSeasonLeagues.find(
     (league) => league.id === activeId,
   )
+  const displayLeagues =
+    leagues.length > 0
+      ? leagues
+      : activeSeasonLeagues.map((league) => ({
+          ...league,
+          updatedAt: "",
+        }))
+  const listLoading = isLoading && displayLeagues.length === 0
 
   const parseLeagueParams = useCallback(() => {
     const parsedTeamId = Number.parseInt(teamId, 10)
@@ -286,7 +300,8 @@ export default function RosterListPage() {
       if (!response.ok) throw new Error("Unable to create season league")
 
       const league = (await response.json()) as SeasonLeagueListItem
-      window.location.assign(`/roster/${league.id}`)
+      setActiveId(league.id)
+      router.push(`/roster/${league.id}`)
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -440,7 +455,8 @@ export default function RosterListPage() {
 
       const importedId = await importEspnLeague()
       setConnectMessage("Opening roster…")
-      window.location.assign(`/roster/${importedId}`)
+      setActiveId(importedId)
+      router.push(`/roster/${importedId}`)
     } catch (requestError) {
       setConnectTone("bad")
       setConnectMessage(
@@ -548,7 +564,8 @@ export default function RosterListPage() {
       setVerifiedSummary(verified.summary)
 
       const importedId = await importEspnLeague()
-      window.location.assign(`/roster/${importedId}`)
+      setActiveId(importedId)
+      router.push(`/roster/${importedId}`)
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -580,13 +597,13 @@ export default function RosterListPage() {
               <span aria-hidden="true">→</span>
             </Link>
           ) : null}
-          {isLoading ? (
+          {listLoading ? (
             <p className="mt-8 text-[var(--color-mute)]" role="status">
               Loading season leagues…
             </p>
-          ) : leagues.length ? (
+          ) : displayLeagues.length ? (
             <ul className="mt-8 divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)]">
-              {leagues.map((league) => (
+              {displayLeagues.map((league) => (
                 <li
                   className="flex items-center gap-3 py-5"
                   key={league.id}

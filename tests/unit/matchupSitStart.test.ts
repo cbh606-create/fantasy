@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 import * as board from "@/lib/matchup/board"
+import { effectiveGamesByPlayerId } from "@/lib/matchup/dailyLineups"
+import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import { applySitStartSwap, suggestSitStart } from "@/lib/matchup/sitStart"
-import type { SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
+import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
 const coldStarter: SeasonPlayer = {
   id: "cold-starter",
@@ -124,6 +126,60 @@ describe("suggestSitStart", () => {
     })
 
     expect(suggestions).toEqual([])
+  })
+
+  it("drops a positive swap when daily effective games for the bench player fall to zero", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2025-11-03",
+        endDate: "2025-11-05",
+        days,
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-04", homeAbbr: "MIA", awayAbbr: "BOS" },
+        { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ORL" },
+        { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "NYK" },
+        { date: "2025-11-05", homeAbbr: "MIA", awayAbbr: "OPP" },
+      ],
+    }
+
+    const benchStartedDaily: DailyLineups = Object.fromEntries(
+      days.map((day) => [day, [{ slot: "UTIL", playerId: "bench-star" }]]),
+    )
+    const benchSatDaily: DailyLineups = Object.fromEntries(
+      days.map((day) => [day, [{ slot: "UTIL", playerId: null }]]),
+    )
+
+    const fullGames = effectiveGamesByPlayerId(
+      benchStartedDaily,
+      players,
+      schedule,
+    )
+    const satGames = effectiveGamesByPlayerId(benchSatDaily, players, schedule)
+
+    expect(fullGames.get("bench-star")).toBeGreaterThan(0)
+    expect(satGames.get("bench-star") ?? 0).toBe(0)
+
+    const fullSuggestions = suggestSitStart({
+      youEntries,
+      oppEntries,
+      players,
+      gamesMap: fullGames,
+    })
+    const satSuggestions = suggestSitStart({
+      youEntries,
+      oppEntries,
+      players,
+      gamesMap: satGames,
+    })
+
+    expect(fullSuggestions.length).toBeGreaterThan(0)
+    expect(satSuggestions).toEqual([])
   })
 
   it("passes categoryIds through to buildMatchupBoard", () => {

@@ -40,6 +40,7 @@ const playerSchema = z.object({
   name: z.string().min(1),
   positions: z.array(z.enum(["PG", "SG", "SF", "PF", "C"])),
   projections: z.record(categoryIdSchema, z.number()),
+  projectedGames: z.number().positive().optional(),
   adp: z.number(),
   adpBySource: z.record(z.string(), z.number()).optional(),
   espnId: z.string().optional(),
