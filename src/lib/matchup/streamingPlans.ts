@@ -5,17 +5,22 @@ import type {
   SeasonPlayer,
   SeasonRosterEntry,
 } from "@/lib/season/types"
+import { buildMatchupBoard } from "./board"
 import { WEEKLY_ADD_LIMIT } from "./constants"
 import {
   initDailyLineups,
   isDailyLineupFullForDate,
   type DailyLineups,
+  youTotalsFromDaily,
 } from "./dailyLineups"
 import { rosterSlotsFor } from "./eligibility"
 import {
+  categoryIdsFromBoard,
+  oppTotalsFromBoard,
   pickBestStreamerMove,
   type StreamerMoveDrop,
 } from "./streamerMove"
+import { targetCategoryIdsFromBoards } from "./streamingDropExplain"
 import type {
   MatchupBoard,
   StreamingPlan,
@@ -82,12 +87,13 @@ export type BuildStreamingPlanInput = {
   strategyMode?: StreamingStrategyMode
   adpByPlayerId?: Record<string, number>
   injuryOutDaysByPlayerId?: Record<string, number>
-  forcedRosterDrops?: Record<string, string | "open_slot">
+  forcedRosterDrops?: Record<string, string | "open_slot" | "hold">
   /** When set, skip add spends on dates whose Daily active lineup is already full. */
   daily?: DailyLineups
   /** Overrides `state.waiverPeriodDays`. Default 2 matchup days. */
   waiverPeriodDays?: number
   winnerStreamRecipes?: WinnerStreamRecipe[]
+  today?: string
 }
 
 export const streamingAddDropKey = (date: string, spotIndex: number) =>
@@ -425,14 +431,12 @@ const isValidForcedPlayerDrop = (
   entries: SeasonRosterEntry[],
   playersById: Map<string, SeasonPlayer>,
   alreadyDropped: Set<string>,
-  adpByPlayerId?: Record<string, number>,
-  injuryOutDaysByPlayerId?: Record<string, number>,
 ): boolean => {
   if (alreadyDropped.has(playerId)) return false
   if (!entries.some((entry) => entry.playerId === playerId)) return false
   const player = playersById.get(playerId)
   if (!player) return false
-  return !isProtectedFromDrop(player, adpByPlayerId, injuryOutDaysByPlayerId)
+  return true
 }
 
 const resolveRosterDrop = (
@@ -443,7 +447,7 @@ const resolveRosterDrop = (
   schedule: ScheduleResponse,
   weakCats: CategoryId[],
   weekDroppedPlayers: Set<string>,
-  forcedRosterDrops: Record<string, string | "open_slot"> | undefined,
+  forcedRosterDrops: Record<string, string | "open_slot" | "hold"> | undefined,
   adpByPlayerId?: Record<string, number>,
   injuryOutDaysByPlayerId?: Record<string, number>,
 ): {
@@ -453,6 +457,10 @@ const resolveRosterDrop = (
 } => {
   const forceKey = streamingAddDropKey(date, spotIndex)
   const forced = forcedRosterDrops?.[forceKey]
+
+  if (forced === "hold") {
+    return { kind: "none", playerId: null, didProtect: false }
+  }
 
   if (forced === "open_slot" && hasOpenNonIlSlot(entries)) {
     return { kind: "open_slot", playerId: null, didProtect: false }
@@ -465,8 +473,6 @@ const resolveRosterDrop = (
         entries,
         playersById,
         weekDroppedPlayers,
-        adpByPlayerId,
-        injuryOutDaysByPlayerId,
       )
     ) {
       const didProtect = rosterHasProtectedPlayer(
@@ -505,6 +511,7 @@ export const buildStreamingPlan = ({
   daily,
   waiverPeriodDays: waiverPeriodDaysInput,
   winnerStreamRecipes = [],
+  today,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -565,6 +572,24 @@ export const buildStreamingPlan = ({
     const other = playersById.get(otherId)
     return Boolean(chosen && other && isCompatibleStreamerAlternative(chosen, other))
   }
+  const targetCatsFromMove = (
+    beforeDaily: DailyLineups,
+    afterDaily: DailyLineups,
+  ): CategoryId[] => {
+    const categoryIds = categoryIdsFromBoard(board)
+    const opp = oppTotalsFromBoard(board)
+    const before = buildMatchupBoard(
+      youTotalsFromDaily(beforeDaily, state.players, schedule),
+      opp,
+      categoryIds,
+    )
+    const after = buildMatchupBoard(
+      youTotalsFromDaily(afterDaily, state.players, schedule),
+      opp,
+      categoryIds,
+    )
+    return targetCategoryIdsFromBoards(before, after)
+  }
 
   for (const [dayIndex, date] of schedule.matchup.days.entries()) {
     const cells: (StreamingPlanDayCell | null)[] = Array.from(
@@ -599,6 +624,7 @@ export const buildStreamingPlan = ({
           rosterDropKind: "none",
           addIndex: null,
           alternativePlayerIds: [],
+          targetCategoryIds: [],
         }
       } else {
         needFill.push(spotIndex)
@@ -666,9 +692,14 @@ export const buildStreamingPlan = ({
       let alternativePlayerIds: string[] = []
       let rosterDropKind: StreamingPlanRosterDropKind = "none"
       let rosterDropPlayerId: string | null = null
+      let targetCategoryIds: CategoryId[] = []
       const rosterDrop = previousId ? undefined : dropBySpot.get(spotIndex)
+      const forced = forcedRosterDrops?.[streamingAddDropKey(date, spotIndex)]
 
-      if (canSpendWeeklyAdd()) {
+      if (canSpendWeeklyAdd() && rosterDrop?.kind === "none" && forced === "hold") {
+        action = "hold"
+        playerId = previousId
+      } else if (canSpendWeeklyAdd()) {
         const rankedBlocks = listTodayBlocks(
           addableBlocks(date),
           date,
@@ -715,6 +746,7 @@ export const buildStreamingPlan = ({
                 { recipes: winnerStreamRecipes },
               )
         if (picked) {
+          targetCategoryIds = targetCatsFromMove(workingDaily, picked.nextDaily)
           workingDaily = picked.nextDaily
           playerId = picked.playerId
           alternativePlayerIds = picked.alternativePlayerIds
@@ -754,6 +786,7 @@ export const buildStreamingPlan = ({
         rosterDropKind,
         addIndex,
         alternativePlayerIds,
+        targetCategoryIds,
       }
     }
 
@@ -871,6 +904,7 @@ export const buildStreamingPlan = ({
       seatedToday.delete(cell.playerId)
       seatedToday.add(picked.playerId)
       occupants[spotIndex] = picked.playerId
+      const targetCategoryIds = targetCatsFromMove(workingDaily, picked.nextDaily)
       workingDaily = picked.nextDaily
       addsUsed += 1
       swapsToday += 1
@@ -884,11 +918,16 @@ export const buildStreamingPlan = ({
         rosterDropKind: "none",
         addIndex: addsUsed,
         alternativePlayerIds: picked.alternativePlayerIds,
+        targetCategoryIds,
       }
     }
 
     const dayCells = cells.map((cell) => {
       const resolved = cell!
+      if (today && date > today) {
+        resolved.rosterDropPlayerId = null
+        resolved.rosterDropKind = "none"
+      }
       if (resolved.playerId) {
         const player = playersById.get(resolved.playerId)
         if (player && playsOn(player, date, schedule)) gameStarts += 1

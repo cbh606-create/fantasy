@@ -81,6 +81,7 @@ export type StreamingPlanDayCell = {
   addIndex: number | null
   /** Next-best free agents / blocks for this add (hover hints). */
   alternativePlayerIds: string[]
+  targetCategoryIds: CategoryId[]
 }
 
 export type StreamingPlanDay = {

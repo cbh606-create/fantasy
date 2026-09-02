@@ -38,6 +38,7 @@ it("StreamingPlanDayCell requires drop fields", () => {
     rosterDropKind: "open_slot",
     addIndex: 1,
     alternativePlayerIds: [],
+    targetCategoryIds: [],
   })
   expect(cell.addIndex).toBe(1)
 })
@@ -1208,6 +1209,62 @@ describe("forcedRosterDrops", () => {
     })
 
     expect(plans[1]!.days[0]!.cells[0]!.rosterDropPlayerId).toBe("you-play")
+  })
+
+  it("today hold spends no add and leaves future drops unnamed", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const you = player("you-1", "CHI")
+    const state = tinyState([faA, you], ["fa-a"])
+    state.teams[0]!.entries = [{ slot: "UTIL", playerId: "you-1" }]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "ORL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      today: "2025-11-03",
+      forcedRosterDrops: { "2025-11-03:0": "hold" },
+    })
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "hold",
+      rosterDropKind: "none",
+      targetCategoryIds: [],
+    })
+    expect(plan.days[1]!.cells[0]?.rosterDropPlayerId).toBeNull()
+    expect(plan.days[1]!.cells[0]?.rosterDropKind).toBe("none")
+  })
+
+  it("forced protected player is an allowed today drop", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const star = player("star", "CHI")
+    const state = tinyState([faA, star], ["fa-a"])
+    state.teams[0]!.entries = [{ slot: "UTIL", playerId: "star" }]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "CHI", awayAbbr: "ORL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      today: "2025-11-03",
+      forcedRosterDrops: { "2025-11-03:0": "star" },
+      adpByPlayerId: { star: 25 },
+    })
+    expect(plan.days[0]!.cells[0]?.rosterDropPlayerId).toBe("star")
+    expect(plan.days[0]!.cells[0]?.targetCategoryIds?.length).toBeGreaterThan(0)
   })
 
   it("resolves forced roster drops in spotIndex order on same day", () => {
