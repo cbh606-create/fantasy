@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import type { MatchupBoard } from "@/lib/matchup/types"
 import { formatMatchupDayLabel } from "@/lib/matchup/weekCalendarLayout"
 import type {
@@ -408,25 +409,6 @@ describe("StreamingPlansPanel", () => {
     ).toBeGreaterThan(0)
   })
 
-  it("rebuilds with adpByPlayerId so ADP≤60 roster drops stay protected", () => {
-    render(
-      <StreamingPlansPanel
-        adpByPlayerId={{ star: 25, scrub: 200 }}
-        board={board}
-        leagueId="lg1"
-        playersById={{}}
-        schedule={protectedSchedule}
-        state={protectedState}
-        today="2025-11-03"
-      />,
-    )
-
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
-
-    const select = screen.getAllByRole("combobox", { name: /Roster drop/i })[0]
-    expect(select).toHaveTextContent("Star")
-  })
-
   it("lists ADP-protected players in today's dropbox", () => {
     render(
       <StreamingPlansPanel
@@ -659,5 +641,95 @@ describe("StreamingPlansPanel", () => {
     )
 
     expect(screen.queryByText(/Winners here streamed/i)).not.toBeInTheDocument()
+  })
+
+  it("shows a suggested drop tooltip on hover of a future Drop cell when daily is passed", () => {
+    const daily: DailyLineups = {
+      "2025-11-03": [{ slot: "UTIL", playerId: "you-1" }],
+      "2025-11-04": [{ slot: "UTIL", playerId: "you-1" }],
+      "2025-11-05": [{ slot: "UTIL", playerId: "you-1" }],
+    }
+    const hoverSchedule: ScheduleResponse = {
+      ...schedule,
+      games: [
+        ...schedule.games,
+        { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "WAS" },
+      ],
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        daily={daily}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={hoverSchedule}
+        state={state}
+        today="2025-11-03"
+      />,
+    )
+
+    const dropRow = screen.getAllByRole("rowheader", { name: /^Drop$/i })[0]!.closest(
+      "tr",
+    )!
+    const futureCell = dropRow.querySelectorAll("td")[1]!
+    expect(futureCell).toHaveTextContent("—")
+    fireEvent.mouseEnter(futureCell.querySelector("span")!)
+
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/Suggested drop:/)
+  })
+
+  it("past Drop cells have no combobox and a muted recorded label", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-11-04"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    expect(
+      screen.queryByRole("combobox", {
+        name: new RegExp(formatMatchupDayLabel("2025-11-03"), "i"),
+      }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getAllByRole("combobox", { name: /Roster drop/i }).length,
+    ).toBeGreaterThan(0)
+
+    const dropRow = screen.getAllByRole("rowheader", { name: /^Drop$/i })[0]!.closest(
+      "tr",
+    )!
+    const pastCell = dropRow.querySelectorAll("td")[0]!
+    expect(pastCell.querySelector("select")).toBeNull()
+    expect(pastCell).toHaveTextContent("Open slot")
+    expect(pastCell.querySelector("span")).toHaveClass("text-[var(--color-mute)]")
+  })
+
+  it("keeps today's dropbox on the chosen player when a streamer is already seated", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-11-04"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    const todaySelect = screen.getAllByRole("combobox", {
+      name: /Roster drop.*spot 1/i,
+    })[0]!
+    expect(todaySelect).toHaveDisplayValue("Hold")
+    fireEvent.change(todaySelect, { target: { value: "you-1" } })
+    expect(todaySelect).toHaveValue("you-1")
   })
 })

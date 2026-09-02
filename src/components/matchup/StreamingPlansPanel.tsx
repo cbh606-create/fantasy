@@ -232,8 +232,27 @@ const DropSuggestTip = ({
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState({ top: 0, left: 0 })
 
+  const placeTip = () => {
+    const rect = rootRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const width = 224
+    const left = Math.max(
+      8,
+      Math.min(rect.left, window.innerWidth - width - 8),
+    )
+    setPos({ top: rect.bottom + 6, left })
+  }
+
+  const handleShow = () => {
+    if (!daily) return
+    placeTip()
+    setOpen(true)
+  }
+
+  const handleHide = () => setOpen(false)
+
   const tooltip = (() => {
-    if (!daily) return null
+    if (!open || !daily) return null
     const suggestion = suggestStreamingDrop({
       rosterPlayerIds,
       players,
@@ -248,25 +267,6 @@ const DropSuggestTip = ({
       suggestion.categoryIds,
     )
   })()
-
-  const placeTip = () => {
-    const rect = rootRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const width = 224
-    const left = Math.max(
-      8,
-      Math.min(rect.left, window.innerWidth - width - 8),
-    )
-    setPos({ top: rect.bottom + 6, left })
-  }
-
-  const handleShow = () => {
-    if (!tooltip) return
-    placeTip()
-    setOpen(true)
-  }
-
-  const handleHide = () => setOpen(false)
 
   useEffect(() => {
     if (!open) return
@@ -327,6 +327,7 @@ const DropCell = ({
   spotIndex,
   today,
   todayInWeek,
+  forcedDropValue,
 }: {
   adpByPlayerId?: Record<string, number>
   board: MatchupBoard
@@ -343,6 +344,7 @@ const DropCell = ({
   spotIndex: number
   today: string
   todayInWeek: boolean
+  forcedDropValue: ForcedRosterDropValue
 }) => {
   const suggestTip = (child: ReactNode) => (
     <DropSuggestTip
@@ -380,10 +382,7 @@ const DropCell = ({
       includeHold: true,
       playersById,
     })
-    const value =
-      cell?.rosterDropKind === "open_slot"
-        ? "open_slot"
-        : (cell?.rosterDropPlayerId ?? "hold")
+    const value = forcedDropValue
 
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
       const next = event.target.value
@@ -1006,6 +1005,12 @@ export const StreamingPlansPanel = ({
                                       cell={cell}
                                       daily={daily}
                                       date={date}
+                                      forcedDropValue={
+                                        forcedRosterDropsBySpotCount[
+                                          plan.spotCount
+                                        ]?.[streamingAddDropKey(date, spotIndex)] ??
+                                        "hold"
+                                      }
                                       onForcedRosterDropChange={(key, value) =>
                                         handleForcedRosterDropChange(
                                           plan.spotCount,

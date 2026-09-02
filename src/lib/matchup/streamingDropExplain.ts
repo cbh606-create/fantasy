@@ -34,7 +34,10 @@ const shortLabels = (categoryIds: CategoryId[]): string =>
 export const formatSuggestedDropTooltip = (
   name: string,
   categoryIds: CategoryId[],
-): string => `Suggested drop: ${name} — weakest for ${shortLabels(categoryIds)}`
+): string =>
+  categoryIds.length === 0
+    ? `Suggested drop: ${name}`
+    : `Suggested drop: ${name} — weakest for ${shortLabels(categoryIds)}`
 
 export const formatHelpsCatsLine = (categoryIds: CategoryId[]): string =>
   `Helps ${shortLabels(categoryIds)}`
@@ -141,9 +144,14 @@ export const suggestStreamingDrop = (
     .filter(isContestedCategoryRow)
     .map((row) => row.categoryId)
   const contestedIdSet = new Set(contestedIds)
-  const beforeScore = contestedWinProbSum(board, contestedIdSet)
   const categoryIds = categoryIdsFromBoard(board)
   const opp = oppTotalsFromBoard(board)
+  const beforeBoard = buildMatchupBoard(
+    youTotalsFromDaily(workingDaily, players, schedule),
+    opp,
+    categoryIds,
+  )
+  const beforeScore = contestedWinProbSum(beforeBoard, contestedIdSet)
   const gamesByPlayerId = effectiveGamesByPlayerId(
     workingDaily,
     players,

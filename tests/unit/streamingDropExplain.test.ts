@@ -154,6 +154,15 @@ describe("streamingDropExplain", () => {
     expect(formatHelpsCatsLine(["STL", "BLK"])).toBe("Helps STL, BLK")
   })
 
+  it("omits weakest-for suffix when categoryIds is empty", () => {
+    expect(formatSuggestedDropTooltip("Roster Cut", [])).toBe(
+      "Suggested drop: Roster Cut",
+    )
+    expect(formatSuggestedDropTooltip("Roster Cut", [])).not.toMatch(
+      /weakest for\s*$/,
+    )
+  })
+
   it("suggests dropping the low-STL roster player on a board losing STL", () => {
     const fromDate = "2025-11-03"
     const highStl = player("high-stl", "BOS", {
@@ -186,5 +195,55 @@ describe("streamingDropExplain", () => {
       playerId: lowStl.id,
       categoryIds: ["STL"],
     })
+  })
+
+  it("picks a low-FG% player when removing them raises contested winProb", () => {
+    const fromDate = "2025-11-03"
+    const brick = player("brick", "BOS", {
+      projections: { ...baseProjections(), PTS: 2000 },
+      shooting: { FGM: 1, FGA: 80, FTM: 1, FTA: 1 },
+    })
+    const good = player("good", "NYK", {
+      projections: { ...baseProjections(), PTS: 1400 },
+      shooting: { FGM: 46, FGA: 100, FTM: 20, FTA: 25 },
+    })
+    const scrub = player("scrub", "CHI", {
+      projections: { ...baseProjections(), PTS: 10 },
+      shooting: { FGM: 5, FGA: 10, FTM: 1, FTA: 1 },
+    })
+    const workingDaily: DailyLineups = {
+      [fromDate]: [
+        { slot: "UTIL", playerId: brick.id },
+        { slot: "UTIL", playerId: good.id },
+      ],
+    }
+    const schedule = tinySchedule([fromDate], [
+      { date: fromDate, homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: fromDate, homeAbbr: "NYK", awayAbbr: "ORL" },
+    ])
+    const passedBoard: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: categoryId === "FG_PCT" ? 0.46 : 10,
+        opp: categoryId === "FG_PCT" ? 0.45 : 8,
+        outcome: categoryId === "FG_PCT" ? "W" : "W",
+        winProb: categoryId === "FG_PCT" ? 0.64 : 0.9,
+      })),
+      wins: 9,
+      losses: 0,
+      ties: 0,
+      projectedCatWins: 8,
+    }
+
+    const suggestion = suggestStreamingDrop({
+      rosterPlayerIds: [brick.id, scrub.id],
+      players: [brick, good, scrub],
+      workingDaily,
+      fromDate,
+      schedule,
+      board: passedBoard,
+    })
+
+    expect(suggestion?.playerId).toBe(brick.id)
   })
 })

@@ -1211,7 +1211,7 @@ describe("forcedRosterDrops", () => {
     expect(plans[1]!.days[0]!.cells[0]!.rosterDropPlayerId).toBe("you-play")
   })
 
-  it("today hold spends no add and leaves future drops unnamed", () => {
+  it("today hold spends no add and keeps future rosterDropPlayerId for preview", () => {
     const days = ["2025-11-03", "2025-11-04"]
     const faA = player("fa-a", "BOS", {
       projections: { ...baseProjections(), STL: 180 },
@@ -1241,8 +1241,10 @@ describe("forcedRosterDrops", () => {
     expect(plan.addsUsed).toBe(1)
     expect(plan.days[1]!.cells[0]?.playerId).toBeTruthy()
     expect(["add", "drop_add"]).toContain(plan.days[1]!.cells[0]?.action)
-    expect(plan.days[1]!.cells[0]?.rosterDropPlayerId).toBeNull()
-    expect(plan.days[1]!.cells[0]?.rosterDropKind).toBe("none")
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      rosterDropKind: "player",
+      rosterDropPlayerId: "you-1",
+    })
   })
 
   it("today hold keeps a seated streamer and skips early-swap", () => {
@@ -1284,6 +1286,52 @@ describe("forcedRosterDrops", () => {
       addIndex: null,
     })
     expect(plan.days[1]!.cells[0]?.action).not.toBe("drop_add")
+  })
+
+  it("today player drop on a seated spot spends an add instead of holding", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
+    const held = player("fa-held", "NYK", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const elite = player("fa-elite", "BOS", {
+      projections: { ...baseProjections(), STL: 50 },
+    })
+    const you = player("you-1", "CHI")
+    const state = tinyState([held, elite, you], ["fa-held", "fa-elite"])
+    state.teams[0]!.entries = [
+      { slot: "UTIL", playerId: "you-1" },
+      { slot: "BE", playerId: null },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "WAS" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "DET" },
+      { date: "2025-11-06", homeAbbr: "BOS", awayAbbr: "ORL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      addLimit: 7,
+      today: "2025-11-04",
+      forcedRosterDrops: { "2025-11-04:0": "you-1" },
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-held",
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "add",
+      rosterDropKind: "player",
+      rosterDropPlayerId: "you-1",
+    })
+    expect(plan.days[1]!.cells[0]?.action).not.toBe("hold")
+    expect(plan.days[1]!.cells[0]?.playerId).toBeTruthy()
   })
 
   it("forced protected player is an allowed today drop", () => {

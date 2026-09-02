@@ -511,7 +511,6 @@ export const buildStreamingPlan = ({
   daily,
   waiverPeriodDays: waiverPeriodDaysInput,
   winnerStreamRecipes = [],
-  today,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -598,9 +597,17 @@ export const buildStreamingPlan = ({
     )
     const seatedToday = new Set<string>()
     const previousOccupants = [...occupants]
+    const forceFillForSpot = (spotIndex: number): boolean => {
+      const forced = forcedRosterDrops?.[streamingAddDropKey(date, spotIndex)]
+      return (
+        forced === "open_slot" ||
+        (typeof forced === "string" && forced !== "hold")
+      )
+    }
 
     // Pass 1: keep streamers who still have games left this week (hold through
     // off nights). Only free the spot when they have zero remaining games.
+    // A today player/open_slot force skips hold so the chosen drop can spend an add.
     const afterDrop: (string | null)[] = occupants.map((playerId) => {
       if (!playerId) return null
       const player = playersById.get(playerId)
@@ -612,7 +619,7 @@ export const buildStreamingPlan = ({
     const needFill: number[] = []
     for (let spotIndex = 0; spotIndex < spotCount; spotIndex++) {
       const heldId = afterDrop[spotIndex]
-      if (heldId) {
+      if (heldId && !forceFillForSpot(spotIndex)) {
         occupants[spotIndex] = heldId
         seatedToday.add(heldId)
         cells[spotIndex] = {
@@ -664,7 +671,7 @@ export const buildStreamingPlan = ({
       }
     >()
     for (const spotIndex of [...needFill].sort((left, right) => left - right)) {
-      if (previousOccupants[spotIndex]) continue
+      if (previousOccupants[spotIndex] && !forceFillForSpot(spotIndex)) continue
       const rosterDrop = resolveRosterDrop(
         youTeam?.entries ?? [],
         playersById,
@@ -693,7 +700,9 @@ export const buildStreamingPlan = ({
       let rosterDropKind: StreamingPlanRosterDropKind = "none"
       let rosterDropPlayerId: string | null = null
       let targetCategoryIds: CategoryId[] = []
-      const rosterDrop = previousId ? undefined : dropBySpot.get(spotIndex)
+      const forceFill = forceFillForSpot(spotIndex)
+      const rosterDrop =
+        previousId && !forceFill ? undefined : dropBySpot.get(spotIndex)
       const forced = forcedRosterDrops?.[streamingAddDropKey(date, spotIndex)]
 
       if (forced === "hold") {
@@ -722,11 +731,12 @@ export const buildStreamingPlan = ({
                   seatedToday,
                 ).map((entry) => entry.id)
               : []
-        const drop: StreamerMoveDrop = previousId
-          ? { kind: "player", playerId: previousId }
-          : rosterDrop?.kind === "player" && rosterDrop.playerId
-            ? { kind: "player", playerId: rosterDrop.playerId }
-            : { kind: "none", playerId: null }
+        const drop: StreamerMoveDrop =
+          previousId && !forceFill
+            ? { kind: "player", playerId: previousId }
+            : rosterDrop?.kind === "player" && rosterDrop.playerId
+              ? { kind: "player", playerId: rosterDrop.playerId }
+              : { kind: "none", playerId: null }
         const skipBecauseFull =
           drop.kind === "none" &&
           isDailyLineupFullForDate(workingDaily, date, playersById, schedule)
@@ -750,7 +760,7 @@ export const buildStreamingPlan = ({
           workingDaily = picked.nextDaily
           playerId = picked.playerId
           alternativePlayerIds = picked.alternativePlayerIds
-          if (previousId) {
+          if (previousId && !forceFill) {
             action = "drop_add"
             droppedPlayerId = previousId
           } else {
@@ -765,7 +775,7 @@ export const buildStreamingPlan = ({
           addsBySpot[spotIndex]! += 1
           addIndex = addsUsed
           seatedToday.add(picked.playerId)
-          if (previousId) markDropped(previousId, date)
+          if (previousId && !forceFill) markDropped(previousId, date)
           if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
             markDropped(rosterDrop.playerId, date)
           }
@@ -927,10 +937,6 @@ export const buildStreamingPlan = ({
 
     const dayCells = cells.map((cell) => {
       const resolved = cell!
-      if (today && date > today) {
-        resolved.rosterDropPlayerId = null
-        resolved.rosterDropKind = "none"
-      }
       if (resolved.playerId) {
         const player = playersById.get(resolved.playerId)
         if (player && playsOn(player, date, schedule)) gameStarts += 1

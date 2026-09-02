@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { applyStreamingPlanPreview } from "@/lib/matchup/applyStreamingPlanPreview"
 import { youTotalsFromDaily, type DailyLineups } from "@/lib/matchup/dailyLineups"
+import { buildStreamingPlan } from "@/lib/matchup/streamingPlans"
 import type {
+  MatchupBoard,
   StreamingPlan,
   StreamingPlanDayCell,
 } from "@/lib/matchup/types"
@@ -504,5 +507,93 @@ describe("applyStreamingPlanPreview", () => {
     const seated = preview[DAYS[0]]?.find((entry) => entry.playerId === "fa-c")
     expect(seated?.slot).toBe("C")
     expect(preview[DAYS[0]]?.[0]?.playerId).not.toBe("fa-c")
+  })
+
+  it("clears a future-day roster drop when the plan is built with today set", () => {
+    const you = player("you-1", "CHI")
+    const streamer = player("fa-a", "BOS", {
+      projections: { STL: 180, PTS: 20 },
+    })
+    const losingStlBoard: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: categoryId === "STL" ? 1 : 10,
+        opp: categoryId === "STL" ? 5 : 8,
+        outcome: categoryId === "STL" ? "L" : "W",
+        winProb: categoryId === "STL" ? 0.2 : 0.8,
+      })),
+      wins: 8,
+      losses: 1,
+      ties: 0,
+      projectedCatWins: 7,
+    }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "ORL" },
+        { date: DAYS[1], homeAbbr: "CHI", awayAbbr: "MIA" },
+      ],
+    }
+    const state = {
+      name: "Tiny League",
+      season: 2025,
+      categories: ALL_CATEGORY_IDS.map((id) => ({
+        id,
+        enabled: true,
+        weight: 1,
+      })),
+      perspectiveTeamIndex: 0,
+      teams: [
+        {
+          teamIndex: 0,
+          name: "You",
+          entries: [{ slot: "UTIL" as const, playerId: "you-1" }],
+        },
+        {
+          teamIndex: 1,
+          name: "Them",
+          entries: [{ slot: "UTIL" as const, playerId: null }],
+        },
+      ],
+      players: [you, streamer],
+      availablePlayerIds: ["fa-a"],
+      waiverOrder: [0, 1],
+      source: "manual" as const,
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter("you-1"),
+      [DAYS[1]]: withStarter("you-1"),
+    }
+    const previewPlan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: losingStlBoard,
+      strategyMode: "aggressive",
+      today: DAYS[0],
+      forcedRosterDrops: { [`${DAYS[0]}:0`]: "hold" },
+    })
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { "you-1": you, "fa-a": streamer },
+      schedule,
+    )
+
+    expect(previewPlan.days[1]!.cells[0]).toMatchObject({
+      action: "add",
+      rosterDropKind: "player",
+      rosterDropPlayerId: "you-1",
+    })
+    expect(playerIdsOn(preview, DAYS[0])).toContain("you-1")
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain("you-1")
   })
 })
