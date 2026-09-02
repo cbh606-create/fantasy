@@ -54,6 +54,7 @@ export const eligibleRosterDropPlayerIds = (
   earlierDroppedIds: string[],
   adpByPlayerId?: Record<string, number>,
   injuryOutDaysByPlayerId?: Record<string, number>,
+  options?: { includeProtected?: boolean },
 ): string[] => {
   const dropped = new Set(earlierDroppedIds)
   return entries
@@ -65,6 +66,7 @@ export const eligibleRosterDropPlayerIds = (
     .filter((player): player is SeasonPlayer => Boolean(player))
     .filter(
       (player) =>
+        options?.includeProtected ||
         !isProtectedRosterPlayer(
           player,
           adpByPlayerId,
@@ -111,10 +113,15 @@ export const rosterDropSelectOptions = (input: {
   eligiblePlayerIds: string[]
   earlierDroppedIds: string[]
   allowOpenSlot: boolean
+  includeHold?: boolean
   playersById: Record<string, SeasonPlayer>
 }): { value: string; label: string }[] => {
   const dropped = new Set(input.earlierDroppedIds)
   const options: { value: string; label: string }[] = []
+
+  if (input.includeHold) {
+    options.push({ value: "hold", label: "Hold" })
+  }
 
   if (input.allowOpenSlot) {
     options.push({ value: "open_slot", label: "Open slot" })

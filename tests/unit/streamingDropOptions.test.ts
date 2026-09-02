@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest"
 import {
   compareStreamingAddDropKeys,
+  eligibleRosterDropPlayerIds,
   isAfterStreamingAddDropKey,
   rosterDropSelectOptions,
 } from "@/lib/matchup/streamingDropOptions"
-import type { SeasonPlayer } from "@/lib/season/types"
+import type { SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
 const player = (id: string, name: string): SeasonPlayer => ({
   id,
@@ -69,5 +70,65 @@ describe("rosterDropSelectOptions", () => {
       { value: "open_slot", label: "Open slot" },
       { value: "a", label: "Alpha" },
     ])
+  })
+
+  it("can prepend Hold", () => {
+    const options = rosterDropSelectOptions({
+      eligiblePlayerIds: ["a"],
+      earlierDroppedIds: [],
+      allowOpenSlot: false,
+      includeHold: true,
+      playersById,
+    })
+
+    expect(options[0]).toEqual({ value: "hold", label: "Hold" })
+  })
+
+  it("orders Hold before Open slot", () => {
+    const options = rosterDropSelectOptions({
+      eligiblePlayerIds: ["a"],
+      earlierDroppedIds: [],
+      allowOpenSlot: true,
+      includeHold: true,
+      playersById,
+    })
+
+    expect(options[0]).toEqual({ value: "hold", label: "Hold" })
+    expect(options[1]).toEqual({ value: "open_slot", label: "Open slot" })
+  })
+})
+
+describe("eligibleRosterDropPlayerIds", () => {
+  const star = player("star", "Star Player")
+  const bench = player("bench", "Bench Guy")
+  const playersById = { star, bench }
+  const entries: SeasonRosterEntry[] = [
+    { slot: "UTIL", playerId: "star" },
+    { slot: "SG", playerId: "bench" },
+  ]
+  const adpByPlayerId = { star: 30, bench: 150 }
+
+  it("excludes ADP-protected players by default", () => {
+    const ids = eligibleRosterDropPlayerIds(
+      entries,
+      playersById,
+      [],
+      adpByPlayerId,
+    )
+
+    expect(ids).toEqual(["bench"])
+  })
+
+  it("keeps ADP-protected players when includeProtected is true", () => {
+    const ids = eligibleRosterDropPlayerIds(
+      entries,
+      playersById,
+      [],
+      adpByPlayerId,
+      undefined,
+      { includeProtected: true },
+    )
+
+    expect(ids).toEqual(["bench", "star"])
   })
 })
