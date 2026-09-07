@@ -1,0 +1,1218 @@
+{
+  "boxes": [
+    {
+      "playerId": "backup",
+      "name": "Backup Guard",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PG"
+      ],
+      "gp": 70,
+      "mp": 1960,
+      "mpg": 28,
+      "usg": 22,
+      "pts": 862,
+      "reb": 261,
+      "ast": 392,
+      "stl": 52,
+      "blk": 20,
+      "tov": 108,
+      "tpm": 105,
+      "fgm": 323,
+      "fga": 719,
+      "ftm": 144,
+      "fta": 180
+    },
+    {
+      "playerId": "pick1",
+      "name": "Pick One",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 19,
+      "positions": [
+        "PG"
+      ],
+      "gp": 70,
+      "mp": 2100,
+      "mpg": 30,
+      "usg": 24,
+      "pts": 1008,
+      "reb": 280,
+      "ast": 420,
+      "stl": 56,
+      "blk": 21,
+      "tov": 126,
+      "tpm": 112,
+      "fgm": 378,
+      "fga": 840,
+      "ftm": 168,
+      "fta": 210
+    },
+    {
+      "playerId": "sg",
+      "name": "Starting Sg",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 70,
+      "mp": 1540,
+      "mpg": 22,
+      "usg": 17,
+      "pts": 524,
+      "reb": 205,
+      "ast": 154,
+      "stl": 41,
+      "blk": 15,
+      "tov": 65,
+      "tpm": 82,
+      "fgm": 196,
+      "fga": 436,
+      "ftm": 87,
+      "fta": 109
+    },
+    {
+      "playerId": "wing",
+      "name": "Wing Forward",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 2100,
+      "mpg": 30,
+      "usg": 20,
+      "pts": 840,
+      "reb": 280,
+      "ast": 140,
+      "stl": 56,
+      "blk": 21,
+      "tov": 105,
+      "tpm": 112,
+      "fgm": 315,
+      "fga": 700,
+      "ftm": 140,
+      "fta": 175
+    },
+    {
+      "playerId": "sf2",
+      "name": "Second Wing",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 1120,
+      "mpg": 16,
+      "usg": 15,
+      "pts": 336,
+      "reb": 149,
+      "ast": 75,
+      "stl": 30,
+      "blk": 11,
+      "tov": 42,
+      "tpm": 60,
+      "fgm": 126,
+      "fga": 280,
+      "ftm": 56,
+      "fta": 70
+    },
+    {
+      "playerId": "pf",
+      "name": "Power Forward",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 70,
+      "mp": 1680,
+      "mpg": 24,
+      "usg": 17,
+      "pts": 571,
+      "reb": 392,
+      "ast": 112,
+      "stl": 45,
+      "blk": 56,
+      "tov": 71,
+      "tpm": 34,
+      "fgm": 214,
+      "fga": 476,
+      "ftm": 95,
+      "fta": 119
+    },
+    {
+      "playerId": "c",
+      "name": "Center",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "C"
+      ],
+      "gp": 70,
+      "mp": 1820,
+      "mpg": 26,
+      "usg": 19,
+      "pts": 692,
+      "reb": 425,
+      "ast": 121,
+      "stl": 49,
+      "blk": 61,
+      "tov": 86,
+      "tpm": 36,
+      "fgm": 259,
+      "fga": 576,
+      "ftm": 115,
+      "fta": 144
+    },
+    {
+      "playerId": "bench1",
+      "name": "Bench One",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 70,
+      "mp": 980,
+      "mpg": 14,
+      "usg": 14,
+      "pts": 274,
+      "reb": 131,
+      "ast": 98,
+      "stl": 26,
+      "blk": 10,
+      "tov": 34,
+      "tpm": 52,
+      "fgm": 103,
+      "fga": 229,
+      "ftm": 46,
+      "fta": 57
+    },
+    {
+      "playerId": "bench2",
+      "name": "Bench Two",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 840,
+      "mpg": 12,
+      "usg": 14,
+      "pts": 235,
+      "reb": 112,
+      "ast": 56,
+      "stl": 22,
+      "blk": 8,
+      "tov": 29,
+      "tpm": 45,
+      "fgm": 88,
+      "fga": 196,
+      "ftm": 39,
+      "fta": 49
+    },
+    {
+      "playerId": "bench3",
+      "name": "Bench Three",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 70,
+      "mp": 840,
+      "mpg": 12,
+      "usg": 14,
+      "pts": 235,
+      "reb": 196,
+      "ast": 56,
+      "stl": 22,
+      "blk": 28,
+      "tov": 29,
+      "tpm": 17,
+      "fgm": 88,
+      "fga": 196,
+      "ftm": 39,
+      "fta": 49
+    },
+    {
+      "playerId": "bench4",
+      "name": "Bench Four",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PG"
+      ],
+      "gp": 70,
+      "mp": 560,
+      "mpg": 8,
+      "usg": 12,
+      "pts": 134,
+      "reb": 75,
+      "ast": 112,
+      "stl": 15,
+      "blk": 6,
+      "tov": 17,
+      "tpm": 30,
+      "fgm": 50,
+      "fga": 112,
+      "ftm": 22,
+      "fta": 28
+    },
+    {
+      "playerId": "bench5",
+      "name": "Bench Five",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "C"
+      ],
+      "gp": 70,
+      "mp": 560,
+      "mpg": 8,
+      "usg": 14,
+      "pts": 157,
+      "reb": 131,
+      "ast": 37,
+      "stl": 15,
+      "blk": 19,
+      "tov": 20,
+      "tpm": 11,
+      "fgm": 59,
+      "fga": 131,
+      "ftm": 26,
+      "fta": 33
+    },
+    {
+      "playerId": "bench6",
+      "name": "Bench Six",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 70,
+      "mp": 280,
+      "mpg": 4,
+      "usg": 10,
+      "pts": 56,
+      "reb": 37,
+      "ast": 28,
+      "stl": 7,
+      "blk": 3,
+      "tov": 7,
+      "tpm": 15,
+      "fgm": 21,
+      "fga": 47,
+      "ftm": 9,
+      "fta": 12
+    },
+    {
+      "playerId": "bench7",
+      "name": "Bench Seven",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 210,
+      "mpg": 3,
+      "usg": 10,
+      "pts": 42,
+      "reb": 28,
+      "ast": 14,
+      "stl": 6,
+      "blk": 2,
+      "tov": 5,
+      "tpm": 11,
+      "fgm": 16,
+      "fga": 35,
+      "ftm": 7,
+      "fta": 9
+    },
+    {
+      "playerId": "bench8",
+      "name": "Bench Eight",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 70,
+      "mp": 210,
+      "mpg": 3,
+      "usg": 10,
+      "pts": 42,
+      "reb": 49,
+      "ast": 14,
+      "stl": 6,
+      "blk": 7,
+      "tov": 5,
+      "tpm": 4,
+      "fgm": 16,
+      "fga": 35,
+      "ftm": 7,
+      "fta": 9
+    },
+    {
+      "playerId": "bbbG1",
+      "name": "Bee Guard",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "PG"
+      ],
+      "gp": 72,
+      "mp": 2304,
+      "mpg": 32,
+      "usg": 22,
+      "pts": 1014,
+      "reb": 307,
+      "ast": 461,
+      "stl": 61,
+      "blk": 23,
+      "tov": 127,
+      "tpm": 123,
+      "fgm": 380,
+      "fga": 845,
+      "ftm": 169,
+      "fta": 211
+    },
+    {
+      "playerId": "bbbG2",
+      "name": "Bee Two",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 68,
+      "mp": 1360,
+      "mpg": 20,
+      "usg": 16,
+      "pts": 435,
+      "reb": 181,
+      "ast": 136,
+      "stl": 36,
+      "blk": 14,
+      "tov": 54,
+      "tpm": 73,
+      "fgm": 163,
+      "fga": 363,
+      "ftm": 73,
+      "fta": 91
+    },
+    {
+      "playerId": "bbbW1",
+      "name": "Bee Wing",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 1960,
+      "mpg": 28,
+      "usg": 18,
+      "pts": 706,
+      "reb": 261,
+      "ast": 131,
+      "stl": 52,
+      "blk": 20,
+      "tov": 88,
+      "tpm": 105,
+      "fgm": 265,
+      "fga": 588,
+      "ftm": 118,
+      "fta": 147
+    },
+    {
+      "playerId": "bbbW2",
+      "name": "Bee Wing Two",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 64,
+      "mp": 1024,
+      "mpg": 16,
+      "usg": 15,
+      "pts": 307,
+      "reb": 137,
+      "ast": 68,
+      "stl": 27,
+      "blk": 10,
+      "tov": 38,
+      "tpm": 55,
+      "fgm": 115,
+      "fga": 256,
+      "ftm": 51,
+      "fta": 64
+    },
+    {
+      "playerId": "bbbB1",
+      "name": "Bee Center",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "C"
+      ],
+      "gp": 74,
+      "mp": 2220,
+      "mpg": 30,
+      "usg": 22,
+      "pts": 977,
+      "reb": 518,
+      "ast": 148,
+      "stl": 59,
+      "blk": 74,
+      "tov": 122,
+      "tpm": 44,
+      "fgm": 366,
+      "fga": 814,
+      "ftm": 163,
+      "fta": 204
+    },
+    {
+      "playerId": "bbbB2",
+      "name": "Bee Big",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 66,
+      "mp": 1452,
+      "mpg": 22,
+      "usg": 16,
+      "pts": 465,
+      "reb": 339,
+      "ast": 97,
+      "stl": 39,
+      "blk": 48,
+      "tov": 58,
+      "tpm": 29,
+      "fgm": 174,
+      "fga": 387,
+      "ftm": 77,
+      "fta": 97
+    }
+  ],
+  "rosters": [
+    {
+      "season": 2026,
+      "teamId": "AAA",
+      "players": [
+        {
+          "playerId": "backup",
+          "positions": [
+            "PG"
+          ]
+        },
+        {
+          "playerId": "sg",
+          "positions": [
+            "SG"
+          ]
+        },
+        {
+          "playerId": "wing",
+          "positions": [
+            "SF"
+          ]
+        },
+        {
+          "playerId": "sf2",
+          "positions": [
+            "SF"
+          ]
+        },
+        {
+          "playerId": "pf",
+          "positions": [
+            "PF"
+          ]
+        },
+        {
+          "playerId": "c",
+          "positions": [
+            "C"
+          ]
+        },
+        {
+          "playerId": "bench1",
+          "positions": [
+            "SG"
+          ]
+        },
+        {
+          "playerId": "bench2",
+          "positions": [
+            "SF"
+          ]
+        },
+        {
+          "playerId": "bench3",
+          "positions": [
+            "PF"
+          ]
+        },
+        {
+          "playerId": "bench4",
+          "positions": [
+            "PG"
+          ]
+        },
+        {
+          "playerId": "bench5",
+          "positions": [
+            "C"
+          ]
+        },
+        {
+          "playerId": "bench6",
+          "positions": [
+            "SG"
+          ]
+        },
+        {
+          "playerId": "bench7",
+          "positions": [
+            "SF"
+          ]
+        },
+        {
+          "playerId": "bench8",
+          "positions": [
+            "PF"
+          ]
+        },
+        {
+          "playerId": "pick1",
+          "positions": [
+            "PG"
+          ]
+        }
+      ],
+      "departed": [
+        {
+          "playerId": "gone",
+          "lastMpg": 36,
+          "lastUsg": 28,
+          "positions": [
+            "PG"
+          ]
+        }
+      ]
+    },
+    {
+      "season": 2026,
+      "teamId": "BBB",
+      "players": [
+        {
+          "playerId": "bbbG1",
+          "positions": [
+            "PG"
+          ]
+        },
+        {
+          "playerId": "bbbG2",
+          "positions": [
+            "SG"
+          ]
+        },
+        {
+          "playerId": "bbbW1",
+          "positions": [
+            "SF"
+          ]
+        },
+        {
+          "playerId": "bbbW2",
+          "positions": [
+            "SF"
+          ]
+        },
+        {
+          "playerId": "bbbB1",
+          "positions": [
+            "C"
+          ]
+        },
+        {
+          "playerId": "bbbB2",
+          "positions": [
+            "PF"
+          ]
+        }
+      ],
+      "departed": []
+    }
+  ],
+  "rookies": [
+    {
+      "playerId": "pick1",
+      "name": "Pick One",
+      "positions": [
+        "PG"
+      ],
+      "age": 19,
+      "draftSlot": 1
+    }
+  ],
+  "actuals": [
+    {
+      "playerId": "backup",
+      "name": "Backup Guard",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PG"
+      ],
+      "gp": 70,
+      "mp": 1960,
+      "mpg": 28,
+      "usg": 22,
+      "pts": 862,
+      "reb": 261,
+      "ast": 392,
+      "stl": 52,
+      "blk": 20,
+      "tov": 108,
+      "tpm": 105,
+      "fgm": 323,
+      "fga": 719,
+      "ftm": 144,
+      "fta": 180
+    },
+    {
+      "playerId": "pick1",
+      "name": "Pick One",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 19,
+      "positions": [
+        "PG"
+      ],
+      "gp": 70,
+      "mp": 2100,
+      "mpg": 30,
+      "usg": 24,
+      "pts": 1008,
+      "reb": 280,
+      "ast": 420,
+      "stl": 56,
+      "blk": 21,
+      "tov": 126,
+      "tpm": 112,
+      "fgm": 378,
+      "fga": 840,
+      "ftm": 168,
+      "fta": 210
+    },
+    {
+      "playerId": "sg",
+      "name": "Starting Sg",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 70,
+      "mp": 1540,
+      "mpg": 22,
+      "usg": 17,
+      "pts": 524,
+      "reb": 205,
+      "ast": 154,
+      "stl": 41,
+      "blk": 15,
+      "tov": 65,
+      "tpm": 82,
+      "fgm": 196,
+      "fga": 436,
+      "ftm": 87,
+      "fta": 109
+    },
+    {
+      "playerId": "wing",
+      "name": "Wing Forward",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 2100,
+      "mpg": 30,
+      "usg": 20,
+      "pts": 840,
+      "reb": 280,
+      "ast": 140,
+      "stl": 56,
+      "blk": 21,
+      "tov": 105,
+      "tpm": 112,
+      "fgm": 315,
+      "fga": 700,
+      "ftm": 140,
+      "fta": 175
+    },
+    {
+      "playerId": "sf2",
+      "name": "Second Wing",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 1120,
+      "mpg": 16,
+      "usg": 15,
+      "pts": 336,
+      "reb": 149,
+      "ast": 75,
+      "stl": 30,
+      "blk": 11,
+      "tov": 42,
+      "tpm": 60,
+      "fgm": 126,
+      "fga": 280,
+      "ftm": 56,
+      "fta": 70
+    },
+    {
+      "playerId": "pf",
+      "name": "Power Forward",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 70,
+      "mp": 1680,
+      "mpg": 24,
+      "usg": 17,
+      "pts": 571,
+      "reb": 392,
+      "ast": 112,
+      "stl": 45,
+      "blk": 56,
+      "tov": 71,
+      "tpm": 34,
+      "fgm": 214,
+      "fga": 476,
+      "ftm": 95,
+      "fta": 119
+    },
+    {
+      "playerId": "c",
+      "name": "Center",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "C"
+      ],
+      "gp": 70,
+      "mp": 1820,
+      "mpg": 26,
+      "usg": 19,
+      "pts": 692,
+      "reb": 425,
+      "ast": 121,
+      "stl": 49,
+      "blk": 61,
+      "tov": 86,
+      "tpm": 36,
+      "fgm": 259,
+      "fga": 576,
+      "ftm": 115,
+      "fta": 144
+    },
+    {
+      "playerId": "bench1",
+      "name": "Bench One",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 70,
+      "mp": 980,
+      "mpg": 14,
+      "usg": 14,
+      "pts": 274,
+      "reb": 131,
+      "ast": 98,
+      "stl": 26,
+      "blk": 10,
+      "tov": 34,
+      "tpm": 52,
+      "fgm": 103,
+      "fga": 229,
+      "ftm": 46,
+      "fta": 57
+    },
+    {
+      "playerId": "bench2",
+      "name": "Bench Two",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 840,
+      "mpg": 12,
+      "usg": 14,
+      "pts": 235,
+      "reb": 112,
+      "ast": 56,
+      "stl": 22,
+      "blk": 8,
+      "tov": 29,
+      "tpm": 45,
+      "fgm": 88,
+      "fga": 196,
+      "ftm": 39,
+      "fta": 49
+    },
+    {
+      "playerId": "bench3",
+      "name": "Bench Three",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 70,
+      "mp": 840,
+      "mpg": 12,
+      "usg": 14,
+      "pts": 235,
+      "reb": 196,
+      "ast": 56,
+      "stl": 22,
+      "blk": 28,
+      "tov": 29,
+      "tpm": 17,
+      "fgm": 88,
+      "fga": 196,
+      "ftm": 39,
+      "fta": 49
+    },
+    {
+      "playerId": "bench4",
+      "name": "Bench Four",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PG"
+      ],
+      "gp": 70,
+      "mp": 560,
+      "mpg": 8,
+      "usg": 12,
+      "pts": 134,
+      "reb": 75,
+      "ast": 112,
+      "stl": 15,
+      "blk": 6,
+      "tov": 17,
+      "tpm": 30,
+      "fgm": 50,
+      "fga": 112,
+      "ftm": 22,
+      "fta": 28
+    },
+    {
+      "playerId": "bench5",
+      "name": "Bench Five",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "C"
+      ],
+      "gp": 70,
+      "mp": 560,
+      "mpg": 8,
+      "usg": 14,
+      "pts": 157,
+      "reb": 131,
+      "ast": 37,
+      "stl": 15,
+      "blk": 19,
+      "tov": 20,
+      "tpm": 11,
+      "fgm": 59,
+      "fga": 131,
+      "ftm": 26,
+      "fta": 33
+    },
+    {
+      "playerId": "bench6",
+      "name": "Bench Six",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 70,
+      "mp": 280,
+      "mpg": 4,
+      "usg": 10,
+      "pts": 56,
+      "reb": 37,
+      "ast": 28,
+      "stl": 7,
+      "blk": 3,
+      "tov": 7,
+      "tpm": 15,
+      "fgm": 21,
+      "fga": 47,
+      "ftm": 9,
+      "fta": 12
+    },
+    {
+      "playerId": "bench7",
+      "name": "Bench Seven",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 210,
+      "mpg": 3,
+      "usg": 10,
+      "pts": 42,
+      "reb": 28,
+      "ast": 14,
+      "stl": 6,
+      "blk": 2,
+      "tov": 5,
+      "tpm": 11,
+      "fgm": 16,
+      "fga": 35,
+      "ftm": 7,
+      "fta": 9
+    },
+    {
+      "playerId": "bench8",
+      "name": "Bench Eight",
+      "season": 2026,
+      "teamId": "AAA",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 70,
+      "mp": 210,
+      "mpg": 3,
+      "usg": 10,
+      "pts": 42,
+      "reb": 49,
+      "ast": 14,
+      "stl": 6,
+      "blk": 7,
+      "tov": 5,
+      "tpm": 4,
+      "fgm": 16,
+      "fga": 35,
+      "ftm": 7,
+      "fta": 9
+    },
+    {
+      "playerId": "bbbG1",
+      "name": "Bee Guard",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "PG"
+      ],
+      "gp": 72,
+      "mp": 2304,
+      "mpg": 32,
+      "usg": 22,
+      "pts": 1014,
+      "reb": 307,
+      "ast": 461,
+      "stl": 61,
+      "blk": 23,
+      "tov": 127,
+      "tpm": 123,
+      "fgm": 380,
+      "fga": 845,
+      "ftm": 169,
+      "fta": 211
+    },
+    {
+      "playerId": "bbbG2",
+      "name": "Bee Two",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "SG"
+      ],
+      "gp": 68,
+      "mp": 1360,
+      "mpg": 20,
+      "usg": 16,
+      "pts": 435,
+      "reb": 181,
+      "ast": 136,
+      "stl": 36,
+      "blk": 14,
+      "tov": 54,
+      "tpm": 73,
+      "fgm": 163,
+      "fga": 363,
+      "ftm": 73,
+      "fta": 91
+    },
+    {
+      "playerId": "bbbW1",
+      "name": "Bee Wing",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 70,
+      "mp": 1960,
+      "mpg": 28,
+      "usg": 18,
+      "pts": 706,
+      "reb": 261,
+      "ast": 131,
+      "stl": 52,
+      "blk": 20,
+      "tov": 88,
+      "tpm": 105,
+      "fgm": 265,
+      "fga": 588,
+      "ftm": 118,
+      "fta": 147
+    },
+    {
+      "playerId": "bbbW2",
+      "name": "Bee Wing Two",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "SF"
+      ],
+      "gp": 64,
+      "mp": 1024,
+      "mpg": 16,
+      "usg": 15,
+      "pts": 307,
+      "reb": 137,
+      "ast": 68,
+      "stl": 27,
+      "blk": 10,
+      "tov": 38,
+      "tpm": 55,
+      "fgm": 115,
+      "fga": 256,
+      "ftm": 51,
+      "fta": 64
+    },
+    {
+      "playerId": "bbbB1",
+      "name": "Bee Center",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "C"
+      ],
+      "gp": 74,
+      "mp": 2220,
+      "mpg": 30,
+      "usg": 22,
+      "pts": 977,
+      "reb": 518,
+      "ast": 148,
+      "stl": 59,
+      "blk": 74,
+      "tov": 122,
+      "tpm": 44,
+      "fgm": 366,
+      "fga": 814,
+      "ftm": 163,
+      "fta": 204
+    },
+    {
+      "playerId": "bbbB2",
+      "name": "Bee Big",
+      "season": 2026,
+      "teamId": "BBB",
+      "age": 27,
+      "positions": [
+        "PF"
+      ],
+      "gp": 66,
+      "mp": 1452,
+      "mpg": 22,
+      "usg": 16,
+      "pts": 465,
+      "reb": 339,
+      "ast": 97,
+      "stl": 39,
+      "blk": 48,
+      "tov": 58,
+      "tpm": 29,
+      "fgm": 174,
+      "fga": 387,
+      "ftm": 77,
+      "fta": 97
+    }
+  ]
+}
