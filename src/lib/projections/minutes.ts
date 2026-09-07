@@ -78,21 +78,38 @@ const addByWeights = (
   extra: number,
   ids: string[]
 ) => {
-  const eligible = new Map<string, number>()
-  for (const id of ids) {
-    if ((mpg.get(id) ?? 0) >= MAX_MPG) continue
-    eligible.set(id, weights.get(id) ?? 0)
-  }
-  const weightSum = sumMap(eligible)
-  if (weightSum <= 0) {
-    const roomIds = ids.filter((id) => (mpg.get(id) ?? 0) < MAX_MPG)
-    if (roomIds.length === 0) return
-    const share = extra / roomIds.length
-    for (const id of roomIds) mpg.set(id, capMpg((mpg.get(id) ?? 0) + share))
-    return
-  }
-  for (const [id, weight] of eligible) {
-    mpg.set(id, capMpg((mpg.get(id) ?? 0) + (extra * weight) / weightSum))
+  let remaining = extra
+  while (remaining > 1e-6) {
+    const eligible = new Map<string, number>()
+    for (const id of ids) {
+      if ((mpg.get(id) ?? 0) >= MAX_MPG) continue
+      eligible.set(id, weights.get(id) ?? 0)
+    }
+    if (eligible.size === 0) break
+
+    const weightSum = sumMap(eligible)
+    let distributed = 0
+
+    if (weightSum <= 0) {
+      const roomIds = [...eligible.keys()]
+      const share = remaining / roomIds.length
+      for (const id of roomIds) {
+        const before = mpg.get(id) ?? 0
+        const after = capMpg(before + share)
+        distributed += after - before
+        mpg.set(id, after)
+      }
+    } else {
+      for (const [id, weight] of eligible) {
+        const before = mpg.get(id) ?? 0
+        const after = capMpg(before + (remaining * weight) / weightSum)
+        distributed += after - before
+        mpg.set(id, after)
+      }
+    }
+
+    if (distributed <= 1e-6) break
+    remaining -= distributed
   }
 }
 
@@ -101,7 +118,9 @@ export const allocateMinutes = (
   roster: RosterSnapshot,
   rotationN: number
 ): Map<string, number> => {
-  const ranked = [...inputs].sort((a, b) => {
+  const rosterIds = new Set(roster.players.map((player) => player.playerId))
+  const rosterInputs = inputs.filter((input) => rosterIds.has(input.playerId))
+  const ranked = [...rosterInputs].sort((a, b) => {
     if (b.priorMpg !== a.priorMpg) return b.priorMpg - a.priorMpg
     return a.playerId.localeCompare(b.playerId)
   })

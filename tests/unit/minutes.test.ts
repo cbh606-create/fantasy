@@ -165,6 +165,35 @@ describe("allocateMinutes", () => {
     expect(mpg.get("p7")!).toBeGreaterThan(0)
   })
 
+  it("cascades capped leftover to benchmates still under 38", () => {
+    const capRoster = thirteenRoster("CAP")
+    const priors = [36, 34, 32, 30, 28, 40, 40, 1, 0, 0, 0, 0, 0]
+    const mpg = allocateMinutes(thirteenInputs(priors), capRoster, 8)
+    const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
+    expect(sum).toBeCloseTo(240, 5)
+    expect(mpg.get("p5")).toBe(38)
+    expect(mpg.get("p6")).toBe(38)
+    expect(mpg.get("p7")!).toBeGreaterThan(1)
+    for (const value of mpg.values()) {
+      expect(value).toBeLessThanOrEqual(38)
+    }
+  })
+
+  it("ignores input rows whose playerId is not on the roster", () => {
+    const mpg = allocateMinutes(
+      [
+        ...thirteenInputs().slice(0, 8),
+        { playerId: "ghost", positions: ["PG"], priorMpg: 40 }
+      ],
+      thirteenRoster("CCC"),
+      8
+    )
+    expect(mpg.has("ghost")).toBe(false)
+    expect(mpg.get("ghost")).toBeUndefined()
+    const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
+    expect(sum).toBeCloseTo(240, 5)
+  })
+
   it("sends vacancy leftover to the same-bucket bench and leaves the star unchanged", () => {
     const fullRoster: RosterSnapshot = {
       season: 2026,
