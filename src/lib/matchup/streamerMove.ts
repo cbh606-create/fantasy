@@ -132,11 +132,14 @@ const projectedCatWinsFromDaily = (
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
   board: MatchupBoard,
+  oppDaily?: DailyLineups,
 ): number => {
   const categoryIds = categoryIdsFromBoard(board)
   if (categoryIds.length === 0) return 0
   const you = youTotalsFromDaily(daily, players, schedule)
-  const opp = oppTotalsFromBoard(board)
+  const opp = oppDaily
+    ? youTotalsFromDaily(oppDaily, players, schedule)
+    : oppTotalsFromBoard(board)
   return buildMatchupBoard(you, opp, categoryIds).projectedCatWins
 }
 
@@ -148,6 +151,7 @@ export const scoreStreamerMove = (
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
   board: MatchupBoard,
+  oppDaily?: DailyLineups,
 ): { delta: number; seatedGameDays: number; nextDaily: DailyLineups } | null => {
   const playersById = new Map(players.map((player) => [player.id, player]))
   const applied = applyStreamerMoveToDaily(
@@ -159,8 +163,8 @@ export const scoreStreamerMove = (
     schedule,
   )
   if (applied.seatedGameDays === 0) return null
-  const before = projectedCatWinsFromDaily(workingDaily, players, schedule, board)
-  const after = projectedCatWinsFromDaily(applied.daily, players, schedule, board)
+  const before = projectedCatWinsFromDaily(workingDaily, players, schedule, board, oppDaily)
+  const after = projectedCatWinsFromDaily(applied.daily, players, schedule, board, oppDaily)
   return {
     delta: after - before,
     seatedGameDays: applied.seatedGameDays,
@@ -180,6 +184,7 @@ export const pickBestStreamerMove = (
   options?: {
     requirePositiveDelta?: boolean
     recipes?: WinnerStreamRecipe[]
+    oppDaily?: DailyLineups
   },
 ): {
   playerId: string
@@ -204,6 +209,7 @@ export const pickBestStreamerMove = (
       players,
       schedule,
       board,
+      options?.oppDaily,
     )
     if (!result) return []
     return [{ playerId, index, ...result }]

@@ -238,3 +238,131 @@ describe("pickBestStreamerMove", () => {
     expect(picked?.playerId).toBe("fa-less")
   })
 })
+
+const projections = {
+  FG_PCT: 0.5,
+  FT_PCT: 0.8,
+  TPM: 2,
+  REB: 5,
+  AST: 4,
+  STL: 1,
+  BLK: 1,
+  TO: 2,
+  PTS: 16,
+}
+const shooting = { FGM: 1, FGA: 2, FTM: 1, FTA: 1 }
+
+describe("scoreStreamerMove live oppDaily", () => {
+  it("shrinks STL add delta when opponent already prints huge STL", () => {
+    const faYou: SeasonPlayer = {
+      id: "fa-you",
+      name: "You STL",
+      teamAbbr: "BOS",
+      positions: ["SG"],
+      projections: { ...projections, STL: 200 },
+      shooting,
+    }
+    const faLow: SeasonPlayer = {
+      id: "fa-low",
+      name: "Opp Low STL",
+      teamAbbr: "NYK",
+      positions: ["PG"],
+      projections: { ...projections, STL: 1 },
+      shooting,
+    }
+    const faHigh: SeasonPlayer = {
+      id: "fa-high",
+      name: "Opp High STL",
+      teamAbbr: "NYK",
+      positions: ["PG"],
+      projections: { ...projections, STL: 500 },
+      shooting,
+    }
+    const players = [faYou, faLow, faHigh]
+    const days = ["2025-11-03", "2025-11-04"]
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: days[0]!,
+        endDate: days[1]!,
+        days,
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "CHI" },
+        { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "WAS" },
+      ],
+    }
+    const emptyDaily: DailyLineups = {
+      "2025-11-03": [{ slot: "UTIL", playerId: null }],
+      "2025-11-04": [{ slot: "UTIL", playerId: null }],
+    }
+    const lowStlOpp: DailyLineups = {
+      "2025-11-03": [{ slot: "UTIL", playerId: "fa-low" }],
+      "2025-11-04": [{ slot: "UTIL", playerId: "fa-low" }],
+    }
+    const highStlOpp: DailyLineups = {
+      "2025-11-03": [{ slot: "UTIL", playerId: "fa-high" }],
+      "2025-11-04": [{ slot: "UTIL", playerId: "fa-high" }],
+    }
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: categoryId === "STL" ? 1 : 10,
+        opp: categoryId === "STL" ? 5 : 8,
+        outcome: categoryId === "STL" ? "L" : "W",
+        winProb: categoryId === "STL" ? 0.2 : 0.8,
+      })),
+      wins: 8,
+      losses: 1,
+      ties: 0,
+      projectedCatWins: 7,
+    }
+    const vsLow = scoreStreamerMove(
+      emptyDaily,
+      "2025-11-03",
+      "fa-you",
+      { kind: "none", playerId: null },
+      players,
+      schedule,
+      board,
+      lowStlOpp,
+    )
+    const vsHigh = scoreStreamerMove(
+      emptyDaily,
+      "2025-11-03",
+      "fa-you",
+      { kind: "none", playerId: null },
+      players,
+      schedule,
+      board,
+      highStlOpp,
+    )
+    expect(vsLow).not.toBeNull()
+    expect(vsHigh).not.toBeNull()
+    expect(vsHigh!.delta).toBeLessThan(vsLow!.delta)
+
+    const frozen = scoreStreamerMove(
+      emptyDaily,
+      "2025-11-03",
+      "fa-you",
+      { kind: "none", playerId: null },
+      players,
+      schedule,
+      board,
+    )
+    const liveSame = scoreStreamerMove(
+      emptyDaily,
+      "2025-11-03",
+      "fa-you",
+      { kind: "none", playerId: null },
+      players,
+      schedule,
+      board,
+      lowStlOpp,
+    )
+    expect(liveSame!.delta).not.toBe(frozen!.delta)
+  })
+})
