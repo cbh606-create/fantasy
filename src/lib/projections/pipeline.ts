@@ -93,7 +93,7 @@ export const projectSeason = (
         positions: player.positions,
         rates,
         priorMpg: playing.mpg,
-        priorUsg: regressUsg(playing.usg, mean.usg, regressionGp),
+        priorUsg: playing.usg,
         lastGp: playing.gp,
         source: "rookie_prior"
       }

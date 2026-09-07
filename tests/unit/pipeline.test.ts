@@ -83,4 +83,44 @@ describe("projectSeason", () => {
     expect(out.find((row) => row.playerId === "vetWing")?.source).toBe("model")
     expect(out.find((row) => row.playerId === "vetBig")?.source).toBe("model")
   })
+
+  it("keeps draft-slot usg for untranslated rookies", () => {
+    const boxes: SeasonBox[] = [
+      seasonBox("g1", "G One", ["PG"]),
+      seasonBox("g2", "G Two", ["SG"]),
+      seasonBox("g3", "G Three", ["PG"]),
+      seasonBox("w1", "Wing One", ["SF"]),
+      seasonBox("w2", "Wing Two", ["SF"]),
+      seasonBox("w3", "Wing Three", ["SF"]),
+      seasonBox("b1", "Big One", ["C"]),
+      seasonBox("b2", "Big Two", ["PF"]),
+      seasonBox("b3", "Big Three", ["C"])
+    ]
+
+    const out = projectSeason(
+      boxes,
+      [
+        {
+          season: 2026,
+          teamId: "AAA",
+          players: [
+            { playerId: "lottery", positions: ["PG"] },
+            { playerId: "udfa", positions: ["PG"] }
+          ],
+          departed: []
+        }
+      ],
+      [
+        { playerId: "lottery", name: "Lottery", positions: ["PG"], age: 19, draftSlot: 1 },
+        { playerId: "udfa", name: "UDFA", positions: ["PG"], age: 22, draftSlot: null }
+      ]
+    )
+
+    const lottery = out.find((row) => row.playerId === "lottery")
+    const udfa = out.find((row) => row.playerId === "udfa")
+    expect(lottery?.usg).toBeDefined()
+    expect(udfa?.usg).toBeDefined()
+    expect(lottery!.usg).toBeGreaterThan(udfa!.usg)
+    expect(lottery!.usg).toBeGreaterThan(20)
+  })
 })
