@@ -118,6 +118,7 @@ type StreamingPlansPanelProps = {
   onPlansBuilt?: (plans: StreamingPlan[]) => void
   /** Resolved opponent stream spots. Parent resolves Auto; do not resolve here. */
   oppSpotCount?: 1 | 2 | 3
+  opponentTeamIndex?: number
   /** Base (non-preview) daily lineups — used to skip adds on full days. */
   daily?: DailyLineups
   winnerStreamRecipes?: WinnerStreamRecipe[]
@@ -680,6 +681,7 @@ export const StreamingPlansPanel = ({
   onPreviewPlanChange,
   onPlansBuilt,
   oppSpotCount,
+  opponentTeamIndex,
   daily,
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
   today = localIsoDate(),
@@ -721,6 +723,7 @@ export const StreamingPlansPanel = ({
           winnerStreamRecipes,
           today,
           ...(oppSpotCount ? { oppSpotCount } : {}),
+          opponentTeamIndex,
         }),
       ),
     [
@@ -735,6 +738,7 @@ export const StreamingPlansPanel = ({
       winnerStreamRecipes,
       today,
       oppSpotCount,
+      opponentTeamIndex,
     ],
   )
 

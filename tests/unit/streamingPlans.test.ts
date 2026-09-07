@@ -164,12 +164,25 @@ const packedTeamAbbrs = [
   "BOS",
 ] as const
 
+const packedRosterPositions: NonNullable<SeasonPlayer["positions"]>[] = [
+  ["PG"],
+  ["SG"],
+  ["SF"],
+  ["PF"],
+  ["C"],
+  ["PG", "SG"],
+  ["SF", "PF"],
+  ["SG"],
+  ["PG"],
+  ["SF"],
+]
+
 const emptyActive = (): SeasonRosterEntry[] =>
   packedActiveSlots.map((slot) => ({ slot, playerId: null }))
 
 const packedRosterPlayers = () =>
   packedTeamAbbrs.map((team, index) =>
-    player(`r${index}`, team, { positions: ["UTIL"] }),
+    player(`r${index}`, team, { positions: packedRosterPositions[index] }),
   )
 
 const tinyState = (players: SeasonPlayer[], availablePlayerIds: string[]): SeasonLeagueState => ({
@@ -2342,9 +2355,9 @@ describe("interleaved opponent streaming", () => {
       ["C"],
       ["PG", "SG"],
       ["SF", "PF"],
-      ["UTIL"],
-      ["UTIL"],
-      ["UTIL"],
+      ["SG"],
+      ["PG"],
+      ["SF"],
     ] as const
     const rostered = packedTeamAbbrs.map((team, index) =>
       player(`r${index}`, team, {
@@ -2356,19 +2369,19 @@ describe("interleaved opponent streaming", () => {
       }),
     )
     const faYou = player("fa-you", "TOR", {
-      positions: ["UTIL"],
+      positions: ["SG"],
       projections: { ...baseProjections(), STL: 200 },
     })
     const faOpp1 = player("fa-opp-1", "WAS", {
-      positions: ["UTIL"],
+      positions: ["SG"],
       projections: { ...baseProjections(), STL: 160 },
     })
     const faOpp2 = player("fa-opp-2", "ORL", {
-      positions: ["UTIL"],
+      positions: ["SG"],
       projections: { ...baseProjections(), STL: 150 },
     })
     const faOpp3 = player("fa-opp-3", "IND", {
-      positions: ["UTIL"],
+      positions: ["SG"],
       projections: { ...baseProjections(), STL: 140 },
     })
     const state = tinyState(
@@ -2421,5 +2434,57 @@ describe("interleaved opponent streaming", () => {
     expect(day2Ids).toContain("r0")
     expect(day2Ids).toContain("fa-opp-3")
     expect(day2Ids).not.toContain("r8")
+  })
+
+  it("uses the selected opponent roster when opponentTeamIndex is set", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const you = player("you-1", "CHI")
+    const firstOpp = player("first-opp", "ATL")
+    const selectedOpp = player("selected-opp", "DEN")
+    const state: SeasonLeagueState = {
+      ...tinyState([faA, you, firstOpp, selectedOpp], ["fa-a"]),
+      teams: [
+        {
+          teamIndex: 0,
+          name: "You",
+          entries: [{ slot: "UTIL", playerId: "you-1" }],
+        },
+        {
+          teamIndex: 1,
+          name: "First other",
+          entries: [{ slot: "UTIL", playerId: "first-opp" }],
+        },
+        {
+          teamIndex: 2,
+          name: "Selected",
+          entries: [{ slot: "UTIL", playerId: "selected-opp" }],
+        },
+      ],
+      waiverOrder: [0, 1, 2],
+    }
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "DET" },
+      { date: "2025-11-03", homeAbbr: "DEN", awayAbbr: "ORL" },
+      { date: "2025-11-03", homeAbbr: "CHI", awayAbbr: "MIA" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      oppSpotCount: 1,
+      opponentTeamIndex: 2,
+    })
+    const dayIds = (plan.opponentDaily["2025-11-03"] ?? [])
+      .map((entry) => entry.playerId)
+      .filter((id): id is string => Boolean(id))
+
+    expect(dayIds).toContain("selected-opp")
+    expect(dayIds).not.toContain("first-opp")
   })
 })

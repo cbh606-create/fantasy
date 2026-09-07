@@ -97,6 +97,7 @@ export type BuildStreamingPlanInput = {
   winnerStreamRecipes?: WinnerStreamRecipe[]
   today?: string
   oppSpotCount?: 1 | 2 | 3
+  opponentTeamIndex?: number
 }
 
 export const streamingAddDropKey = (date: string, spotIndex: number) =>
@@ -686,6 +687,7 @@ export const buildStreamingPlan = ({
   winnerStreamRecipes = [],
   today,
   oppSpotCount,
+  opponentTeamIndex,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -741,9 +743,10 @@ export const buildStreamingPlan = ({
       state.players,
       schedule,
     )
-  const oppTeam = state.teams.find(
-    (_, index) => index !== state.perspectiveTeamIndex,
-  )
+  const oppTeam =
+    typeof opponentTeamIndex === "number"
+      ? state.teams.find((team) => team.teamIndex === opponentTeamIndex)
+      : state.teams.find((_, index) => index !== state.perspectiveTeamIndex)
   let oppWorkingDaily: DailyLineups = oppSpotCount
     ? initDailyLineups(
         schedule.matchup.days,

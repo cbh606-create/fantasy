@@ -429,9 +429,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     setPreviewSatSeats(new Set())
   }
 
-  const handlePlansBuilt = (plans: StreamingPlan[]) => {
+  const handlePlansBuilt = useCallback((plans: StreamingPlan[]) => {
     setBuiltPlans(plans)
-  }
+  }, [])
 
   const handleOppSpotChoiceChange = (choice: OppSpotChoice) => {
     setOppSpotChoice(choice)
@@ -830,6 +830,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             leagueId={leagueId}
             onPlansBuilt={handlePlansBuilt}
             onPreviewPlanChange={handlePreviewPlanChange}
+            opponentTeamIndex={opponentTeamIndex}
             oppSpotCount={oppSpotCount}
             playersById={matchupData.playersById}
             schedule={matchupData.schedule}

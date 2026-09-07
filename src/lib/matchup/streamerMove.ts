@@ -127,7 +127,7 @@ export const oppTotalsFromBoard = (
 export const categoryIdsFromBoard = (board: MatchupBoard): CategoryId[] =>
   board.categories.map((row) => row.categoryId)
 
-const projectedCatWinsFromDaily = (
+export const projectedCatWinsFromDaily = (
   daily: DailyLineups,
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
@@ -143,7 +143,7 @@ const projectedCatWinsFromDaily = (
   return buildMatchupBoard(you, opp, categoryIds).projectedCatWins
 }
 
-export const scoreStreamerMove = (
+const scoreStreamerMoveWithBefore = (
   workingDaily: DailyLineups,
   fromDate: string,
   addPlayerId: string,
@@ -151,6 +151,7 @@ export const scoreStreamerMove = (
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
   board: MatchupBoard,
+  before: number,
   oppDaily?: DailyLineups,
 ): { delta: number; seatedGameDays: number; nextDaily: DailyLineups } | null => {
   const playersById = new Map(players.map((player) => [player.id, player]))
@@ -163,13 +164,48 @@ export const scoreStreamerMove = (
     schedule,
   )
   if (applied.seatedGameDays === 0) return null
-  const before = projectedCatWinsFromDaily(workingDaily, players, schedule, board, oppDaily)
-  const after = projectedCatWinsFromDaily(applied.daily, players, schedule, board, oppDaily)
+  const after = projectedCatWinsFromDaily(
+    applied.daily,
+    players,
+    schedule,
+    board,
+    oppDaily,
+  )
   return {
     delta: after - before,
     seatedGameDays: applied.seatedGameDays,
     nextDaily: applied.daily,
   }
+}
+
+export const scoreStreamerMove = (
+  workingDaily: DailyLineups,
+  fromDate: string,
+  addPlayerId: string,
+  drop: StreamerMoveDrop,
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  board: MatchupBoard,
+  oppDaily?: DailyLineups,
+): { delta: number; seatedGameDays: number; nextDaily: DailyLineups } | null => {
+  const before = projectedCatWinsFromDaily(
+    workingDaily,
+    players,
+    schedule,
+    board,
+    oppDaily,
+  )
+  return scoreStreamerMoveWithBefore(
+    workingDaily,
+    fromDate,
+    addPlayerId,
+    drop,
+    players,
+    schedule,
+    board,
+    before,
+    oppDaily,
+  )
 }
 
 export const pickBestStreamerMove = (
@@ -200,8 +236,15 @@ export const pickBestStreamerMove = (
     if (!player) return 0
     return winnerPriorHits(player, board, recipes)
   }
+  const before = projectedCatWinsFromDaily(
+    workingDaily,
+    players,
+    schedule,
+    board,
+    options?.oppDaily,
+  )
   const scored = candidateIds.flatMap((playerId, index) => {
-    const result = scoreStreamerMove(
+    const result = scoreStreamerMoveWithBefore(
       workingDaily,
       fromDate,
       playerId,
@@ -209,6 +252,7 @@ export const pickBestStreamerMove = (
       players,
       schedule,
       board,
+      before,
       options?.oppDaily,
     )
     if (!result) return []

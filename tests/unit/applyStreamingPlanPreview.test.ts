@@ -87,6 +87,8 @@ const plan = (
   suggestedStrategyMode: "balanced",
   summaryReasons: [],
   days,
+  opponentDays: [],
+  opponentDaily: {},
 })
 
 const playerIdsOn = (daily: DailyLineups, day: string): string[] =>
