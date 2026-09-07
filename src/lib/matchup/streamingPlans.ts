@@ -589,19 +589,21 @@ const fillOpponentSpotsForDate = ({
     }
 
     const previousId = previousOccupants[spotIndex] ?? null
-    const rosterDrop = resolveRosterDrop(
-      oppEntries,
-      playersById,
-      date,
-      spotIndex,
-      schedule,
-      weakCats,
-      weekDropped,
-      undefined,
-      adpByPlayerId,
-      injuryOutDaysByPlayerId,
-    )
-    if (rosterDrop.kind === "player" && rosterDrop.playerId) {
+    const rosterDrop = previousId
+      ? { kind: "none" as const, playerId: null }
+      : resolveRosterDrop(
+          oppEntries,
+          playersById,
+          date,
+          spotIndex,
+          schedule,
+          weakCats,
+          weekDropped,
+          undefined,
+          adpByPlayerId,
+          injuryOutDaysByPlayerId,
+        )
+    if (!previousId && rosterDrop.kind === "player" && rosterDrop.playerId) {
       weekDropped.add(rosterDrop.playerId)
     }
 

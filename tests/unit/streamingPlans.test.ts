@@ -2331,4 +2331,95 @@ describe("interleaved opponent streaming", () => {
     expect(plan.days[1]!.cells[0]!.playerId).not.toBe("fa-b")
     expect(plan.days[1]!.cells[0]!.playerId).toBe("fa-c")
   })
+
+  it("does not week-drop another roster player when replacing an expired opp streamer", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const oppPositions = [
+      ["PG"],
+      ["SG"],
+      ["SF"],
+      ["PF"],
+      ["C"],
+      ["PG", "SG"],
+      ["SF", "PF"],
+      ["UTIL"],
+      ["UTIL"],
+      ["UTIL"],
+    ] as const
+    const rostered = packedTeamAbbrs.map((team, index) =>
+      player(`r${index}`, team, {
+        positions: [...oppPositions[index]!],
+        projections: {
+          ...baseProjections(),
+          STL: index === 7 ? 5 : index === 8 ? 8 : 80,
+        },
+      }),
+    )
+    const faYou = player("fa-you", "TOR", {
+      positions: ["UTIL"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const faOpp1 = player("fa-opp-1", "WAS", {
+      positions: ["UTIL"],
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const faOpp2 = player("fa-opp-2", "ORL", {
+      positions: ["UTIL"],
+      projections: { ...baseProjections(), STL: 150 },
+    })
+    const faOpp3 = player("fa-opp-3", "IND", {
+      positions: ["UTIL"],
+      projections: { ...baseProjections(), STL: 140 },
+    })
+    const state = tinyState(
+      [...rostered, faYou, faOpp1, faOpp2, faOpp3],
+      ["fa-you", "fa-opp-1", "fa-opp-2", "fa-opp-3"],
+    )
+    state.teams[0]!.entries = [{ slot: "UTIL", playerId: null }]
+    state.teams[1]!.entries = rostered.map((entry, index) => ({
+      slot: packedActiveSlots[index]!,
+      playerId: entry.id,
+    }))
+    const schedule = tinySchedule(days, [
+      ...days.flatMap((date) =>
+        packedTeamAbbrs.map((homeAbbr, index) => ({
+          date,
+          homeAbbr,
+          awayAbbr: index % 2 === 0 ? "MEM" : "CHA",
+        })),
+      ),
+      { date: "2025-11-03", homeAbbr: "TOR", awayAbbr: "BKN" },
+      { date: "2025-11-04", homeAbbr: "TOR", awayAbbr: "BKN" },
+      { date: "2025-11-03", homeAbbr: "WAS", awayAbbr: "BKN" },
+      { date: "2025-11-04", homeAbbr: "ORL", awayAbbr: "BKN" },
+      { date: "2025-11-04", homeAbbr: "IND", awayAbbr: "BKN" },
+    ])
+    const adpByPlayerId = Object.fromEntries(
+      rostered.map((entry, index) => [
+        entry.id,
+        index === 7 || index === 8 ? 200 : 10,
+      ]),
+    )
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      oppSpotCount: 2,
+      adpByPlayerId,
+    })
+    const day2Ids = (plan.opponentDaily["2025-11-04"] ?? [])
+      .map((entry) => entry.playerId)
+      .filter((id): id is string => Boolean(id))
+
+    expect(plan.opponentDays[0]!.streamerPlayerId).toBe("fa-opp-1")
+    expect(plan.opponentDays[1]!.streamerPlayerId).not.toBe("fa-opp-1")
+    expect(["fa-opp-2", "fa-opp-3"]).toContain(
+      plan.opponentDays[1]!.streamerPlayerId,
+    )
+    expect(day2Ids).toContain("r0")
+    expect(day2Ids).toContain("fa-opp-3")
+    expect(day2Ids).not.toContain("r8")
+  })
 })
