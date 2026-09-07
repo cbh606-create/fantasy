@@ -27,12 +27,11 @@ export type MinutesInput = {
   priorMpg: number
 }
 
-const TARGET_MINUTES = 240
-const MAX_MPG = 38
-const MIN_MPG = 0
-const SURPLUS_CUT_LINE = 20
-const MAX_LOOPS = 8
-const CLOSE_ENOUGH = 0.5
+export const TARGET_MINUTES = 240
+export const MAX_MPG = 38
+export const PROTECTED_STARTERS = 5
+
+const capMpg = (mpg: number) => Math.min(MAX_MPG, Math.max(0, mpg))
 
 const sumMap = (values: Map<string, number>) => {
   let total = 0
@@ -40,11 +39,9 @@ const sumMap = (values: Map<string, number>) => {
   return total
 }
 
-const capMpg = (mpg: number) => Math.min(MAX_MPG, Math.max(MIN_MPG, mpg))
-
-const vacantClaims = (inputs: MinutesInput[], roster: RosterSnapshot) => {
+const benchClaims = (receivers: MinutesInput[], roster: RosterSnapshot) => {
   const bucketCount = new Map<PositionBucket, number>()
-  for (const input of inputs) {
+  for (const input of receivers) {
     const bucket = primaryBucket(input.positions)
     bucketCount.set(bucket, (bucketCount.get(bucket) ?? 0) + 1)
   }
@@ -60,9 +57,9 @@ const vacantClaims = (inputs: MinutesInput[], roster: RosterSnapshot) => {
     if ((bucketCount.get(bucket) ?? 0) === 0) emptyBucketLeftover += departedMpg
   }
 
-  const priorSum = inputs.reduce((total, input) => total + input.priorMpg, 0)
+  const priorSum = receivers.reduce((total, input) => total + input.priorMpg, 0)
   const claims = new Map<string, number>()
-  for (const input of inputs) {
+  for (const input of receivers) {
     const bucket = primaryBucket(input.positions)
     const sameBucketCount = bucketCount.get(bucket) ?? 0
     const bucketShare =
@@ -78,16 +75,17 @@ const vacantClaims = (inputs: MinutesInput[], roster: RosterSnapshot) => {
 const addByWeights = (
   mpg: Map<string, number>,
   weights: Map<string, number>,
-  extra: number
+  extra: number,
+  ids: string[]
 ) => {
   const eligible = new Map<string, number>()
-  for (const [id, current] of mpg) {
-    if (current >= MAX_MPG) continue
+  for (const id of ids) {
+    if ((mpg.get(id) ?? 0) >= MAX_MPG) continue
     eligible.set(id, weights.get(id) ?? 0)
   }
   const weightSum = sumMap(eligible)
   if (weightSum <= 0) {
-    const roomIds = [...mpg.keys()].filter((id) => (mpg.get(id) ?? 0) < MAX_MPG)
+    const roomIds = ids.filter((id) => (mpg.get(id) ?? 0) < MAX_MPG)
     if (roomIds.length === 0) return
     const share = extra / roomIds.length
     for (const id of roomIds) mpg.set(id, capMpg((mpg.get(id) ?? 0) + share))
@@ -98,59 +96,52 @@ const addByWeights = (
   }
 }
 
-const cutSurplus = (
-  mpg: Map<string, number>,
-  prior: Map<string, number>,
-  surplus: number
-) => {
-  const aboveLine = new Map<string, number>()
-  for (const [id, current] of mpg) {
-    aboveLine.set(id, Math.max(0, current - SURPLUS_CUT_LINE))
-  }
-  const aboveSum = sumMap(aboveLine)
-  if (aboveSum > 0) {
-    for (const [id, current] of mpg) {
-      mpg.set(id, capMpg(current - (surplus * (aboveLine.get(id) ?? 0)) / aboveSum))
-    }
-    return
-  }
-  const priorSum = sumMap(prior)
-  if (priorSum <= 0) return
-  for (const [id, current] of mpg) {
-    mpg.set(id, capMpg(current - (surplus * (prior.get(id) ?? 0)) / priorSum))
-  }
-}
-
-const snapScale = (mpg: Map<string, number>) => {
-  const total = sumMap(mpg)
-  if (total === 0) return
-  const scale = TARGET_MINUTES / total
-  for (const [id, current] of mpg) mpg.set(id, current * scale)
-}
-
 export const allocateMinutes = (
   inputs: MinutesInput[],
-  roster: RosterSnapshot
+  roster: RosterSnapshot,
+  rotationN: number
 ): Map<string, number> => {
+  const ranked = [...inputs].sort((a, b) => {
+    if (b.priorMpg !== a.priorMpg) return b.priorMpg - a.priorMpg
+    return a.playerId.localeCompare(b.playerId)
+  })
   const mpg = new Map<string, number>()
-  const prior = new Map<string, number>()
-  for (const input of inputs) {
-    prior.set(input.playerId, input.priorMpg)
-    mpg.set(input.playerId, capMpg(input.priorMpg))
+  const protectedIds = ranked.slice(0, PROTECTED_STARTERS).map((row) => row.playerId)
+  const bench = ranked.slice(PROTECTED_STARTERS, rotationN)
+  const benchIds = bench.map((row) => row.playerId)
+
+  for (const row of ranked) mpg.set(row.playerId, 0)
+  for (const row of ranked.slice(0, PROTECTED_STARTERS)) {
+    mpg.set(row.playerId, capMpg(row.priorMpg))
   }
 
-  const claims = vacantClaims(inputs, roster)
+  const leftover = TARGET_MINUTES - sumMap(new Map(protectedIds.map((id) => [id, mpg.get(id) ?? 0])))
 
-  for (let loop = 0; loop < MAX_LOOPS; loop++) {
-    const total = sumMap(mpg)
-    if (Math.abs(total - TARGET_MINUTES) <= CLOSE_ENOUGH) break
-    if (total < TARGET_MINUTES) addByWeights(mpg, claims, TARGET_MINUTES - total)
-    else cutSurplus(mpg, prior, total - TARGET_MINUTES)
+  if (leftover <= 0) {
+    const protectedSum = [...protectedIds].reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
+    if (protectedSum > 0) {
+      const scale = TARGET_MINUTES / protectedSum
+      for (const id of protectedIds) mpg.set(id, capMpg((mpg.get(id) ?? 0) * scale))
+    }
+    return mpg
   }
 
-  snapScale(mpg)
-  for (const [id, current] of mpg) mpg.set(id, capMpg(current))
-  const afterCap = sumMap(mpg)
-  if (afterCap < TARGET_MINUTES) addByWeights(mpg, claims, TARGET_MINUTES - afterCap)
+  if (benchIds.length === 0) return mpg
+
+  const claims = benchClaims(bench, roster)
+  addByWeights(mpg, claims, leftover, benchIds)
+
+  const protectedSum = protectedIds.reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
+  const benchSum = benchIds.reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
+  const benchTarget = TARGET_MINUTES - protectedSum
+  if (benchSum > 0 && benchTarget > 0 && ranked.length >= MIN_ROTATION) {
+    const scale = benchTarget / benchSum
+    for (const id of benchIds) mpg.set(id, capMpg((mpg.get(id) ?? 0) * scale))
+    const after = benchIds.reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
+    if (after + 0.01 < benchTarget) {
+      addByWeights(mpg, claims, benchTarget - after, benchIds)
+    }
+  }
+
   return mpg
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { allocateMinutes, rotationWidth } from "@/lib/projections/minutes"
-import type { RosterSnapshot, SeasonBox } from "@/lib/projections/types"
+import type { NbaPosition, RosterSnapshot, SeasonBox } from "@/lib/projections/types"
 
 const box = (playerId: string, teamId: string, mpg: number): SeasonBox => ({
   playerId,
@@ -67,6 +67,23 @@ const roster: RosterSnapshot = {
   departed: [{ playerId: "gone", lastMpg: 36, lastUsg: 28, positions: ["PG"] }]
 }
 
+const thirteenRoster = (teamId: string, departed: RosterSnapshot["departed"] = []): RosterSnapshot => ({
+  season: 2026,
+  teamId,
+  players: Array.from({ length: 13 }, (_, i) => ({
+    playerId: `p${i}`,
+    positions: (i % 2 === 0 ? ["SG"] : ["SF"]) as NbaPosition[]
+  })),
+  departed
+})
+
+const thirteenInputs = (priors = [36, 34, 32, 30, 28, 24, 22, 20, 18, 16, 14, 12, 10]) =>
+  priors.map((priorMpg, i) => ({
+    playerId: `p${i}`,
+    positions: (i % 2 === 0 ? ["SG"] : ["SF"]) as NbaPosition[],
+    priorMpg
+  }))
+
 describe("allocateMinutes", () => {
   it("never emits mpg above 38 and accepts closest sum on a short roster", () => {
     const mpg = allocateMinutes(
@@ -75,10 +92,13 @@ describe("allocateMinutes", () => {
         { playerId: "backup", positions: ["PG"], priorMpg: 16 },
         { playerId: "wing", positions: ["SF"], priorMpg: 30 }
       ],
-      roster
+      roster,
+      3
     )
     const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
     expect(sum).toBeLessThan(240)
+    expect(sum).toBeCloseTo(80, 5)
+    expect(mpg.get("star")).toBe(34)
     for (const value of mpg.values()) {
       expect(value).toBeLessThanOrEqual(38)
     }
@@ -107,63 +127,77 @@ describe("allocateMinutes", () => {
         { playerId: "b1", positions: ["C"], priorMpg: 30 },
         { playerId: "b2", positions: ["PF"], priorMpg: 22 }
       ],
-      shortRoster
+      shortRoster,
+      6
     )
     const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
     expect(sum).toBeLessThan(240)
-    expect(sum).toBeCloseTo(228, 5)
+    expect(sum).toBeCloseTo(162, 5)
+    expect(mpg.get("b1")).toBe(30)
+    expect(mpg.get("w2")).toBe(38)
     for (const value of mpg.values()) {
       expect(value).toBeLessThanOrEqual(38)
     }
   })
 
-  it("gives leftover minutes to the same bucket as the departed star", () => {
-    const mpg = allocateMinutes(
-      [
-        { playerId: "star", positions: ["PG"], priorMpg: 34 },
-        { playerId: "backup", positions: ["PG"], priorMpg: 16 },
-        { playerId: "wing", positions: ["SF"], priorMpg: 30 }
-      ],
-      roster
-    )
-    expect(mpg.get("backup")!).toBeGreaterThan(16)
-    expect(mpg.get("backup")! - 16).toBeGreaterThan(mpg.get("wing")! - 30)
+  it("keeps the top 5 at last-year mpg and zeros players outside a 10-man rotation", () => {
+    const mpg = allocateMinutes(thirteenInputs(), thirteenRoster("CCC"), 10)
+    const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
+    expect(sum).toBeCloseTo(240, 5)
+    expect(mpg.get("p0")).toBe(36)
+    expect(mpg.get("p4")).toBe(28)
+    expect(mpg.get("p10")).toBe(0)
+    expect(mpg.get("p11")).toBe(0)
+    expect(mpg.get("p12")).toBe(0)
+    for (const id of ["p5", "p6", "p7", "p8", "p9"]) {
+      expect(mpg.get(id)!).toBeGreaterThan(0)
+    }
   })
 
-  it("caps at 38 on an 8-player roster while same-bucket backup gains more", () => {
+  it("zeros ranks 9-13 on an 8-man last-year rotation", () => {
+    const mpg = allocateMinutes(thirteenInputs(), thirteenRoster("CCC"), 8)
+    const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
+    expect(sum).toBeCloseTo(240, 5)
+    expect(mpg.get("p0")).toBe(36)
+    expect(mpg.get("p8")).toBe(0)
+    expect(mpg.get("p12")).toBe(0)
+    expect(mpg.get("p5")!).toBeGreaterThan(0)
+    expect(mpg.get("p7")!).toBeGreaterThan(0)
+  })
+
+  it("sends vacancy leftover to the same-bucket bench and leaves the star unchanged", () => {
     const fullRoster: RosterSnapshot = {
       season: 2026,
       teamId: "AAA",
       players: [
         { playerId: "star", positions: ["PG"] },
-        { playerId: "backup", positions: ["PG"] },
         { playerId: "sg", positions: ["SG"] },
         { playerId: "wing", positions: ["SF"] },
         { playerId: "pf", positions: ["PF"] },
         { playerId: "c", positions: ["C"] },
-        { playerId: "bench1", positions: ["SG"] },
+        { playerId: "wing2", positions: ["SF"] },
+        { playerId: "backup", positions: ["PG"] },
         { playerId: "bench2", positions: ["PF"] }
       ],
       departed: [{ playerId: "gone", lastMpg: 36, lastUsg: 28, positions: ["PG"] }]
     }
     const mpg = allocateMinutes(
       [
-        { playerId: "star", positions: ["PG"], priorMpg: 32 },
+        { playerId: "star", positions: ["PG"], priorMpg: 36 },
+        { playerId: "sg", positions: ["SG"], priorMpg: 32 },
+        { playerId: "wing", positions: ["SF"], priorMpg: 30 },
+        { playerId: "pf", positions: ["PF"], priorMpg: 28 },
+        { playerId: "c", positions: ["C"], priorMpg: 26 },
+        { playerId: "wing2", positions: ["SF"], priorMpg: 18 },
         { playerId: "backup", positions: ["PG"], priorMpg: 16 },
-        { playerId: "sg", positions: ["SG"], priorMpg: 26 },
-        { playerId: "wing", positions: ["SF"], priorMpg: 22 },
-        { playerId: "pf", positions: ["PF"], priorMpg: 24 },
-        { playerId: "c", positions: ["C"], priorMpg: 28 },
-        { playerId: "bench1", positions: ["SG"], priorMpg: 18 },
         { playerId: "bench2", positions: ["PF"], priorMpg: 14 }
       ],
-      fullRoster
+      fullRoster,
+      8
     )
     const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
     expect(sum).toBeCloseTo(240, 5)
-    for (const value of mpg.values()) {
-      expect(value).toBeLessThanOrEqual(38)
-    }
-    expect(mpg.get("backup")! - 16).toBeGreaterThan(mpg.get("wing")! - 22)
+    expect(mpg.get("star")).toBe(36)
+    expect(mpg.get("backup")! - 16).toBeGreaterThan(mpg.get("wing2")! - 18)
   })
 })
