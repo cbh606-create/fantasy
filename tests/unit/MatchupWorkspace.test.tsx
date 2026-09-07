@@ -224,8 +224,18 @@ describe("MatchupWorkspace", () => {
 
     expect(screen.getByText("Using your day-by-day lineups")).toBeInTheDocument()
     expect(screen.getByText("Schedule: fixture fallback")).toBeInTheDocument()
-    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/4–5–0/)
-    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/Proj 3\.58/)
+    expect(screen.getByLabelText("Opponent week")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /Auto · 1 open/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    fireEvent.click(screen.getByRole("button", { name: /^3$/ }))
+    expect(screen.getByRole("button", { name: /^3$/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/8–1–0/)
+    expect(screen.getByLabelText("Matchup board")).toHaveTextContent(/Proj 6\.64/)
     expect(screen.getByRole("rowheader", { name: /^You$/i })).toBeInTheDocument()
     expect(screen.getByRole("rowheader", { name: /^Opp$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Daily lineup" })).toBeInTheDocument()
@@ -336,7 +346,7 @@ describe("MatchupWorkspace", () => {
       .getByRole("heading", { name: /streaming plans/i })
       .closest("section")
     expect(dailySection.parentElement).toHaveClass(
-      "xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]",
+      "xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)]",
     )
     expect(streamingSection?.parentElement).toBe(dailySection.parentElement)
 

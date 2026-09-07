@@ -6,6 +6,7 @@ import { DailyLineupPanel } from "@/components/matchup/DailyLineupPanel"
 import { InjuryAlertsPanel } from "@/components/matchup/InjuryAlertsPanel"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
+import { OpponentWeekStrip } from "@/components/matchup/OpponentWeekStrip"
 import { RatioSitsPanel } from "@/components/matchup/RatioSitsPanel"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
@@ -32,9 +33,14 @@ import {
 import { suggestRatioSits } from "@/lib/matchup/ratioSits"
 import { applyStreamingPlanPreview, previewSeatKey } from "@/lib/matchup/applyStreamingPlanPreview"
 import { rosterSlotsFor } from "@/lib/matchup/eligibility"
+import {
+  emptyNonIlSeatCount,
+  resolveOppSpotCount,
+} from "@/lib/matchup/opponentStreaming"
 import type {
   MatchupAdvice,
   MatchupBoard as MatchupBoardData,
+  OppSpotChoice,
   RatioSitSuggestion,
   SitStartSuggestion,
   StreamingPlan,
@@ -228,6 +234,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [opponentTeamIndex, setOpponentTeamIndex] = useState<number | null>(null)
   const [daily, setDaily] = useState<DailyLineups | null>(null)
   const [previewPlan, setPreviewPlan] = useState<StreamingPlan | null>(null)
+  const [oppSpotChoice, setOppSpotChoice] = useState<OppSpotChoice>("auto")
+  const [builtPlans, setBuiltPlans] = useState<StreamingPlan[]>([])
   const [previewSatSeats, setPreviewSatSeats] = useState<Set<string>>(
     () => new Set(),
   )
@@ -419,6 +427,14 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const handlePreviewPlanChange = (plan: StreamingPlan | null) => {
     setPreviewPlan(plan)
     setPreviewSatSeats(new Set())
+  }
+
+  const handlePlansBuilt = (plans: StreamingPlan[]) => {
+    setBuiltPlans(plans)
+  }
+
+  const handleOppSpotChoiceChange = (choice: OppSpotChoice) => {
+    setOppSpotChoice(choice)
   }
 
   const handleTogglePlayerDay = (
@@ -619,6 +635,15 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const youTeam = state.teams.find(
     (team) => team.teamIndex === state.perspectiveTeamIndex,
   )
+  const oppTeam = state.teams.find((team) => team.teamIndex === opponentTeamIndex)
+  const oppSpotCount = oppTeam
+    ? resolveOppSpotCount(oppSpotChoice, oppTeam.entries)
+    : undefined
+  const displayOppPlan =
+    previewPlan ??
+    builtPlans.find((plan) => plan.spotCount === 1) ??
+    builtPlans[0] ??
+    null
   const rosterPlayerIds = new Set(
     youTeam?.entries.flatMap((entry) =>
       entry.playerId ? [entry.playerId] : [],
@@ -647,10 +672,32 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     playersForTotals.push(extra)
     totalsPlayerIds.add(extra.id)
   }
+  if (displayOppPlan) {
+    for (const entries of Object.values(displayOppPlan.opponentDaily)) {
+      for (const entry of entries) {
+        const playerId = entry.playerId
+        if (!playerId || totalsPlayerIds.has(playerId)) continue
+        const player = playersMap[playerId]
+        if (!player) continue
+        playersForTotals.push(player)
+        totalsPlayerIds.add(playerId)
+      }
+    }
+  }
+
+  const opponentDaily = displayOppPlan?.opponentDaily
+  const liveOppTotals =
+    opponentDaily && Object.keys(opponentDaily).length > 0
+      ? youTotalsFromDaily(
+          opponentDaily,
+          playersForTotals,
+          matchupData.schedule,
+        )
+      : oppTotalsFromBoard(matchupData.board)
 
   const liveBoard = buildMatchupBoard(
     youTotalsFromDaily(displayDaily, playersForTotals, matchupData.schedule),
-    oppTotalsFromBoard(matchupData.board),
+    liveOppTotals,
     enabledCategoryIds(state),
   )
 
@@ -666,8 +713,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         })
 
   return (
-    <main className="min-h-screen bg-[var(--color-canvas)] px-3 py-8 sm:px-4 lg:px-5">
-      <div className="mx-auto max-w-[100rem]">
+    <main className="min-h-screen bg-[var(--color-canvas)] px-2 py-6 sm:px-3">
+      <div className="mx-auto max-w-[120rem]">
         <div className="mb-6">
           <Link
             className="w-fit font-medium text-sm text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
@@ -741,8 +788,19 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           Using your day-by-day lineups
         </p>
         <MatchupBoard board={liveBoard} />
+        {oppTeam ? (
+          <OpponentWeekStrip
+            days={matchupData.schedule.matchup.days}
+            onOppSpotChoiceChange={handleOppSpotChoiceChange}
+            openSeatCount={emptyNonIlSeatCount(oppTeam.entries)}
+            opponentDays={displayOppPlan?.opponentDays ?? []}
+            opponentName={oppTeam.name}
+            oppSpotChoice={oppSpotChoice}
+            playersById={playersMap}
+          />
+        ) : null}
 
-        <div className="mt-6 grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] xl:gap-3">
+        <div className="mt-6 grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] xl:gap-3">
           <DailyLineupPanel
             daily={displayDaily}
             days={matchupData.schedule.matchup.days}
@@ -770,7 +828,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             board={matchupData.board}
             daily={daily ?? undefined}
             leagueId={leagueId}
+            onPlansBuilt={handlePlansBuilt}
             onPreviewPlanChange={handlePreviewPlanChange}
+            oppSpotCount={oppSpotCount}
             playersById={matchupData.playersById}
             schedule={matchupData.schedule}
             state={state}
