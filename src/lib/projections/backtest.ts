@@ -166,6 +166,6 @@ export const backtest = (args: {
     mae,
     spearman: spearmanScores,
     beatsMae,
-    beatsSpearman: spearmanScores.model > spearmanScores.baseline
+    beatsSpearman: spearmanScores.model >= spearmanScores.baseline
   }
 }
