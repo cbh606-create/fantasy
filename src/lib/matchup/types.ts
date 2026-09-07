@@ -67,6 +67,8 @@ export type StreamingDensityTier = "elite" | "strong" | "ok" | "thin"
 
 export type StreamingPlanSpotCount = 1 | 2 | 3
 
+export type OppSpotChoice = "auto" | 1 | 2 | 3
+
 export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
 
 export type StreamingPlanRosterDropKind = "player" | "open_slot" | "none"
