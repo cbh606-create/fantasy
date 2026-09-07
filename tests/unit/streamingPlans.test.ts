@@ -2286,4 +2286,49 @@ describe("interleaved opponent streaming", () => {
       plan.days[0]!.cells[0]!.playerId,
     )
   })
+
+  it("does not add an FA the opponent already claimed on a later day", () => {
+    const days = ["2025-11-03", "2025-11-04"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 2000 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const faC = player("fa-c", "MIA", {
+      projections: {
+        ...baseProjections(),
+        STL: 80,
+        REB: 120,
+        AST: 100,
+        TPM: 30,
+        PTS: 400,
+        BLK: 10,
+      },
+    })
+    const you = player("you-1", "CHI")
+    const opp = player("opp-1", "ATL")
+    const state = tinyState([faA, faB, faC, you, opp], ["fa-a", "fa-b", "fa-c"])
+    state.teams[0]!.entries = [{ slot: "UTIL", playerId: "you-1" }]
+    state.teams[1]!.entries = [{ slot: "UTIL", playerId: "opp-1" }]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "DET" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "ORL" },
+      { date: "2025-11-04", homeAbbr: "MIA", awayAbbr: "PHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      oppSpotCount: 1,
+    })
+    expect(plan.days[0]!.cells[0]!.playerId).toBe("fa-a")
+    expect(plan.opponentDays[0]!.streamerPlayerId).toBe("fa-b")
+    expect(plan.days[1]!.cells[0]!.playerId).not.toBe("fa-b")
+    expect(plan.days[1]!.cells[0]!.playerId).toBe("fa-c")
+  })
 })

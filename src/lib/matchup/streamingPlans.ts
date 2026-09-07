@@ -802,7 +802,7 @@ export const buildStreamingPlan = ({
       { length: spotCount },
       () => null,
     )
-    const seatedToday = new Set<string>()
+    const seatedToday = new Set<string>(oppSpotCount ? claimedFaIds : [])
     const previousOccupants = [...occupants]
     const forceFillForSpot = (spotIndex: number): boolean => {
       if (date !== today) return false
