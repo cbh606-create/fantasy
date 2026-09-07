@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
-import type { MatchupBoard } from "@/lib/matchup/types"
+import type { MatchupBoard, StreamingPlan } from "@/lib/matchup/types"
 import { formatMatchupDayLabel } from "@/lib/matchup/weekCalendarLayout"
 import type {
   ScheduleResponse,
@@ -266,7 +266,7 @@ describe("StreamingPlansPanel", () => {
     )
 
     const monday = screen.getAllByText(formatMatchupDayLabel("2025-11-03"))[0]
-    expect(monday?.closest("th")).toHaveClass("w-20", "min-w-20", "max-w-20")
+    expect(monday?.closest("th")).toHaveClass("w-[6.75rem]", "min-w-[6.75rem]")
     expect(screen.getAllByRole("columnheader", { name: /^Move$/i })[0]).toHaveClass(
       "w-28",
       "min-w-28",
@@ -533,11 +533,60 @@ describe("StreamingPlansPanel", () => {
     expect(selects.length).toBeGreaterThan(0)
 
     const firstSelect = selects[0]!
+    expect(firstSelect).toHaveClass("w-full")
+    expect(firstSelect).not.toHaveClass("min-w-0")
+    expect(firstSelect.parentElement).toHaveClass("block", "w-full")
+    expect(firstSelect.parentElement).not.toHaveClass("inline-flex")
     expect(firstSelect).toHaveValue("hold")
     fireEvent.change(firstSelect, { target: { value: "you-idle" } })
     expect(firstSelect).toHaveValue("you-idle")
     fireEvent.change(firstSelect, { target: { value: "you-play" } })
     expect(firstSelect).toHaveValue("you-play")
+  })
+
+  it("shows the dropbox on the first matchup day when today is before the week", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-10-01"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    const selects = screen.getAllByRole("combobox", { name: /Roster drop/i })
+    expect(selects.length).toBeGreaterThan(0)
+    expect(selects[0]).toHaveValue("hold")
+
+    const dropRow = screen.getAllByRole("rowheader", { name: /^Drop$/i })[0]!.closest(
+      "tr",
+    )!
+    expect(dropRow.querySelectorAll("td")[0]!.querySelector("select")).not.toBeNull()
+    expect(dropRow.querySelectorAll("td")[1]!.querySelector("select")).toBeNull()
+    expect(dropRow.querySelectorAll("td")[1]!.textContent?.trim()).not.toBe("—")
+  })
+
+  it("hides the dropbox when the matchup week is already over", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-11-10"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+
+    expect(
+      screen.queryByRole("combobox", { name: /Roster drop/i }),
+    ).not.toBeInTheDocument()
   })
 
   it("rebuilds preview plan when roster drop override changes", () => {
@@ -673,7 +722,7 @@ describe("StreamingPlansPanel", () => {
       "tr",
     )!
     const futureCell = dropRow.querySelectorAll("td")[1]!
-    expect(futureCell).toHaveTextContent("—")
+    expect(futureCell.querySelector("select")).toBeNull()
     fireEvent.mouseEnter(futureCell.querySelector("span")!)
 
     expect(screen.getByRole("tooltip")).toHaveTextContent(/Suggested drop:/)
@@ -709,6 +758,62 @@ describe("StreamingPlansPanel", () => {
     expect(pastCell.querySelector("select")).toBeNull()
     expect(pastCell).toHaveTextContent("Open slot")
     expect(pastCell.querySelector("span")).toHaveClass("text-[var(--color-mute)]")
+  })
+
+  it("shows Opp: name on add cells when the plan has opponentDays", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        oppSpotCount={1}
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-11-03"
+      />,
+    )
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+    expect(screen.getAllByText(/Opp:/).length).toBeGreaterThan(0)
+  })
+
+  it("still exposes a dropbox only on the first day of a future week", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        oppSpotCount={1}
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-10-01"
+      />,
+    )
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+    const dropRow = screen.getAllByRole("rowheader", { name: /^Drop$/i })[0]!.closest(
+      "tr",
+    )!
+    expect(dropRow.querySelectorAll("td")[0]!.querySelector("select")).not.toBeNull()
+    expect(dropRow.querySelectorAll("td")[1]!.querySelector("select")).toBeNull()
+  })
+
+  it("passes built plans with opponentDays to onPlansBuilt", () => {
+    const onPlansBuilt = vi.fn()
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        onPlansBuilt={onPlansBuilt}
+        oppSpotCount={1}
+        playersById={{}}
+        schedule={schedule}
+        state={state}
+        today="2025-11-03"
+      />,
+    )
+    expect(onPlansBuilt).toHaveBeenCalled()
+    const plans = onPlansBuilt.mock.calls.at(-1)?.[0] as StreamingPlan[]
+    expect(plans).toHaveLength(3)
+    expect(plans[0]!.opponentDays).toHaveLength(schedule.matchup.days.length)
   })
 
   it("keeps today's dropbox on the chosen player when a streamer is already seated", () => {

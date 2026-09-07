@@ -21,8 +21,8 @@ import type {
 } from "@/lib/season/types"
 import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
 import {
-  MATCHUP_WEEK_DAY_COL_CLASS,
   MATCHUP_WEEK_MOVE_COL_CLASS,
+  MATCHUP_WEEK_STREAMING_DAY_COL_CLASS,
   MATCHUP_WEEK_STREAMING_TABLE_CLASS,
   formatMatchupDayLabel,
 } from "@/lib/matchup/weekCalendarLayout"
@@ -81,16 +81,27 @@ const localIsoDate = () => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
+const editableStreamingDropDate = (
+  days: string[],
+  today: string,
+): string | null => {
+  if (days.includes(today)) return today
+  const start = days[0]
+  if (start && today < start) return start
+  return null
+}
+
 const withTodayHolds = (
   forced: Record<string, ForcedRosterDropValue> | undefined,
   today: string,
   spotCount: number,
   days: string[],
 ): Record<string, ForcedRosterDropValue> | undefined => {
-  if (!days.includes(today)) return forced
+  const editDate = editableStreamingDropDate(days, today)
+  if (!editDate) return forced
   const next: Record<string, ForcedRosterDropValue> = { ...forced }
   for (let spotIndex = 0; spotIndex < spotCount; spotIndex += 1) {
-    const key = streamingAddDropKey(today, spotIndex)
+    const key = streamingAddDropKey(editDate, spotIndex)
     if (next[key] == null) next[key] = "hold"
   }
   return next
@@ -104,6 +115,9 @@ type StreamingPlansPanelProps = {
   playersById: Record<string, SeasonPlayer>
   adpByPlayerId?: Record<string, number>
   onPreviewPlanChange?: (plan: StreamingPlan | null) => void
+  onPlansBuilt?: (plans: StreamingPlan[]) => void
+  /** Resolved opponent stream spots. Parent resolves Auto; do not resolve here. */
+  oppSpotCount?: 1 | 2 | 3
   /** Base (non-preview) daily lineups — used to skip adds on full days. */
   daily?: DailyLineups
   winnerStreamRecipes?: WinnerStreamRecipe[]
@@ -182,7 +196,7 @@ const cellFor = (
     .find((day) => day.date === date)
     ?.cells.find((cell) => cell.spotIndex === spotIndex)
 
-const pastDropLabel = (
+const dropPlanLabel = (
   cell: StreamingPlanDayCell | undefined,
   playersById: Record<string, SeasonPlayer>,
 ): string => {
@@ -281,7 +295,7 @@ const DropSuggestTip = ({
 
   return (
     <span
-      className="relative inline-flex max-w-full items-baseline"
+      className="relative block w-full max-w-full"
       onBlur={handleHide}
       onFocus={handleShow}
       onMouseEnter={handleShow}
@@ -327,6 +341,7 @@ const DropCell = ({
   spotIndex,
   today,
   todayInWeek,
+  dropEditDate,
   forcedDropValue,
 }: {
   adpByPlayerId?: Record<string, number>
@@ -344,6 +359,7 @@ const DropCell = ({
   spotIndex: number
   today: string
   todayInWeek: boolean
+  dropEditDate: string | null
   forcedDropValue: ForcedRosterDropValue
 }) => {
   const suggestTip = (child: ReactNode) => (
@@ -360,7 +376,7 @@ const DropCell = ({
     </DropSuggestTip>
   )
 
-  if (todayInWeek && date === today) {
+  if (dropEditDate && date === dropEditDate) {
     const key = streamingAddDropKey(date, spotIndex)
     const earlierDroppedIds = collectEarlierRosterDropIds(
       plan,
@@ -400,7 +416,7 @@ const DropCell = ({
     return suggestTip(
       <select
         aria-label={`Roster drop ${formatMatchupDayLabel(date)} spot ${spotIndex + 1}`}
-        className="max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+        className="w-full max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
         onChange={handleChange}
         value={value}
       >
@@ -416,14 +432,14 @@ const DropCell = ({
   if (todayInWeek && date < today) {
     return (
       <span className="text-[var(--color-mute)]">
-        {pastDropLabel(cell, playersById)}
+        {dropPlanLabel(cell, playersById)}
       </span>
     )
   }
 
   return suggestTip(
     <span className="text-[var(--color-mute)]" tabIndex={0}>
-      —
+      {dropPlanLabel(cell, playersById)}
     </span>,
   )
 }
@@ -432,17 +448,30 @@ const AddCell = ({
   cell,
   date,
   leagueId,
+  oppStreamerName,
   playersById,
   schedule,
 }: {
   cell: StreamingPlanDayCell | undefined
   date: string
   leagueId: string
+  oppStreamerName?: string | null
   playersById: Record<string, SeasonPlayer>
   schedule: ScheduleResponse
 }) => {
+  const oppLabel = oppStreamerName ? (
+    <span className="mt-0.5 block text-[0.625rem] text-[var(--color-mute)]">
+      Opp: {oppStreamerName}
+    </span>
+  ) : null
+
   if (!cell || cell.action === "empty" || !cell.playerId) {
-    return <span className="text-[var(--color-mute)]">—</span>
+    return (
+      <>
+        <span className="text-[var(--color-mute)]">—</span>
+        {oppLabel}
+      </>
+    )
   }
 
   const seated = playersById[cell.playerId]
@@ -462,31 +491,40 @@ const AddCell = ({
 
   if (isAddAction(cell.action)) {
     return (
-      <AddCellHoverTip
-        addIndex={cell.addIndex}
-        alternativePlayerIds={cell.alternativePlayerIds ?? []}
-        hasGame={hasGame}
-        leagueId={leagueId}
-        meta={
-          <>
-            {meta}
-            {chips}
-          </>
-        }
-        name={name}
-        nameClass={nameClass}
-        playerId={cell.playerId}
-        playersById={playersById}
-        targetCategoryIds={cell.targetCategoryIds ?? []}
-      />
+      <>
+        <AddCellHoverTip
+          addIndex={cell.addIndex}
+          alternativePlayerIds={cell.alternativePlayerIds ?? []}
+          hasGame={hasGame}
+          leagueId={leagueId}
+          meta={
+            <>
+              {meta}
+              {chips}
+            </>
+          }
+          name={name}
+          nameClass={nameClass}
+          playerId={cell.playerId}
+          playersById={playersById}
+          targetCategoryIds={cell.targetCategoryIds ?? []}
+        />
+        {oppLabel}
+      </>
     )
   }
 
   return (
-    <span title={hasGame ? "Game day" : "Off night"}>
-      <span className={nameClass}>{name}</span>
-      {meta}
-    </span>
+    <>
+      <span
+        className="inline-flex max-w-full flex-wrap items-baseline"
+        title={hasGame ? "Game day" : "Off night"}
+      >
+        <span className={nameClass}>{name}</span>
+        {meta}
+      </span>
+      {oppLabel}
+    </>
   )
 }
 
@@ -554,7 +592,7 @@ const AddCellHoverTip = ({
 
   return (
     <span
-      className="relative inline-flex max-w-full items-baseline"
+      className="relative inline-flex max-w-full flex-wrap items-baseline"
       onMouseEnter={show}
       onMouseLeave={hide}
       ref={rootRef}
@@ -640,6 +678,8 @@ export const StreamingPlansPanel = ({
   playersById,
   adpByPlayerId,
   onPreviewPlanChange,
+  onPlansBuilt,
+  oppSpotCount,
   daily,
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
   today = localIsoDate(),
@@ -680,6 +720,7 @@ export const StreamingPlansPanel = ({
           daily,
           winnerStreamRecipes,
           today,
+          ...(oppSpotCount ? { oppSpotCount } : {}),
         }),
       ),
     [
@@ -693,8 +734,13 @@ export const StreamingPlansPanel = ({
       daily,
       winnerStreamRecipes,
       today,
+      oppSpotCount,
     ],
   )
+
+  useEffect(() => {
+    onPlansBuilt?.(plans)
+  }, [plans, onPlansBuilt])
 
   const streamHint = winnerStreamHint(board, winnerStreamRecipes)
 
@@ -745,6 +791,7 @@ export const StreamingPlansPanel = ({
     .filter((entry) => entry.slot !== "IL" && entry.playerId)
     .map((entry) => entry.playerId!)
   const todayInWeek = schedule.matchup.days.includes(today)
+  const dropEditDate = editableStreamingDropDate(schedule.matchup.days, today)
 
   const softCaps = [1, 2, 3].map((spotCount) =>
     Math.ceil(addBudget / spotCount),
@@ -895,7 +942,7 @@ export const StreamingPlansPanel = ({
                       <col className={MATCHUP_WEEK_MOVE_COL_CLASS} />
                       {dates.map((date) => (
                         <col
-                          className={MATCHUP_WEEK_DAY_COL_CLASS}
+                          className={MATCHUP_WEEK_STREAMING_DAY_COL_CLASS}
                           key={date}
                         />
                       ))}
@@ -929,7 +976,7 @@ export const StreamingPlansPanel = ({
 
                           return (
                             <th
-                              className={`${MATCHUP_WEEK_DAY_COL_CLASS} px-1 py-1.5 text-center text-[0.7rem] tracking-[0.08em] uppercase whitespace-nowrap ${
+                              className={`${MATCHUP_WEEK_STREAMING_DAY_COL_CLASS} px-1 py-1.5 text-center text-[0.7rem] tracking-[0.08em] uppercase whitespace-nowrap ${
                                 hasStreamerGame
                                   ? "font-bold text-[var(--color-ink)]"
                                   : "font-medium text-[var(--color-mute)]"
@@ -965,20 +1012,33 @@ export const StreamingPlansPanel = ({
                                   ? `Spot ${spotIndex + 1} Add`
                                   : "Add"}
                               </th>
-                              {dates.map((date) => (
-                                <td
-                                  className={`${MATCHUP_WEEK_DAY_COL_CLASS} px-1 py-1.5 align-top`}
-                                  key={`${date}-add-${spotIndex}`}
-                                >
-                                  <AddCell
-                                    cell={cellFor(plan, date, spotIndex)}
-                                    date={date}
-                                    leagueId={leagueId}
-                                    playersById={resolvedPlayers}
-                                    schedule={schedule}
-                                  />
-                                </td>
-                              ))}
+                              {dates.map((date) => {
+                                const streamerPlayerId =
+                                  plan.opponentDays.find(
+                                    (day) => day.date === date,
+                                  )?.streamerPlayerId
+                                const oppName = streamerPlayerId
+                                  ? playerName(streamerPlayerId, resolvedPlayers)
+                                  : null
+
+                                return (
+                                  <td
+                                    className={`${MATCHUP_WEEK_STREAMING_DAY_COL_CLASS} px-1 py-1.5 align-top break-words`}
+                                    key={`${date}-add-${spotIndex}`}
+                                  >
+                                    <AddCell
+                                      cell={cellFor(plan, date, spotIndex)}
+                                      date={date}
+                                      leagueId={leagueId}
+                                      oppStreamerName={
+                                        oppName === "—" ? null : oppName
+                                      }
+                                      playersById={resolvedPlayers}
+                                      schedule={schedule}
+                                    />
+                                  </td>
+                                )
+                              })}
                             </tr>
                             <tr
                               className={`border-t border-[var(--color-hairline)] ${rowTone}`}
@@ -996,7 +1056,7 @@ export const StreamingPlansPanel = ({
 
                                 return (
                                   <td
-                                    className={`${MATCHUP_WEEK_DAY_COL_CLASS} px-1 py-1.5 align-top text-[var(--color-mute)]`}
+                                    className={`${MATCHUP_WEEK_STREAMING_DAY_COL_CLASS} px-1 py-1.5 align-top break-words text-[var(--color-mute)]`}
                                     key={`${date}-drop-${spotIndex}`}
                                   >
                                     <DropCell
@@ -1027,6 +1087,7 @@ export const StreamingPlansPanel = ({
                                       spotIndex={spotIndex}
                                       today={today}
                                       todayInWeek={todayInWeek}
+                                      dropEditDate={dropEditDate}
                                     />
                                   </td>
                                 )
