@@ -1,6 +1,60 @@
 import { describe, expect, it } from "vitest"
-import { allocateMinutes } from "@/lib/projections/minutes"
-import type { RosterSnapshot } from "@/lib/projections/types"
+import { allocateMinutes, rotationWidth } from "@/lib/projections/minutes"
+import type { RosterSnapshot, SeasonBox } from "@/lib/projections/types"
+
+const box = (playerId: string, teamId: string, mpg: number): SeasonBox => ({
+  playerId,
+  name: playerId,
+  season: 2025,
+  teamId,
+  age: 26,
+  positions: ["SG"],
+  gp: 70,
+  mp: mpg * 70,
+  mpg,
+  usg: 20,
+  pts: 0,
+  reb: 0,
+  ast: 0,
+  stl: 0,
+  blk: 0,
+  tov: 0,
+  tpm: 0,
+  fgm: 0,
+  fga: 0,
+  ftm: 0,
+  fta: 0
+})
+
+describe("rotationWidth", () => {
+  it("counts last-year teammates at 10+ MPG and ignores garbage time and TOT", () => {
+    const boxes = [
+      box("a", "AAA", 34),
+      box("b", "AAA", 22),
+      box("c", "AAA", 12),
+      box("d", "AAA", 10),
+      box("e", "AAA", 9),
+      box("f", "AAA", 4),
+      box("g", "BBB", 36),
+      box("tot", "TOT", 30)
+    ]
+    expect(rotationWidth(boxes, "AAA", 13)).toBe(8)
+  })
+
+  it("uses 10 when the franchise has no last-year boxes", () => {
+    expect(rotationWidth([box("x", "BBB", 36)], "AAA", 13)).toBe(10)
+  })
+
+  it("clamps a 14-deep injury year to roster size", () => {
+    const boxes = Array.from({ length: 14 }, (_, i) => box(`p${i}`, "AAA", 12))
+    expect(rotationWidth(boxes, "AAA", 13)).toBe(13)
+  })
+
+  it("returns roster size when the roster is shorter than 8", () => {
+    const boxes = Array.from({ length: 10 }, (_, i) => box(`p${i}`, "AAA", 20))
+    expect(rotationWidth(boxes, "AAA", 6)).toBe(6)
+  })
+})
 
 const roster: RosterSnapshot = {
   season: 2026,

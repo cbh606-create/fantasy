@@ -1,5 +1,25 @@
 import { primaryBucket } from "@/lib/projections/position"
-import type { NbaPosition, PositionBucket, RosterSnapshot } from "@/lib/projections/types"
+import type { NbaPosition, PositionBucket, RosterSnapshot, SeasonBox } from "@/lib/projections/types"
+
+export const MIN_ROTATION = 8
+export const ROTATION_FLOOR_MPG = 10
+export const DEFAULT_ROTATION = 10
+
+export const rotationWidth = (
+  boxes: SeasonBox[],
+  teamId: string,
+  rosterSize: number
+): number => {
+  if (rosterSize < MIN_ROTATION) return rosterSize
+  let qualified = 0
+  for (const row of boxes) {
+    if (row.teamId === "TOT") continue
+    if (row.teamId !== teamId) continue
+    if (row.mpg >= ROTATION_FLOOR_MPG) qualified += 1
+  }
+  const qualifiedCount = qualified === 0 ? DEFAULT_ROTATION : qualified
+  return Math.min(rosterSize, Math.max(MIN_ROTATION, qualifiedCount))
+}
 
 export type MinutesInput = {
   playerId: string
