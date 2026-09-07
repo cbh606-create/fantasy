@@ -14,7 +14,7 @@ const roster: RosterSnapshot = {
 }
 
 describe("allocateMinutes", () => {
-  it("sums to 240", () => {
+  it("never emits mpg above 38 and accepts closest sum on a short roster", () => {
     const mpg = allocateMinutes(
       [
         { playerId: "star", positions: ["PG"], priorMpg: 34 },
@@ -24,7 +24,43 @@ describe("allocateMinutes", () => {
       roster
     )
     const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
-    expect(sum).toBeCloseTo(240, 5)
+    expect(sum).toBeLessThan(240)
+    for (const value of mpg.values()) {
+      expect(value).toBeLessThanOrEqual(38)
+    }
+  })
+
+  it("lets a 6-player team sum under 240 while capping mpg", () => {
+    const shortRoster: RosterSnapshot = {
+      season: 2026,
+      teamId: "BBB",
+      players: [
+        { playerId: "g1", positions: ["PG"] },
+        { playerId: "g2", positions: ["SG"] },
+        { playerId: "w1", positions: ["SF"] },
+        { playerId: "w2", positions: ["SF"] },
+        { playerId: "b1", positions: ["C"] },
+        { playerId: "b2", positions: ["PF"] }
+      ],
+      departed: []
+    }
+    const mpg = allocateMinutes(
+      [
+        { playerId: "g1", positions: ["PG"], priorMpg: 24 },
+        { playerId: "g2", positions: ["SG"], priorMpg: 20 },
+        { playerId: "w1", positions: ["SF"], priorMpg: 28 },
+        { playerId: "w2", positions: ["SF"], priorMpg: 16 },
+        { playerId: "b1", positions: ["C"], priorMpg: 30 },
+        { playerId: "b2", positions: ["PF"], priorMpg: 22 }
+      ],
+      shortRoster
+    )
+    const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
+    expect(sum).toBeLessThan(240)
+    expect(sum).toBeCloseTo(228, 5)
+    for (const value of mpg.values()) {
+      expect(value).toBeLessThanOrEqual(38)
+    }
   })
 
   it("gives leftover minutes to the same bucket as the departed star", () => {

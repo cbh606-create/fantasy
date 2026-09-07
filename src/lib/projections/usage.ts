@@ -136,10 +136,15 @@ const scaleUncapped = (
   for (const id of freeIds) usg.set(id, (usg.get(id) ?? 0) * factor)
 }
 
+export type UsageAllocation = {
+  usg: Map<string, number>
+  weighted: number
+}
+
 export const allocateUsage = (
   inputs: UsageInput[],
   roster: RosterSnapshot
-): Map<string, number> => {
+): UsageAllocation => {
   const usg = new Map<string, number>()
   const mpg = new Map<string, number>()
   const prior = new Map<string, number>()
@@ -173,5 +178,5 @@ export const allocateUsage = (
     }
   }
 
-  return usg
+  return { usg, weighted: weightedUsage(usg, mpg) }
 }

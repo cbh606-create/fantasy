@@ -23,8 +23,26 @@ const shootingFromBox = (box: SeasonBox): ShootingVolume => ({
   FTA: perGame(box.fta, box.gp)
 })
 
+export const findBox = (boxes: SeasonBox[], playerId: string): SeasonBox | undefined => {
+  const matches = boxes.filter((box) => box.playerId === playerId)
+  if (matches.length === 0) return undefined
+  return matches.find((box) => box.teamId === "TOT") ?? matches[0]
+}
+
+export const uniqueBoxesByPlayer = (boxes: SeasonBox[]): SeasonBox[] => {
+  const seen = new Set<string>()
+  const unique: SeasonBox[] = []
+  for (const box of boxes) {
+    if (seen.has(box.playerId)) continue
+    seen.add(box.playerId)
+    const preferred = findBox(boxes, box.playerId)
+    if (preferred) unique.push(preferred)
+  }
+  return unique
+}
+
 export const lastYearBaseline = (boxes: SeasonBox[], targetSeason: number): PlayerProjection[] =>
-  boxes.map((box) => ({
+  uniqueBoxesByPlayer(boxes).map((box) => ({
     playerId: box.playerId,
     name: box.name,
     season: targetSeason,

@@ -1,6 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/categories"
-import { catsFromBox } from "@/lib/projections/baseline"
+import { catsFromBox, uniqueBoxesByPlayer } from "@/lib/projections/baseline"
 import type { PlayerProjection, SeasonBox } from "@/lib/projections/types"
 
 export type MaeKey = "MPG" | "USG" | CategoryId
@@ -86,16 +86,14 @@ export const spearman = (ranksA: number[], ranksB: number[]): number => {
   const ra = toRanks(ranksA)
   const rb = toRanks(ranksB)
   if (ra.length === 0) return 0
-  if (ra.every((value, index) => value === rb[index])) return 1
-  const n = ra.length
-  if (n > 1 && ra.every((value, index) => value + rb[index] === n + 1)) return -1
   return pearson(ra, rb)
 }
 
-const firstById = <T extends { playerId: string }>(rows: T[]): Map<string, T> => {
+const firstById = <T extends { playerId: string; teamId?: string }>(rows: T[]): Map<string, T> => {
   const map = new Map<string, T>()
   for (const row of rows) {
-    if (!map.has(row.playerId)) map.set(row.playerId, row)
+    const existing = map.get(row.playerId)
+    if (!existing || row.teamId === "TOT") map.set(row.playerId, row)
   }
   return map
 }
@@ -124,7 +122,7 @@ export const backtest = (args: {
 }): BacktestReport => {
   const predictedById = firstById(args.predicted)
   const baselineById = firstById(args.baseline)
-  const eligible = args.actuals.filter(
+  const eligible = uniqueBoxesByPlayer(args.actuals).filter(
     (box) => box.gp >= 20 && predictedById.has(box.playerId) && baselineById.has(box.playerId)
   )
   const eligibleIds = eligible.map((box) => box.playerId)

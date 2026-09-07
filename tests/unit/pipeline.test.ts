@@ -76,12 +76,46 @@ describe("projectSeason", () => {
     }
 
     const mpgSum = out.reduce((total, row) => total + row.mpg, 0)
-    expect(mpgSum).toBeCloseTo(240, 5)
+    expect(mpgSum).toBeLessThan(240)
+    expect(mpgSum).toBeCloseTo(152, 5)
+    for (const row of out) {
+      expect(row.mpg).toBeLessThanOrEqual(38)
+    }
 
     expect(out.find((row) => row.playerId === "rookie")?.source).toBe("rookie_prior")
     expect(out.find((row) => row.playerId === "vetG")?.source).toBe("model")
     expect(out.find((row) => row.playerId === "vetWing")?.source).toBe("model")
     expect(out.find((row) => row.playerId === "vetBig")?.source).toBe("model")
+    expect(out.find((row) => row.playerId === "rookie")?.gp).toBe(70)
+  })
+
+  it("uses draft-slot gp for rookies without gamesPrior blend", () => {
+    const boxes: SeasonBox[] = [
+      { ...seasonBox("g1", "G One", ["PG"]), gp: 40 },
+      { ...seasonBox("g2", "G Two", ["SG"]), gp: 40 },
+      { ...seasonBox("g3", "G Three", ["PG"]), gp: 40 },
+      seasonBox("w1", "Wing One", ["SF"]),
+      seasonBox("w2", "Wing Two", ["SF"]),
+      seasonBox("w3", "Wing Three", ["SF"]),
+      seasonBox("b1", "Big One", ["C"]),
+      seasonBox("b2", "Big Two", ["PF"]),
+      seasonBox("b3", "Big Three", ["C"])
+    ]
+
+    const out = projectSeason(
+      boxes,
+      [
+        {
+          season: 2026,
+          teamId: "AAA",
+          players: [{ playerId: "lottery", positions: ["PG"] }],
+          departed: []
+        }
+      ],
+      [{ playerId: "lottery", name: "Lottery", positions: ["PG"], age: 19, draftSlot: 1 }]
+    )
+
+    expect(out.find((row) => row.playerId === "lottery")?.gp).toBe(70)
   })
 
   it("keeps draft-slot usg for untranslated rookies", () => {
@@ -105,7 +139,16 @@ describe("projectSeason", () => {
           teamId: "AAA",
           players: [
             { playerId: "lottery", positions: ["PG"] },
-            { playerId: "udfa", positions: ["PG"] }
+            { playerId: "udfa", positions: ["PG"] },
+            { playerId: "g1", positions: ["PG"] },
+            { playerId: "g2", positions: ["SG"] },
+            { playerId: "g3", positions: ["PG"] },
+            { playerId: "w1", positions: ["SF"] },
+            { playerId: "w2", positions: ["SF"] },
+            { playerId: "w3", positions: ["SF"] },
+            { playerId: "b1", positions: ["C"] },
+            { playerId: "b2", positions: ["PF"] },
+            { playerId: "b3", positions: ["C"] }
           ],
           departed: []
         }

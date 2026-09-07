@@ -3,7 +3,7 @@ import { allocateUsage, weightedUsage } from "@/lib/projections/usage"
 
 describe("allocateUsage", () => {
   it("hits minutes-weighted 100", () => {
-    const usg = allocateUsage(
+    const { usg, weighted } = allocateUsage(
       [
         { playerId: "a", positions: ["PG"], mpg: 36, priorUsg: 28 },
         { playerId: "b", positions: ["PG"], mpg: 24, priorUsg: 18 },
@@ -25,6 +25,7 @@ describe("allocateUsage", () => {
       ["b", 24],
       ["c", 180]
     ])
+    expect(weighted).toBeCloseTo(100, 3)
     expect(weightedUsage(usg, mpg)).toBeCloseTo(100, 3)
     for (const v of usg.values()) {
       expect(v).toBeGreaterThanOrEqual(8)
@@ -33,7 +34,7 @@ describe("allocateUsage", () => {
   })
 
   it("keeps sub-8 usage when they got no vacancy minutes", () => {
-    const usg = allocateUsage(
+    const { usg } = allocateUsage(
       [
         { playerId: "bench", positions: ["PF"], mpg: 10, priorMpg: 10, priorUsg: 5 },
         { playerId: "a", positions: ["PG"], mpg: 115, priorUsg: 30 },
@@ -54,7 +55,7 @@ describe("allocateUsage", () => {
   })
 
   it("floors to 8 when they received vacancy minutes", () => {
-    const usg = allocateUsage(
+    const { usg } = allocateUsage(
       [
         { playerId: "bench", positions: ["PF"], mpg: 20, priorMpg: 10, priorUsg: 5 },
         { playerId: "a", positions: ["PG"], mpg: 110, priorUsg: 30 },

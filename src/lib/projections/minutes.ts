@@ -129,5 +129,8 @@ export const allocateMinutes = (
   }
 
   snapScale(mpg)
+  for (const [id, current] of mpg) mpg.set(id, capMpg(current))
+  const afterCap = sumMap(mpg)
+  if (afterCap < TARGET_MINUTES) addByWeights(mpg, claims, TARGET_MINUTES - afterCap)
   return mpg
 }

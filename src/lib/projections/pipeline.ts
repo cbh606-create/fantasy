@@ -1,6 +1,7 @@
 import { applyAging } from "@/lib/projections/aging"
+import { findBox } from "@/lib/projections/baseline"
 import { compose } from "@/lib/projections/compose"
-import { gamesPrior } from "@/lib/projections/games"
+import { clampGames, gamesPrior } from "@/lib/projections/games"
 import { allocateMinutes } from "@/lib/projections/minutes"
 import { primaryBucket } from "@/lib/projections/position"
 import { rateFromBox } from "@/lib/projections/rates"
@@ -25,12 +26,6 @@ type PlayerPrior = {
   priorUsg: number
   lastGp: number
   source: PlayerProjection["source"]
-}
-
-const findBox = (boxes: SeasonBox[], playerId: string): SeasonBox | undefined => {
-  const matches = boxes.filter((box) => box.playerId === playerId)
-  if (matches.length === 0) return undefined
-  return matches.find((box) => box.teamId === "TOT") ?? matches[0]
 }
 
 const shootingPct = (makes: number, attempts: number) =>
@@ -107,7 +102,7 @@ export const projectSeason = (
       })),
       roster
     )
-    const usgById = allocateUsage(
+    const { usg: usgById } = allocateUsage(
       priors.map((prior) => ({
         playerId: prior.playerId,
         positions: prior.positions,
@@ -139,7 +134,7 @@ export const projectSeason = (
         teamId: roster.teamId,
         positions: prior.positions,
         mpg,
-        gp: gamesPrior(prior.lastGp, mean.gp),
+        gp: prior.source === "rookie_prior" ? clampGames(prior.lastGp) : gamesPrior(prior.lastGp, mean.gp),
         usg,
         rates: prior.rates,
         projections: composed.projections,
