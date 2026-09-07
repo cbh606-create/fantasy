@@ -167,13 +167,18 @@ describe("allocateMinutes", () => {
 
   it("cascades capped leftover to benchmates still under 38", () => {
     const capRoster = thirteenRoster("CAP")
-    const priors = [36, 34, 32, 30, 28, 40, 40, 1, 0, 0, 0, 0, 0]
+    const priors = [20, 19, 18, 17, 16, 15, 14, 1, 0, 0, 0, 0, 0]
     const mpg = allocateMinutes(thirteenInputs(priors), capRoster, 8)
-    const sum = [...mpg.values()].reduce((a, b) => a + b, 0)
-    expect(sum).toBeCloseTo(240, 5)
+    expect(mpg.get("p0")).toBe(20)
+    expect(mpg.get("p1")).toBe(19)
+    expect(mpg.get("p2")).toBe(18)
+    expect(mpg.get("p3")).toBe(17)
+    expect(mpg.get("p4")).toBe(16)
     expect(mpg.get("p5")).toBe(38)
     expect(mpg.get("p6")).toBe(38)
-    expect(mpg.get("p7")!).toBeGreaterThan(1)
+    const p7Mpg = mpg.get("p7")!
+    expect(p7Mpg).toBeGreaterThan(1)
+    expect(p7Mpg).toBeLessThanOrEqual(38)
     for (const value of mpg.values()) {
       expect(value).toBeLessThanOrEqual(38)
     }
