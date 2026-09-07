@@ -2,7 +2,7 @@ import { applyAging } from "@/lib/projections/aging"
 import { findBox } from "@/lib/projections/baseline"
 import { compose } from "@/lib/projections/compose"
 import { clampGames, gamesPrior } from "@/lib/projections/games"
-import { allocateMinutes } from "@/lib/projections/minutes"
+import { allocateMinutes, rotationWidth } from "@/lib/projections/minutes"
 import { primaryBucket } from "@/lib/projections/position"
 import { rateFromBox } from "@/lib/projections/rates"
 import { positionMeans, regressRates, regressUsg } from "@/lib/projections/regress"
@@ -94,13 +94,15 @@ export const projectSeason = (
       }
     })
 
+    const rotationN = rotationWidth(boxes, roster.teamId, roster.players.length)
     const mpgById = allocateMinutes(
       priors.map((prior) => ({
         playerId: prior.playerId,
         positions: prior.positions,
         priorMpg: prior.priorMpg
       })),
-      roster
+      roster,
+      rotationN
     )
     const { usg: usgById } = allocateUsage(
       priors.map((prior) => ({

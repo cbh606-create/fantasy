@@ -77,7 +77,7 @@ describe("projectSeason", () => {
 
     const mpgSum = out.reduce((total, row) => total + row.mpg, 0)
     expect(mpgSum).toBeLessThan(240)
-    expect(mpgSum).toBeCloseTo(152, 5)
+    expect(mpgSum).toBeCloseTo(120, 5)
     for (const row of out) {
       expect(row.mpg).toBeLessThanOrEqual(38)
     }
