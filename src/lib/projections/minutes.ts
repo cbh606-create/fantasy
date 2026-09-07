@@ -136,6 +136,7 @@ export const allocateMinutes = (
 
   const leftover = TARGET_MINUTES - sumMap(new Map(protectedIds.map((id) => [id, mpg.get(id) ?? 0])))
 
+  // Unreachable under current caps: five starters * 38 mpg = 190, so leftover is always >= 50.
   if (leftover <= 0) {
     const protectedSum = [...protectedIds].reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
     if (protectedSum > 0) {
@@ -149,18 +150,6 @@ export const allocateMinutes = (
 
   const claims = benchClaims(bench, roster)
   addByWeights(mpg, claims, leftover, benchIds)
-
-  const protectedSum = protectedIds.reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
-  const benchSum = benchIds.reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
-  const benchTarget = TARGET_MINUTES - protectedSum
-  if (benchSum > 0 && benchTarget > 0 && ranked.length >= MIN_ROTATION) {
-    const scale = benchTarget / benchSum
-    for (const id of benchIds) mpg.set(id, capMpg((mpg.get(id) ?? 0) * scale))
-    const after = benchIds.reduce((total, id) => total + (mpg.get(id) ?? 0), 0)
-    if (after + 0.01 < benchTarget) {
-      addByWeights(mpg, claims, benchTarget - after, benchIds)
-    }
-  }
 
   return mpg
 }
