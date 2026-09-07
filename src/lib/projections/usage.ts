@@ -6,6 +6,7 @@ export type UsageInput = {
   positions: NbaPosition[]
   mpg: number
   priorUsg: number
+  priorMpg?: number
 }
 
 const TARGET_USG = 100
@@ -63,11 +64,22 @@ const vacantClaims = (inputs: UsageInput[], roster: RosterSnapshot) => {
   return claims
 }
 
-const usageFloor = (priorUsg: number) => (priorUsg < MIN_USG ? priorUsg : MIN_USG)
+const receivedVacancyMinutes = (mpg: number, priorMpg?: number) =>
+  mpg > (priorMpg ?? mpg)
 
-const capUsg = (usg: Map<string, number>, prior: Map<string, number>) => {
+const usageFloor = (priorUsg: number, mpg: number, priorMpg?: number) => {
+  if (priorUsg < MIN_USG && !receivedVacancyMinutes(mpg, priorMpg)) return priorUsg
+  return MIN_USG
+}
+
+const capUsg = (
+  usg: Map<string, number>,
+  prior: Map<string, number>,
+  mpg: Map<string, number>,
+  priorMpg: Map<string, number | undefined>
+) => {
   for (const [id, value] of usg) {
-    const floor = usageFloor(prior.get(id) ?? value)
+    const floor = usageFloor(prior.get(id) ?? value, mpg.get(id) ?? 0, priorMpg.get(id))
     usg.set(id, Math.min(MAX_USG, Math.max(floor, value)))
   }
 }
@@ -101,6 +113,7 @@ const scaleUncapped = (
   usg: Map<string, number>,
   mpg: Map<string, number>,
   prior: Map<string, number>,
+  priorMpg: Map<string, number | undefined>,
   scaleUp: boolean
 ) => {
   const targetMass = (TARGET_USG * TEAM_MINUTES) / ON_COURT
@@ -109,7 +122,7 @@ const scaleUncapped = (
   const freeIds: string[] = []
   for (const [id, value] of usg) {
     const minutes = mpg.get(id) ?? 0
-    const floor = usageFloor(prior.get(id) ?? value)
+    const floor = usageFloor(prior.get(id) ?? value, minutes, priorMpg.get(id))
     const locked = scaleUp ? isHighCapped(value) : isLowCapped(value, floor)
     if (locked) cappedMass += value * minutes
     else {
@@ -130,31 +143,33 @@ export const allocateUsage = (
   const usg = new Map<string, number>()
   const mpg = new Map<string, number>()
   const prior = new Map<string, number>()
+  const priorMpg = new Map<string, number | undefined>()
   for (const input of inputs) {
     usg.set(input.playerId, input.priorUsg)
     mpg.set(input.playerId, input.mpg)
     prior.set(input.playerId, input.priorUsg)
+    priorMpg.set(input.playerId, input.priorMpg)
   }
 
   const claims = vacantClaims(inputs, roster)
-  capUsg(usg, prior)
+  capUsg(usg, prior, mpg, priorMpg)
 
   for (let loop = 0; loop < MAX_LOOPS; loop++) {
     const weighted = weightedUsage(usg, mpg)
     if (Math.abs(weighted - TARGET_USG) <= 1e-9) break
     if (weighted < TARGET_USG) addByWeights(usg, claims, TARGET_USG - weighted)
     else scaleAll(usg, TARGET_USG / weighted)
-    capUsg(usg, prior)
+    capUsg(usg, prior, mpg, priorMpg)
   }
 
   const afterLoops = weightedUsage(usg, mpg)
   if (Math.abs(afterLoops - TARGET_USG) > 1e-9) {
     if (afterLoops > 0) scaleAll(usg, TARGET_USG / afterLoops)
-    capUsg(usg, prior)
+    capUsg(usg, prior, mpg, priorMpg)
     const blocked = weightedUsage(usg, mpg)
     if (Math.abs(blocked - TARGET_USG) > 1e-9) {
-      scaleUncapped(usg, mpg, prior, blocked < TARGET_USG)
-      capUsg(usg, prior)
+      scaleUncapped(usg, mpg, prior, priorMpg, blocked < TARGET_USG)
+      capUsg(usg, prior, mpg, priorMpg)
     }
   }
 

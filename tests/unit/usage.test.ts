@@ -31,4 +31,46 @@ describe("allocateUsage", () => {
       expect(v).toBeLessThanOrEqual(35)
     }
   })
+
+  it("keeps sub-8 usage when they got no vacancy minutes", () => {
+    const usg = allocateUsage(
+      [
+        { playerId: "bench", positions: ["PF"], mpg: 10, priorMpg: 10, priorUsg: 5 },
+        { playerId: "a", positions: ["PG"], mpg: 115, priorUsg: 30 },
+        { playerId: "b", positions: ["SF"], mpg: 115, priorUsg: 30 }
+      ],
+      {
+        season: 2026,
+        teamId: "AAA",
+        players: [
+          { playerId: "bench", positions: ["PF"] },
+          { playerId: "a", positions: ["PG"] },
+          { playerId: "b", positions: ["SF"] }
+        ],
+        departed: []
+      }
+    )
+    expect(usg.get("bench")!).toBeLessThan(8)
+  })
+
+  it("floors to 8 when they received vacancy minutes", () => {
+    const usg = allocateUsage(
+      [
+        { playerId: "bench", positions: ["PF"], mpg: 20, priorMpg: 10, priorUsg: 5 },
+        { playerId: "a", positions: ["PG"], mpg: 110, priorUsg: 30 },
+        { playerId: "b", positions: ["SF"], mpg: 110, priorUsg: 30 }
+      ],
+      {
+        season: 2026,
+        teamId: "AAA",
+        players: [
+          { playerId: "bench", positions: ["PF"] },
+          { playerId: "a", positions: ["PG"] },
+          { playerId: "b", positions: ["SF"] }
+        ],
+        departed: []
+      }
+    )
+    expect(usg.get("bench")!).toBeGreaterThanOrEqual(8)
+  })
 })
