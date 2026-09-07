@@ -2252,3 +2252,38 @@ describe("streaming waiver cooldown", () => {
     expect(plan.days[4]!.cells[0]?.playerId).not.toBe("fa-bos")
   })
 })
+
+describe("interleaved opponent streaming", () => {
+  it("keeps our FA on collision and gives the opponent the next STL FA", () => {
+    const days = ["2025-11-03"]
+    const faA = player("fa-a", "BOS", {
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const faB = player("fa-b", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const you = player("you-1", "CHI")
+    const opp = player("opp-1", "ATL")
+    const state = tinyState([faA, faB, you, opp], ["fa-a", "fa-b"])
+    state.teams[0]!.entries = [{ slot: "UTIL", playerId: "you-1" }]
+    state.teams[1]!.entries = [{ slot: "UTIL", playerId: "opp-1" }]
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2025-11-03", homeAbbr: "ATL", awayAbbr: "DET" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      strategyMode: "aggressive",
+      oppSpotCount: 1,
+    })
+    expect(plan.days[0]!.cells[0]!.playerId).toBe("fa-a")
+    expect(plan.opponentDays[0]!.streamerPlayerId).toBe("fa-b")
+    expect(plan.opponentDays[0]!.streamerPlayerId).not.toBe(
+      plan.days[0]!.cells[0]!.playerId,
+    )
+  })
+})

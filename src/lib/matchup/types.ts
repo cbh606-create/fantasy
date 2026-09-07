@@ -1,4 +1,5 @@
 import type { CategoryId } from "@/lib/domain/types"
+import type { DailyLineups } from "./dailyLineups"
 
 export type CategoryOutcome = "W" | "L" | "T"
 
@@ -91,6 +92,12 @@ export type StreamingPlanDay = {
   cells: StreamingPlanDayCell[]
 }
 
+export type OpponentStreamDay = {
+  date: string
+  streamerPlayerId: string | null
+  rosterGameCount: number
+}
+
 export type StreamingPlan = {
   spotCount: StreamingPlanSpotCount
   addLimit: number
@@ -100,6 +107,8 @@ export type StreamingPlan = {
   suggestedStrategyMode: StreamingStrategyMode
   summaryReasons: string[]
   days: StreamingPlanDay[]
+  opponentDays: OpponentStreamDay[]
+  opponentDaily: DailyLineups
 }
 
 export type SlotGroup = "G" | "F" | "C"

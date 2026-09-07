@@ -23,6 +23,7 @@ import {
 import { targetCategoryIdsFromBoards } from "./streamingDropExplain"
 import type {
   MatchupBoard,
+  OpponentStreamDay,
   StreamingPlan,
   StreamingPlanAction,
   StreamingPlanDay,
@@ -56,6 +57,7 @@ import {
   suggestStreamingStrategyMode,
 } from "./streamingStrategy"
 import { weeklyPlayerStats } from "./weekly"
+import { gameWeightForTeamDate } from "./games"
 import {
   isOnWaiverCooldown,
   resolveWaiverPeriodDays,
@@ -94,6 +96,7 @@ export type BuildStreamingPlanInput = {
   waiverPeriodDays?: number
   winnerStreamRecipes?: WinnerStreamRecipe[]
   today?: string
+  oppSpotCount?: 1 | 2 | 3
 }
 
 export const streamingAddDropKey = (date: string, spotIndex: number) =>
@@ -498,6 +501,174 @@ const resolveRosterDrop = (
   )
 }
 
+const rosterGameCountForDate = (
+  daily: DailyLineups,
+  date: string,
+  playersById: Map<string, SeasonPlayer>,
+  schedule: ScheduleResponse,
+): number => {
+  const entries = daily[date] ?? []
+  return entries.filter((entry) => {
+    if (!entry.playerId) return false
+    const player = playersById.get(entry.playerId)
+    if (!player?.teamAbbr) return false
+    return gameWeightForTeamDate(player.teamAbbr, date, schedule) > 0
+  }).length
+}
+
+const fillOpponentSpotsForDate = ({
+  date,
+  spotCount,
+  occupants,
+  oppWorkingDaily,
+  youWorkingDaily,
+  oppEntries,
+  takenToday,
+  addLimit,
+  addsUsed,
+  weekDropped,
+  playersById,
+  players,
+  schedule,
+  weakCats,
+  board,
+  recipes,
+  adpByPlayerId,
+  injuryOutDaysByPlayerId,
+  isCompatibleAlternative,
+  candidateIds,
+}: {
+  date: string
+  spotCount: 1 | 2 | 3
+  occupants: (string | null)[]
+  oppWorkingDaily: DailyLineups
+  youWorkingDaily: DailyLineups
+  oppEntries: SeasonRosterEntry[]
+  takenToday: Set<string>
+  addLimit: number
+  addsUsed: number
+  weekDropped: Set<string>
+  playersById: Map<string, SeasonPlayer>
+  players: SeasonPlayer[]
+  schedule: ScheduleResponse
+  weakCats: CategoryId[]
+  board: MatchupBoard
+  recipes: WinnerStreamRecipe[]
+  adpByPlayerId?: Record<string, number>
+  injuryOutDaysByPlayerId?: Record<string, number>
+  isCompatibleAlternative: (chosenId: string, otherId: string) => boolean
+  candidateIds: string[]
+}): {
+  streamerPlayerId: string | null
+  rosterGameCount: number
+  addsUsed: number
+  workingDaily: DailyLineups
+} => {
+  let workingDaily = oppWorkingDaily
+  let nextAddsUsed = addsUsed
+  let justAdded: string | null = null
+  const previousOccupants = [...occupants]
+
+  const needFill: number[] = []
+  for (let spotIndex = 0; spotIndex < spotCount; spotIndex++) {
+    const playerId = occupants[spotIndex]
+    if (playerId) {
+      const player = playersById.get(playerId)
+      if (player && remainingGameDays(player, date, schedule) > 0) {
+        continue
+      }
+    }
+    occupants[spotIndex] = null
+    needFill.push(spotIndex)
+  }
+
+  for (const spotIndex of needFill) {
+    if (nextAddsUsed >= addLimit) {
+      occupants[spotIndex] = null
+      continue
+    }
+
+    const previousId = previousOccupants[spotIndex] ?? null
+    const rosterDrop = resolveRosterDrop(
+      oppEntries,
+      playersById,
+      date,
+      spotIndex,
+      schedule,
+      weakCats,
+      weekDropped,
+      undefined,
+      adpByPlayerId,
+      injuryOutDaysByPlayerId,
+    )
+    if (rosterDrop.kind === "player" && rosterDrop.playerId) {
+      weekDropped.add(rosterDrop.playerId)
+    }
+
+    const drop: StreamerMoveDrop =
+      previousId
+        ? { kind: "player", playerId: previousId }
+        : rosterDrop.kind === "player" && rosterDrop.playerId
+          ? { kind: "player", playerId: rosterDrop.playerId }
+          : { kind: "none", playerId: null }
+
+    const occupantIds = new Set(
+      occupants.filter((id): id is string => Boolean(id)),
+    )
+    const leftoverIds = candidateIds.filter(
+      (id) => !takenToday.has(id) && !occupantIds.has(id),
+    )
+    const skipBecauseFull =
+      drop.kind === "none" &&
+      isDailyLineupFullForDate(workingDaily, date, playersById, schedule)
+    const picked =
+      leftoverIds.length === 0 || skipBecauseFull
+        ? null
+        : pickBestStreamerMove(
+            leftoverIds,
+            workingDaily,
+            date,
+            drop,
+            players,
+            schedule,
+            board,
+            isCompatibleAlternative,
+            { recipes, oppDaily: youWorkingDaily },
+          )
+
+    if (picked) {
+      workingDaily = picked.nextDaily
+      occupants[spotIndex] = picked.playerId
+      justAdded = picked.playerId
+      nextAddsUsed += 1
+      takenToday.add(picked.playerId)
+    } else {
+      if (rosterDrop.kind === "player" && rosterDrop.playerId) {
+        weekDropped.delete(rosterDrop.playerId)
+      }
+      occupants[spotIndex] = null
+    }
+  }
+
+  const playingOccupant = occupants.find((id) => {
+    if (!id) return false
+    const player = playersById.get(id)
+    return Boolean(player && playsOn(player, date, schedule))
+  })
+
+  return {
+    streamerPlayerId: playingOccupant ?? justAdded ?? null,
+    rosterGameCount: rosterGameCountForDate(
+      workingDaily,
+      date,
+      playersById,
+      schedule,
+    ),
+    addsUsed: nextAddsUsed,
+    workingDaily,
+  }
+}
+
 export const buildStreamingPlan = ({
   spotCount,
   state,
@@ -512,6 +683,7 @@ export const buildStreamingPlan = ({
   waiverPeriodDays: waiverPeriodDaysInput,
   winnerStreamRecipes = [],
   today,
+  oppSpotCount,
 }: BuildStreamingPlanInput): StreamingPlan => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
@@ -567,6 +739,40 @@ export const buildStreamingPlan = ({
       state.players,
       schedule,
     )
+  const oppTeam = state.teams.find(
+    (_, index) => index !== state.perspectiveTeamIndex,
+  )
+  let oppWorkingDaily: DailyLineups = oppSpotCount
+    ? initDailyLineups(
+        schedule.matchup.days,
+        oppTeam?.entries ?? [],
+        rosterSlots,
+        state.players,
+        schedule,
+      )
+    : {}
+  const oppOccupants: (string | null)[] = Array.from(
+    { length: oppSpotCount ?? 0 },
+    () => null,
+  )
+  let oppAddsUsed = 0
+  const oppWeekDropped = new Set<string>()
+  const claimedFaIds = new Set<string>()
+  const opponentDays: OpponentStreamDay[] = []
+  const ourPickOptions = (requirePositiveDelta?: boolean) => {
+    const options: {
+      requirePositiveDelta?: boolean
+      recipes: WinnerStreamRecipe[]
+      oppDaily?: DailyLineups
+    } = { recipes: winnerStreamRecipes }
+    if (requirePositiveDelta === false) {
+      options.requirePositiveDelta = false
+    }
+    if (oppSpotCount) {
+      options.oppDaily = oppWorkingDaily
+    }
+    return options
+  }
   const isCompatibleAlternative = (chosenId: string, otherId: string) => {
     const chosen = playersById.get(chosenId)
     const other = playersById.get(otherId)
@@ -755,7 +961,7 @@ export const buildStreamingPlan = ({
                 schedule,
                 board,
                 isCompatibleAlternative,
-                { recipes: winnerStreamRecipes },
+                ourPickOptions(),
               )
         if (picked) {
           targetCategoryIds = targetCatsFromMove(workingDaily, picked.nextDaily)
@@ -915,9 +1121,7 @@ export const buildStreamingPlan = ({
         schedule,
         board,
         isCompatibleAlternative,
-        isOneSpotOffNight
-          ? { requirePositiveDelta: false, recipes: winnerStreamRecipes }
-          : { recipes: winnerStreamRecipes },
+        ourPickOptions(isOneSpotOffNight ? false : undefined),
       )
       if (!picked) continue
 
@@ -952,6 +1156,60 @@ export const buildStreamingPlan = ({
       return resolved
     })
 
+    if (oppSpotCount) {
+      for (const cell of dayCells) {
+        if (
+          cell.playerId &&
+          (cell.action === "add" || cell.action === "drop_add")
+        ) {
+          claimedFaIds.add(cell.playerId)
+        }
+      }
+      const takenToday = new Set<string>(claimedFaIds)
+      for (const cell of dayCells) {
+        if (cell.playerId) takenToday.add(cell.playerId)
+      }
+      const candidateIds = rankEligibleFas(
+        addableFreeAgents(date),
+        date,
+        schedule,
+        weakCats,
+        takenToday,
+      ).map((entry) => entry.id)
+      const filled = fillOpponentSpotsForDate({
+        date,
+        spotCount: oppSpotCount,
+        occupants: oppOccupants,
+        oppWorkingDaily,
+        youWorkingDaily: workingDaily,
+        oppEntries: oppTeam?.entries ?? [],
+        takenToday,
+        addLimit,
+        addsUsed: oppAddsUsed,
+        weekDropped: oppWeekDropped,
+        playersById,
+        players: state.players,
+        schedule,
+        weakCats,
+        board,
+        recipes: winnerStreamRecipes,
+        adpByPlayerId,
+        injuryOutDaysByPlayerId,
+        isCompatibleAlternative,
+        candidateIds,
+      })
+      oppWorkingDaily = filled.workingDaily
+      oppAddsUsed = filled.addsUsed
+      for (const occupant of oppOccupants) {
+        if (occupant) claimedFaIds.add(occupant)
+      }
+      opponentDays.push({
+        date,
+        streamerPlayerId: filled.streamerPlayerId,
+        rosterGameCount: filled.rosterGameCount,
+      })
+    }
+
     days.push({ date, cells: dayCells })
   }
 
@@ -968,6 +1226,14 @@ export const buildStreamingPlan = ({
       didProtectDrops,
     ),
     days,
+    opponentDays: oppSpotCount
+      ? opponentDays
+      : schedule.matchup.days.map((date) => ({
+          date,
+          streamerPlayerId: null,
+          rosterGameCount: 0,
+        })),
+    opponentDaily: oppSpotCount ? oppWorkingDaily : {},
   }
 }
 
