@@ -30,6 +30,7 @@ export const playerSchema = z.object({
   name: z.string(),
   positions: z.array(positionSchema),
   projections: z.record(categoryIdSchema, z.number()),
+  projectedGames: z.number().positive().optional(),
   adp: z.number(),
   adpBySource: z.record(z.string(), z.number()).optional(),
   espnId: z.string().optional(),

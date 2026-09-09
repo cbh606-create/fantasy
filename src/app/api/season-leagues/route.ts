@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server"
-import manualSeasonLeagueFixture from "../../../../data/fixtures/espn-season-league.json"
 import {
   manualToSeasonLeagueState,
-  type ManualSeasonLeagueInput,
 } from "@/lib/adapters/manualSeason"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { loadManualSeasonFixture } from "@/lib/season/loadManualSeasonFixture"
 
 type CreateSeasonLeagueBody = {
   name?: unknown
@@ -69,7 +68,7 @@ export const POST = async (request: Request): Promise<Response> => {
   }
 
   const state = manualToSeasonLeagueState({
-    ...(manualSeasonLeagueFixture as ManualSeasonLeagueInput),
+    ...loadManualSeasonFixture(),
     name: body.name.trim(),
   })
   const league = await db.seasonLeague.create({

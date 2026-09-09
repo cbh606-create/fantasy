@@ -146,6 +146,8 @@ describe("GET /api/matchup", () => {
         losses: expect.any(Number),
       }),
       streamers: expect.any(Array),
+      streamingPlans: expect.any(Array),
+      adpByPlayerId: expect.any(Object),
       playersById: expect.any(Object),
       teams: expect.any(Array),
       schedule: expect.objectContaining({
@@ -154,12 +156,58 @@ describe("GET /api/matchup", () => {
         }),
       }),
     })
+    expect(payload.adpByPlayerId.t1p1).toEqual(expect.any(Number))
     expect(Array.isArray(payload.schedule.matchup.days)).toBe(true)
     expect(payload.schedule.matchup.days.length).toBeGreaterThan(0)
     expect(payload.teams.some((team: { teamIndex: number }) => team.teamIndex === opponentTeamIndex)).toBe(
       true,
     )
     expect(payload.state).toBeUndefined()
+
+    const planPlayerIds = new Set<string>()
+    for (const plan of payload.streamingPlans as Array<{
+      days: Array<{
+        cells: Array<{
+          playerId: string | null
+          droppedPlayerId?: string | null
+          rosterDropPlayerId?: string | null
+        }>
+      }>
+    }>) {
+      for (const day of plan.days) {
+        for (const cell of day.cells) {
+          if (cell.playerId) planPlayerIds.add(cell.playerId)
+          if (cell.droppedPlayerId) planPlayerIds.add(cell.droppedPlayerId)
+          if (cell.rosterDropPlayerId) planPlayerIds.add(cell.rosterDropPlayerId)
+        }
+      }
+    }
+    for (const playerId of planPlayerIds) {
+      expect(payload.playersById[playerId]).toMatchObject({ id: playerId })
+    }
+
+    const sample = (
+      payload.streamingPlans as Array<{
+        days: Array<{ cells: Array<Record<string, unknown>> }>
+      }>
+    )
+      .flatMap((p) => p.days.flatMap((d) => d.cells))
+      .find((c) => c.action === "add" || c.action === "drop_add")
+    if (sample) {
+      expect(sample).toHaveProperty("droppedPlayerId")
+      expect(sample).toHaveProperty("rosterDropKind")
+    }
+
+    const plans = payload.streamingPlans as Array<{
+      strategyMode: string
+      suggestedStrategyMode: string
+      summaryReasons: unknown
+    }>
+    expect(plans.length).toBeGreaterThan(0)
+    for (const plan of plans) {
+      expect(plan.strategyMode).toBe(plan.suggestedStrategyMode)
+      expect(Array.isArray(plan.summaryReasons)).toBe(true)
+    }
   })
 
   it("resolves auto opponent and includes state when requested", async () => {

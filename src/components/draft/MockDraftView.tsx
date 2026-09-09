@@ -1,27 +1,31 @@
 "use client"
 
-import type { ChangeEvent } from "react"
+import { useState, type ChangeEvent } from "react"
 import { BoardGrid } from "@/components/draft/BoardGrid"
+import { DraftStrategyChips } from "@/components/draft/DraftStrategyChips"
 import { MockDraftAnalysis } from "@/components/draft/MockDraftAnalysis"
 import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import { PlayerPool } from "@/components/draft/PlayerPool"
+import { PlayerStatsPeek } from "@/components/draft/PlayerStatsPeek"
 import { RecPanel } from "@/components/draft/RecPanel"
 import { Button } from "@/components/ui/Button"
 import { ESPN_TEAM_COUNTS } from "@/lib/domain/leagueSize"
 import { isUserTurn } from "@/lib/domain/snake"
 import type {
+  CategoryId,
   DraftBoard,
   LeagueState,
   Player,
   SimulationResult,
 } from "@/lib/domain/types"
 import {
-  ADP_SOURCE_IDS,
   ADP_SOURCES,
   DEFAULT_ADP_SOURCE,
+  SELECTABLE_ADP_SOURCE_IDS,
   formatAdpReferenceLine,
   type AdpSourceId,
 } from "@/lib/players/adpSources"
+import { FAST_NEXT_PICK_COUNT } from "@/lib/sim/constants"
 
 export type MockLatestPick = {
   overall: number
@@ -31,6 +35,7 @@ export type MockLatestPick = {
 
 type MockDraftViewProps = {
   adpSource?: AdpSourceId
+  focusCategoryIds: CategoryId[]
   isAdvancing: boolean
   isPlayersLoading?: boolean
   isSavingPick: boolean
@@ -42,14 +47,20 @@ type MockDraftViewProps = {
   onMarkPicked: (playerId: string) => void
   onReset: () => void
   onSlotChange: (slot: number) => void
+  onStrategyChange: (next: {
+    puntCategoryIds: CategoryId[]
+    focusCategoryIds: CategoryId[]
+  }) => void
   onTeamsChange: (teams: number) => void
   perspectiveTeamIndex: number
   players: Player[]
+  puntCategoryIds: CategoryId[]
   state: LeagueState
 }
 
 export const MockDraftView = ({
   adpSource = DEFAULT_ADP_SOURCE,
+  focusCategoryIds,
   isAdvancing,
   isPlayersLoading = false,
   isSavingPick,
@@ -61,11 +72,18 @@ export const MockDraftView = ({
   onMarkPicked,
   onReset,
   onSlotChange,
+  onStrategyChange,
   onTeamsChange,
   perspectiveTeamIndex,
   players,
+  puntCategoryIds,
   state,
 }: MockDraftViewProps) => {
+  const [hoveredPlayerId, setHoveredPlayerId] = useState<string | null>(null)
+  const hoveredPlayer =
+    hoveredPlayerId === null
+      ? null
+      : (players.find((player) => player.id === hoveredPlayerId) ?? null)
   const teams = state.settings.teams
   const mockState: LeagueState = {
     ...state,
@@ -124,6 +142,12 @@ export const MockDraftView = ({
 
   return (
     <div>
+      <DraftStrategyChips
+        focusCategoryIds={focusCategoryIds}
+        onStrategyChange={onStrategyChange}
+        puntCategoryIds={puntCategoryIds}
+      />
+
       {latestPick ? (
         <div
           aria-live="polite"
@@ -163,10 +187,15 @@ export const MockDraftView = ({
           }
           isSimulating={isSimulating && userTurn && !draftComplete}
           layout="row"
-          maxNextPicks={3}
+          maxNextPicks={FAST_NEXT_PICK_COUNT}
           players={players}
           result={mockResult}
           showCategoryOutlook={false}
+        />
+        <PlayerStatsPeek
+          focusCategoryIds={focusCategoryIds}
+          player={hoveredPlayer}
+          puntCategoryIds={puntCategoryIds}
         />
       </div>
 
@@ -196,7 +225,7 @@ export const MockDraftView = ({
               onChange={handleAdpSourceChange}
               value={adpSource}
             >
-              {ADP_SOURCE_IDS.map((id) => (
+              {SELECTABLE_ADP_SOURCE_IDS.map((id) => (
                 <option key={id} value={id}>
                   {ADP_SOURCES[id].label}
                 </option>
@@ -262,6 +291,7 @@ export const MockDraftView = ({
           adpSource={adpSource}
           compact
           disabled={busy || !userTurn || draftComplete}
+          onHoverPlayerId={setHoveredPlayerId}
           onMarkPicked={onMarkPicked}
           pickedPlayerIds={pickedPlayerIds}
           players={players}

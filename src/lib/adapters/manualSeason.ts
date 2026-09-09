@@ -47,5 +47,6 @@ export const manualToSeasonLeagueState = (
     players: input.players.map(normalizePlayer),
     availablePlayerIds: input.availablePlayerIds,
     waiverOrder: input.waiverOrder,
+    rosterSlots: [...SEASON_ROSTER_SLOTS],
     source: "manual",
   })

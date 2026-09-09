@@ -54,6 +54,7 @@ type PoolPlayer = {
   name: string
   teamAbbr?: string
   projections: Projections
+  projectedGames?: number
   shooting?: {
     FGM: number
     FGA: number
@@ -318,6 +319,7 @@ export const applyHashtagProjections = <T extends PoolPlayer>(
     const updated: T = {
       ...player,
       projections,
+      projectedGames: gp,
     }
 
     if (row.shooting && player.shooting) {

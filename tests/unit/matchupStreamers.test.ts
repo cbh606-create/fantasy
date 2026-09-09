@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { adviseMatchup } from "@/lib/matchup/advise"
 import { suggestStreamers } from "@/lib/matchup/streamers"
+import { suggestStreamingStrategyMode } from "@/lib/matchup/streamingStrategy"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { MatchupBoard } from "@/lib/matchup/types"
 import type { ScheduleResponse, SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
@@ -136,8 +137,66 @@ describe("suggestStreamers", () => {
     expect(suggestions.length).toBeGreaterThan(0)
     expect(suggestions[0]?.playerId).toBe("stl-specialist")
     expect(suggestions[0]?.gamesThisWeek).toBe(3)
+    expect(suggestions[0]?.b2bNights).toBe(0)
     expect(suggestions[0]?.reasons[0]).toMatch(/Helps STL · 3 games/)
     expect(suggestions[0]?.score).toBeGreaterThan(0)
+  })
+
+  it("labels integer games with a B2B note when present", () => {
+    const gamesMap = new Map<string, number>([["stl-specialist", 3]])
+    const b2bMap = new Map<string, number>([["stl-specialist", 1]])
+
+    const suggestions = suggestStreamers({
+      state,
+      board: boardWithStlLoss(),
+      gamesMap,
+      b2bMap,
+    })
+
+    expect(suggestions[0]?.reasons[0]).toBe("Helps STL · 3 games · 1 B2B")
+  })
+
+  it("breaks equal streamer scores with a matching winner recipe", () => {
+    const volumeTwin: SeasonPlayer = {
+      id: "aaa-volume",
+      name: "Volume Twin",
+      teamAbbr: "BOS",
+      availability: "fa",
+      positions: ["SF"],
+      projections: { ...baseProjections(), STL: 180, PTS: 4000, REB: 10, AST: 10, TPM: 10, BLK: 10 },
+      shooting: { FGM: 300, FGA: 650, FTM: 120, FTA: 150 },
+    }
+    const stlTwin: SeasonPlayer = {
+      id: "zzz-stl",
+      name: "STL Twin",
+      teamAbbr: "BOS",
+      availability: "fa",
+      positions: ["PG"],
+      projections: { ...baseProjections(), STL: 180, PTS: 10, REB: 10, AST: 10, TPM: 10, BLK: 10 },
+      shooting: { FGM: 300, FGA: 650, FTM: 120, FTA: 150 },
+    }
+    const suggestions = suggestStreamers({
+      state: {
+        ...state,
+        players: [...state.players, volumeTwin, stlTwin],
+        availablePlayerIds: ["aaa-volume", "zzz-stl"],
+      },
+      board: boardWithStlLoss(),
+      gamesMap: new Map([
+        ["aaa-volume", 3],
+        ["zzz-stl", 3],
+      ]),
+      recipes: [
+        {
+          situationCat: "STL",
+          addKind: "STL",
+          addGroup: "G",
+          count: 4,
+        },
+      ],
+    })
+
+    expect(suggestions[0]?.playerId).toBe("zzz-stl")
   })
 })
 
@@ -168,5 +227,78 @@ describe("adviseMatchup", () => {
     expect(Array.isArray(advice.board.categories)).toBe(true)
     expect(Array.isArray(advice.sitStart)).toBe(true)
     expect(Array.isArray(advice.streamers)).toBe(true)
+    expect(advice.streamingPlans).toHaveLength(3)
+    expect(advice.streamingPlans.map((p) => p.spotCount)).toEqual([1, 2, 3])
+  })
+
+  it("omitted strategyMode uses board suggestion", () => {
+    const advice = adviseMatchup(state, schedule, 1)
+
+    expect(advice).not.toHaveProperty("error")
+    if ("error" in advice) return
+
+    const suggested = suggestStreamingStrategyMode(advice.board)
+    for (const plan of advice.streamingPlans) {
+      expect(plan.suggestedStrategyMode).toBe(suggested)
+      expect(plan.strategyMode).toBe(plan.suggestedStrategyMode)
+      expect(plan.summaryReasons.length).toBeGreaterThan(0)
+    }
+  })
+
+  it("echoes winnerStreamRecipes onto advice", () => {
+    const recipes = [
+      {
+        situationCat: "STL" as const,
+        addKind: "STL" as const,
+        addGroup: "G" as const,
+        count: 3,
+      },
+    ]
+    const advice = adviseMatchup(state, schedule, 1, {
+      winnerStreamRecipes: recipes,
+    })
+
+    expect(advice).not.toHaveProperty("error")
+    if ("error" in advice) return
+    expect(advice.winnerStreamRecipes).toEqual(recipes)
+  })
+
+  it("passes addLimit through to streaming plans", () => {
+    const advice = adviseMatchup(state, schedule, 1, { addLimit: 2 })
+
+    expect(advice).not.toHaveProperty("error")
+    if ("error" in advice) return
+
+    for (const plan of advice.streamingPlans) {
+      expect(plan.addLimit).toBe(2)
+    }
+  })
+
+  it("includes adpByPlayerId for proj-pool id and name|team matches", () => {
+    const wemby: SeasonPlayer = {
+      id: "espn-5104157",
+      name: "Victor Wembanyama",
+      teamAbbr: "SAS",
+      projections: baseProjections(),
+      shooting: { FGM: 500, FGA: 1040, FTM: 200, FTA: 260 },
+    }
+    const jokicAlias: SeasonPlayer = {
+      id: "custom-jokic",
+      name: "Nikola Jokic",
+      teamAbbr: "DEN",
+      projections: baseProjections(),
+      shooting: { FGM: 500, FGA: 1040, FTM: 200, FTA: 260 },
+    }
+    const advice = adviseMatchup(
+      { ...state, players: [...state.players, wemby, jokicAlias] },
+      schedule,
+      1,
+    )
+
+    expect(advice).not.toHaveProperty("error")
+    if ("error" in advice) return
+
+    expect(advice.adpByPlayerId?.["espn-5104157"]).toBe(1)
+    expect(advice.adpByPlayerId?.["custom-jokic"]).toBe(2)
   })
 })

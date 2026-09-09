@@ -75,4 +75,25 @@ describe("PlayerPool compact sorting", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sort by Pos" }))
     expect(rowNames()).toEqual(["Zed Player", "Amy Player", "Mia Player"])
   })
+
+  it("does not expand inline stats and reports hover id", () => {
+    const onHoverPlayerId = vi.fn()
+    render(
+      <PlayerPool
+        compact
+        onHoverPlayerId={onHoverPlayerId}
+        onMarkPicked={vi.fn()}
+        pickedPlayerIds={[]}
+        players={players}
+      />,
+    )
+
+    const row = screen.getByText(/Amy Player/).closest("tr")!
+    fireEvent.mouseEnter(row)
+    expect(onHoverPlayerId).toHaveBeenCalledWith("b")
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+
+    fireEvent.mouseLeave(row)
+    expect(onHoverPlayerId).toHaveBeenCalledWith(null)
+  })
 })

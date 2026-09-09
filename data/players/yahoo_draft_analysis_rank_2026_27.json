@@ -3,2658 +3,2658 @@
     "source": "yahoo_draft_analysis_rank",
     "url": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
     "api": "https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2/league/478.l.public/players",
-    "fetchedAt": "2026-08-23T14:27:37.981Z",
+    "fetchedAt": "2026-08-26T12:04:46.482Z",
     "count": 662,
-    "note": "Overall Rank (o-rank); Current ADP is Yahoo Plus-gated"
+    "note": "Yahoo player_ranks OR (mock draft Rank / draftanalysis Rank column)"
   },
   "rankings": [
     {
       "name": "Victor Wembanyama",
-      "rank": 1
+      "adp": 1
     },
     {
       "name": "Nikola Jokić",
-      "rank": 2
+      "adp": 2
     },
     {
       "name": "Luka Dončić",
-      "rank": 3
+      "adp": 3
     },
     {
       "name": "Shai Gilgeous-Alexander",
-      "rank": 4
+      "adp": 4
     },
     {
       "name": "Cade Cunningham",
-      "rank": 5
+      "adp": 5
     },
     {
       "name": "Tyrese Maxey",
-      "rank": 6
+      "adp": 6
     },
     {
       "name": "Jayson Tatum",
-      "rank": 7
+      "adp": 7
     },
     {
       "name": "Anthony Edwards",
-      "rank": 8
+      "adp": 8
     },
     {
       "name": "Giannis Antetokounmpo",
-      "rank": 9
+      "adp": 9
     },
     {
       "name": "Jalen Johnson",
-      "rank": 10
+      "adp": 10
     },
     {
       "name": "Donovan Mitchell",
-      "rank": 11
+      "adp": 11
     },
     {
       "name": "Tyrese Haliburton",
-      "rank": 12
+      "adp": 12
     },
     {
       "name": "Cooper Flagg",
-      "rank": 13
+      "adp": 13
     },
     {
       "name": "Kevin Durant",
-      "rank": 14
+      "adp": 14
     },
     {
       "name": "Scottie Barnes",
-      "rank": 15
+      "adp": 15
     },
     {
       "name": "Karl-Anthony Towns",
-      "rank": 16
+      "adp": 16
     },
     {
       "name": "Jamal Murray",
-      "rank": 17
+      "adp": 17
     },
     {
       "name": "Kawhi Leonard",
-      "rank": 18
+      "adp": 18
     },
     {
       "name": "Chet Holmgren",
-      "rank": 19
+      "adp": 19
     },
     {
       "name": "LaMelo Ball",
-      "rank": 20
+      "adp": 20
     },
     {
       "name": "Anthony Davis",
-      "rank": 21
+      "adp": 21
     },
     {
       "name": "Trae Young",
-      "rank": 22
+      "adp": 22
     },
     {
       "name": "Alperen Şengün",
-      "rank": 23
+      "adp": 23
     },
     {
       "name": "Austin Reaves",
-      "rank": 24
+      "adp": 24
     },
     {
       "name": "Stephen Curry",
-      "rank": 25
+      "adp": 25
     },
     {
       "name": "Walker Kessler",
-      "rank": 26
+      "adp": 26
     },
     {
       "name": "Josh Giddey",
-      "rank": 27
+      "adp": 27
     },
     {
       "name": "Jalen Brunson",
-      "rank": 28
+      "adp": 28
     },
     {
       "name": "Jalen Duren",
-      "rank": 29
+      "adp": 29
     },
     {
       "name": "Trey Murphy III",
-      "rank": 30
+      "adp": 30
     },
     {
       "name": "Amen Thompson",
-      "rank": 31
+      "adp": 31
     },
     {
       "name": "Evan Mobley",
-      "rank": 32
+      "adp": 32
     },
     {
       "name": "Devin Booker",
-      "rank": 33
+      "adp": 33
     },
     {
       "name": "Domantas Sabonis",
-      "rank": 34
+      "adp": 34
     },
     {
       "name": "James Harden",
-      "rank": 35
+      "adp": 35
     },
     {
       "name": "Bam Adebayo",
-      "rank": 36
+      "adp": 36
     },
     {
       "name": "Kon Knueppel",
-      "rank": 37
+      "adp": 37
     },
     {
       "name": "Donovan Clingan",
-      "rank": 38
+      "adp": 38
     },
     {
       "name": "Derrick White",
-      "rank": 39
+      "adp": 39
     },
     {
       "name": "Jaylen Brown",
-      "rank": 40
+      "adp": 40
     },
     {
       "name": "Deni Avdija",
-      "rank": 41
+      "adp": 41
     },
     {
       "name": "LeBron James",
-      "rank": 42
+      "adp": 42
     },
     {
       "name": "Jalen Williams",
-      "rank": 43
+      "adp": 43
     },
     {
       "name": "Lauri Markkanen",
-      "rank": 44
+      "adp": 44
     },
     {
       "name": "Kyrie Irving",
-      "rank": 45
+      "adp": 45
     },
     {
       "name": "Brandon Miller",
-      "rank": 46
+      "adp": 46
     },
     {
       "name": "Keyonte George",
-      "rank": 47
+      "adp": 47
     },
     {
       "name": "Joel Embiid",
-      "rank": 48
+      "adp": 48
     },
     {
       "name": "Desmond Bane",
-      "rank": 49
+      "adp": 49
     },
     {
       "name": "Jaren Jackson Jr.",
-      "rank": 50
+      "adp": 50
     },
     {
       "name": "Franz Wagner",
-      "rank": 51
+      "adp": 51
     },
     {
       "name": "Pascal Siakam",
-      "rank": 52
+      "adp": 52
     },
     {
       "name": "Darius Garland",
-      "rank": 53
+      "adp": 53
     },
     {
       "name": "Paolo Banchero",
-      "rank": 54
+      "adp": 54
     },
     {
       "name": "Nickeil Alexander-Walker",
-      "rank": 55
+      "adp": 55
     },
     {
       "name": "Alex Sarr",
-      "rank": 56
+      "adp": 56
     },
     {
       "name": "Onyeka Okongwu",
-      "rank": 57
+      "adp": 57
     },
     {
       "name": "Tyler Herro",
-      "rank": 58
+      "adp": 58
     },
     {
       "name": "Dejounte Murray",
-      "rank": 59
+      "adp": 59
     },
     {
       "name": "OG Anunoby",
-      "rank": 60
+      "adp": 60
     },
     {
       "name": "Naz Reid",
-      "rank": 61
+      "adp": 61
     },
     {
       "name": "Zach Edey",
-      "rank": 62
+      "adp": 62
     },
     {
       "name": "Dyson Daniels",
-      "rank": 63
+      "adp": 63
     },
     {
       "name": "Julius Randle",
-      "rank": 64
+      "adp": 64
     },
     {
       "name": "Cameron Boozer",
-      "rank": 65
+      "adp": 65
     },
     {
       "name": "Damian Lillard",
-      "rank": 66
+      "adp": 66
     },
     {
       "name": "Michael Porter Jr.",
-      "rank": 67
+      "adp": 67
     },
     {
       "name": "Ivica Zubac",
-      "rank": 68
+      "adp": 68
     },
     {
       "name": "Ryan Rollins",
-      "rank": 69
+      "adp": 69
     },
     {
       "name": "Stephon Castle",
-      "rank": 70
+      "adp": 70
     },
     {
       "name": "VJ Edgecombe",
-      "rank": 71
+      "adp": 71
     },
     {
       "name": "Zion Williamson",
-      "rank": 72
+      "adp": 72
     },
     {
       "name": "Mikal Bridges",
-      "rank": 73
+      "adp": 73
     },
     {
       "name": "Jaden McDaniels",
-      "rank": 74
+      "adp": 74
     },
     {
       "name": "Paul George",
-      "rank": 75
+      "adp": 75
     },
     {
       "name": "Jarrett Allen",
-      "rank": 76
+      "adp": 76
     },
     {
       "name": "Brandon Ingram",
-      "rank": 77
+      "adp": 77
     },
     {
       "name": "Rudy Gobert",
-      "rank": 78
+      "adp": 78
     },
     {
       "name": "Dylan Harper",
-      "rank": 79
+      "adp": 79
     },
     {
       "name": "Payton Pritchard",
-      "rank": 80
+      "adp": 80
     },
     {
       "name": "Caleb Wilson",
-      "rank": 81
+      "adp": 81
     },
     {
       "name": "Kel'el Ware",
-      "rank": 82
+      "adp": 82
     },
     {
       "name": "Matas Buzelis",
-      "rank": 83
+      "adp": 83
     },
     {
       "name": "De'Aaron Fox",
-      "rank": 84
+      "adp": 84
     },
     {
       "name": "Coby White",
-      "rank": 85
+      "adp": 85
     },
     {
       "name": "AJ Dybantsa",
-      "rank": 86
+      "adp": 86
     },
     {
       "name": "Ty Jerome",
-      "rank": 87
+      "adp": 87
     },
     {
       "name": "Day'Ron Sharpe",
-      "rank": 88
+      "adp": 88
     },
     {
       "name": "Ja Morant",
-      "rank": 89
+      "adp": 89
     },
     {
       "name": "Immanuel Quickley",
-      "rank": 90
+      "adp": 90
     },
     {
       "name": "Norman Powell",
-      "rank": 91
+      "adp": 91
     },
     {
       "name": "Ausar Thompson",
-      "rank": 92
+      "adp": 92
     },
     {
       "name": "Darryn Peterson",
-      "rank": 93
+      "adp": 93
     },
     {
       "name": "Derik Queen",
-      "rank": 94
+      "adp": 94
     },
     {
       "name": "Myles Turner",
-      "rank": 95
+      "adp": 95
     },
     {
       "name": "Mark Williams",
-      "rank": 96
+      "adp": 96
     },
     {
       "name": "Josh Hart",
-      "rank": 97
+      "adp": 97
     },
     {
       "name": "Nic Claxton",
-      "rank": 98
+      "adp": 98
     },
     {
       "name": "Isaiah Hartenstein",
-      "rank": 99
+      "adp": 99
     },
     {
       "name": "Neemias Queta",
-      "rank": 100
+      "adp": 100
     },
     {
       "name": "Ayo Dosunmu",
-      "rank": 101
+      "adp": 101
     },
     {
       "name": "Jalen Suggs",
-      "rank": 102
+      "adp": 102
     },
     {
       "name": "Wendell Carter Jr.",
-      "rank": 103
+      "adp": 103
     },
     {
       "name": "Miles Bridges",
-      "rank": 104
+      "adp": 104
     },
     {
       "name": "Kristaps Porziņģis",
-      "rank": 105
+      "adp": 105
     },
     {
       "name": "Kyshawn George",
-      "rank": 106
+      "adp": 106
     },
     {
       "name": "Brandin Podziemski",
-      "rank": 107
+      "adp": 107
     },
     {
       "name": "Cedric Coward",
-      "rank": 108
+      "adp": 108
     },
     {
       "name": "Andrew Wiggins",
-      "rank": 109
+      "adp": 109
     },
     {
       "name": "Kevin Porter Jr.",
-      "rank": 110
+      "adp": 110
     },
     {
       "name": "Jabari Smith Jr.",
-      "rank": 111
+      "adp": 111
     },
     {
       "name": "Sandro Mamukelashvili",
-      "rank": 112
+      "adp": 112
     },
     {
       "name": "Peyton Watson",
-      "rank": 113
+      "adp": 113
     },
     {
       "name": "Jusuf Nurkić",
-      "rank": 114
+      "adp": 114
     },
     {
       "name": "CJ McCollum",
-      "rank": 115
+      "adp": 115
     },
     {
       "name": "Darius Acuff Jr.",
-      "rank": 116
+      "adp": 116
     },
     {
       "name": "Jaime Jaquez Jr.",
-      "rank": 117
+      "adp": 117
     },
     {
       "name": "Keegan Murray",
-      "rank": 118
+      "adp": 118
     },
     {
       "name": "Fred VanVleet",
-      "rank": 119
+      "adp": 119
     },
     {
       "name": "Toumani Camara",
-      "rank": 120
+      "adp": 120
     },
     {
       "name": "John Collins",
-      "rank": 121
+      "adp": 121
     },
     {
       "name": "DeMar DeRozan",
-      "rank": 122
+      "adp": 122
     },
     {
       "name": "RJ Barrett",
-      "rank": 123
+      "adp": 123
     },
     {
       "name": "Jalen Green",
-      "rank": 124
+      "adp": 124
     },
     {
       "name": "Zach LaVine",
-      "rank": 125
+      "adp": 125
     },
     {
       "name": "Saddiq Bey",
-      "rank": 126
+      "adp": 126
     },
     {
       "name": "Maxime Raynaud",
-      "rank": 127
+      "adp": 127
     },
     {
       "name": "Collin Murray-Boyles",
-      "rank": 128
+      "adp": 128
     },
     {
       "name": "Jimmy Butler III",
-      "rank": 129
+      "adp": 129
     },
     {
       "name": "Andrew Nembhard",
-      "rank": 130
+      "adp": 130
     },
     {
       "name": "Collin Gillespie",
-      "rank": 131
+      "adp": 131
     },
     {
       "name": "Yaxel Lendeborg",
-      "rank": 132
+      "adp": 132
     },
     {
       "name": "Jrue Holiday",
-      "rank": 133
+      "adp": 133
     },
     {
       "name": "Daniel Gafford",
-      "rank": 134
+      "adp": 134
     },
     {
       "name": "Egor Dëmin",
-      "rank": 135
+      "adp": 135
     },
     {
       "name": "Jakob Poeltl",
-      "rank": 136
+      "adp": 136
     },
     {
       "name": "Davion Mitchell",
-      "rank": 137
+      "adp": 137
     },
     {
       "name": "Reed Sheppard",
-      "rank": 138
+      "adp": 138
     },
     {
       "name": "Brook Lopez",
-      "rank": 139
+      "adp": 139
     },
     {
       "name": "Quentin Grimes",
-      "rank": 140
+      "adp": 140
     },
     {
       "name": "Paul Reed",
-      "rank": 141
+      "adp": 141
     },
     {
       "name": "Ajay Mitchell",
-      "rank": 142
+      "adp": 142
     },
     {
       "name": "Anthony Black",
-      "rank": 143
+      "adp": 143
     },
     {
       "name": "P.J. Washington",
-      "rank": 144
+      "adp": 144
     },
     {
       "name": "Kelly Oubre Jr.",
-      "rank": 145
+      "adp": 145
     },
     {
       "name": "Shaedon Sharpe",
-      "rank": 146
+      "adp": 146
     },
     {
       "name": "Draymond Green",
-      "rank": 147
+      "adp": 147
     },
     {
       "name": "Cameron Johnson",
-      "rank": 148
+      "adp": 148
     },
     {
       "name": "Keaton Wagler",
-      "rank": 149
+      "adp": 149
     },
     {
       "name": "Bobby Portis",
-      "rank": 150
+      "adp": 150
     },
     {
       "name": "Julian Champagnie",
-      "rank": 151
+      "adp": 151
     },
     {
       "name": "Ace Bailey",
-      "rank": 152
+      "adp": 152
     },
     {
       "name": "Morez Johnson Jr.",
-      "rank": 153
+      "adp": 153
     },
     {
       "name": "Cason Wallace",
-      "rank": 154
+      "adp": 154
     },
     {
       "name": "Dillon Brooks",
-      "rank": 155
+      "adp": 155
     },
     {
       "name": "Aaron Gordon",
-      "rank": 156
+      "adp": 156
     },
     {
       "name": "Isaiah Stewart",
-      "rank": 157
+      "adp": 157
     },
     {
       "name": "Tari Eason",
-      "rank": 158
+      "adp": 158
     },
     {
       "name": "Jeremiah Fears",
-      "rank": 159
+      "adp": 159
     },
     {
       "name": "Deandre Ayton",
-      "rank": 160
+      "adp": 160
     },
     {
       "name": "Devin Vassell",
-      "rank": 161
+      "adp": 161
     },
     {
       "name": "Mikel Brown Jr.",
-      "rank": 162
+      "adp": 162
     },
     {
       "name": "Hannes Steinbach",
-      "rank": 163
+      "adp": 163
     },
     {
       "name": "Isaiah Collier",
-      "rank": 164
+      "adp": 164
     },
     {
       "name": "Jay Huff",
-      "rank": 165
+      "adp": 165
     },
     {
       "name": "Kyle Filipowski",
-      "rank": 166
+      "adp": 166
     },
     {
       "name": "Christian Braun",
-      "rank": 167
+      "adp": 167
     },
     {
       "name": "Khaman Maluach",
-      "rank": 168
+      "adp": 168
     },
     {
       "name": "Joan Beringer",
-      "rank": 169
+      "adp": 169
     },
     {
       "name": "Robert Williams III",
-      "rank": 170
+      "adp": 170
     },
     {
       "name": "Grayson Allen",
-      "rank": 171
+      "adp": 171
     },
     {
       "name": "Jerami Grant",
-      "rank": 172
+      "adp": 172
     },
     {
       "name": "Tre Jones",
-      "rank": 173
+      "adp": 173
     },
     {
       "name": "Nikola Vučević",
-      "rank": 174
+      "adp": 174
     },
     {
       "name": "Bennedict Mathurin",
-      "rank": 175
+      "adp": 175
     },
     {
       "name": "Scotty Pippen Jr.",
-      "rank": 176
+      "adp": 176
     },
     {
       "name": "Moussa Diabaté",
-      "rank": 177
+      "adp": 177
     },
     {
       "name": "Will Riley",
-      "rank": 178
+      "adp": 178
     },
     {
       "name": "Herbert Jones",
-      "rank": 179
+      "adp": 179
     },
     {
       "name": "Brayden Burries",
-      "rank": 180
+      "adp": 180
     },
     {
       "name": "Anfernee Simons",
-      "rank": 181
+      "adp": 181
     },
     {
       "name": "Ousmane Dieng",
-      "rank": 182
+      "adp": 182
     },
     {
       "name": "Tobias Harris",
-      "rank": 183
+      "adp": 183
     },
     {
       "name": "Tim Hardaway Jr.",
-      "rank": 184
+      "adp": 184
     },
     {
       "name": "Bilal Coulibaly",
-      "rank": 185
+      "adp": 185
     },
     {
       "name": "Yves Missi",
-      "rank": 186
+      "adp": 186
     },
     {
       "name": "Collin Sexton",
-      "rank": 187
+      "adp": 187
     },
     {
       "name": "Mitchell Robinson",
-      "rank": 188
+      "adp": 188
     },
     {
       "name": "Adem Bona",
-      "rank": 189
+      "adp": 189
     },
     {
       "name": "Santi Aldama",
-      "rank": 190
+      "adp": 190
     },
     {
       "name": "Kingston Flemings",
-      "rank": 191
+      "adp": 191
     },
     {
       "name": "Jaylon Tyson",
-      "rank": 192
+      "adp": 192
     },
     {
       "name": "Jaylin Williams",
-      "rank": 193
+      "adp": 193
     },
     {
       "name": "Ryan Kalkbrenner",
-      "rank": 194
+      "adp": 194
     },
     {
       "name": "Rui Hachimura",
-      "rank": 195
+      "adp": 195
     },
     {
       "name": "Keldon Johnson",
-      "rank": 196
+      "adp": 196
     },
     {
       "name": "Malik Monk",
-      "rank": 197
+      "adp": 197
     },
     {
       "name": "Precious Achiuwa",
-      "rank": 198
+      "adp": 198
     },
     {
       "name": "Aaron Nesmith",
-      "rank": 199
+      "adp": 199
     },
     {
       "name": "Gui Santos",
-      "rank": 200
+      "adp": 200
     },
     {
       "name": "Pelle Larsson",
-      "rank": 201
+      "adp": 201
     },
     {
       "name": "Scoot Henderson",
-      "rank": 202
+      "adp": 202
     },
     {
       "name": "Naji Marshall",
-      "rank": 203
+      "adp": 203
     },
     {
       "name": "De'Anthony Melton",
-      "rank": 204
+      "adp": 204
     },
     {
       "name": "Duncan Robinson",
-      "rank": 205
+      "adp": 205
     },
     {
       "name": "Dylan Cardwell",
-      "rank": 206
+      "adp": 206
     },
     {
       "name": "Jonathan Kuminga",
-      "rank": 207
+      "adp": 207
     },
     {
       "name": "Cam Spencer",
-      "rank": 208
+      "adp": 208
     },
     {
       "name": "Aday Mara",
-      "rank": 209
+      "adp": 209
     },
     {
       "name": "Baylor Scheierman",
-      "rank": 210
+      "adp": 210
     },
     {
       "name": "Dereck Lively II",
-      "rank": 211
+      "adp": 211
     },
     {
       "name": "Kyle Kuzma",
-      "rank": 212
+      "adp": 212
     },
     {
       "name": "Isaiah Joe",
-      "rank": 213
+      "adp": 213
     },
     {
       "name": "Nique Clifford",
-      "rank": 214
+      "adp": 214
     },
     {
       "name": "Zaccharie Risacher",
-      "rank": 215
+      "adp": 215
     },
     {
       "name": "Nate Ament",
-      "rank": 216
+      "adp": 216
     },
     {
       "name": "Jalen Smith",
-      "rank": 217
+      "adp": 217
     },
     {
       "name": "Moussa Cisse",
-      "rank": 218
+      "adp": 218
     },
     {
       "name": "Max Christie",
-      "rank": 219
+      "adp": 219
     },
     {
       "name": "Luke Kornet",
-      "rank": 220
+      "adp": 220
     },
     {
       "name": "Marvin Bagley III",
-      "rank": 221
+      "adp": 221
     },
     {
       "name": "Sam Merrill",
-      "rank": 222
+      "adp": 222
     },
     {
       "name": "Jared McCain",
-      "rank": 223
+      "adp": 223
     },
     {
       "name": "Daniss Jenkins",
-      "rank": 224
+      "adp": 224
     },
     {
       "name": "Tristan da Silva",
-      "rank": 225
+      "adp": 225
     },
     {
       "name": "Ronald Holland II",
-      "rank": 226
+      "adp": 226
     },
     {
       "name": "Jaylen Wells",
-      "rank": 227
+      "adp": 227
     },
     {
       "name": "Isaiah Jackson",
-      "rank": 228
+      "adp": 228
     },
     {
       "name": "Jock Landale",
-      "rank": 229
+      "adp": 229
     },
     {
       "name": "Keon Ellis",
-      "rank": 230
+      "adp": 230
     },
     {
       "name": "Terrence Shannon Jr.",
-      "rank": 231
+      "adp": 231
     },
     {
       "name": "Hugo González",
-      "rank": 232
+      "adp": 232
     },
     {
       "name": "GG Jackson",
-      "rank": 233
+      "adp": 233
     },
     {
       "name": "Jamal Shead",
-      "rank": 234
+      "adp": 234
     },
     {
       "name": "Max Strus",
-      "rank": 235
+      "adp": 235
     },
     {
       "name": "De'Andre Hunter",
-      "rank": 236
+      "adp": 236
     },
     {
       "name": "Jordan Poole",
-      "rank": 237
+      "adp": 237
     },
     {
       "name": "Taylor Hendricks",
-      "rank": 238
+      "adp": 238
     },
     {
       "name": "Oso Ighodaro",
-      "rank": 239
+      "adp": 239
     },
     {
       "name": "Bub Carrington",
-      "rank": 240
+      "adp": 240
     },
     {
       "name": "Andre Drummond",
-      "rank": 241
+      "adp": 241
     },
     {
       "name": "Tre Johnson",
-      "rank": 242
+      "adp": 242
     },
     {
       "name": "Royce O'Neale",
-      "rank": 243
+      "adp": 243
     },
     {
       "name": "Sergio De Larrea",
-      "rank": 244
+      "adp": 244
     },
     {
       "name": "Carter Bryant",
-      "rank": 245
+      "adp": 245
     },
     {
       "name": "Sam Hauser",
-      "rank": 246
+      "adp": 246
     },
     {
       "name": "T.J. McConnell",
-      "rank": 247
+      "adp": 247
     },
     {
       "name": "Al Horford",
-      "rank": 248
+      "adp": 248
     },
     {
       "name": "Jake LaRavia",
-      "rank": 249
+      "adp": 249
     },
     {
       "name": "Allen Graves",
-      "rank": 250
+      "adp": 250
     },
     {
       "name": "Donte DiVincenzo",
-      "rank": 251
+      "adp": 251
     },
     {
       "name": "Kris Dunn",
-      "rank": 252
+      "adp": 252
     },
     {
       "name": "Justin Champagnie",
-      "rank": 253
+      "adp": 253
     },
     {
       "name": "Javonte Green",
-      "rank": 254
+      "adp": 254
     },
     {
       "name": "Luke Kennard",
-      "rank": 255
+      "adp": 255
     },
     {
       "name": "Harrison Barnes",
-      "rank": 256
+      "adp": 256
     },
     {
       "name": "Kevin Huerter",
-      "rank": 257
+      "adp": 257
     },
     {
       "name": "Brice Sensabaugh",
-      "rank": 258
+      "adp": 258
     },
     {
       "name": "Moses Moody",
-      "rank": 259
+      "adp": 259
     },
     {
       "name": "AJ Green",
-      "rank": 260
+      "adp": 260
     },
     {
       "name": "Jordan Goodwin",
-      "rank": 261
+      "adp": 261
     },
     {
       "name": "Russell Westbrook",
-      "rank": 262
+      "adp": 262
     },
     {
       "name": "Goga Bitadze",
-      "rank": 263
+      "adp": 263
     },
     {
       "name": "Luguentz Dort",
-      "rank": 264
+      "adp": 264
     },
     {
       "name": "Gary Payton II",
-      "rank": 265
+      "adp": 265
     },
     {
       "name": "Bruce Brown",
-      "rank": 266
+      "adp": 266
     },
     {
       "name": "Jarace Walker",
-      "rank": 267
+      "adp": 267
     },
     {
       "name": "Derrick Jones Jr.",
-      "rank": 268
+      "adp": 268
     },
     {
       "name": "Dennis Schröder",
-      "rank": 269
+      "adp": 269
     },
     {
       "name": "Ziaire Williams",
-      "rank": 270
+      "adp": 270
     },
     {
       "name": "Aaron Wiggins",
-      "rank": 271
+      "adp": 271
     },
     {
       "name": "Ja'Kobe Walter",
-      "rank": 272
+      "adp": 272
     },
     {
       "name": "Klay Thompson",
-      "rank": 273
+      "adp": 273
     },
     {
       "name": "Dominick Barlow",
-      "rank": 274
+      "adp": 274
     },
     {
       "name": "John Konchar",
-      "rank": 275
+      "adp": 275
     },
     {
       "name": "Jose Alvarado",
-      "rank": 276
+      "adp": 276
     },
     {
       "name": "Jonas Valančiūnas",
-      "rank": 277
+      "adp": 277
     },
     {
       "name": "Marcus Smart",
-      "rank": 278
+      "adp": 278
     },
     {
       "name": "Noah Clowney",
-      "rank": 279
+      "adp": 279
     },
     {
       "name": "Dru Smith",
-      "rank": 280
+      "adp": 280
     },
     {
       "name": "Vít Krejčí",
-      "rank": 281
+      "adp": 281
     },
     {
       "name": "Alex Caruso",
-      "rank": 282
+      "adp": 282
     },
     {
       "name": "Jaxson Hayes",
-      "rank": 283
+      "adp": 283
     },
     {
       "name": "Karlo Matković",
-      "rank": 284
+      "adp": 284
     },
     {
       "name": "Dean Wade",
-      "rank": 285
+      "adp": 285
     },
     {
       "name": "Isaac Okoro",
-      "rank": 286
+      "adp": 286
     },
     {
       "name": "Ryan Dunn",
-      "rank": 287
+      "adp": 287
     },
     {
       "name": "Brandon Williams",
-      "rank": 288
+      "adp": 288
     },
     {
       "name": "Nicolas Batum",
-      "rank": 289
+      "adp": 289
     },
     {
       "name": "Mouhamed Gueye",
-      "rank": 290
+      "adp": 290
     },
     {
       "name": "Simone Fontecchio",
-      "rank": 291
+      "adp": 291
     },
     {
       "name": "Kentavious Caldwell-Pope",
-      "rank": 292
+      "adp": 292
     },
     {
       "name": "Quinten Post",
-      "rank": 293
+      "adp": 293
     },
     {
       "name": "Miles McBride",
-      "rank": 294
+      "adp": 294
     },
     {
       "name": "Terance Mann",
-      "rank": 295
+      "adp": 295
     },
     {
       "name": "Clint Capela",
-      "rank": 296
+      "adp": 296
     },
     {
       "name": "Will Richard",
-      "rank": 297
+      "adp": 297
     },
     {
       "name": "Luka Garza",
-      "rank": 298
+      "adp": 298
     },
     {
       "name": "Jordan Walsh",
-      "rank": 299
+      "adp": 299
     },
     {
       "name": "Bones Hyland",
-      "rank": 300
+      "adp": 300
     },
     {
       "name": "Craig Porter Jr.",
-      "rank": 301
+      "adp": 301
     },
     {
       "name": "Khris Middleton",
-      "rank": 302
+      "adp": 302
     },
     {
       "name": "Caris LeVert",
-      "rank": 303
+      "adp": 303
     },
     {
       "name": "Sion James",
-      "rank": 304
+      "adp": 304
     },
     {
       "name": "Mike Conley",
-      "rank": 305
+      "adp": 305
     },
     {
       "name": "Ben Sheppard",
-      "rank": 306
+      "adp": 306
     },
     {
       "name": "Buddy Hield",
-      "rank": 307
+      "adp": 307
     },
     {
       "name": "Thomas Bryant",
-      "rank": 308
+      "adp": 308
     },
     {
       "name": "Justin Edwards",
-      "rank": 309
+      "adp": 309
     },
     {
       "name": "Guerschon Yabusele",
-      "rank": 310
+      "adp": 310
     },
     {
       "name": "Micah Potter",
-      "rank": 311
+      "adp": 311
     },
     {
       "name": "Patrick Williams",
-      "rank": 312
+      "adp": 312
     },
     {
       "name": "Gradey Dick",
-      "rank": 313
+      "adp": 313
     },
     {
       "name": "Jordan Miller",
-      "rank": 314
+      "adp": 314
     },
     {
       "name": "Gary Trent Jr.",
-      "rank": 315
+      "adp": 315
     },
     {
       "name": "Tyus Jones",
-      "rank": 316
+      "adp": 316
     },
     {
       "name": "Kyle Anderson",
-      "rank": 317
+      "adp": 317
     },
     {
       "name": "Olivier-Maxence Prosper",
-      "rank": 318
+      "adp": 318
     },
     {
       "name": "Spencer Jones",
-      "rank": 319
+      "adp": 319
     },
     {
       "name": "Corey Kispert",
-      "rank": 320
+      "adp": 320
     },
     {
       "name": "Josh Minott",
-      "rank": 321
+      "adp": 321
     },
     {
       "name": "Josh Okogie",
-      "rank": 322
+      "adp": 322
     },
     {
       "name": "Walter Clayton Jr.",
-      "rank": 323
+      "adp": 323
     },
     {
       "name": "Svi Mykhailiuk",
-      "rank": 324
+      "adp": 324
     },
     {
       "name": "Jarred Vanderbilt",
-      "rank": 325
+      "adp": 325
     },
     {
       "name": "Cody Williams",
-      "rank": 326
+      "adp": 326
     },
     {
       "name": "Ochai Agbaji",
-      "rank": 327
+      "adp": 327
     },
     {
       "name": "Kris Murray",
-      "rank": 328
+      "adp": 328
     },
     {
       "name": "Jordan Clarkson",
-      "rank": 329
+      "adp": 329
     },
     {
       "name": "Nae'Qwan Tomlin",
-      "rank": 330
+      "adp": 330
     },
     {
       "name": "Jericho Sims",
-      "rank": 331
+      "adp": 331
     },
     {
       "name": "Kobe Sanders",
-      "rank": 332
+      "adp": 332
     },
     {
       "name": "Obi Toppin",
-      "rank": 333
+      "adp": 333
     },
     {
       "name": "Danny Wolf",
-      "rank": 334
+      "adp": 334
     },
     {
       "name": "Pat Spencer",
-      "rank": 335
+      "adp": 335
     },
     {
       "name": "Josh Green",
-      "rank": 336
+      "adp": 336
     },
     {
       "name": "Julian Strawther",
-      "rank": 337
+      "adp": 337
     },
     {
       "name": "Jamir Watkins",
-      "rank": 338
+      "adp": 338
     },
     {
       "name": "Kenrich Williams",
-      "rank": 339
+      "adp": 339
     },
     {
       "name": "Taurean Prince",
-      "rank": 340
+      "adp": 340
     },
     {
       "name": "Landry Shamet",
-      "rank": 341
+      "adp": 341
     },
     {
       "name": "Tristan Vukcevic",
-      "rank": 342
+      "adp": 342
     },
     {
       "name": "Anthony Gill",
-      "rank": 343
+      "adp": 343
     },
     {
       "name": "Javon Small",
-      "rank": 344
+      "adp": 344
     },
     {
       "name": "Kasparas Jakučionis",
-      "rank": 345
+      "adp": 345
     },
     {
       "name": "Matisse Thybulle",
-      "rank": 346
+      "adp": 346
     },
     {
       "name": "Quenton Jackson",
-      "rank": 347
+      "adp": 347
     },
     {
       "name": "Jevon Carter",
-      "rank": 348
+      "adp": 348
     },
     {
       "name": "Dwight Powell",
-      "rank": 349
+      "adp": 349
     },
     {
       "name": "Rayan Rupert",
-      "rank": 350
+      "adp": 350
     },
     {
       "name": "Lonzo Ball",
-      "rank": 351
+      "adp": 351
     },
     {
       "name": "Trendon Watford",
-      "rank": 352
+      "adp": 352
     },
     {
       "name": "Kobe Brown",
-      "rank": 353
+      "adp": 353
     },
     {
       "name": "Jabari Walker",
-      "rank": 354
+      "adp": 354
     },
     {
       "name": "Sidy Cissoko",
-      "rank": 355
+      "adp": 355
     },
     {
       "name": "Ryan Nembhard",
-      "rank": 356
+      "adp": 356
     },
     {
       "name": "Grant Williams",
-      "rank": 357
+      "adp": 357
     },
     {
       "name": "Jaden Ivey",
-      "rank": 358
+      "adp": 358
     },
     {
       "name": "Jaylen Clark",
-      "rank": 359
+      "adp": 359
     },
     {
       "name": "Drake Powell",
-      "rank": 360
+      "adp": 360
     },
     {
       "name": "Jonathan Isaac",
-      "rank": 361
+      "adp": 361
     },
     {
       "name": "Aaron Holiday",
-      "rank": 362
+      "adp": 362
     },
     {
       "name": "Gabe Vincent",
-      "rank": 363
+      "adp": 363
     },
     {
       "name": "Leonard Miller",
-      "rank": 364
+      "adp": 364
     },
     {
       "name": "Kevin Love",
-      "rank": 365
+      "adp": 365
     },
     {
       "name": "Cameron Payne",
-      "rank": 366
+      "adp": 366
     },
     {
       "name": "Vince Williams Jr.",
-      "rank": 367
+      "adp": 367
     },
     {
       "name": "Tyrese Martin",
-      "rank": 368
+      "adp": 368
     },
     {
       "name": "Caleb Martin",
-      "rank": 369
+      "adp": 369
     },
     {
       "name": "Jeremy Sochan",
-      "rank": 370
+      "adp": 370
     },
     {
       "name": "Jett Howard",
-      "rank": 371
+      "adp": 371
     },
     {
       "name": "Bryce McGowens",
-      "rank": 372
+      "adp": 372
     },
     {
       "name": "Zeke Nnaji",
-      "rank": 373
+      "adp": 373
     },
     {
       "name": "Nick Richards",
-      "rank": 374
+      "adp": 374
     },
     {
       "name": "Jalen Pickett",
-      "rank": 375
+      "adp": 375
     },
     {
       "name": "Daeqwon Plowden",
-      "rank": 376
+      "adp": 376
     },
     {
       "name": "Jalen Wilson",
-      "rank": 377
+      "adp": 377
     },
     {
       "name": "Dalton Knecht",
-      "rank": 378
+      "adp": 378
     },
     {
       "name": "Nikola Jović",
-      "rank": 379
+      "adp": 379
     },
     {
       "name": "Branden Carlson",
-      "rank": 380
+      "adp": 380
     },
     {
       "name": "Dorian Finney-Smith",
-      "rank": 381
+      "adp": 381
     },
     {
       "name": "Nolan Traore",
-      "rank": 382
+      "adp": 382
     },
     {
       "name": "Micah Peavy",
-      "rank": 383
+      "adp": 383
     },
     {
       "name": "Dalen Terry",
-      "rank": 384
+      "adp": 384
     },
     {
       "name": "Amir Coffey",
-      "rank": 385
+      "adp": 385
     },
     {
       "name": "Jaden Hardy",
-      "rank": 386
+      "adp": 386
     },
     {
       "name": "Cole Anthony",
-      "rank": 387
+      "adp": 387
     },
     {
       "name": "Tyler Kolek",
-      "rank": 388
+      "adp": 388
     },
     {
       "name": "Pete Nance",
-      "rank": 389
+      "adp": 389
     },
     {
       "name": "Caleb Love",
-      "rank": 390
+      "adp": 390
     },
     {
       "name": "Noah Penda",
-      "rank": 391
+      "adp": 391
     },
     {
       "name": "Gary Harris",
-      "rank": 392
+      "adp": 392
     },
     {
       "name": "Tidjane Salaün",
-      "rank": 393
+      "adp": 393
     },
     {
       "name": "Rob Dillingham",
-      "rank": 394
+      "adp": 394
     },
     {
       "name": "Jamaree Bouyea",
-      "rank": 395
+      "adp": 395
     },
     {
       "name": "Marcus Sasser",
-      "rank": 396
+      "adp": 396
     },
     {
       "name": "Kevon Looney",
-      "rank": 397
+      "adp": 397
     },
     {
       "name": "Steven Adams",
-      "rank": 398
+      "adp": 398
     },
     {
       "name": "Jordan Hawkins",
-      "rank": 399
+      "adp": 399
     },
     {
       "name": "D'Angelo Russell",
-      "rank": 400
+      "adp": 400
     },
     {
       "name": "Julian Phillips",
-      "rank": 401
+      "adp": 401
     },
     {
       "name": "Drew Eubanks",
-      "rank": 402
+      "adp": 402
     },
     {
       "name": "Jamison Battle",
-      "rank": 403
+      "adp": 403
     },
     {
       "name": "Keaton Wallace",
-      "rank": 404
+      "adp": 404
     },
     {
       "name": "Cam Thomas",
-      "rank": 405
+      "adp": 405
     },
     {
       "name": "Sharife Cooper",
-      "rank": 406
+      "adp": 406
     },
     {
       "name": "Moritz Wagner",
-      "rank": 407
+      "adp": 407
     },
     {
       "name": "Devin Carter",
-      "rank": 408
+      "adp": 408
     },
     {
       "name": "Bogdan Bogdanović",
-      "rank": 409
+      "adp": 409
     },
     {
       "name": "Trayce Jackson-Davis",
-      "rank": 410
+      "adp": 410
     },
     {
       "name": "Myron Gardner",
-      "rank": 411
+      "adp": 411
     },
     {
       "name": "Jeremiah Robinson-Earl",
-      "rank": 412
+      "adp": 412
     },
     {
       "name": "Jonathan Mogbo",
-      "rank": 413
+      "adp": 413
     },
     {
       "name": "Jamal Cain",
-      "rank": 414
+      "adp": 414
     },
     {
       "name": "Tyrese Proctor",
-      "rank": 415
+      "adp": 415
     },
     {
       "name": "Oscar Tshiebwe",
-      "rank": 416
+      "adp": 416
     },
     {
       "name": "Ariel Hukporti",
-      "rank": 417
+      "adp": 417
     },
     {
       "name": "Kelly Olynyk",
-      "rank": 418
+      "adp": 418
     },
     {
       "name": "Cam Whitmore",
-      "rank": 419
+      "adp": 419
     },
     {
       "name": "Larry Nance Jr.",
-      "rank": 420
+      "adp": 420
     },
     {
       "name": "Haywood Highsmith",
-      "rank": 421
+      "adp": 421
     },
     {
       "name": "Tre Mann",
-      "rank": 422
+      "adp": 422
     },
     {
       "name": "Zach Collins",
-      "rank": 423
+      "adp": 423
     },
     {
       "name": "Asa Newell",
-      "rank": 424
+      "adp": 424
     },
     {
       "name": "Rasheer Fleming",
-      "rank": 425
+      "adp": 425
     },
     {
       "name": "Yanic Konan Niederhäuser",
-      "rank": 426
+      "adp": 426
     },
     {
       "name": "Mohamed Diawara",
-      "rank": 427
+      "adp": 427
     },
     {
       "name": "Johnny Furphy",
-      "rank": 428
+      "adp": 428
     },
     {
       "name": "Ben Saraf",
-      "rank": 429
+      "adp": 429
     },
     {
       "name": "Bradley Beal",
-      "rank": 430
+      "adp": 430
     },
     {
       "name": "Bez Mbeng",
-      "rank": 431
+      "adp": 431
     },
     {
       "name": "Mason Plumlee",
-      "rank": 432
+      "adp": 432
     },
     {
       "name": "Ethan Thompson",
-      "rank": 433
+      "adp": 433
     },
     {
       "name": "Christian Koloko",
-      "rank": 434
+      "adp": 434
     },
     {
       "name": "Nick Smith Jr.",
-      "rank": 435
+      "adp": 435
     },
     {
       "name": "Elijah Harkless",
-      "rank": 436
+      "adp": 436
     },
     {
       "name": "Jase Richardson",
-      "rank": 437
+      "adp": 437
     },
     {
       "name": "Chaney Johnson",
-      "rank": 438
+      "adp": 438
     },
     {
       "name": "Jalen Slawson",
-      "rank": 439
+      "adp": 439
     },
     {
       "name": "Jae'Sean Tate",
-      "rank": 440
+      "adp": 440
     },
     {
       "name": "Taelon Peter",
-      "rank": 441
+      "adp": 441
     },
     {
       "name": "Jahmai Mashack",
-      "rank": 442
+      "adp": 442
     },
     {
       "name": "Chris Boucher",
-      "rank": 443
+      "adp": 443
     },
     {
       "name": "Jordan McLaughlin",
-      "rank": 444
+      "adp": 444
     },
     {
       "name": "Malachi Smith",
-      "rank": 445
+      "adp": 445
     },
     {
       "name": "Garrison Mathews",
-      "rank": 446
+      "adp": 446
     },
     {
       "name": "Seth Curry",
-      "rank": 447
+      "adp": 447
     },
     {
       "name": "Killian Hayes",
-      "rank": 448
+      "adp": 448
     },
     {
       "name": "Duop Reath",
-      "rank": 449
+      "adp": 449
     },
     {
       "name": "Leaky Black",
-      "rank": 450
+      "adp": 450
     },
     {
       "name": "Charles Bassey",
-      "rank": 451
+      "adp": 451
     },
     {
       "name": "Tony Bradley",
-      "rank": 452
+      "adp": 452
     },
     {
       "name": "Maxi Kleber",
-      "rank": 453
+      "adp": 453
     },
     {
       "name": "Pat Connaughton",
-      "rank": 454
+      "adp": 454
     },
     {
       "name": "Doug McDermott",
-      "rank": 455
+      "adp": 455
     },
     {
       "name": "Georges Niang",
-      "rank": 456
+      "adp": 456
     },
     {
       "name": "Cormac Ryan",
-      "rank": 457
+      "adp": 457
     },
     {
       "name": "E.J. Liddell",
-      "rank": 458
+      "adp": 458
     },
     {
       "name": "Keshad Johnson",
-      "rank": 459
+      "adp": 459
     },
     {
       "name": "A.J. Lawson",
-      "rank": 460
+      "adp": 460
     },
     {
       "name": "Malaki Branham",
-      "rank": 461
+      "adp": 461
     },
     {
       "name": "Johnny Juzang",
-      "rank": 462
+      "adp": 462
     },
     {
       "name": "Lindy Waters III",
-      "rank": 463
+      "adp": 463
     },
     {
       "name": "Tyson Etienne",
-      "rank": 464
+      "adp": 464
     },
     {
       "name": "Ron Harper Jr.",
-      "rank": 465
+      "adp": 465
     },
     {
       "name": "Kam Jones",
-      "rank": 466
+      "adp": 466
     },
     {
       "name": "DeAndre Jordan",
-      "rank": 467
+      "adp": 467
     },
     {
       "name": "Blake Hinson",
-      "rank": 468
+      "adp": 468
     },
     {
       "name": "Bronny James",
-      "rank": 469
+      "adp": 469
     },
     {
       "name": "Andre Jackson Jr.",
-      "rank": 470
+      "adp": 470
     },
     {
       "name": "Julian Reese",
-      "rank": 471
+      "adp": 471
     },
     {
       "name": "Cody Martin",
-      "rank": 472
+      "adp": 472
     },
     {
       "name": "Trey Lyles",
-      "rank": 473
+      "adp": 473
     },
     {
       "name": "Malevy Leons",
-      "rank": 474
+      "adp": 474
     },
     {
       "name": "John Poulakidas",
-      "rank": 475
+      "adp": 475
     },
     {
       "name": "Liam McNeeley",
-      "rank": 476
+      "adp": 476
     },
     {
       "name": "DaQuan Jeffries",
-      "rank": 477
+      "adp": 477
     },
     {
       "name": "Tyler Burton",
-      "rank": 478
+      "adp": 478
     },
     {
       "name": "Dalano Banton",
-      "rank": 479
+      "adp": 479
     },
     {
       "name": "Caleb Houstan",
-      "rank": 480
+      "adp": 480
     },
     {
       "name": "Cam Christie",
-      "rank": 481
+      "adp": 481
     },
     {
       "name": "Isaiah Livers",
-      "rank": 482
+      "adp": 482
     },
     {
       "name": "KJ Simpson",
-      "rank": 483
+      "adp": 483
     },
     {
       "name": "Brooks Barnhizer",
-      "rank": 484
+      "adp": 484
     },
     {
       "name": "PJ Hall",
-      "rank": 485
+      "adp": 485
     },
     {
       "name": "Eric Gordon",
-      "rank": 486
+      "adp": 486
     },
     {
       "name": "AJ Johnson",
-      "rank": 487
+      "adp": 487
     },
     {
       "name": "Adama Bal",
-      "rank": 488
+      "adp": 488
     },
     {
       "name": "Blake Wesley",
-      "rank": 489
+      "adp": 489
     },
     {
       "name": "David Roddy",
-      "rank": 490
+      "adp": 490
     },
     {
       "name": "LJ Cryer",
-      "rank": 491
+      "adp": 491
     },
     {
       "name": "Yuki Kawamura",
-      "rank": 492
+      "adp": 492
     },
     {
       "name": "Kennedy Chandler",
-      "rank": 493
+      "adp": 493
     },
     {
       "name": "Jeff Green",
-      "rank": 494
+      "adp": 494
     },
     {
       "name": "Drew Timme",
-      "rank": 495
+      "adp": 495
     },
     {
       "name": "DaRon Holmes II",
-      "rank": 496
+      "adp": 496
     },
     {
       "name": "MarJon Beauchamp",
-      "rank": 497
+      "adp": 497
     },
     {
       "name": "Lucas Williamson",
-      "rank": 498
+      "adp": 498
     },
     {
       "name": "Antonio Reeves",
-      "rank": 499
+      "adp": 499
     },
     {
       "name": "Nate Williams",
-      "rank": 500
+      "adp": 500
     },
     {
       "name": "Joe Ingles",
-      "rank": 501
+      "adp": 501
     },
     {
       "name": "DeJon Jarreau",
-      "rank": 502
+      "adp": 502
     },
     {
       "name": "Bismack Biyombo",
-      "rank": 503
+      "adp": 503
     },
     {
       "name": "Orlando Robinson",
-      "rank": 504
+      "adp": 504
     },
     {
       "name": "Xavier Tillman",
-      "rank": 505
+      "adp": 505
     },
     {
       "name": "Taj Gibson",
-      "rank": 506
+      "adp": 506
     },
     {
       "name": "Mo Bamba",
-      "rank": 507
+      "adp": 507
     },
     {
       "name": "JD Davison",
-      "rank": 508
+      "adp": 508
     },
     {
       "name": "Chris Youngblood",
-      "rank": 509
+      "adp": 509
     },
     {
       "name": "Wendell Moore Jr.",
-      "rank": 510
+      "adp": 510
     },
     {
       "name": "Alondes Williams",
-      "rank": 511
+      "adp": 511
     },
     {
       "name": "Tyler Smith",
-      "rank": 512
+      "adp": 512
     },
     {
       "name": "Dariq Whitehead",
-      "rank": 513
+      "adp": 513
     },
     {
       "name": "Monté Morris",
-      "rank": 514
+      "adp": 514
     },
     {
       "name": "Hunter Tyson",
-      "rank": 515
+      "adp": 515
     },
     {
       "name": "Andersson Garcia",
-      "rank": 516
+      "adp": 516
     },
     {
       "name": "Chaz Lanier",
-      "rank": 517
+      "adp": 517
     },
     {
       "name": "Kadary Richmond",
-      "rank": 518
+      "adp": 518
     },
     {
       "name": "Mac McClung",
-      "rank": 519
+      "adp": 519
     },
     {
       "name": "RayJ Dennis",
-      "rank": 520
+      "adp": 520
     },
     {
       "name": "Patrick Baldwin Jr.",
-      "rank": 521
+      "adp": 521
     },
     {
       "name": "Lachlan Olbrich",
-      "rank": 522
+      "adp": 522
     },
     {
       "name": "Trey Alexander",
-      "rank": 523
+      "adp": 523
     },
     {
       "name": "Luke Travers",
-      "rank": 524
+      "adp": 524
     },
     {
       "name": "Amari Williams",
-      "rank": 525
+      "adp": 525
     },
     {
       "name": "TyTy Washington Jr.",
-      "rank": 526
+      "adp": 526
     },
     {
       "name": "Kevin McCullar Jr.",
-      "rank": 527
+      "adp": 527
     },
     {
       "name": "Colby Jones",
-      "rank": 528
+      "adp": 528
     },
     {
       "name": "Dillon Jones",
-      "rank": 529
+      "adp": 529
     },
     {
       "name": "Tosan Evbuomwan",
-      "rank": 530
+      "adp": 530
     },
     {
       "name": "Alijah Martin",
-      "rank": 531
+      "adp": 531
     },
     {
       "name": "Pacôme Dadiet",
-      "rank": 532
+      "adp": 532
     },
     {
       "name": "Thanasis Antetokounmpo",
-      "rank": 533
+      "adp": 533
     },
     {
       "name": "Tolu Smith",
-      "rank": 534
+      "adp": 534
     },
     {
       "name": "Miles Kelly",
-      "rank": 535
+      "adp": 535
     },
     {
       "name": "David Jones Garcia",
-      "rank": 536
+      "adp": 536
     },
     {
       "name": "Colin Castleton",
-      "rank": 537
+      "adp": 537
     },
     {
       "name": "Tristan Enaruna",
-      "rank": 538
+      "adp": 538
     },
     {
       "name": "Garrett Temple",
-      "rank": 539
+      "adp": 539
     },
     {
       "name": "Riley Minix",
-      "rank": 540
+      "adp": 540
     },
     {
       "name": "Yang Hansen",
-      "rank": 541
+      "adp": 541
     },
     {
       "name": "Koby Brea",
-      "rank": 542
+      "adp": 542
     },
     {
       "name": "Rocco Zikarsky",
-      "rank": 543
+      "adp": 543
     },
     {
       "name": "Kobe Bufkin",
-      "rank": 544
+      "adp": 544
     },
     {
       "name": "Isaiah Crawford",
-      "rank": 545
+      "adp": 545
     },
     {
       "name": "Nigel Hayes-Davis",
-      "rank": 546
+      "adp": 546
     },
     {
       "name": "Adou Thiero",
-      "rank": 547
+      "adp": 547
     },
     {
       "name": "Curtis Jones",
-      "rank": 548
+      "adp": 548
     },
     {
       "name": "Enrique Freeman",
-      "rank": 549
+      "adp": 549
     },
     {
       "name": "Keshon Gilbert",
-      "rank": 550
+      "adp": 550
     },
     {
       "name": "Chris Mañon",
-      "rank": 551
+      "adp": 551
     },
     {
       "name": "Isaac Jones",
-      "rank": 552
+      "adp": 552
     },
     {
       "name": "Trey Jemison III",
-      "rank": 553
+      "adp": 553
     },
     {
       "name": "Skal Labissière",
-      "rank": 554
+      "adp": 554
     },
     {
       "name": "Zyon Pullin",
-      "rank": 555
+      "adp": 555
     },
     {
       "name": "Norchad Omier",
-      "rank": 556
+      "adp": 556
     },
     {
       "name": "Drew Peterson",
-      "rank": 557
+      "adp": 557
     },
     {
       "name": "Olivier Sarr",
-      "rank": 558
+      "adp": 558
     },
     {
       "name": "N'Faly Dante",
-      "rank": 559
+      "adp": 559
     },
     {
       "name": "Payton Sandfort",
-      "rank": 560
+      "adp": 560
     },
     {
       "name": "Nikola Topić",
-      "rank": 561
+      "adp": 561
     },
     {
       "name": "John Tonje",
-      "rank": 562
+      "adp": 562
     },
     {
       "name": "Mouhamadou Gueye",
-      "rank": 563
+      "adp": 563
     },
     {
       "name": "Jahmir Young",
-      "rank": 564
+      "adp": 564
     },
     {
       "name": "Grant Nelson",
-      "rank": 565
+      "adp": 565
     },
     {
       "name": "Vladislav Goldin",
-      "rank": 566
+      "adp": 566
     },
     {
       "name": "Chris Livingston",
-      "rank": 567
+      "adp": 567
     },
     {
       "name": "Jayson Kent",
-      "rank": 568
+      "adp": 568
     },
     {
       "name": "Lawson Lovering",
-      "rank": 569
+      "adp": 569
     },
     {
       "name": "Jacob Toppin",
-      "rank": 570
+      "adp": 570
     },
     {
       "name": "Josh Oduro",
-      "rank": 571
+      "adp": 571
     },
     {
       "name": "Markelle Fultz",
-      "rank": 572
+      "adp": 572
     },
     {
       "name": "Harrison Ingram",
-      "rank": 573
+      "adp": 573
     },
     {
       "name": "Dario Šarić",
-      "rank": 574
+      "adp": 574
     },
     {
       "name": "CJ Huntley",
-      "rank": 575
+      "adp": 575
     },
     {
       "name": "Hayden Gray",
-      "rank": 576
+      "adp": 576
     },
     {
       "name": "Hunter Dickinson",
-      "rank": 577
+      "adp": 577
     },
     {
       "name": "Javonte Cooke",
-      "rank": 578
+      "adp": 578
     },
     {
       "name": "Stanley Umude",
-      "rank": 579
+      "adp": 579
     },
     {
       "name": "Toby Okani",
-      "rank": 580
+      "adp": 580
     },
     {
       "name": "Adam Flagler",
-      "rank": 581
+      "adp": 581
     },
     {
       "name": "Bobi Klintman",
-      "rank": 582
+      "adp": 582
     },
     {
       "name": "Ömer Yurtseven",
-      "rank": 583
+      "adp": 583
     },
     {
       "name": "Tristen Newton",
-      "rank": 584
+      "adp": 584
     },
     {
       "name": "Sean Pedulla",
-      "rank": 585
+      "adp": 585
     },
     {
       "name": "Alex Antetokounmpo",
-      "rank": 586
+      "adp": 586
     },
     {
       "name": "Max Shulga",
-      "rank": 587
+      "adp": 587
     },
     {
       "name": "James Wiseman",
-      "rank": 588
+      "adp": 588
     },
     {
       "name": "Mark Sears",
-      "rank": 589
+      "adp": 589
     },
     {
       "name": "Trevor Keels",
-      "rank": 590
+      "adp": 590
     },
     {
       "name": "Trentyn Flowers",
-      "rank": 591
+      "adp": 591
     },
     {
       "name": "Buddy Boeheim",
-      "rank": 592
+      "adp": 592
     },
     {
       "name": "Alex Morales",
-      "rank": 593
+      "adp": 593
     },
     {
       "name": "Noa Essengue",
-      "rank": 594
+      "adp": 594
     },
     {
       "name": "Braden Smith",
-      "rank": 595
+      "adp": 595
     },
     {
       "name": "Bryce Hopkins",
-      "rank": 596
+      "adp": 596
     },
     {
       "name": "Alex Karaban",
-      "rank": 597
+      "adp": 597
     },
     {
       "name": "Quadir Copeland",
-      "rank": 598
+      "adp": 598
     },
     {
       "name": "Tobi Lawal",
-      "rank": 599
+      "adp": 599
     },
     {
       "name": "Lajae Jones",
-      "rank": 600
+      "adp": 600
     },
     {
       "name": "Ja'Kobi Gillespie",
-      "rank": 601
+      "adp": 601
     },
     {
       "name": "Otega Oweh",
-      "rank": 602
+      "adp": 602
     },
     {
       "name": "Tyler Nickel",
-      "rank": 603
+      "adp": 603
     },
     {
       "name": "Koa Peat",
-      "rank": 604
+      "adp": 604
     },
     {
       "name": "Meleek Thomas",
-      "rank": 605
+      "adp": 605
     },
     {
       "name": "Jaylin Sellers",
-      "rank": 606
+      "adp": 606
     },
     {
       "name": "Tamar Bates",
-      "rank": 607
+      "adp": 607
     },
     {
       "name": "Kylan Boswell",
-      "rank": 608
+      "adp": 608
     },
     {
       "name": "Jack Kayil",
-      "rank": 609
+      "adp": 609
     },
     {
       "name": "AK Okereke",
-      "rank": 610
+      "adp": 610
     },
     {
       "name": "Henri Veesaar",
-      "rank": 611
+      "adp": 611
     },
     {
       "name": "Josh Dix",
-      "rank": 612
+      "adp": 612
     },
     {
       "name": "Tobe Awaka",
-      "rank": 613
+      "adp": 613
     },
     {
       "name": "Jaden Bradley",
-      "rank": 614
+      "adp": 614
     },
     {
       "name": "Malik Dia",
-      "rank": 615
+      "adp": 615
     },
     {
       "name": "Bruce Thornton",
-      "rank": 616
+      "adp": 616
     },
     {
       "name": "Ebuka Okorie",
-      "rank": 617
+      "adp": 617
     },
     {
       "name": "Vsevolod Ishchenko",
-      "rank": 618
+      "adp": 618
     },
     {
       "name": "Izaiyah Nelson",
-      "rank": 619
+      "adp": 619
     },
     {
       "name": "Thomas Sorber",
-      "rank": 620
+      "adp": 620
     },
     {
       "name": "Nick Martinelli",
-      "rank": 621
+      "adp": 621
     },
     {
       "name": "Mario Hezonja",
-      "rank": 622
+      "adp": 622
     },
     {
       "name": "Ryan Conwell",
-      "rank": 623
+      "adp": 623
     },
     {
       "name": "Carson Cooper",
-      "rank": 624
+      "adp": 624
     },
     {
       "name": "Malique Lewis",
-      "rank": 625
+      "adp": 625
     },
     {
       "name": "Tarris Reed Jr.",
-      "rank": 626
+      "adp": 626
     },
     {
       "name": "Dillon Mitchell",
-      "rank": 627
+      "adp": 627
     },
     {
       "name": "Cameron Carr",
-      "rank": 628
+      "adp": 628
     },
     {
       "name": "Tarik Biberovic",
-      "rank": 629
+      "adp": 629
     },
     {
       "name": "Ernest Udeh Jr.",
-      "rank": 630
+      "adp": 630
     },
     {
       "name": "Michael Ajayi",
-      "rank": 631
+      "adp": 631
     },
     {
       "name": "Rafael Castro",
-      "rank": 632
+      "adp": 632
     },
     {
       "name": "Richie Saunders",
-      "rank": 633
+      "adp": 633
     },
     {
       "name": "Chris Cenac Jr.",
-      "rank": 634
+      "adp": 634
     },
     {
       "name": "Bennett Stirtz",
-      "rank": 635
+      "adp": 635
     },
     {
       "name": "Trevon Brazile",
-      "rank": 636
+      "adp": 636
     },
     {
       "name": "Jayden Quaintance",
-      "rank": 637
+      "adp": 637
     },
     {
       "name": "Labaron Philon Jr.",
-      "rank": 638
+      "adp": 638
     },
     {
       "name": "Emanuel Sharp",
-      "rank": 639
+      "adp": 639
     },
     {
       "name": "Tre Donaldson",
-      "rank": 640
+      "adp": 640
     },
     {
       "name": "Trey Kaufman-Renn",
-      "rank": 641
+      "adp": 641
     },
     {
       "name": "Christian Anderson Jr.",
-      "rank": 642
+      "adp": 642
     },
     {
       "name": "Joshua Jefferson",
-      "rank": 643
+      "adp": 643
     },
     {
       "name": "Ugonna Onyenso",
-      "rank": 644
+      "adp": 644
     },
     {
       "name": "Arthur Kaluma",
-      "rank": 645
+      "adp": 645
     },
     {
       "name": "Jaron Pierre Jr.",
-      "rank": 646
+      "adp": 646
     },
     {
       "name": "Isaiah Evans",
-      "rank": 647
+      "adp": 647
     },
     {
       "name": "Karim Lopez",
-      "rank": 648
+      "adp": 648
     },
     {
       "name": "Dailyn Swain",
-      "rank": 649
+      "adp": 649
     },
     {
       "name": "Tyler Bilodeau",
-      "rank": 650
+      "adp": 650
     },
     {
       "name": "Jamarion Sharp",
-      "rank": 651
+      "adp": 651
     },
     {
       "name": "Bogoljub Marković",
-      "rank": 652
+      "adp": 652
     },
     {
       "name": "Alpha Diallo",
-      "rank": 653
+      "adp": 653
     },
     {
       "name": "Felix Okpara",
-      "rank": 654
+      "adp": 654
     },
     {
       "name": "Maliq Brown",
-      "rank": 655
+      "adp": 655
     },
     {
       "name": "Baba Miller",
-      "rank": 656
+      "adp": 656
     },
     {
       "name": "Zuby Ejiofor",
-      "rank": 657
+      "adp": 657
     },
     {
       "name": "Darius Brown",
-      "rank": 658
+      "adp": 658
     },
     {
       "name": "Chucky Hepburn",
-      "rank": 659
+      "adp": 659
     },
     {
       "name": "Hunter Sallis",
-      "rank": 660
+      "adp": 660
     },
     {
       "name": "Johni Broome",
-      "rank": 661
+      "adp": 661
     },
     {
       "name": "Jahmyl Telfort",
-      "rank": 662
+      "adp": 662
     }
   ]
 }

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import scheduleFixture from "../../../../../data/fixtures/nba-matchup-schedule.json"
 import { requireUserId } from "@/lib/auth"
-import type { ScheduleResponse } from "@/lib/season/types"
+import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
 import { loadOwnedSeasonLeague } from "@/lib/waivers/loadSeasonLeague"
 import {
   isAllowedDayCount,
@@ -53,7 +52,7 @@ export const GET = async (request: Request): Promise<Response> => {
     params.get("opponentTeamIndex"),
   )
   const dayCount = parseDayCount(params.get("dayCount"))
-  const schedule = scheduleFixture as ScheduleResponse
+  const schedule = await getMatchupSchedule()
   const result = recommendMatchupStream({
     state: loaded.state,
     schedule,

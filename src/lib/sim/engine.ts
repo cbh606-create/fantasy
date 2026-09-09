@@ -8,6 +8,7 @@ import type {
   SimulationInput,
   SimulationResult,
 } from "@/lib/domain/types"
+import { FAST_NEXT_PICK_COUNT } from "@/lib/sim/constants"
 import { createRng, pickSimOpponent } from "@/lib/sim/opponent"
 import {
   categoryWinExpectancies,
@@ -294,7 +295,7 @@ export const runDraftSimulation = (
       const orderedIds = [
         ...rankedIds,
         ...fallbackIds.filter((playerId) => !firstPickFrequencies.has(playerId)),
-      ].slice(0, 3)
+      ].slice(0, FAST_NEXT_PICK_COUNT)
 
       nextPicks = orderedIds.map((playerId) => ({
         playerId,

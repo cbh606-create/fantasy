@@ -131,3 +131,42 @@ export const gamesThisWeekByPlayerId = (
   schedule: ScheduleResponse,
 ): Map<string, number> =>
   gamesInDaysByPlayerId(players, schedule, schedule.matchup.days)
+
+/** Count B2B second nights (games days that follow another game day) in the window. */
+export const b2bSecondNightsInDaysByPlayerId = (
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  days: string[],
+): Map<string, number> => {
+  const daySet = new Set(days)
+  const map = new Map<string, number>()
+
+  for (const player of players) {
+    const teamAbbr = player.teamAbbr?.toUpperCase()
+    if (!teamAbbr) {
+      map.set(player.id, 0)
+      continue
+    }
+
+    let count = 0
+    for (const day of daySet) {
+      const playsToday = schedule.games.some((game) => {
+        if (game.date !== day) return false
+        const home = game.homeAbbr.toUpperCase()
+        const away = game.awayAbbr.toUpperCase()
+        return home === teamAbbr || away === teamAbbr
+      })
+      if (!playsToday) continue
+      if (isB2bSecondNight(teamAbbr, day, schedule)) count += 1
+    }
+    map.set(player.id, count)
+  }
+
+  return map
+}
+
+export const b2bSecondNightsThisWeekByPlayerId = (
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+): Map<string, number> =>
+  b2bSecondNightsInDaysByPlayerId(players, schedule, schedule.matchup.days)

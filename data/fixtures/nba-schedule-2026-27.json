@@ -1,0 +1,6005 @@
+{
+  "season": "2026-27",
+  "games": [
+    {
+      "date": "2026-10-20",
+      "homeAbbr": "DET",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-10-20",
+      "homeAbbr": "NYK",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-10-20",
+      "homeAbbr": "SAS",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "BKN",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "HOU",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "LAC",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "LAL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "MEM",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "MIA",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "NOP",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "ORL",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "POR",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "TOR",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-10-21",
+      "homeAbbr": "WAS",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-10-22",
+      "homeAbbr": "OKC",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-10-22",
+      "homeAbbr": "PHI",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "BOS",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "CHA",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "GSW",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "IND",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "LAL",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "MIA",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "MIL",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "ORL",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "SAC",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "SAS",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "UTA",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-10-23",
+      "homeAbbr": "WAS",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "ATL",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "CHA",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "CHI",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "CLE",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "DAL",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "DEN",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "PHI",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-10-24",
+      "homeAbbr": "PHX",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-10-25",
+      "homeAbbr": "BKN",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-10-25",
+      "homeAbbr": "MIN",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-10-25",
+      "homeAbbr": "NYK",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-10-25",
+      "homeAbbr": "OKC",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-10-25",
+      "homeAbbr": "PHI",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-10-25",
+      "homeAbbr": "SAC",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-10-25",
+      "homeAbbr": "UTA",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "BOS",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "CHA",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "CLE",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "DEN",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "HOU",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "MIA",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "MIL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "OKC",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-10-26",
+      "homeAbbr": "UTA",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-10-27",
+      "homeAbbr": "BOS",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-10-27",
+      "homeAbbr": "LAL",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-10-27",
+      "homeAbbr": "NYK",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-10-27",
+      "homeAbbr": "SAS",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "ATL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "CHI",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "CLE",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "DAL",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "DET",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "IND",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "LAC",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "MIL",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "MIN",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "NOP",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "TOR",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-10-28",
+      "homeAbbr": "UTA",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-10-29",
+      "homeAbbr": "ATL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-10-29",
+      "homeAbbr": "NOP",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-10-29",
+      "homeAbbr": "POR",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "BKN",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "BOS",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "DAL",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "GSW",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "MIA",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "MIN",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "PHI",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "PHX",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "TOR",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-10-30",
+      "homeAbbr": "WAS",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-10-31",
+      "homeAbbr": "CHA",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-10-31",
+      "homeAbbr": "HOU",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-10-31",
+      "homeAbbr": "MEM",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-10-31",
+      "homeAbbr": "MIL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-10-31",
+      "homeAbbr": "NOP",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-10-31",
+      "homeAbbr": "SAS",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-10-31",
+      "homeAbbr": "UTA",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-01",
+      "homeAbbr": "GSW",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-11-01",
+      "homeAbbr": "IND",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-01",
+      "homeAbbr": "LAL",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-11-01",
+      "homeAbbr": "ORL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "CHA",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "CLE",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "DAL",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "DEN",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "GSW",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "HOU",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "IND",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "LAC",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "LAL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "MEM",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "MIN",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "NYK",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "ORL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "PHI",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-11-02",
+      "homeAbbr": "SAS",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "BKN",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "BOS",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "DEN",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "DET",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "HOU",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "LAC",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "MEM",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "NOP",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "NYK",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "OKC",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "PHX",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "SAC",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "SAS",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-11-04",
+      "homeAbbr": "WAS",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-11-05",
+      "homeAbbr": "GSW",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-05",
+      "homeAbbr": "PHX",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "ATL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "CHA",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "CLE",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "DAL",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "LAL",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "MEM",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "MIL",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "NOP",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-11-06",
+      "homeAbbr": "SAC",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-07",
+      "homeAbbr": "ATL",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-07",
+      "homeAbbr": "CLE",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-11-07",
+      "homeAbbr": "GSW",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-07",
+      "homeAbbr": "IND",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-07",
+      "homeAbbr": "OKC",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-07",
+      "homeAbbr": "PHX",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-11-07",
+      "homeAbbr": "POR",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-08",
+      "homeAbbr": "CHI",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-11-08",
+      "homeAbbr": "DAL",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-08",
+      "homeAbbr": "DET",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-08",
+      "homeAbbr": "LAC",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-11-08",
+      "homeAbbr": "MIL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-08",
+      "homeAbbr": "MIN",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-08",
+      "homeAbbr": "SAC",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "ATL",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "CHA",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "DAL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "DET",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "GSW",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "HOU",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "PHX",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-09",
+      "homeAbbr": "TOR",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-11-10",
+      "homeAbbr": "NYK",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-10",
+      "homeAbbr": "PHI",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-10",
+      "homeAbbr": "PHX",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-11-10",
+      "homeAbbr": "POR",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-10",
+      "homeAbbr": "SAC",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-10",
+      "homeAbbr": "UTA",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "CHI",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "HOU",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "IND",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "MEM",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "MIL",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "NOP",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "NYK",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "POR",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "TOR",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-11",
+      "homeAbbr": "UTA",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-12",
+      "homeAbbr": "MIN",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-11-12",
+      "homeAbbr": "PHI",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-11-12",
+      "homeAbbr": "PHX",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-11-12",
+      "homeAbbr": "WAS",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "CHI",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "HOU",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "IND",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "LAC",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "MIA",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "NOP",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "ORL",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "SAC",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-13",
+      "homeAbbr": "SAS",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-11-14",
+      "homeAbbr": "CLE",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-11-14",
+      "homeAbbr": "MEM",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-14",
+      "homeAbbr": "MIA",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-11-14",
+      "homeAbbr": "MIN",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-11-14",
+      "homeAbbr": "NOP",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "BOS",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "LAC",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "MIL",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "PHI",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "PHX",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "SAC",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "TOR",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "UTA",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-15",
+      "homeAbbr": "WAS",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "BKN",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "BOS",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "CLE",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "DEN",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "MIA",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "MIN",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "NOP",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-11-16",
+      "homeAbbr": "WAS",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-11-17",
+      "homeAbbr": "LAC",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-17",
+      "homeAbbr": "LAL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-11-17",
+      "homeAbbr": "MIN",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-17",
+      "homeAbbr": "SAS",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-11-17",
+      "homeAbbr": "TOR",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "BKN",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "CLE",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "DAL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "DEN",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "IND",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "LAL",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "MIA",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "NOP",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "OKC",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "ORL",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "SAC",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-11-18",
+      "homeAbbr": "TOR",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-19",
+      "homeAbbr": "MEM",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-11-19",
+      "homeAbbr": "MIL",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-19",
+      "homeAbbr": "MIN",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-11-19",
+      "homeAbbr": "SAS",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "ATL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "BKN",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "CHI",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "CLE",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "DEN",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "DET",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "LAL",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "OKC",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-11-20",
+      "homeAbbr": "UTA",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-11-21",
+      "homeAbbr": "DAL",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-11-21",
+      "homeAbbr": "MIN",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-11-21",
+      "homeAbbr": "NYK",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-21",
+      "homeAbbr": "PHI",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-21",
+      "homeAbbr": "SAC",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-21",
+      "homeAbbr": "SAS",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-11-22",
+      "homeAbbr": "ATL",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-11-22",
+      "homeAbbr": "CHI",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-22",
+      "homeAbbr": "GSW",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-22",
+      "homeAbbr": "MIA",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-22",
+      "homeAbbr": "NYK",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-11-22",
+      "homeAbbr": "UTA",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-11-22",
+      "homeAbbr": "WAS",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "CHA",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "CHI",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "HOU",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "IND",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "LAL",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "MIN",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "NOP",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "PHI",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "SAC",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-23",
+      "homeAbbr": "TOR",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-24",
+      "homeAbbr": "DEN",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-11-24",
+      "homeAbbr": "ORL",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-11-24",
+      "homeAbbr": "WAS",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "CHA",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "GSW",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "HOU",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "MEM",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "MIL",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "NYK",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "OKC",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "PHI",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-25",
+      "homeAbbr": "POR",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "BOS",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "DET",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "IND",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "LAC",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "MIN",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "NYK",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "PHX",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "POR",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "SAS",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "TOR",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-27",
+      "homeAbbr": "UTA",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-28",
+      "homeAbbr": "CHA",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-11-28",
+      "homeAbbr": "CHI",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-11-28",
+      "homeAbbr": "HOU",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-11-28",
+      "homeAbbr": "MIL",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-28",
+      "homeAbbr": "WAS",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "CLE",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "DET",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "GSW",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "MEM",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "NYK",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "POR",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "SAC",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "SAS",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "TOR",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-29",
+      "homeAbbr": "UTA",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-11-30",
+      "homeAbbr": "BKN",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-11-30",
+      "homeAbbr": "CHA",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-11-30",
+      "homeAbbr": "DAL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-11-30",
+      "homeAbbr": "DET",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-11-30",
+      "homeAbbr": "HOU",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-11-30",
+      "homeAbbr": "MIL",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-11-30",
+      "homeAbbr": "SAC",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "CHI",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "CLE",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "GSW",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "HOU",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "MIA",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "PHI",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "PHX",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-12-01",
+      "homeAbbr": "POR",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "BOS",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "DAL",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "DET",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "LAC",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "MIL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "NOP",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "OKC",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "PHI",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-12-02",
+      "homeAbbr": "PHX",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-12-03",
+      "homeAbbr": "ATL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-12-03",
+      "homeAbbr": "CHI",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-12-03",
+      "homeAbbr": "MIA",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-12-03",
+      "homeAbbr": "POR",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-12-03",
+      "homeAbbr": "SAS",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "CLE",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "MEM",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "MIA",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "PHI",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "PHX",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "POR",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "UTA",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-12-12",
+      "homeAbbr": "WAS",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-12-13",
+      "homeAbbr": "BKN",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-12-13",
+      "homeAbbr": "CHI",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-12-13",
+      "homeAbbr": "IND",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-12-13",
+      "homeAbbr": "OKC",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-12-13",
+      "homeAbbr": "SAC",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-12-13",
+      "homeAbbr": "SAS",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "BOS",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "CHA",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "CHI",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "DAL",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "DET",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "HOU",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "LAL",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "MEM",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "ORL",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "PHX",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-12-14",
+      "homeAbbr": "UTA",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-12-15",
+      "homeAbbr": "CLE",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-12-15",
+      "homeAbbr": "POR",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "BKN",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "BOS",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "CHA",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "CHI",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "DET",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "HOU",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "IND",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "MEM",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "MIN",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "NOP",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "OKC",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "ORL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-12-16",
+      "homeAbbr": "TOR",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-12-17",
+      "homeAbbr": "DEN",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-12-17",
+      "homeAbbr": "IND",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-12-17",
+      "homeAbbr": "PHI",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "BKN",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "BOS",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "CHA",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "DET",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "MEM",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "MIA",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "MIL",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "MIN",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "NOP",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "SAS",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "TOR",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-12-18",
+      "homeAbbr": "WAS",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-19",
+      "homeAbbr": "ATL",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-12-19",
+      "homeAbbr": "CHA",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-12-19",
+      "homeAbbr": "DAL",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-12-19",
+      "homeAbbr": "DEN",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "ATL",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "BKN",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "BOS",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "CLE",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "LAC",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "MEM",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "MIA",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "MIL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "NOP",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-12-20",
+      "homeAbbr": "TOR",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "BKN",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "CHA",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "CLE",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "LAC",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "LAL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "MIA",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "MIN",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "NOP",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "ORL",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2026-12-21",
+      "homeAbbr": "SAS",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-12-22",
+      "homeAbbr": "GSW",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-12-22",
+      "homeAbbr": "OKC",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-12-22",
+      "homeAbbr": "WAS",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "ATL",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "BKN",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "BOS",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "LAC",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "LAL",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "MEM",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "MIA",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "MIL",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "NOP",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "NYK",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "ORL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "PHI",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "PHX",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "SAC",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2026-12-23",
+      "homeAbbr": "WAS",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-12-25",
+      "homeAbbr": "BOS",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-12-25",
+      "homeAbbr": "GSW",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-12-25",
+      "homeAbbr": "LAL",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-12-25",
+      "homeAbbr": "MIN",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-12-25",
+      "homeAbbr": "NYK",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "ATL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "BKN",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "CHI",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "DAL",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "LAC",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "ORL",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "UTA",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-12-26",
+      "homeAbbr": "WAS",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "CLE",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "DEN",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "DET",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "GSW",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "HOU",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "LAC",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "LAL",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "MIA",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "NYK",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "ORL",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "SAC",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2026-12-27",
+      "homeAbbr": "SAS",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2026-12-28",
+      "homeAbbr": "BOS",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2026-12-28",
+      "homeAbbr": "DEN",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2026-12-28",
+      "homeAbbr": "PHX",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2026-12-28",
+      "homeAbbr": "TOR",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "ATL",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "CHA",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "DAL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "IND",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "LAL",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "MEM",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "OKC",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "POR",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2026-12-29",
+      "homeAbbr": "SAC",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-12-30",
+      "homeAbbr": "CHI",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2026-12-30",
+      "homeAbbr": "DET",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2026-12-30",
+      "homeAbbr": "GSW",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2026-12-30",
+      "homeAbbr": "PHX",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2026-12-30",
+      "homeAbbr": "TOR",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2026-12-30",
+      "homeAbbr": "UTA",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "ATL",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "CHA",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "CLE",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "IND",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "MIN",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "NOP",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "OKC",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "PHX",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2026-12-31",
+      "homeAbbr": "SAC",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-01",
+      "homeAbbr": "DET",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-01",
+      "homeAbbr": "HOU",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-01",
+      "homeAbbr": "MIL",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-01-01",
+      "homeAbbr": "TOR",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-01",
+      "homeAbbr": "UTA",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-01-01",
+      "homeAbbr": "WAS",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "ATL",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "CHA",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "CHI",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "DEN",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "GSW",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "IND",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "NOP",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "OKC",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "PHX",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-02",
+      "homeAbbr": "POR",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "DEN",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "HOU",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "MIL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "MIN",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "OKC",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "ORL",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "TOR",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-03",
+      "homeAbbr": "WAS",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-04",
+      "homeAbbr": "IND",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-04",
+      "homeAbbr": "NOP",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-04",
+      "homeAbbr": "PHI",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-01-04",
+      "homeAbbr": "PHX",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-01-04",
+      "homeAbbr": "POR",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-01-04",
+      "homeAbbr": "UTA",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "CHA",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "CHI",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "CLE",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "DEN",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "HOU",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "MIA",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "ORL",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "SAC",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-05",
+      "homeAbbr": "WAS",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-06",
+      "homeAbbr": "BKN",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-06",
+      "homeAbbr": "GSW",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-01-06",
+      "homeAbbr": "NOP",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-06",
+      "homeAbbr": "PHI",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-01-06",
+      "homeAbbr": "SAS",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "ATL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "BKN",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "CHA",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "DAL",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "GSW",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "HOU",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "LAL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "MIL",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "ORL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "SAC",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "TOR",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-07",
+      "homeAbbr": "WAS",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "DAL",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "LAL",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "NOP",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "PHI",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "SAC",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "SAS",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "TOR",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-08",
+      "homeAbbr": "WAS",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-09",
+      "homeAbbr": "BKN",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-09",
+      "homeAbbr": "CLE",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-01-09",
+      "homeAbbr": "GSW",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-09",
+      "homeAbbr": "IND",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-09",
+      "homeAbbr": "LAC",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-01-09",
+      "homeAbbr": "POR",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "ATL",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "DET",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "MEM",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "MIA",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "ORL",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "PHX",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "SAC",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-10",
+      "homeAbbr": "TOR",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-01-11",
+      "homeAbbr": "BOS",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-11",
+      "homeAbbr": "IND",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-11",
+      "homeAbbr": "LAC",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-11",
+      "homeAbbr": "MIN",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-11",
+      "homeAbbr": "NYK",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-01-11",
+      "homeAbbr": "WAS",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "GSW",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "MEM",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "MIA",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "MIL",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "PHI",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "POR",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "TOR",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-12",
+      "homeAbbr": "UTA",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-13",
+      "homeAbbr": "ATL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-13",
+      "homeAbbr": "BOS",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-01-13",
+      "homeAbbr": "GSW",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-13",
+      "homeAbbr": "IND",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-13",
+      "homeAbbr": "OKC",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-13",
+      "homeAbbr": "POR",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-13",
+      "homeAbbr": "TOR",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "CHI",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "DEN",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "DET",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "LAL",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "NYK",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "PHI",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "SAC",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "SAS",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-01-14",
+      "homeAbbr": "UTA",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "ATL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "HOU",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "IND",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "LAC",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "MIL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "OKC",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "POR",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-15",
+      "homeAbbr": "TOR",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-16",
+      "homeAbbr": "BOS",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-16",
+      "homeAbbr": "DEN",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-16",
+      "homeAbbr": "HOU",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-16",
+      "homeAbbr": "MEM",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-16",
+      "homeAbbr": "NYK",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-16",
+      "homeAbbr": "PHI",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "CHI",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "DEN",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "LAL",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "MIA",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "NOP",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "OKC",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "UTA",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-17",
+      "homeAbbr": "WAS",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-01-18",
+      "homeAbbr": "ATL",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-01-18",
+      "homeAbbr": "CLE",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-18",
+      "homeAbbr": "DAL",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-01-18",
+      "homeAbbr": "LAC",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-18",
+      "homeAbbr": "MEM",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-18",
+      "homeAbbr": "NYK",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-18",
+      "homeAbbr": "WAS",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-01-19",
+      "homeAbbr": "DAL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-19",
+      "homeAbbr": "DEN",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-19",
+      "homeAbbr": "MIA",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-19",
+      "homeAbbr": "ORL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-01-19",
+      "homeAbbr": "PHI",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-01-19",
+      "homeAbbr": "SAC",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-19",
+      "homeAbbr": "TOR",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "ATL",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "BKN",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "BOS",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "MIN",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "NOP",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "NYK",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "PHX",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "SAC",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "SAS",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-20",
+      "homeAbbr": "UTA",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-21",
+      "homeAbbr": "BKN",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-21",
+      "homeAbbr": "BOS",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-01-21",
+      "homeAbbr": "DEN",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-01-21",
+      "homeAbbr": "GSW",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "ATL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "CHA",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "DET",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "GSW",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "LAC",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "LAL",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "NOP",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "OKC",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "ORL",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "PHX",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-22",
+      "homeAbbr": "SAS",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-23",
+      "homeAbbr": "BKN",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-01-23",
+      "homeAbbr": "BOS",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-23",
+      "homeAbbr": "CHI",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-01-23",
+      "homeAbbr": "DAL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-23",
+      "homeAbbr": "DEN",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-23",
+      "homeAbbr": "MIA",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-01-24",
+      "homeAbbr": "DET",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-24",
+      "homeAbbr": "GSW",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-01-24",
+      "homeAbbr": "LAL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-01-24",
+      "homeAbbr": "NYK",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-24",
+      "homeAbbr": "ORL",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-24",
+      "homeAbbr": "PHX",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-01-24",
+      "homeAbbr": "SAS",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "BKN",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "BOS",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "CHA",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "CHI",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "DEN",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "MEM",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "NOP",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-25",
+      "homeAbbr": "PHI",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-26",
+      "homeAbbr": "DET",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-01-26",
+      "homeAbbr": "IND",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-26",
+      "homeAbbr": "LAL",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-01-26",
+      "homeAbbr": "NYK",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-26",
+      "homeAbbr": "POR",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-01-26",
+      "homeAbbr": "SAS",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-26",
+      "homeAbbr": "UTA",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "BKN",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "BOS",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "CLE",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "HOU",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "MIN",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "PHI",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "POR",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "SAS",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-27",
+      "homeAbbr": "TOR",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "IND",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "MIL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "NOP",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "NYK",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "OKC",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "ORL",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "UTA",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-01-28",
+      "homeAbbr": "WAS",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-29",
+      "homeAbbr": "BKN",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-01-29",
+      "homeAbbr": "BOS",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-29",
+      "homeAbbr": "DAL",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-01-29",
+      "homeAbbr": "HOU",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-01-29",
+      "homeAbbr": "MIN",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-01-29",
+      "homeAbbr": "TOR",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "CLE",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "GSW",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "IND",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "MIA",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "MIL",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "NYK",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "OKC",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-01-30",
+      "homeAbbr": "UTA",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "CHA",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "DAL",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "DEN",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "DET",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "MIN",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "OKC",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "ORL",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-01-31",
+      "homeAbbr": "TOR",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-02-01",
+      "homeAbbr": "ATL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-02-01",
+      "homeAbbr": "BKN",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-02-01",
+      "homeAbbr": "GSW",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-01",
+      "homeAbbr": "IND",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-01",
+      "homeAbbr": "MIL",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-02-01",
+      "homeAbbr": "PHI",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-01",
+      "homeAbbr": "UTA",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "BOS",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "DAL",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "DEN",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "DET",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "LAC",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "MIA",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "ORL",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-02",
+      "homeAbbr": "POR",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-02-03",
+      "homeAbbr": "DET",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-02-03",
+      "homeAbbr": "HOU",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-02-03",
+      "homeAbbr": "IND",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-02-03",
+      "homeAbbr": "LAC",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-02-03",
+      "homeAbbr": "MEM",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-02-03",
+      "homeAbbr": "PHX",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "BKN",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "CHA",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "CHI",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "DEN",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "MIA",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "NYK",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "POR",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "SAC",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "SAS",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-02-04",
+      "homeAbbr": "WAS",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-05",
+      "homeAbbr": "ATL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-02-05",
+      "homeAbbr": "CHA",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-02-05",
+      "homeAbbr": "DEN",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-02-05",
+      "homeAbbr": "OKC",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-02-05",
+      "homeAbbr": "PHI",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-02-05",
+      "homeAbbr": "PHX",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "BKN",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "CHI",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "CLE",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "DAL",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "MEM",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "MIN",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "SAC",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "SAS",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-02-06",
+      "homeAbbr": "TOR",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "ATL",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "DAL",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "DET",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "MIN",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "OKC",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "PHI",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "SAC",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-02-07",
+      "homeAbbr": "TOR",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-02-08",
+      "homeAbbr": "ATL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-08",
+      "homeAbbr": "IND",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-08",
+      "homeAbbr": "MEM",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-02-08",
+      "homeAbbr": "MIL",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-02-08",
+      "homeAbbr": "PHI",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-02-08",
+      "homeAbbr": "PHX",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-02-08",
+      "homeAbbr": "WAS",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "BKN",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "BOS",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "CHI",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "CLE",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "DAL",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "LAC",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "MIL",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "NYK",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "OKC",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-02-09",
+      "homeAbbr": "UTA",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-02-10",
+      "homeAbbr": "ATL",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-10",
+      "homeAbbr": "BOS",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-02-10",
+      "homeAbbr": "IND",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-02-10",
+      "homeAbbr": "LAL",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-02-10",
+      "homeAbbr": "MEM",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-02-10",
+      "homeAbbr": "PHX",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-02-10",
+      "homeAbbr": "WAS",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-11",
+      "homeAbbr": "CHA",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-02-11",
+      "homeAbbr": "DAL",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-02-11",
+      "homeAbbr": "DEN",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-02-11",
+      "homeAbbr": "HOU",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-02-11",
+      "homeAbbr": "IND",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-02-11",
+      "homeAbbr": "OKC",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-11",
+      "homeAbbr": "PHI",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "ATL",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "BOS",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "LAL",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "MEM",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "NOP",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "ORL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "TOR",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-02-12",
+      "homeAbbr": "WAS",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-02-13",
+      "homeAbbr": "CHA",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-02-13",
+      "homeAbbr": "IND",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-02-13",
+      "homeAbbr": "NYK",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-02-13",
+      "homeAbbr": "OKC",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-02-13",
+      "homeAbbr": "ORL",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-13",
+      "homeAbbr": "POR",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-02-13",
+      "homeAbbr": "WAS",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-02-14",
+      "homeAbbr": "ATL",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-02-14",
+      "homeAbbr": "BOS",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-02-14",
+      "homeAbbr": "CLE",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-02-14",
+      "homeAbbr": "HOU",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-02-14",
+      "homeAbbr": "MIA",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-02-14",
+      "homeAbbr": "NOP",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-02-14",
+      "homeAbbr": "POR",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "CHA",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "DAL",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "GSW",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "MEM",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "MIA",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "OKC",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "UTA",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-02-15",
+      "homeAbbr": "WAS",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-02-16",
+      "homeAbbr": "ATL",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-02-16",
+      "homeAbbr": "CLE",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-02-16",
+      "homeAbbr": "LAC",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-02-16",
+      "homeAbbr": "LAL",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-02-16",
+      "homeAbbr": "POR",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "BKN",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "CHA",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "CLE",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "DEN",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "DET",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "GSW",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "LAC",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "MEM",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "OKC",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "ORL",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "PHI",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "SAC",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-02-17",
+      "homeAbbr": "WAS",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-18",
+      "homeAbbr": "LAL",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-02-18",
+      "homeAbbr": "MEM",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-02-18",
+      "homeAbbr": "MIN",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-02-18",
+      "homeAbbr": "POR",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "BKN",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "CHI",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "CLE",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "DET",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "GSW",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "LAC",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "MIL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "NOP",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "NYK",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-02-25",
+      "homeAbbr": "ORL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-02-26",
+      "homeAbbr": "BOS",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-02-26",
+      "homeAbbr": "DEN",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-02-26",
+      "homeAbbr": "HOU",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-02-26",
+      "homeAbbr": "MIN",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-02-26",
+      "homeAbbr": "POR",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-02-26",
+      "homeAbbr": "SAS",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-02-26",
+      "homeAbbr": "TOR",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-02-27",
+      "homeAbbr": "CHI",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-02-27",
+      "homeAbbr": "DET",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-02-27",
+      "homeAbbr": "MEM",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-02-27",
+      "homeAbbr": "NYK",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-02-27",
+      "homeAbbr": "PHX",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-02-27",
+      "homeAbbr": "UTA",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "CHA",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "DAL",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "HOU",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "IND",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "LAC",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "MIN",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "NYK",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "ORL",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-02-28",
+      "homeAbbr": "SAS",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-01",
+      "homeAbbr": "CLE",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-01",
+      "homeAbbr": "DEN",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-01",
+      "homeAbbr": "DET",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-03-01",
+      "homeAbbr": "HOU",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-01",
+      "homeAbbr": "NOP",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-01",
+      "homeAbbr": "PHX",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "DAL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "IND",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "MIA",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "MIL",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "NYK",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "OKC",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "ORL",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "POR",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-03-02",
+      "homeAbbr": "SAC",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-03",
+      "homeAbbr": "ATL",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-03-03",
+      "homeAbbr": "DEN",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-03",
+      "homeAbbr": "HOU",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-03",
+      "homeAbbr": "MIA",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-03",
+      "homeAbbr": "MIL",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-03",
+      "homeAbbr": "PHI",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-03-03",
+      "homeAbbr": "PHX",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "ATL",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "CLE",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "DAL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "GSW",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "LAC",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "ORL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "PHI",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-03-04",
+      "homeAbbr": "SAC",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-05",
+      "homeAbbr": "DET",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-05",
+      "homeAbbr": "HOU",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-05",
+      "homeAbbr": "NOP",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-03-05",
+      "homeAbbr": "ORL",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-05",
+      "homeAbbr": "PHX",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-03-05",
+      "homeAbbr": "TOR",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-03-06",
+      "homeAbbr": "CHI",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-03-06",
+      "homeAbbr": "CLE",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-06",
+      "homeAbbr": "LAL",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-06",
+      "homeAbbr": "MEM",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-06",
+      "homeAbbr": "MIA",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-06",
+      "homeAbbr": "SAC",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-03-06",
+      "homeAbbr": "WAS",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-07",
+      "homeAbbr": "BOS",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-07",
+      "homeAbbr": "CHI",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-03-07",
+      "homeAbbr": "DEN",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-03-07",
+      "homeAbbr": "GSW",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-07",
+      "homeAbbr": "LAL",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-07",
+      "homeAbbr": "SAS",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "IND",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "LAC",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "MEM",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "MIA",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "MIN",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "OKC",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "PHI",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-08",
+      "homeAbbr": "SAC",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-09",
+      "homeAbbr": "BKN",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-03-09",
+      "homeAbbr": "CHI",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-09",
+      "homeAbbr": "DAL",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-09",
+      "homeAbbr": "DET",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-03-09",
+      "homeAbbr": "GSW",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-03-09",
+      "homeAbbr": "ORL",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-09",
+      "homeAbbr": "SAS",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "CHA",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "LAC",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "MIA",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "MIN",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "POR",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "SAC",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "TOR",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-10",
+      "homeAbbr": "UTA",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "ATL",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "BOS",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "CHA",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "CHI",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "DAL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "DET",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "LAC",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "LAL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-11",
+      "homeAbbr": "SAS",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-12",
+      "homeAbbr": "BOS",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-12",
+      "homeAbbr": "DEN",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-12",
+      "homeAbbr": "LAL",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-03-12",
+      "homeAbbr": "MIL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-03-12",
+      "homeAbbr": "NOP",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-12",
+      "homeAbbr": "UTA",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "ATL",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "CHA",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "CHI",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "DAL",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "DET",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "HOU",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "MIN",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-13",
+      "homeAbbr": "POR",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-03-14",
+      "homeAbbr": "DEN",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-03-14",
+      "homeAbbr": "LAL",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-14",
+      "homeAbbr": "MIN",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-14",
+      "homeAbbr": "NYK",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-14",
+      "homeAbbr": "OKC",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-14",
+      "homeAbbr": "SAC",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-03-14",
+      "homeAbbr": "TOR",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-03-15",
+      "homeAbbr": "BKN",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-15",
+      "homeAbbr": "CHI",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-03-15",
+      "homeAbbr": "DAL",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-15",
+      "homeAbbr": "MEM",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-15",
+      "homeAbbr": "PHI",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "BOS",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "GSW",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "HOU",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "IND",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "LAC",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "MIL",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "NOP",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "OKC",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "POR",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-03-16",
+      "homeAbbr": "WAS",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "GSW",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "HOU",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "LAL",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "NYK",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "OKC",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "PHI",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "POR",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-03-17",
+      "homeAbbr": "UTA",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "BOS",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "DEN",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "IND",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "LAC",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "MIL",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "NOP",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "SAS",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "UTA",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-03-18",
+      "homeAbbr": "WAS",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-19",
+      "homeAbbr": "GSW",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-03-19",
+      "homeAbbr": "LAL",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-19",
+      "homeAbbr": "NOP",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-19",
+      "homeAbbr": "PHX",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-03-19",
+      "homeAbbr": "SAS",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-19",
+      "homeAbbr": "TOR",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-03-20",
+      "homeAbbr": "CLE",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-03-20",
+      "homeAbbr": "DET",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-03-20",
+      "homeAbbr": "LAC",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-20",
+      "homeAbbr": "MEM",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-20",
+      "homeAbbr": "MIL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-20",
+      "homeAbbr": "NYK",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-20",
+      "homeAbbr": "ORL",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-21",
+      "homeAbbr": "BKN",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-03-21",
+      "homeAbbr": "BOS",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-21",
+      "homeAbbr": "LAL",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-21",
+      "homeAbbr": "MIA",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-21",
+      "homeAbbr": "PHI",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-21",
+      "homeAbbr": "PHX",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-03-21",
+      "homeAbbr": "UTA",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "CHI",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "CLE",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "GSW",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "LAC",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "MEM",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "MIL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "MIN",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-03-22",
+      "homeAbbr": "ORL",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-23",
+      "homeAbbr": "BKN",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-23",
+      "homeAbbr": "MIA",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-03-23",
+      "homeAbbr": "NYK",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-23",
+      "homeAbbr": "PHX",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-23",
+      "homeAbbr": "POR",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-23",
+      "homeAbbr": "UTA",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "BOS",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "CHA",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "CHI",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "GSW",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "IND",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "LAC",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "MIN",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "NYK",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "PHX",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "SAC",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-03-24",
+      "homeAbbr": "WAS",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-25",
+      "homeAbbr": "BKN",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-25",
+      "homeAbbr": "CLE",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-03-25",
+      "homeAbbr": "DET",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-25",
+      "homeAbbr": "GSW",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-25",
+      "homeAbbr": "IND",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-25",
+      "homeAbbr": "MEM",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-03-25",
+      "homeAbbr": "MIA",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-26",
+      "homeAbbr": "CHA",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-26",
+      "homeAbbr": "DAL",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-26",
+      "homeAbbr": "MIN",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-03-26",
+      "homeAbbr": "OKC",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-03-26",
+      "homeAbbr": "PHX",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-03-26",
+      "homeAbbr": "POR",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-27",
+      "homeAbbr": "ATL",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-27",
+      "homeAbbr": "CHI",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-03-27",
+      "homeAbbr": "DET",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-03-27",
+      "homeAbbr": "MIA",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-27",
+      "homeAbbr": "POR",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-03-27",
+      "homeAbbr": "SAC",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-27",
+      "homeAbbr": "WAS",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "BKN",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "CHA",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "DEN",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "HOU",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "MIN",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "NOP",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "ORL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "PHX",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-28",
+      "homeAbbr": "WAS",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "ATL",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "BKN",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "CHI",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "CLE",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "DET",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "MIL",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "SAC",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-29",
+      "homeAbbr": "SAS",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-30",
+      "homeAbbr": "CHA",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-03-30",
+      "homeAbbr": "IND",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-03-30",
+      "homeAbbr": "MEM",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-03-30",
+      "homeAbbr": "ORL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-03-30",
+      "homeAbbr": "POR",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-30",
+      "homeAbbr": "UTA",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "ATL",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "BKN",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "DAL",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "DET",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "MIL",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "MIN",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "PHI",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "POR",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "SAS",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-03-31",
+      "homeAbbr": "WAS",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-04-01",
+      "homeAbbr": "CLE",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-04-01",
+      "homeAbbr": "IND",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-04-01",
+      "homeAbbr": "NYK",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-04-01",
+      "homeAbbr": "OKC",
+      "awayAbbr": "LAL"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "BKN",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "BOS",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "CHI",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "DAL",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "HOU",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "LAC",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "MIL",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "MIN",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "PHX",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "POR",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "TOR",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-04-02",
+      "homeAbbr": "WAS",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-04-03",
+      "homeAbbr": "OKC",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-04-03",
+      "homeAbbr": "ORL",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "CLE",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "DAL",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "DEN",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "DET",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "HOU",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "LAC",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "LAL",
+      "awayAbbr": "SAS"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "MIL",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "NYK",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "PHI",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "SAC",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "TOR",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-04-04",
+      "homeAbbr": "UTA",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-04-05",
+      "homeAbbr": "CLE",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-04-05",
+      "homeAbbr": "NOP",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-04-05",
+      "homeAbbr": "ORL",
+      "awayAbbr": "MIA"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "ATL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "CHA",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "DEN",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "GSW",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "LAC",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "LAL",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "MEM",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "MIL",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "SAS",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "TOR",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-04-06",
+      "homeAbbr": "UTA",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "CHI",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "DET",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "HOU",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "LAL",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "MEM",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "ORL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "POR",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "SAS",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-04-07",
+      "homeAbbr": "TOR",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-04-08",
+      "homeAbbr": "DEN",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-04-08",
+      "homeAbbr": "MIA",
+      "awayAbbr": "PHI"
+    },
+    {
+      "date": "2027-04-08",
+      "homeAbbr": "MIL",
+      "awayAbbr": "NYK"
+    },
+    {
+      "date": "2027-04-08",
+      "homeAbbr": "OKC",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-04-08",
+      "homeAbbr": "UTA",
+      "awayAbbr": "NOP"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "ATL",
+      "awayAbbr": "BOS"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "CHA",
+      "awayAbbr": "BKN"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "CHI",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "HOU",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "IND",
+      "awayAbbr": "CLE"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "LAL",
+      "awayAbbr": "MIN"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "MIA",
+      "awayAbbr": "WAS"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "NYK",
+      "awayAbbr": "DET"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "OKC",
+      "awayAbbr": "GSW"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "ORL",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "PHX",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "SAC",
+      "awayAbbr": "DAL"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "SAS",
+      "awayAbbr": "DEN"
+    },
+    {
+      "date": "2027-04-09",
+      "homeAbbr": "UTA",
+      "awayAbbr": "LAC"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "BKN",
+      "awayAbbr": "TOR"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "BOS",
+      "awayAbbr": "MIL"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "CLE",
+      "awayAbbr": "ATL"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "DAL",
+      "awayAbbr": "MEM"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "DEN",
+      "awayAbbr": "OKC"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "GSW",
+      "awayAbbr": "UTA"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "LAC",
+      "awayAbbr": "SAC"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "LAL",
+      "awayAbbr": "PHX"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "MIA",
+      "awayAbbr": "ORL"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "MIN",
+      "awayAbbr": "HOU"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "NOP",
+      "awayAbbr": "CHI"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "NYK",
+      "awayAbbr": "IND"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "PHI",
+      "awayAbbr": "CHA"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "SAS",
+      "awayAbbr": "POR"
+    },
+    {
+      "date": "2027-04-11",
+      "homeAbbr": "WAS",
+      "awayAbbr": "DET"
+    }
+  ]
+}

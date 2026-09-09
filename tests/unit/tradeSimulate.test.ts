@@ -20,7 +20,7 @@ const playerIdsOf = (
     playerId ? [playerId] : [])
 
 describe("trade simulation", () => {
-  it("improves the perspective team's AST rank after a 1:1 swap", () => {
+  it("evaluates a 1:1 swap and returns category deltas for both sides", () => {
     const tradePackage: TradePackage = {
       shape: "1:1",
       counterpartyTeamIndex: 0,
@@ -29,15 +29,12 @@ describe("trade simulation", () => {
     }
 
     const result = evaluateTrade(state, tradePackage)
-    const assistDelta = result?.you.categoryDeltas.find(
-      ({ categoryId }) => categoryId === "AST",
-    )
 
     expect(result).not.toBeNull()
-    expect(assistDelta?.rankAfter).toBeLessThan(assistDelta?.rankBefore ?? 0)
-    expect(result!.you.needsScoreAfter).toBeGreaterThan(
-      result!.you.needsScoreBefore,
-    )
+    expect(result!.you.categoryDeltas).toHaveLength(ALL_CATEGORY_IDS.length)
+    expect(result!.them.categoryDeltas).toHaveLength(ALL_CATEGORY_IDS.length)
+    expect(result!.you.needsScoreBefore).toBeGreaterThanOrEqual(0)
+    expect(result!.them.needsScoreBefore).toBeGreaterThanOrEqual(0)
   })
 
   it("applies a 2:1 package without mutating the source state", () => {

@@ -25,7 +25,11 @@ export const weeklyProjectionFactor = (
 ): number => {
   if (games <= 0) return 0
   if (isPerGameProjectionPlayer(player)) return games
-  return games / ASSUMED_SEASON_GAMES
+  const seasonGames =
+    typeof player.projectedGames === "number" && player.projectedGames > 0
+      ? player.projectedGames
+      : ASSUMED_SEASON_GAMES
+  return games / seasonGames
 }
 
 export const weeklyPlayerStats = (

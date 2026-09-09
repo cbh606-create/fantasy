@@ -1,16 +1,24 @@
 "use client"
 
 import { useState } from "react"
-import type { Player } from "@/lib/domain/types"
 import { playerInitials, resolvePlayerImageUrl } from "@/lib/players/playerIdentity"
 
+type PlayerAvatarSource = {
+  name: string
+  imageUrl?: string
+  espnId?: string
+  id?: string
+}
+
 type PlayerAvatarProps = {
-  player: Player
-  size?: "sm" | "md"
+  player: PlayerAvatarSource
+  size?: "xs" | "sm" | "md"
   nameShown?: boolean
+  fallback?: "initials" | "none"
 }
 
 const sizeClasses = {
+  xs: "h-5 w-5 text-[0.5rem]",
   sm: "h-6 w-6 text-[0.625rem]",
   md: "h-8 w-8 text-xs",
 } as const
@@ -19,6 +27,7 @@ export const PlayerAvatar = ({
   player,
   size = "sm",
   nameShown = true,
+  fallback = "initials",
 }: PlayerAvatarProps) => {
   const [imageFailed, setImageFailed] = useState(false)
   const imageUrl = resolvePlayerImageUrl(player)
@@ -27,6 +36,7 @@ export const PlayerAvatar = ({
   const sizeClass = sizeClasses[size]
 
   if (!imageUrl || imageFailed) {
+    if (fallback === "none") return null
     return (
       <span
         aria-hidden={nameShown ? true : undefined}

@@ -1,13 +1,28 @@
 import { headers } from "next/headers"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import scheduleFixture from "../../data/fixtures/nba-matchup-schedule.json"
 import { GET as getMatchupStream } from "@/app/api/waivers/matchup-stream/route"
 import { POST as previewMatchupStreamRoute } from "@/app/api/waivers/matchup-stream/preview/route"
 import { POST as createSeasonLeague } from "@/app/api/season-leagues/route"
 import { db } from "@/lib/db"
+import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
+import type { ScheduleResponse } from "@/lib/season/types"
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
 }))
+
+vi.mock("@/lib/matchup/scheduleLive", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/lib/matchup/scheduleLive")>()
+
+  return {
+    ...actual,
+    getMatchupSchedule: vi.fn(
+      async () => scheduleFixture as ScheduleResponse,
+    ),
+  }
+})
 
 const testUserPrefix = `waivers-matchup-stream-${crypto.randomUUID()}`
 let currentUserId: string
@@ -120,6 +135,7 @@ describe("GET /api/waivers/matchup-stream", () => {
       topDrops: expect.any(Array),
     })
     expect(payload.windowDays).toHaveLength(3)
+    expect(getMatchupSchedule).toHaveBeenCalled()
   })
 
   it("ignores invalid dayCount and uses the full week", async () => {
@@ -167,6 +183,7 @@ describe("POST /api/waivers/matchup-stream/preview", () => {
       summary: expect.any(String),
     })
     expect(payload.windowDays).toHaveLength(3)
+    expect(getMatchupSchedule).toHaveBeenCalled()
   })
 
   it("returns 400 when add player is not available", async () => {

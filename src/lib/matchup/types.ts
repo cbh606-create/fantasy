@@ -1,4 +1,5 @@
 import type { CategoryId } from "@/lib/domain/types"
+import type { DailyLineups } from "./dailyLineups"
 
 export type CategoryOutcome = "W" | "L" | "T"
 
@@ -37,6 +38,14 @@ export type SitStartSuggestion = {
   reason: string
 }
 
+export type RatioSitSuggestion = {
+  playerId: string
+  date: string
+  targetCategoryId: "FG_PCT" | "FT_PCT" | "TO"
+  deltaWinProb: number
+  reason: string
+}
+
 export type SitStartSwap = {
   benchPlayerId: string
   activePlayerId: string
@@ -46,7 +55,79 @@ export type StreamerSuggestion = {
   playerId: string
   score: number
   gamesThisWeek: number
+  b2bNights: number
   reasons: string[]
+}
+
+export type StreamingStrategyMode =
+  | "aggressive"
+  | "balanced"
+  | "conservative"
+
+export type StreamingDensityTier = "elite" | "strong" | "ok" | "thin"
+
+export type StreamingPlanSpotCount = 1 | 2 | 3
+
+export type OppSpotChoice = "auto" | 1 | 2 | 3
+
+export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
+
+export type StreamingPlanRosterDropKind = "player" | "open_slot" | "none"
+
+export type StreamingPlanDayCell = {
+  spotIndex: number
+  playerId: string | null
+  action: StreamingPlanAction
+  droppedPlayerId: string | null
+  rosterDropPlayerId: string | null
+  rosterDropKind: StreamingPlanRosterDropKind
+  addIndex: number | null
+  /** Next-best free agents / blocks for this add (hover hints). */
+  alternativePlayerIds: string[]
+  targetCategoryIds: CategoryId[]
+}
+
+export type StreamingPlanDay = {
+  date: string
+  cells: StreamingPlanDayCell[]
+}
+
+export type OpponentStreamDayCell = {
+  spotIndex: number
+  playerId: string | null
+  droppedPlayerId: string | null
+  action: StreamingPlanAction
+  addIndex: number | null
+}
+
+export type OpponentStreamDay = {
+  date: string
+  streamerPlayerId: string | null
+  droppedPlayerId: string | null
+  rosterGameCount: number
+  cells: OpponentStreamDayCell[]
+}
+
+export type StreamingPlan = {
+  spotCount: StreamingPlanSpotCount
+  addLimit: number
+  addsUsed: number
+  gameStarts: number
+  strategyMode: StreamingStrategyMode
+  suggestedStrategyMode: StreamingStrategyMode
+  summaryReasons: string[]
+  days: StreamingPlanDay[]
+  opponentDays: OpponentStreamDay[]
+  opponentDaily: DailyLineups
+}
+
+export type SlotGroup = "G" | "F" | "C"
+
+export type WinnerStreamRecipe = {
+  situationCat: CategoryId
+  addKind: CategoryId
+  addGroup: SlotGroup
+  count: number
 }
 
 export type MatchupAdvice = {
@@ -60,4 +141,7 @@ export type MatchupAdvice = {
   board: MatchupBoard
   sitStart: SitStartSuggestion[]
   streamers: StreamerSuggestion[]
+  streamingPlans: StreamingPlan[]
+  adpByPlayerId?: Record<string, number>
+  winnerStreamRecipes?: WinnerStreamRecipe[]
 }

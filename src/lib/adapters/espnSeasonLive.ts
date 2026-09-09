@@ -13,9 +13,27 @@ import {
   readEnvEspnCookies,
   type EspnCookies,
 } from "@/lib/espn/cookies"
+import { applyPoolProjections } from "@/lib/players/applyPoolProjections"
+import { loadProjPoolPlayers } from "@/lib/players/loadProjPool"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
 const FETCH_TIMEOUT_MS = 15_000
+
+const overlayPoolProjections = async (
+  state: SeasonLeagueState,
+): Promise<SeasonLeagueState> => {
+  try {
+    const poolPlayers = await loadProjPoolPlayers()
+    const { players } = applyPoolProjections(state.players, poolPlayers)
+    return { ...state, players }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error"
+    console.warn(
+      `ESPN pool projection overlay skipped; using live-mapped stats: ${message}`,
+    )
+    return state
+  }
+}
 
 const resolveCookies = (cookies?: EspnCookies): EspnCookies => {
   const resolved = cookies ?? readEnvEspnCookies()
@@ -155,12 +173,13 @@ export const fetchEspnSeasonLeague = async (params: {
     }
 
     const payload = await parseEspnJson<EspnLeaguePayload>(response)
-    const state = mapEspnLeagueToSeasonState(payload, params)
+    let state = mapEspnLeagueToSeasonState(payload, params)
 
     try {
       const faPlayers = await fetchEspnFreeAgents(params, cookies)
       if (faPlayers.length > 0) {
-        return mergeAvailablePlayers(state, faPlayers, "espn_fa")
+        state = mergeAvailablePlayers(state, faPlayers, "espn_fa")
+        return overlayPoolProjections(state)
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "unknown error"
@@ -171,14 +190,15 @@ export const fetchEspnSeasonLeague = async (params: {
 
     const ownershipIds = deriveAvailableFromOwnership(state)
     if (ownershipIds.length === 0) {
-      return { ...state, availablePlayerIds: [] }
+      return overlayPoolProjections({ ...state, availablePlayerIds: [] })
     }
 
     const ownershipPlayers = state.players.filter((player) =>
       ownershipIds.includes(player.id),
     )
-    return mergeAvailablePlayers(state, ownershipPlayers, "ownership")
-  } catch (error) {
+    return overlayPoolProjections(
+      mergeAvailablePlayers(state, ownershipPlayers, "ownership"),
+    )  } catch (error) {
     if (error instanceof EspnAdapterError) throw error
 
     if (error instanceof DOMException && error.name === "AbortError") {

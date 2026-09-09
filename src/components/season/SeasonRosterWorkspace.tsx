@@ -7,11 +7,13 @@ import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { PlayerSchedulePanel } from "@/components/season/PlayerSchedulePanel"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
+import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import {
   analyzeSeasonLeague,
   type SeasonAnalysis,
 } from "@/lib/season/analysis"
+import { eligibleForSlot } from "@/lib/matchup/eligibility"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import { buildPlayerMatchupSchedule } from "@/lib/season/schedule"
 import type {
@@ -39,6 +41,7 @@ type RefreshResponse = {
 }
 
 const responseMessage = async (response: Response, fallback: string) => {
+  if (response.status === 401) return "unauthorized"
   const body = (await response.json().catch(() => ({}))) as RefreshResponse
   return body.message ?? body.errorCode ?? fallback
 }
@@ -194,7 +197,19 @@ export const SeasonRosterWorkspace = ({
   }
 
   const handleSaveLineup = async () => {
-    if (!draftEntries) return
+    if (!draftEntries || !data) return
+
+    const playersById = new Map(data.state.players.map((player) => [player.id, player]))
+    for (const entry of draftEntries) {
+      if (!entry.playerId) continue
+      const player = playersById.get(entry.playerId)
+      if (!eligibleForSlot(player, entry.slot)) {
+        setError(
+          `${player?.name ?? "Player"} cannot fill ${entry.slot === "IL" ? "IR" : entry.slot}`,
+        )
+        return
+      }
+    }
 
     setError("")
     setIsSaving(true)
@@ -299,17 +314,22 @@ export const SeasonRosterWorkspace = ({
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-mute)]" role="status">Loading roster workspace…</p>
-      </main>
+      <SeasonToolShell
+        backHref="/roster"
+        backLabel="← All rosters"
+        status="Loading roster workspace…"
+      />
     )
   }
 
   if (!data) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-sale)]" role="alert">{error || "Unable to load this roster"}</p>
-      </main>
+      <SeasonToolShell
+        backHref="/roster"
+        backLabel="← All rosters"
+        error={error || "Unable to load this roster"}
+        unauthorizedHint="Sign in to load this roster."
+      />
     )
   }
 
