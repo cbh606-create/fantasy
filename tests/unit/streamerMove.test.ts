@@ -3,6 +3,7 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import {
   applyStreamerMoveToDaily,
   pickBestStreamerMove,
+  planningMatchupBoard,
   scoreStreamerMove,
 } from "@/lib/matchup/streamerMove"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
@@ -154,6 +155,116 @@ describe("scoreStreamerMove", () => {
   })
 })
 
+it("can pick a close-loss helper even when the full 9-cat delta is negative", () => {
+  const merrill: SeasonPlayer = {
+    id: "merrill",
+    name: "merrill",
+    teamAbbr: "CLE",
+    availability: "fa",
+    positions: ["SG"],
+    projections: {
+      FG_PCT: 0.48, FT_PCT: 0.78, TPM: 400, REB: 50, AST: 250, STL: 60, BLK: 30, TO: 100, PTS: 1600,
+    },
+    shooting: { FGM: 500, FGA: 1040, FTM: 200, FTA: 260 },
+  }
+  const rebounder: SeasonPlayer = {
+    id: "rebounder",
+    name: "rebounder",
+    teamAbbr: "NYK",
+    availability: "fa",
+    positions: ["PF"],
+    projections: {
+      FG_PCT: 0.36, FT_PCT: 0.67, TPM: 20, REB: 280, AST: 40, STL: 15, BLK: 10, TO: 220, PTS: 200,
+    },
+    shooting: { FGM: 80, FGA: 220, FTM: 40, FTA: 60 },
+  }
+  const d1 = emptyActive()
+  d1[7] = { slot: "UTIL", playerId: "merrill" }
+  const d2 = emptyActive()
+  d2[7] = { slot: "UTIL", playerId: "merrill" }
+  const daily: DailyLineups = { "2025-10-22": d1, "2025-10-23": d2 }
+  const schedule: ScheduleResponse = {
+    source: "fixture",
+    matchup: {
+      scoringPeriodId: 1,
+      startDate: "2025-10-22",
+      endDate: "2025-10-23",
+      days: ["2025-10-22", "2025-10-23"],
+    },
+    games: [
+      { date: "2025-10-22", homeAbbr: "CLE", awayAbbr: "CHI" },
+      { date: "2025-10-23", homeAbbr: "CLE", awayAbbr: "MIA" },
+      { date: "2025-10-23", homeAbbr: "NYK", awayAbbr: "ATL" },
+    ],
+  }
+  const board: MatchupBoard = {
+    categories: ALL_CATEGORY_IDS.map((categoryId) => {
+      if (categoryId === "REB") {
+        return { categoryId, you: 1.2, opp: 5, outcome: "L" as const, winProb: 0.43 }
+      }
+      if (categoryId === "TPM") {
+        return { categoryId, you: 10, opp: 7, outcome: "W" as const, winProb: 0.57 }
+      }
+      if (categoryId === "TO") {
+        return { categoryId, you: 2, opp: 5, outcome: "W" as const, winProb: 0.65 }
+      }
+      if (categoryId === "FG_PCT" || categoryId === "FT_PCT") {
+        return { categoryId, you: 0.48, opp: 0.45, outcome: "W" as const, winProb: 0.7 }
+      }
+      if (categoryId === "STL") {
+        return { categoryId, you: 2, opp: 0.4, outcome: "W" as const, winProb: 0.75 }
+      }
+      if (categoryId === "BLK") {
+        return { categoryId, you: 1, opp: 0.2, outcome: "W" as const, winProb: 0.7 }
+      }
+      if (categoryId === "AST") {
+        return { categoryId, you: 8, opp: 2, outcome: "W" as const, winProb: 0.75 }
+      }
+      return { categoryId, you: 30, opp: 10, outcome: "W" as const, winProb: 0.8 }
+    }),
+    wins: 8,
+    losses: 1,
+    ties: 0,
+    projectedCatWins: 7.4,
+  }
+  const scored = scoreStreamerMove(
+    daily,
+    "2025-10-23",
+    "rebounder",
+    { kind: "player", playerId: "merrill" },
+    [merrill, rebounder],
+    schedule,
+    board,
+  )
+  expect(scored).not.toBeNull()
+  expect(scored!.delta).toBeLessThan(0)
+  expect(scored!.contestedDelta).toBeGreaterThan(0)
+  expect(
+    pickBestStreamerMove(
+      ["rebounder"],
+      daily,
+      "2025-10-23",
+      { kind: "player", playerId: "merrill" },
+      [merrill, rebounder],
+      schedule,
+      board,
+      () => true,
+    ),
+  ).toBeNull()
+  const picked = pickBestStreamerMove(
+    ["rebounder"],
+    daily,
+    "2025-10-23",
+    { kind: "player", playerId: "merrill" },
+    [merrill, rebounder],
+    schedule,
+    board,
+    () => true,
+    { requirePositiveDelta: false, requirePositiveContestedDelta: true },
+  )
+  expect(picked?.playerId).toBe("rebounder")
+})
+
 describe("pickBestStreamerMove", () => {
   it("pickBestStreamerMove prefers the FA that raises projectedCatWins over more remaining games", () => {
     const volume = player("fa-vol", "BOS", ["C"])
@@ -236,6 +347,178 @@ describe("pickBestStreamerMove", () => {
       { requirePositiveDelta: false },
     )
     expect(picked?.playerId).toBe("fa-less")
+  })
+
+  it("prefers an add that helps losing FG%/REB/BLK over one that piles onto winning PTS", () => {
+    const starter = player("starter", "BOS", ["SG"])
+    starter.projections = {
+      FG_PCT: 0.4,
+      FT_PCT: 0.8,
+      TPM: 3.1,
+      REB: 2,
+      AST: 7.1,
+      STL: 1.2,
+      BLK: 0,
+      TO: 2,
+      PTS: 24.2,
+    }
+    starter.shooting = { FGM: 8, FGA: 20, FTM: 4, FTA: 5 }
+
+    const guard = player("fa-guard", "NYK", ["PG"])
+    guard.projections = {
+      FG_PCT: 0.38,
+      FT_PCT: 0.88,
+      TPM: 6,
+      REB: 1,
+      AST: 10,
+      STL: 2.5,
+      BLK: 0,
+      TO: 1.5,
+      PTS: 36,
+    }
+    guard.shooting = { FGM: 10, FGA: 26, FTM: 5, FTA: 5.5 }
+
+    const big = player("fa-big", "CHI", ["C"])
+    big.projections = {
+      FG_PCT: 0.64,
+      FT_PCT: 0.7,
+      TPM: 0,
+      REB: 13,
+      AST: 1,
+      STL: 0.3,
+      BLK: 2.8,
+      TO: 2.2,
+      PTS: 10,
+    }
+    big.shooting = { FGM: 6, FGA: 9, FTM: 1, FTA: 2 }
+
+    const entries = emptyActive()
+    entries[1] = { slot: "SG", playerId: "starter" }
+    const daily: DailyLineups = { [DAY]: entries }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "ATL" },
+        { date: DAY, homeAbbr: "CHI", awayAbbr: "ORL" },
+      ],
+    }
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        const opp =
+          categoryId === "FG_PCT"
+            ? 0.47
+            : categoryId === "FT_PCT"
+              ? 0.79
+              : categoryId === "TPM"
+                ? 3
+                : categoryId === "REB"
+                  ? 8
+                  : categoryId === "AST"
+                    ? 7
+                    : categoryId === "STL"
+                      ? 1.1
+                      : categoryId === "BLK"
+                        ? 2
+                        : categoryId === "TO"
+                          ? 2.1
+                          : 24
+        const losing = categoryId === "FG_PCT" || categoryId === "REB" || categoryId === "BLK"
+        return {
+          categoryId,
+          you: losing ? 1 : 50,
+          opp,
+          outcome: losing ? "L" as const : "W" as const,
+          winProb: losing ? 0.15 : 0.85,
+        }
+      }),
+      wins: 6,
+      losses: 3,
+      ties: 0,
+      projectedCatWins: 6,
+    }
+
+    const guardScore = scoreStreamerMove(
+      daily,
+      DAY,
+      "fa-guard",
+      { kind: "none", playerId: null },
+      [starter, guard, big],
+      schedule,
+      board,
+    )
+    const bigScore = scoreStreamerMove(
+      daily,
+      DAY,
+      "fa-big",
+      { kind: "none", playerId: null },
+      [starter, guard, big],
+      schedule,
+      board,
+    )
+    expect(guardScore).not.toBeNull()
+    expect(bigScore).not.toBeNull()
+    expect(guardScore!.delta).toBeGreaterThan(bigScore!.delta)
+
+    const picked = pickBestStreamerMove(
+      ["fa-guard", "fa-big"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [starter, guard, big],
+      schedule,
+      board,
+      () => true,
+      { requirePositiveDelta: false },
+    )
+    expect(picked?.playerId).toBe("fa-big")
+  })
+})
+
+describe("planningMatchupBoard", () => {
+  it("uses daily you totals against frozen opponent totals", () => {
+    const starter = player("starter", "BOS", ["SG"])
+    starter.projections = {
+      FG_PCT: 0.4,
+      FT_PCT: 0.8,
+      TPM: 3,
+      REB: 2,
+      AST: 7,
+      STL: 1,
+      BLK: 0,
+      TO: 2,
+      PTS: 24,
+    }
+    starter.shooting = { FGM: 8, FGA: 20, FTM: 4, FTA: 5 }
+    const entries = emptyActive()
+    entries[1] = { slot: "SG", playerId: "starter" }
+    const daily: DailyLineups = { [DAY]: entries }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [{ date: DAY, homeAbbr: "BOS", awayAbbr: "MIA" }],
+    }
+    const frozen: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: 99,
+        opp: categoryId === "REB" ? 8 : 5,
+        outcome: "W" as const,
+        winProb: 0.9,
+      })),
+      wins: 9,
+      losses: 0,
+      ties: 0,
+      projectedCatWins: 8,
+    }
+
+    const planned = planningMatchupBoard(daily, [starter], schedule, frozen)
+    const reb = planned.categories.find((row) => row.categoryId === "REB")
+    expect(reb?.you).toBe(2)
+    expect(reb?.opp).toBe(8)
+    expect(reb?.outcome).toBe("L")
+    expect(frozen.categories.find((row) => row.categoryId === "REB")?.you).toBe(99)
   })
 })
 

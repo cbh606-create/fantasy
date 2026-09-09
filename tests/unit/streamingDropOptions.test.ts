@@ -108,25 +108,12 @@ describe("eligibleRosterDropPlayerIds", () => {
   ]
   const adpByPlayerId = { star: 30, bench: 150 }
 
-  it("excludes ADP-protected players by default", () => {
+  it("includes ADP-60 players in the dropbox", () => {
     const ids = eligibleRosterDropPlayerIds(
       entries,
       playersById,
       [],
       adpByPlayerId,
-    )
-
-    expect(ids).toEqual(["bench"])
-  })
-
-  it("keeps ADP-protected players when includeProtected is true", () => {
-    const ids = eligibleRosterDropPlayerIds(
-      entries,
-      playersById,
-      [],
-      adpByPlayerId,
-      undefined,
-      { includeProtected: true },
     )
 
     expect(ids).toEqual(["bench", "star"])

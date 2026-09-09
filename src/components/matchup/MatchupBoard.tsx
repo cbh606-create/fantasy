@@ -2,7 +2,9 @@ import type { MatchupBoard as MatchupBoardData } from "@/lib/matchup/types"
 import type { CategoryOutcome } from "@/lib/matchup/types"
 import {
   CATEGORY_SHORT_LABELS,
+  categoryStatLead,
   formatCategoryStat,
+  formatCategoryStatDelta,
 } from "@/lib/season/formatCategoryStat"
 
 type MatchupBoardProps = {
@@ -25,12 +27,22 @@ const valueClass = (
   return "tabular-nums text-[var(--color-mute)]"
 }
 
+const deltaClass = (outcome: CategoryOutcome): string => {
+  if (outcome === "W") {
+    return "font-semibold tabular-nums text-[var(--color-info)]"
+  }
+  if (outcome === "L") {
+    return "tabular-nums text-[var(--color-sale)]"
+  }
+  return "tabular-nums text-[var(--color-mute)]"
+}
+
 export const MatchupBoard = ({ board }: MatchupBoardProps) => (
   <section
     aria-label="Matchup board"
-    className="rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
+    className="mx-auto w-full max-w-5xl rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
   >
-    <div className="flex min-h-[4.75rem] items-stretch gap-4 overflow-x-auto">
+    <div className="flex min-h-[6rem] items-stretch gap-4 overflow-x-auto">
       <div className="flex shrink-0 flex-col justify-center border-r border-[var(--color-hairline)] pr-4">
         <p className="font-[family-name:var(--font-bebas-neue)] text-3xl leading-none tracking-wide tabular-nums text-[var(--color-ink)] sm:text-4xl">
           {board.wins}–{board.losses}–{board.ties}
@@ -87,6 +99,25 @@ export const MatchupBoard = ({ board }: MatchupBoardProps) => (
                 key={`opp-${row.categoryId}`}
               >
                 {formatCategoryStat(row.categoryId, row.opp)}
+              </td>
+            ))}
+          </tr>
+          <tr>
+            <th
+              className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+              scope="row"
+            >
+              Diff
+            </th>
+            {board.categories.map((row) => (
+              <td
+                className={`px-1.5 py-0.5 text-center text-[0.8125rem] ${deltaClass(row.outcome)}`}
+                key={`diff-${row.categoryId}`}
+              >
+                {formatCategoryStatDelta(
+                  row.categoryId,
+                  categoryStatLead(row.categoryId, row.you, row.opp),
+                )}
               </td>
             ))}
           </tr>

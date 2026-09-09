@@ -3,11 +3,6 @@ import type {
   SeasonPlayer,
   SeasonRosterEntry,
 } from "@/lib/season/types"
-import {
-  isAdpProtected,
-  isLongTermInjuryException,
-  isUnderperformingDropException,
-} from "./streamingDropPolicy"
 import { streamingAddDropKey } from "./streamingPlans"
 import type { StreamingPlan } from "./types"
 
@@ -34,20 +29,6 @@ const isIlSlot = (slot: SeasonRosterEntry["slot"]) => slot === "IL"
 export const hasOpenNonIlRosterSlot = (entries: SeasonRosterEntry[]) =>
   entries.some((entry) => !isIlSlot(entry.slot) && entry.playerId === null)
 
-const isProtectedRosterPlayer = (
-  player: SeasonPlayer,
-  adpByPlayerId?: Record<string, number>,
-  injuryOutDaysByPlayerId?: Record<string, number>,
-) => {
-  const outDays = injuryOutDaysByPlayerId?.[player.id] ?? 0
-  const adp = adpByPlayerId?.[player.id] ?? null
-  return (
-    isAdpProtected(adp) &&
-    !isLongTermInjuryException(outDays) &&
-    !isUnderperformingDropException(player)
-  )
-}
-
 export const eligibleRosterDropPlayerIds = (
   entries: SeasonRosterEntry[],
   playersById: Record<string, SeasonPlayer>,
@@ -56,6 +37,9 @@ export const eligibleRosterDropPlayerIds = (
   injuryOutDaysByPlayerId?: Record<string, number>,
   options?: { includeProtected?: boolean },
 ): string[] => {
+  void adpByPlayerId
+  void injuryOutDaysByPlayerId
+  void options
   const dropped = new Set(earlierDroppedIds)
   return entries
     .filter(
@@ -64,15 +48,6 @@ export const eligibleRosterDropPlayerIds = (
     )
     .map((entry) => playersById[entry.playerId!])
     .filter((player): player is SeasonPlayer => Boolean(player))
-    .filter(
-      (player) =>
-        options?.includeProtected ||
-        !isProtectedRosterPlayer(
-          player,
-          adpByPlayerId,
-          injuryOutDaysByPlayerId,
-        ),
-    )
     .map((player) => player.id)
     .sort((left, right) =>
       (playersById[left]?.name ?? left).localeCompare(

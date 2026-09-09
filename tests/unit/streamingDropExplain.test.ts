@@ -4,6 +4,7 @@ import { buildMatchupBoard } from "@/lib/matchup/board"
 import {
   formatHelpsCatsLine,
   formatSuggestedDropTooltip,
+  isCloseLosingCategory,
   isContestedCategoryRow,
   suggestStreamingDrop,
   targetCategoryIdsFromBoards,
@@ -91,6 +92,13 @@ describe("streamingDropExplain", () => {
     expect(isContestedCategoryRow(row("BLK", "T", 0.5))).toBe(true)
     expect(isContestedCategoryRow(row("PTS", "W", 0.64))).toBe(true)
     expect(isContestedCategoryRow(row("REB", "W", 0.65))).toBe(false)
+  })
+
+  it("treats a close L or T as a chase hole, not a blowout L", () => {
+    expect(isCloseLosingCategory(row("REB", "L", 0.43))).toBe(true)
+    expect(isCloseLosingCategory(row("STL", "T", 0.5))).toBe(true)
+    expect(isCloseLosingCategory(row("BLK", "L", 0.1))).toBe(false)
+    expect(isCloseLosingCategory(row("PTS", "W", 0.48))).toBe(false)
   })
 
   it("picks up to 3 hunted cats and skips blowout wins", () => {

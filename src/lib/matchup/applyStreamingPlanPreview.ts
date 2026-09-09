@@ -34,6 +34,8 @@ const clearPlayerFromDay = (
 export type ApplyStreamingPlanPreviewOptions = {
   /** `${date}:${playerId}` — skip seating these streamers (user sat them in preview). */
   omitSeats?: ReadonlySet<string>
+  /** `${date}:${playerId}` — do not clear this roster player; user started them back. */
+  keepRosterSeats?: ReadonlySet<string>
 }
 
 export const previewSeatKey = (date: string, playerId: string) =>
@@ -49,6 +51,7 @@ export const applyStreamingPlanPreview = (
   const next = cloneDaily(baseDaily)
   const matchupDays = Object.keys(next).sort()
   const omitSeats = options.omitSeats
+  const keepRosterSeats = options.keepRosterSeats
 
   for (const day of plan.days) {
     const date = day.date
@@ -59,7 +62,19 @@ export const applyStreamingPlanPreview = (
         cell.rosterDropPlayerId
       ) {
         for (const laterDay of matchupDays.filter((dayKey) => dayKey >= date)) {
+          if (
+            keepRosterSeats?.has(
+              previewSeatKey(laterDay, cell.rosterDropPlayerId),
+            )
+          ) {
+            continue
+          }
           clearPlayerFromDay(next[laterDay], cell.rosterDropPlayerId)
+        }
+      }
+      if (cell.action === "drop_add" && cell.droppedPlayerId) {
+        for (const laterDay of matchupDays.filter((dayKey) => dayKey >= date)) {
+          clearPlayerFromDay(next[laterDay], cell.droppedPlayerId)
         }
       }
     }

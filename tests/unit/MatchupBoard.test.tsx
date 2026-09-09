@@ -4,20 +4,26 @@ import { cleanup, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it } from "vitest"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import type { MatchupBoard as MatchupBoardData } from "@/lib/matchup/types"
-import { formatCategoryStat } from "@/lib/season/formatCategoryStat"
 
 const board: MatchupBoardData = {
   wins: 2,
   losses: 1,
   ties: 0,
-  projectedCatWins: 5.25,
+  projectedCatWins: 1.8,
   categories: [
     {
       categoryId: "PTS",
-      you: 112.4,
-      opp: 108.1,
+      you: 120,
+      opp: 110,
       outcome: "W",
-      winProb: 0.62,
+      winProb: 0.7,
+    },
+    {
+      categoryId: "TO",
+      you: 8,
+      opp: 10,
+      outcome: "W",
+      winProb: 0.6,
     },
     {
       categoryId: "REB",
@@ -27,39 +33,25 @@ const board: MatchupBoardData = {
       winProb: 0.35,
     },
     {
-      categoryId: "AST",
-      you: 25,
-      opp: 25,
-      outcome: "T",
-      winProb: 0.5,
+      categoryId: "FG_PCT",
+      you: 0.48,
+      opp: 0.47,
+      outcome: "W",
+      winProb: 0.55,
     },
   ],
 }
 
-describe("MatchupBoard scoreboard table", () => {
-  afterEach(() => {
-    cleanup()
-  })
+describe("MatchupBoard", () => {
+  afterEach(() => cleanup())
 
-  it("renders a fixed horizontal score bar with You/Opp cats", () => {
+  it("shows the signed lead under each category", () => {
     render(<MatchupBoard board={board} />)
 
-    expect(screen.getByRole("rowheader", { name: /^You$/i })).toBeInTheDocument()
-    expect(screen.getByRole("rowheader", { name: /^Opp$/i })).toBeInTheDocument()
-    expect(screen.getByRole("columnheader", { name: /^PTS$/i })).toBeInTheDocument()
-
-    expect(
-      screen.getByText(formatCategoryStat("PTS", 112.4)),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(formatCategoryStat("PTS", 108.1)),
-    ).toBeInTheDocument()
-
-    expect(screen.queryByText(/ vs /i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/YOU 2/i)).not.toBeInTheDocument()
-
-    expect(screen.getByText("2–1–0")).toBeInTheDocument()
-    expect(screen.getByText(/Proj 5\.25/i)).toBeInTheDocument()
-    expect(screen.queryByText("62%")).not.toBeInTheDocument()
+    expect(screen.getByRole("rowheader", { name: "Diff" })).toBeInTheDocument()
+    expect(screen.getByText("+10.0")).toBeInTheDocument()
+    expect(screen.getByText("+2.0")).toBeInTheDocument()
+    expect(screen.getByText("-4.0")).toBeInTheDocument()
+    expect(screen.getByText("+1.00%")).toBeInTheDocument()
   })
 })

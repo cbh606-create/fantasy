@@ -127,21 +127,59 @@ export const oppTotalsFromBoard = (
 export const categoryIdsFromBoard = (board: MatchupBoard): CategoryId[] =>
   board.categories.map((row) => row.categoryId)
 
+export const matchupBoardFromDaily = (
+  daily: DailyLineups,
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  board: MatchupBoard,
+  oppDaily?: DailyLineups,
+): MatchupBoard => {
+  const categoryIds = categoryIdsFromBoard(board)
+  const you = youTotalsFromDaily(daily, players, schedule)
+  const opp = oppDaily
+    ? youTotalsFromDaily(oppDaily, players, schedule)
+    : oppTotalsFromBoard(board)
+  return buildMatchupBoard(you, opp, categoryIds)
+}
+
+export const planningMatchupBoard = (
+  daily: DailyLineups | undefined,
+  players: SeasonPlayer[],
+  schedule: ScheduleResponse,
+  frozenBoard: MatchupBoard,
+): MatchupBoard => {
+  if (!daily) return frozenBoard
+  return matchupBoardFromDaily(daily, players, schedule, frozenBoard)
+}
+
+const contestedCategoryIds = (board: MatchupBoard): CategoryId[] =>
+  board.categories
+    .filter((row) => row.outcome === "L" || row.outcome === "T")
+    .map((row) => row.categoryId)
+
+const winProbSumFor = (board: MatchupBoard, categoryIds: CategoryId[]): number => {
+  const byId = new Map(board.categories.map((row) => [row.categoryId, row.winProb]))
+  return categoryIds.reduce((sum, categoryId) => sum + (byId.get(categoryId) ?? 0), 0)
+}
+
+const contestedDeltaFromBoards = (
+  before: MatchupBoard,
+  after: MatchupBoard,
+): number => {
+  const contestedIds = contestedCategoryIds(before)
+  if (contestedIds.length === 0) {
+    return after.projectedCatWins - before.projectedCatWins
+  }
+  return winProbSumFor(after, contestedIds) - winProbSumFor(before, contestedIds)
+}
+
 export const projectedCatWinsFromDaily = (
   daily: DailyLineups,
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
   board: MatchupBoard,
   oppDaily?: DailyLineups,
-): number => {
-  const categoryIds = categoryIdsFromBoard(board)
-  if (categoryIds.length === 0) return 0
-  const you = youTotalsFromDaily(daily, players, schedule)
-  const opp = oppDaily
-    ? youTotalsFromDaily(oppDaily, players, schedule)
-    : oppTotalsFromBoard(board)
-  return buildMatchupBoard(you, opp, categoryIds).projectedCatWins
-}
+): number => matchupBoardFromDaily(daily, players, schedule, board, oppDaily).projectedCatWins
 
 const scoreStreamerMoveWithBefore = (
   workingDaily: DailyLineups,
@@ -151,9 +189,14 @@ const scoreStreamerMoveWithBefore = (
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
   board: MatchupBoard,
-  before: number,
+  beforeBoard: MatchupBoard,
   oppDaily?: DailyLineups,
-): { delta: number; seatedGameDays: number; nextDaily: DailyLineups } | null => {
+): {
+  delta: number
+  contestedDelta: number
+  seatedGameDays: number
+  nextDaily: DailyLineups
+} | null => {
   const playersById = new Map(players.map((player) => [player.id, player]))
   const applied = applyStreamerMoveToDaily(
     workingDaily,
@@ -164,7 +207,7 @@ const scoreStreamerMoveWithBefore = (
     schedule,
   )
   if (applied.seatedGameDays === 0) return null
-  const after = projectedCatWinsFromDaily(
+  const afterBoard = matchupBoardFromDaily(
     applied.daily,
     players,
     schedule,
@@ -172,7 +215,8 @@ const scoreStreamerMoveWithBefore = (
     oppDaily,
   )
   return {
-    delta: after - before,
+    delta: afterBoard.projectedCatWins - beforeBoard.projectedCatWins,
+    contestedDelta: contestedDeltaFromBoards(beforeBoard, afterBoard),
     seatedGameDays: applied.seatedGameDays,
     nextDaily: applied.daily,
   }
@@ -187,8 +231,13 @@ export const scoreStreamerMove = (
   schedule: ScheduleResponse,
   board: MatchupBoard,
   oppDaily?: DailyLineups,
-): { delta: number; seatedGameDays: number; nextDaily: DailyLineups } | null => {
-  const before = projectedCatWinsFromDaily(
+): {
+  delta: number
+  contestedDelta: number
+  seatedGameDays: number
+  nextDaily: DailyLineups
+} | null => {
+  const beforeBoard = matchupBoardFromDaily(
     workingDaily,
     players,
     schedule,
@@ -203,7 +252,7 @@ export const scoreStreamerMove = (
     players,
     schedule,
     board,
-    before,
+    beforeBoard,
     oppDaily,
   )
 }
@@ -219,6 +268,7 @@ export const pickBestStreamerMove = (
   isCompatibleAlternative: (chosenId: string, otherId: string) => boolean,
   options?: {
     requirePositiveDelta?: boolean
+    requirePositiveContestedDelta?: boolean
     recipes?: WinnerStreamRecipe[]
     oppDaily?: DailyLineups
   },
@@ -229,6 +279,7 @@ export const pickBestStreamerMove = (
   alternativePlayerIds: string[]
 } | null => {
   const requirePositiveDelta = options?.requirePositiveDelta ?? true
+  const requirePositiveContestedDelta = options?.requirePositiveContestedDelta ?? false
   const recipes = options?.recipes ?? []
   const playersById = new Map(players.map((player) => [player.id, player]))
   const hitsFor = (playerId: string) => {
@@ -236,7 +287,7 @@ export const pickBestStreamerMove = (
     if (!player) return 0
     return winnerPriorHits(player, board, recipes)
   }
-  const before = projectedCatWinsFromDaily(
+  const beforeBoard = matchupBoardFromDaily(
     workingDaily,
     players,
     schedule,
@@ -252,31 +303,31 @@ export const pickBestStreamerMove = (
       players,
       schedule,
       board,
-      before,
+      beforeBoard,
       options?.oppDaily,
     )
     if (!result) return []
     return [{ playerId, index, ...result }]
   })
+  const rankKey = (row: (typeof scored)[number]) => ({
+    contestedDelta: row.contestedDelta,
+    delta: row.delta,
+    hits: hitsFor(row.playerId),
+    index: row.index,
+  })
   const ranked = scored
-    .filter((row) => (requirePositiveDelta ? row.delta > 0 : true))
-    .sort((left, right) =>
-      compareStreamerRank(
-        { delta: left.delta, hits: hitsFor(left.playerId), index: left.index },
-        { delta: right.delta, hits: hitsFor(right.playerId), index: right.index },
-      ),
-    )
+    .filter((row) => {
+      if (requirePositiveContestedDelta && row.contestedDelta <= 0) return false
+      if (requirePositiveDelta && row.delta <= 0) return false
+      return true
+    })
+    .sort((left, right) => compareStreamerRank(rankKey(left), rankKey(right)))
   const winner = ranked[0]
   if (!winner) return null
 
   const alternativePlayerIds = scored
     .filter((row) => row.playerId !== winner.playerId)
-    .sort((left, right) =>
-      compareStreamerRank(
-        { delta: left.delta, hits: hitsFor(left.playerId), index: left.index },
-        { delta: right.delta, hits: hitsFor(right.playerId), index: right.index },
-      ),
-    )
+    .sort((left, right) => compareStreamerRank(rankKey(left), rankKey(right)))
     .filter((row) => isCompatibleAlternative(winner.playerId, row.playerId))
     .slice(0, 3)
     .map((row) => row.playerId)

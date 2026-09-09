@@ -38,6 +38,7 @@ export type BuildWinnerStreamRecipesInput = {
 }
 
 export type StreamerRankKey = {
+  contestedDelta?: number
   delta: number
   hits: number
   index: number
@@ -238,6 +239,9 @@ export const compareStreamerRank = (
   left: StreamerRankKey,
   right: StreamerRankKey,
 ): number => {
+  const leftContested = left.contestedDelta ?? left.delta
+  const rightContested = right.contestedDelta ?? right.delta
+  if (rightContested !== leftContested) return rightContested - leftContested
   if (right.delta !== left.delta) return right.delta - left.delta
   if (right.hits !== left.hits) return right.hits - left.hits
   return left.index - right.index

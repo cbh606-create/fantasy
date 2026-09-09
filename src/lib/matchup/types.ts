@@ -92,10 +92,20 @@ export type StreamingPlanDay = {
   cells: StreamingPlanDayCell[]
 }
 
+export type OpponentStreamDayCell = {
+  spotIndex: number
+  playerId: string | null
+  droppedPlayerId: string | null
+  action: StreamingPlanAction
+  addIndex: number | null
+}
+
 export type OpponentStreamDay = {
   date: string
   streamerPlayerId: string | null
+  droppedPlayerId: string | null
   rosterGameCount: number
+  cells: OpponentStreamDayCell[]
 }
 
 export type StreamingPlan = {

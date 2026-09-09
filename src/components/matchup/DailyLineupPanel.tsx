@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import type {
   DailyLineups,
@@ -54,6 +54,8 @@ type DailyLineupPanelProps = {
   ilPlayerIds?: Set<string> | string[]
   /** Weekly roster seats (PG→IR). Empty slots stay as empty rows. */
   rosterEntries?: SeasonRosterEntry[]
+  /** Rendered inside the same week scroller so day columns stay aligned. */
+  weekFooter?: ReactNode
 }
 
 const toDateSet = (
@@ -87,6 +89,7 @@ export const DailyLineupPanel = ({
   sitStartBadgesByPlayerId = {},
   ilPlayerIds,
   rosterEntries = [],
+  weekFooter,
 }: DailyLineupPanelProps) => {
   const [hint, setHint] = useState("")
   const [focusDay, setFocusDay] = useState(days[0] ?? "")
@@ -176,15 +179,13 @@ export const DailyLineupPanel = ({
     }
 
     const isPreview = previewIds.has(player.id)
-    const droppedFrom = droppedFromDateByPlayerId[player.id]
     const ownedDates = isPreview
       ? toDateSet(streamerOwnedDatesByPlayerId[player.id])
       : null
-    const isDropped = Boolean(droppedFrom && day >= droppedFrom)
     const isOutsideStreamerWindow = Boolean(
       ownedDates && !ownedDates.has(day),
     )
-    const isLocked = isDropped || isOutsideStreamerWindow
+    const isLocked = isOutsideStreamerWindow
     const teamAbbr = player.teamAbbr ?? ""
     const gameWeight = teamAbbr
       ? gameWeightForTeamDate(teamAbbr, day, schedule)
@@ -207,9 +208,7 @@ export const DailyLineupPanel = ({
     const ariaLabel = startedSlot
       ? `${action} ${player.name} on ${formatMatchupDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
       : `${action} ${player.name} on ${formatMatchupDayLabel(day)}`
-    const lockedAriaLabel = isDropped
-      ? `${player.name} dropped in streaming plan on ${formatMatchupDayLabel(day)}`
-      : `${player.name} not on streaming plan on ${formatMatchupDayLabel(day)}`
+    const lockedAriaLabel = `${player.name} not on streaming plan on ${formatMatchupDayLabel(day)}`
     const irAriaLabel = `${player.name} on IR ${formatMatchupDayLabel(day)}`
 
     if (!hasGame) {
@@ -457,6 +456,7 @@ export const DailyLineupPanel = ({
             })}
           </tbody>
         </table>
+        {weekFooter}
       </div>
     </section>
   )

@@ -91,20 +91,14 @@ const editableStreamingDropDate = (
   return null
 }
 
-const withTodayHolds = (
-  forced: Record<string, ForcedRosterDropValue> | undefined,
-  today: string,
-  spotCount: number,
-  days: string[],
-): Record<string, ForcedRosterDropValue> | undefined => {
-  const editDate = editableStreamingDropDate(days, today)
-  if (!editDate) return forced
-  const next: Record<string, ForcedRosterDropValue> = { ...forced }
-  for (let spotIndex = 0; spotIndex < spotCount; spotIndex += 1) {
-    const key = streamingAddDropKey(editDate, spotIndex)
-    if (next[key] == null) next[key] = "hold"
+const plannedDropValue = (
+  cell: StreamingPlanDayCell | undefined,
+): ForcedRosterDropValue => {
+  if (cell?.rosterDropKind === "player" && cell.rosterDropPlayerId) {
+    return cell.rosterDropPlayerId
   }
-  return next
+  if (cell?.rosterDropKind === "open_slot") return "open_slot"
+  return "hold"
 }
 
 type StreamingPlansPanelProps = {
@@ -115,9 +109,12 @@ type StreamingPlansPanelProps = {
   playersById: Record<string, SeasonPlayer>
   adpByPlayerId?: Record<string, number>
   onPreviewPlanChange?: (plan: StreamingPlan | null) => void
+  onPreviewSpotCountChange?: (spot: 1 | 2 | 3 | null) => void
+  previewSpotCount?: 1 | 2 | 3 | null
   onPlansBuilt?: (plans: StreamingPlan[]) => void
   /** Resolved opponent stream spots. Parent resolves Auto; do not resolve here. */
   oppSpotCount?: 1 | 2 | 3
+  forcedOpponentRosterDrops?: (string | null)[]
   opponentTeamIndex?: number
   /** Base (non-preview) daily lineups — used to skip adds on full days. */
   daily?: DailyLineups
@@ -679,8 +676,11 @@ export const StreamingPlansPanel = ({
   playersById,
   adpByPlayerId,
   onPreviewPlanChange,
+  onPreviewSpotCountChange,
+  previewSpotCount: previewSpotCountProp,
   onPlansBuilt,
   oppSpotCount,
+  forcedOpponentRosterDrops,
   opponentTeamIndex,
   daily,
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
@@ -690,9 +690,15 @@ export const StreamingPlansPanel = ({
   const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
   const [strategyMode, setStrategyMode] =
     useState<StreamingStrategyMode>(suggested)
-  const [previewSpotCount, setPreviewSpotCount] = useState<1 | 2 | 3 | null>(
-    null,
-  )
+  const [internalPreviewSpotCount, setInternalPreviewSpotCount] = useState<
+    1 | 2 | 3 | null
+  >(null)
+  const previewSpotCount =
+    previewSpotCountProp !== undefined
+      ? previewSpotCountProp
+      : internalPreviewSpotCount
+  const setPreviewSpotCount =
+    onPreviewSpotCountChange ?? setInternalPreviewSpotCount
   const [forcedRosterDropsBySpotCount, setForcedRosterDropsBySpotCount] =
     useState<
       Partial<Record<1 | 2 | 3, Record<string, ForcedRosterDropValue>>>
@@ -713,16 +719,14 @@ export const StreamingPlansPanel = ({
           strategyMode,
           adpByPlayerId,
           spotCount,
-          forcedRosterDrops: withTodayHolds(
-            forcedRosterDropsBySpotCount[spotCount],
-            today,
-            spotCount,
-            schedule.matchup.days,
-          ),
+          forcedRosterDrops: forcedRosterDropsBySpotCount[spotCount],
           daily,
           winnerStreamRecipes,
           today,
           ...(oppSpotCount ? { oppSpotCount } : {}),
+          ...(forcedOpponentRosterDrops
+            ? { forcedOpponentRosterDrops }
+            : {}),
           opponentTeamIndex,
         }),
       ),
@@ -738,6 +742,7 @@ export const StreamingPlansPanel = ({
       winnerStreamRecipes,
       today,
       oppSpotCount,
+      forcedOpponentRosterDrops,
       opponentTeamIndex,
     ],
   )
@@ -762,10 +767,12 @@ export const StreamingPlansPanel = ({
       }
       return { ...prev, [spotCount]: nextForSpot }
     })
+    setPreviewSpotCount(spotCount)
   }
 
   const selectPreviewSpot = (spot: 1 | 2 | 3 | null) => {
     setPreviewSpotCount(spot)
+    if (onPreviewSpotCountChange) return
     if (spot == null) {
       onPreviewPlanChange?.(null)
       return
@@ -779,12 +786,13 @@ export const StreamingPlansPanel = ({
   previewSpotRef.current = previewSpotCount
 
   useEffect(() => {
+    if (onPreviewSpotCountChange) return
     const spot = previewSpotRef.current
     if (spot == null) return
     onPreviewPlanChange?.(
       plans.find((plan) => plan.spotCount === spot) ?? null,
     )
-  }, [plans, onPreviewPlanChange])
+  }, [plans, onPreviewPlanChange, onPreviewSpotCountChange])
 
   const resolvedPlayers: Record<string, SeasonPlayer> = {
     ...Object.fromEntries(state.players.map((player) => [player.id, player])),
@@ -1073,7 +1081,7 @@ export const StreamingPlansPanel = ({
                                         forcedRosterDropsBySpotCount[
                                           plan.spotCount
                                         ]?.[streamingAddDropKey(date, spotIndex)] ??
-                                        "hold"
+                                        plannedDropValue(cell)
                                       }
                                       onForcedRosterDropChange={(key, value) =>
                                         handleForcedRosterDropChange(

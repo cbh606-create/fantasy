@@ -1,6 +1,7 @@
 import type { CategoryId } from "@/lib/domain/types"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
+import { CLOSE_LOSS_MIN_WIN_PROB } from "./constants"
 import { buildMatchupBoard } from "./board"
 import {
   type DailyLineups,
@@ -27,6 +28,10 @@ export type SuggestedStreamingDrop = {
 
 export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean =>
   row.outcome === "L" || row.outcome === "T" || row.winProb < 0.65
+
+export const isCloseLosingCategory = (row: MatchupCategoryRow): boolean =>
+  row.outcome === "T" ||
+  (row.outcome === "L" && row.winProb >= CLOSE_LOSS_MIN_WIN_PROB)
 
 const shortLabels = (categoryIds: CategoryId[]): string =>
   categoryIds.map((categoryId) => CATEGORY_SHORT_LABELS[categoryId]).join(", ")

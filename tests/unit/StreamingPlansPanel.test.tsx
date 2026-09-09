@@ -405,7 +405,7 @@ describe("StreamingPlansPanel", () => {
       screen.getAllByText(/Prioritized 3-in-4|blocks|Skipped thin|Board/i).length,
     ).toBeGreaterThan(0)
     expect(
-      screen.getAllByText(/Adds only when the board improves/).length,
+      screen.getAllByText(/Fills empty stream spots for the week/).length,
     ).toBeGreaterThan(0)
   })
 
@@ -440,7 +440,7 @@ describe("StreamingPlansPanel", () => {
       name: /Roster drop.*spot 1/i,
     })
     expect(todaySelect.length).toBeGreaterThan(0)
-    expect(todaySelect[0]).toHaveDisplayValue("Hold")
+    expect(todaySelect[0]).toHaveDisplayValue("Open slot")
     expect(
       screen.queryByRole("combobox", {
         name: new RegExp(formatMatchupDayLabel("2025-11-04"), "i"),
@@ -537,7 +537,7 @@ describe("StreamingPlansPanel", () => {
     expect(firstSelect).not.toHaveClass("min-w-0")
     expect(firstSelect.parentElement).toHaveClass("block", "w-full")
     expect(firstSelect.parentElement).not.toHaveClass("inline-flex")
-    expect(firstSelect).toHaveValue("hold")
+    expect(firstSelect).toHaveValue("you-idle")
     fireEvent.change(firstSelect, { target: { value: "you-idle" } })
     expect(firstSelect).toHaveValue("you-idle")
     fireEvent.change(firstSelect, { target: { value: "you-play" } })
@@ -560,7 +560,7 @@ describe("StreamingPlansPanel", () => {
 
     const selects = screen.getAllByRole("combobox", { name: /Roster drop/i })
     expect(selects.length).toBeGreaterThan(0)
-    expect(selects[0]).toHaveValue("hold")
+    expect(selects[0]).toHaveValue("open_slot")
 
     const dropRow = screen.getAllByRole("rowheader", { name: /^Drop$/i })[0]!.closest(
       "tr",
@@ -589,6 +589,38 @@ describe("StreamingPlansPanel", () => {
     ).not.toBeInTheDocument()
   })
 
+  it("previews that plan when a roster drop override changes", () => {
+    const onPreviewPlanChange = vi.fn()
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        onPreviewPlanChange={onPreviewPlanChange}
+        playersById={{}}
+        schedule={dropSchedule}
+        state={dropState}
+        today="2025-11-03"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
+    expect(onPreviewPlanChange).not.toHaveBeenCalled()
+
+    const oneSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop .* spot 1/i,
+    })[0]!
+    fireEvent.change(oneSpotSelect, { target: { value: "you-idle" } })
+
+    expect(screen.getByRole("button", { name: /^1-spot$/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    const previewed = onPreviewPlanChange.mock.calls.at(-1)?.[0] as StreamingPlan
+    expect(previewed?.spotCount).toBe(1)
+    expect(previewed?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
+  })
+
   it("rebuilds preview plan when roster drop override changes", () => {
     const onPreviewPlanChange = vi.fn()
 
@@ -608,16 +640,16 @@ describe("StreamingPlansPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /^1-spot$/i }))
 
     const initialPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
-    expect(initialPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBeNull()
+    expect(initialPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
 
     const oneSpotSelect = screen.getAllByRole("combobox", {
       name: /roster drop .* spot 1/i,
     })[0]!
-    expect(oneSpotSelect).toHaveValue("hold")
-    fireEvent.change(oneSpotSelect, { target: { value: "you-idle" } })
+    expect(oneSpotSelect).toHaveValue("you-idle")
+    fireEvent.change(oneSpotSelect, { target: { value: "you-play" } })
 
     const rebuiltPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
-    expect(rebuiltPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
+    expect(rebuiltPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-play")
   })
 
   it("keeps roster drop overrides isolated per spot-count plan", () => {
@@ -640,18 +672,18 @@ describe("StreamingPlansPanel", () => {
     const oneSpotSelect = screen.getAllByRole("combobox", {
       name: /roster drop .* spot 1/i,
     })[0]!
-    expect(oneSpotSelect).toHaveValue("hold")
+    expect(oneSpotSelect).toHaveValue("you-idle")
     fireEvent.change(oneSpotSelect, { target: { value: "you-play" } })
     expect(oneSpotSelect).toHaveValue("you-play")
 
     fireEvent.click(screen.getByRole("button", { name: /^2-spot$/i }))
     const twoSpotPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
     expect(twoSpotPlan?.spotCount).toBe(2)
-    expect(twoSpotPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBeNull()
+    expect(twoSpotPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
     const twoSpotSelect = screen.getAllByRole("combobox", {
       name: /roster drop .* spot 1/i,
     })[1]!
-    expect(twoSpotSelect).toHaveValue("hold")
+    expect(twoSpotSelect).toHaveValue("you-idle")
   })
 
   it("shows a mute hint when winner recipes hit trailing cats", () => {
@@ -761,6 +793,20 @@ describe("StreamingPlansPanel", () => {
   })
 
   it("shows Opp: name on add cells when the plan has opponentDays", () => {
+    const oppStreamer: SeasonPlayer = {
+      id: "fa-opp",
+      name: "Opp Streamer",
+      teamAbbr: "WAS",
+      positions: ["SG"],
+      projections: { ...projections, STL: 90 },
+      shooting,
+    }
+    const oppState: SeasonLeagueState = {
+      ...state,
+      players: [...state.players, oppStreamer],
+      availablePlayerIds: [...state.availablePlayerIds, "fa-opp"],
+    }
+
     render(
       <StreamingPlansPanel
         board={board}
@@ -768,7 +814,7 @@ describe("StreamingPlansPanel", () => {
         oppSpotCount={1}
         playersById={{}}
         schedule={schedule}
-        state={state}
+        state={oppState}
         today="2025-11-03"
       />,
     )
