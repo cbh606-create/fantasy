@@ -245,7 +245,7 @@ describe("DailyLineupPanel preview overlay", () => {
     expect(screen.getByText("Roster Cut").className).toMatch(/line-through/)
   })
 
-  it("keeps plan-dropped roster game cells clickable so you can start them back", () => {
+  it("locks start on plan-dropped roster game days", () => {
     const onTogglePlayerDay = vi.fn(() => "started" as const)
 
     render(
@@ -272,11 +272,11 @@ describe("DailyLineupPanel preview overlay", () => {
     expect(beforeDrop).not.toBeDisabled()
 
     const afterDrop = screen.getByRole("button", {
-      name: /Start Roster Cut on/i,
+      name: /Roster Cut dropped from streaming plan on/i,
     })
-    expect(afterDrop).not.toBeDisabled()
+    expect(afterDrop).toBeDisabled()
     fireEvent.click(afterDrop)
-    expect(onTogglePlayerDay).toHaveBeenCalledWith("you-1", "2025-11-04")
+    expect(onTogglePlayerDay).not.toHaveBeenCalled()
   })
 
   it("locks streamer game cells outside plan-owned dates", () => {

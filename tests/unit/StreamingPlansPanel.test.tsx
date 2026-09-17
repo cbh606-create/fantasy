@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
+import { suggestStreamingDrop } from "@/lib/matchup/streamingDropExplain"
 import type { MatchupBoard, StreamingPlan } from "@/lib/matchup/types"
 import { formatMatchupDayLabel } from "@/lib/matchup/weekCalendarLayout"
 import type {
@@ -12,6 +13,8 @@ import type {
   SeasonLeagueState,
   SeasonPlayer,
 } from "@/lib/season/types"
+
+vi.mock("@/lib/matchup/streamingDropExplain", { spy: true })
 
 const projections: SeasonPlayer["projections"] = {
   FG_PCT: 0.5,
@@ -228,8 +231,8 @@ describe("StreamingPlansPanel", () => {
     expect(screen.getByRole("heading", { name: /^1-spot$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: /^2-spot$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: /^3-spot$/i })).toBeInTheDocument()
-    expect(screen.getByRole("spinbutton", { name: /weekly add budget/i })).toHaveValue(7)
-    expect(screen.getAllByText(/Adds \d+\/7/).length).toBeGreaterThan(0)
+    expect(screen.getByRole("spinbutton", { name: /weekly add budget/i })).toHaveValue(3)
+    expect(screen.getAllByText(/Adds \d+\/3/).length).toBeGreaterThan(0)
   })
 
   it("rebuilds plans when weekly add budget changes", () => {
@@ -245,13 +248,13 @@ describe("StreamingPlansPanel", () => {
 
     const budget = screen.getByRole("spinbutton", { name: /weekly add budget/i })
     fireEvent.click(screen.getByRole("button", { name: /decrease weekly add budget/i }))
-    expect(budget).toHaveValue(6)
-    expect(screen.getAllByText(/Adds \d+\/6/).length).toBeGreaterThan(0)
+    expect(budget).toHaveValue(2)
+    expect(screen.getAllByText(/Adds \d+\/2/).length).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByRole("button", { name: /increase weekly add budget/i }))
     fireEvent.click(screen.getByRole("button", { name: /increase weekly add budget/i }))
-    expect(budget).toHaveValue(8)
-    expect(screen.getAllByText(/Adds \d+\/8/).length).toBeGreaterThan(0)
+    expect(budget).toHaveValue(4)
+    expect(screen.getAllByText(/Adds \d+\/4/).length).toBeGreaterThan(0)
   })
 
   it("renders Add and Drop rows for built plans", () => {
@@ -760,6 +763,45 @@ describe("StreamingPlansPanel", () => {
     expect(screen.getByRole("tooltip")).toHaveTextContent(/Suggested drop:/)
   })
 
+  it("forwards statWindow to suggestStreamingDrop", () => {
+    vi.mocked(suggestStreamingDrop).mockClear()
+    const daily: DailyLineups = {
+      "2025-11-03": [{ slot: "UTIL", playerId: "you-1" }],
+      "2025-11-04": [{ slot: "UTIL", playerId: "you-1" }],
+      "2025-11-05": [{ slot: "UTIL", playerId: "you-1" }],
+    }
+    const hoverSchedule: ScheduleResponse = {
+      ...schedule,
+      games: [
+        ...schedule.games,
+        { date: "2025-11-04", homeAbbr: "CHI", awayAbbr: "WAS" },
+      ],
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        daily={daily}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={hoverSchedule}
+        state={state}
+        statWindow="l15"
+        today="2025-11-03"
+      />,
+    )
+
+    const dropRow = screen.getAllByRole("rowheader", { name: /^Drop$/i })[0]!.closest(
+      "tr",
+    )!
+    const futureCell = dropRow.querySelectorAll("td")[1]!
+    fireEvent.mouseEnter(futureCell.querySelector("span")!)
+
+    expect(suggestStreamingDrop).toHaveBeenCalledWith(
+      expect.objectContaining({ statWindow: "l15" }),
+    )
+  })
+
   it("past Drop cells have no combobox and a muted recorded label", () => {
     render(
       <StreamingPlansPanel
@@ -857,9 +899,15 @@ describe("StreamingPlansPanel", () => {
       />,
     )
     expect(onPlansBuilt).toHaveBeenCalled()
-    const plans = onPlansBuilt.mock.calls.at(-1)?.[0] as StreamingPlan[]
-    expect(plans).toHaveLength(3)
-    expect(plans[0]!.opponentDays).toHaveLength(schedule.matchup.days.length)
+    const payload = onPlansBuilt.mock.calls.at(-1)?.[0] as {
+      plans: StreamingPlan[]
+      noneOpponentPlan: StreamingPlan | null
+    }
+    expect(payload.plans).toHaveLength(3)
+    expect(payload.plans[0]!.opponentDays).toHaveLength(
+      schedule.matchup.days.length,
+    )
+    expect(payload.noneOpponentPlan?.addsUsed).toBe(0)
   })
 
   it("keeps today's dropbox on the chosen player when a streamer is already seated", () => {

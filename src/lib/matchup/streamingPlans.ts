@@ -4,9 +4,11 @@ import type {
   SeasonLeagueState,
   SeasonPlayer,
   SeasonRosterEntry,
+  SeasonSlot,
 } from "@/lib/season/types"
 import { buildMatchupBoard } from "./board"
-import { SURPLUS_WIN_PROB, WEEKLY_ADD_LIMIT } from "./constants"
+import { SURPLUS_WIN_PROB } from "./constants"
+import { streamingAddLimitForSchedule } from "./games"
 import {
   initDailyLineups,
   isDailyLineupFullForDate,
@@ -29,6 +31,7 @@ import type {
   MatchupBoard,
   OpponentStreamDay,
   OpponentStreamDayCell,
+  StatWindow,
   StreamingPlan,
   StreamingPlanAction,
   StreamingPlanDay,
@@ -62,10 +65,21 @@ import {
 } from "./streamingStrategy"
 import { weeklyPlayerStats } from "./weekly"
 import { gameWeightForTeamDate } from "./games"
+import { seatStreamerIfOpen } from "./streamerMove"
 import {
   isOnWaiverCooldown,
   resolveWaiverPeriodDays,
 } from "./streamingWaiver"
+import {
+  buildHoleDayLineup,
+  countHoleB2bPairs,
+  countOpenActiveSlots,
+  countTeamStarts,
+  pickAutoRosterCut,
+  playerHasEligibleHole,
+  remainingHoleStarts,
+} from "./streamingHoleCalendar"
+import { applyStreamingPlanPreview } from "./applyStreamingPlanPreview"
 
 const PRIMARY_STREAMER_CATEGORIES: CategoryId[] = [
   "TPM",
@@ -110,6 +124,9 @@ export type BuildStreamingPlanInput = {
   today?: string
   oppSpotCount?: 1 | 2 | 3
   opponentTeamIndex?: number
+  /** Skip you adds/holds so opponent streaming sees the full FA pool. */
+  youIdle?: boolean
+  statWindow?: StatWindow
 }
 
 export const streamingAddDropKey = (date: string, spotIndex: number) =>
@@ -129,8 +146,9 @@ const categoryContribution = (
   player: SeasonPlayer,
   games: number,
   categoryId: CategoryId,
+  window: StatWindow = "season",
 ): number => {
-  const weekly = weeklyPlayerStats(player, games)
+  const weekly = weeklyPlayerStats(player, games, window)
   const value = weekly.projections[categoryId]
   return categoryId === "TO" ? -value : value
 }
@@ -139,8 +157,9 @@ const shootingHelp = (
   player: SeasonPlayer,
   games: number,
   categoryId: CategoryId,
+  window: StatWindow = "season",
 ): number => {
-  const weekly = weeklyPlayerStats(player, games)
+  const weekly = weeklyPlayerStats(player, games, window)
   if (categoryId === "FG_PCT") {
     return weekly.shooting.FGA * (weekly.projections.FG_PCT - FG_PCT_REPLACEMENT)
   }
@@ -154,17 +173,22 @@ const weakCatHelp = (
   player: SeasonPlayer,
   games: number,
   categoryId: CategoryId,
+  window: StatWindow = "season",
 ): number => {
   if (categoryId === "FG_PCT" || categoryId === "FT_PCT") {
-    return shootingHelp(player, games, categoryId)
+    return shootingHelp(player, games, categoryId, window)
   }
   if (!PRIMARY_STREAMER_CATEGORIES.includes(categoryId)) return 0
-  return categoryContribution(player, games, categoryId)
+  return categoryContribution(player, games, categoryId, window)
 }
 
-const weakCatScore = (player: SeasonPlayer, weakCats: CategoryId[]): number =>
+const weakCatScore = (
+  player: SeasonPlayer,
+  weakCats: CategoryId[],
+  window: StatWindow = "season",
+): number =>
   weakCats.reduce(
-    (sum, categoryId) => sum + weakCatHelp(player, 1, categoryId),
+    (sum, categoryId) => sum + weakCatHelp(player, 1, categoryId, window),
     0,
   )
 
@@ -172,10 +196,11 @@ const weakCatScore = (player: SeasonPlayer, weakCats: CategoryId[]): number =>
 const softStreamerScore = (
   player: SeasonPlayer,
   weakCats: CategoryId[],
+  window: StatWindow = "season",
 ): number =>
   weakCats.reduce((sum, categoryId) => {
     if (!SOFT_STREAMER_CATEGORIES.includes(categoryId)) return sum
-    return sum + categoryContribution(player, 1, categoryId)
+    return sum + categoryContribution(player, 1, categoryId, window)
   }, 0)
 
 const playsOn = (
@@ -200,6 +225,24 @@ const remainingGameDays = (
 ): number => {
   const remaining = schedule.matchup.days.filter((day) => day >= fromDate)
   return remaining.filter((day) => playsOn(player, day, schedule)).length
+}
+
+/** NBA games from fromDate that the player can actually sit in `daily`. */
+const remainingSeatableGameDays = (
+  player: SeasonPlayer,
+  fromDate: string,
+  schedule: ScheduleResponse,
+  daily: DailyLineups | undefined,
+  playersById: Map<string, SeasonPlayer>,
+): number => {
+  const remaining = schedule.matchup.days.filter((day) => day >= fromDate)
+  return remaining.filter((day) => {
+    if (!playsOn(player, day, schedule)) return false
+    const entries = daily?.[day]
+    if (!entries) return true
+    const clone = entries.map((entry) => ({ ...entry }))
+    return seatStreamerIfOpen(clone, player.id, day, playersById, schedule)
+  }).length
 }
 
 /** Games inside the next `windowDays` matchup days starting at fromDate. */
@@ -249,6 +292,7 @@ const rankEligibleFas = (
   weakCats: CategoryId[],
   seatedIds: Set<string>,
   budgetBehind = false,
+  window: StatWindow = "season",
 ): SeasonPlayer[] => {
   const eligible = candidates
     .filter((player) => !seatedIds.has(player.id))
@@ -258,8 +302,8 @@ const rankEligibleFas = (
       // Prefer leftover starts first so one add covers more games.
       volume: remainingGameDays(player, date, schedule),
       stretch: nearTermStretch(player, date, schedule),
-      score: weakCatScore(player, weakCats),
-      soft: softStreamerScore(player, weakCats),
+      score: weakCatScore(player, weakCats, window),
+      soft: softStreamerScore(player, weakCats, window),
     }))
     .filter((entry) => entry.volume > 0)
     .sort((left, right) => {
@@ -280,19 +324,110 @@ const rankEligibleFas = (
   return eligible.map((entry) => entry.player)
 }
 
+const rankHoleEligibleFas = (
+  candidates: SeasonPlayer[],
+  date: string,
+  schedule: ScheduleResponse,
+  weakCats: CategoryId[],
+  seatedIds: Set<string>,
+  holeByDate: Record<string, SeasonRosterEntry[]>,
+  window: StatWindow = "season",
+): SeasonPlayer[] =>
+  candidates
+    .filter((player) => !seatedIds.has(player.id))
+    .filter((player) => playsOn(player, date, schedule))
+    .map((player) => ({
+      player,
+      starts: remainingHoleStarts(
+        player,
+        date,
+        schedule.matchup.days,
+        holeByDate,
+        schedule,
+      ),
+      b2bPairs: countHoleB2bPairs(
+        player,
+        date,
+        schedule.matchup.days,
+        holeByDate,
+        schedule,
+      ),
+      score: weakCatScore(player, weakCats, window),
+      soft: softStreamerScore(player, weakCats, window),
+    }))
+    .filter((entry) => entry.starts > 0)
+    .sort((left, right) => {
+      if (right.starts !== left.starts) return right.starts - left.starts
+      if (right.b2bPairs !== left.b2bPairs) return right.b2bPairs - left.b2bPairs
+      if (right.score !== left.score) return right.score - left.score
+      if (right.soft !== left.soft) return right.soft - left.soft
+      return left.player.id.localeCompare(right.player.id)
+    })
+    .map((entry) => entry.player)
+
+const topHoleTierIds = (
+  ranked: SeasonPlayer[],
+  date: string,
+  schedule: ScheduleResponse,
+  holeByDate: Record<string, SeasonRosterEntry[]>,
+): string[] => {
+  const winner = ranked[0]
+  if (!winner) return []
+  const winnerStarts = remainingHoleStarts(
+    winner,
+    date,
+    schedule.matchup.days,
+    holeByDate,
+    schedule,
+  )
+  const winnerB2bPairs = countHoleB2bPairs(
+    winner,
+    date,
+    schedule.matchup.days,
+    holeByDate,
+    schedule,
+  )
+  return ranked
+    .filter(
+      (player) =>
+        remainingHoleStarts(
+          player,
+          date,
+          schedule.matchup.days,
+          holeByDate,
+          schedule,
+        ) === winnerStarts &&
+        countHoleB2bPairs(
+          player,
+          date,
+          schedule.matchup.days,
+          holeByDate,
+          schedule,
+        ) === winnerB2bPairs,
+    )
+    .map((player) => player.id)
+}
+
 const compareBlocks = (
   left: StreamingBlock,
   right: StreamingBlock,
   playersById: Map<string, SeasonPlayer>,
   weakCats: CategoryId[],
   budgetBehind = false,
+  window: StatWindow = "season",
 ): number => {
   const leftPlayer = playersById.get(left.playerId)
   const rightPlayer = playersById.get(right.playerId)
-  const leftScore = leftPlayer ? weakCatScore(leftPlayer, weakCats) : 0
-  const rightScore = rightPlayer ? weakCatScore(rightPlayer, weakCats) : 0
-  const leftSoft = leftPlayer ? softStreamerScore(leftPlayer, weakCats) : 0
-  const rightSoft = rightPlayer ? softStreamerScore(rightPlayer, weakCats) : 0
+  const leftScore = leftPlayer ? weakCatScore(leftPlayer, weakCats, window) : 0
+  const rightScore = rightPlayer
+    ? weakCatScore(rightPlayer, weakCats, window)
+    : 0
+  const leftSoft = leftPlayer
+    ? softStreamerScore(leftPlayer, weakCats, window)
+    : 0
+  const rightSoft = rightPlayer
+    ? softStreamerScore(rightPlayer, weakCats, window)
+    : 0
   if (budgetBehind) {
     if (rightScore !== leftScore) return rightScore - leftScore
     if (rightSoft !== leftSoft) return rightSoft - leftSoft
@@ -323,12 +458,13 @@ const listTodayBlocks = (
   dayIndex: number,
   dayCount: number,
   budgetBehind = false,
+  window: StatWindow = "season",
 ): StreamingBlock[] => {
   const candidates = blocks
     .filter((block) => block.startDate === date && !seatedIds.has(block.playerId))
     .filter((block) => block.remainingWeekGames > 0)
     .sort((left, right) =>
-      compareBlocks(left, right, playersById, weakCats, budgetBehind),
+      compareBlocks(left, right, playersById, weakCats, budgetBehind, window),
     )
 
   if (budgetBehind) return candidates
@@ -372,26 +508,28 @@ const weakCatScoreForGames = (
   player: SeasonPlayer,
   games: number,
   weakCats: CategoryId[],
+  window: StatWindow = "season",
 ) =>
   weakCats.reduce((sum, categoryId) => {
     if (categoryId === "FG_PCT" || categoryId === "FT_PCT") {
-      return sum + shootingHelp(player, games, categoryId)
+      return sum + shootingHelp(player, games, categoryId, window)
     }
     if (!STREAMER_COUNTING_CATEGORIES.includes(categoryId)) return sum
-    return sum + categoryContribution(player, games, categoryId)
+    return sum + categoryContribution(player, games, categoryId, window)
   }, 0)
 
 const surplusCatScoreForGames = (
   player: SeasonPlayer,
   games: number,
   surplusCats: CategoryId[],
+  window: StatWindow = "season",
 ) =>
   surplusCats.reduce((sum, categoryId) => {
     if (categoryId === "FG_PCT" || categoryId === "FT_PCT") {
-      return sum + shootingHelp(player, games, categoryId)
+      return sum + shootingHelp(player, games, categoryId, window)
     }
     if (!STREAMER_COUNTING_CATEGORIES.includes(categoryId)) return sum
-    return sum + categoryContribution(player, games, categoryId)
+    return sum + categoryContribution(player, games, categoryId, window)
   }, 0)
 
 const rankRosterDropPlayerIds = (
@@ -406,6 +544,7 @@ const rankRosterDropPlayerIds = (
   board?: MatchupBoard,
   budgetBehind = false,
   protectCoreRoster = false,
+  window: StatWindow = "season",
 ): string[] => {
   const outDaysOf = (id: string) => injuryOutDaysByPlayerId?.[id] ?? 0
   const adpOf = (id: string) => adpByPlayerId?.[id] ?? null
@@ -469,8 +608,8 @@ const rankRosterDropPlayerIds = (
       player: p,
       noGame: playsOn(p, date, schedule) ? 0 : 1,
       volume: remainingGameDays(p, date, schedule),
-      weak: weakCatScoreForGames(p, 1, weakCats),
-      surplus: surplusCatScoreForGames(p, 1, surplusCats),
+      weak: weakCatScoreForGames(p, 1, weakCats, window),
+      surplus: surplusCatScoreForGames(p, 1, surplusCats, window),
     }))
     .sort((left, right) => {
       if (budgetBehind) {
@@ -528,6 +667,7 @@ const fillOpponentSpotsForDate = ({
   oppWorkingDaily,
   youWorkingDaily,
   oppEntries,
+  rosterSlots,
   takenToday,
   addLimit,
   addsUsed,
@@ -545,6 +685,7 @@ const fillOpponentSpotsForDate = ({
   isCompatibleAlternative,
   candidateIds,
   onDropped,
+  statWindow = "season",
 }: {
   date: string
   spotCount: 1 | 2 | 3
@@ -552,6 +693,7 @@ const fillOpponentSpotsForDate = ({
   oppWorkingDaily: DailyLineups
   youWorkingDaily: DailyLineups
   oppEntries: SeasonRosterEntry[]
+  rosterSlots: SeasonSlot[]
   takenToday: Set<string>
   addLimit: number
   addsUsed: number
@@ -569,6 +711,7 @@ const fillOpponentSpotsForDate = ({
   isCompatibleAlternative: (chosenId: string, otherId: string) => boolean
   candidateIds: string[]
   onDropped?: (playerId: string, date: string) => void
+  statWindow?: StatWindow
 }): {
   streamerPlayerId: string | null
   droppedPlayerId: string | null
@@ -598,7 +741,71 @@ const fillOpponentSpotsForDate = ({
     needFill.push(spotIndex)
   }
 
+  const forcedHoleDropBySpot = new Map<number, string>()
+  const prospectiveCuts = new Set(weekDropped)
   for (const spotIndex of needFill) {
+    if (rosterDroppedSpots.has(spotIndex)) continue
+    const forcedId = forcedOpponentRosterDrops?.[spotIndex]
+    if (
+      typeof forcedId === "string" &&
+      isValidForcedPlayerDrop(
+        forcedId,
+        oppEntries,
+        playersById,
+        prospectiveCuts,
+      )
+    ) {
+      prospectiveCuts.add(forcedId)
+      forcedHoleDropBySpot.set(spotIndex, forcedId)
+    }
+  }
+  const holeByDate = Object.fromEntries(
+    schedule.matchup.days.map((day) => [
+      day,
+      buildHoleDayLineup({
+        day,
+        teamEntries: oppEntries,
+        players,
+        schedule,
+        cutPlayerIds: prospectiveCuts,
+        savedDay: undefined,
+        rosterSlots,
+      }),
+    ]),
+  )
+  const holeLineup = holeByDate[date] ?? []
+  const streamerCap = Math.min(spotCount, countOpenActiveSlots(holeLineup))
+  const rankedCandidates = rankHoleEligibleFas(
+    candidateIds
+      .map((id) => playersById.get(id))
+      .filter((player): player is SeasonPlayer => Boolean(player)),
+    date,
+    schedule,
+    weakCats,
+    takenToday,
+    holeByDate,
+    statWindow,
+  )
+  candidateIds = topHoleTierIds(rankedCandidates, date, schedule, holeByDate)
+  const fillableSpots = new Set(
+    Array.from(
+      new Set([
+        ...forcedHoleDropBySpot.keys(),
+        ...Array.from({ length: spotCount }, (_, index) => index),
+      ]),
+    ).slice(0, streamerCap),
+  )
+  for (let spotIndex = 0; spotIndex < spotCount; spotIndex += 1) {
+    if (fillableSpots.has(spotIndex)) continue
+    occupants[spotIndex] = null
+    if (!needFill.includes(spotIndex)) needFill.push(spotIndex)
+  }
+
+  for (const spotIndex of needFill) {
+    if (!fillableSpots.has(spotIndex)) {
+      occupants[spotIndex] = null
+      continue
+    }
     if (nextAddsUsed >= addLimit) {
       occupants[spotIndex] = null
       continue
@@ -632,6 +839,7 @@ const fillOpponentSpotsForDate = ({
           recipes,
           oppDaily: youWorkingDaily,
           requirePositiveDelta,
+          statWindow,
         },
       )
     }
@@ -644,20 +852,9 @@ const fillOpponentSpotsForDate = ({
 
     if (previousId) {
       picked = tryOppMove({ kind: "player", playerId: previousId }, false)
-    } else if (hasOpenNonIlSlot(oppEntries)) {
-      picked = tryOppMove({ kind: "none", playerId: null }, false)
     } else {
-      const forcedId = rosterDroppedSpots.has(spotIndex)
-        ? null
-        : forcedOpponentRosterDrops?.[spotIndex]
-      const forcedOnRoster =
-        typeof forcedId === "string" &&
-        !weekDropped.has(forcedId) &&
-        oppEntries.some(
-          (entry) =>
-            entry.slot !== "IL" && entry.playerId === forcedId,
-        )
-      if (forcedOnRoster) {
+      const forcedId = forcedHoleDropBySpot.get(spotIndex)
+      if (forcedId) {
         const forcedPick = tryOppMove(
           { kind: "player", playerId: forcedId },
           false,
@@ -667,7 +864,9 @@ const fillOpponentSpotsForDate = ({
           rosterDrop = { kind: "player", playerId: forcedId }
         }
       }
-      if (!picked) {
+      if (!picked && hasOpenNonIlSlot(oppEntries)) {
+        picked = tryOppMove({ kind: "none", playerId: null }, false)
+      } else if (!picked) {
         for (const dropId of rankRosterDropPlayerIds(
           oppEntries,
           playersById,
@@ -680,6 +879,7 @@ const fillOpponentSpotsForDate = ({
           board,
           false,
           true,
+          statWindow,
         )) {
           const result = tryOppMove({ kind: "player", playerId: dropId }, true)
           if (!result) continue
@@ -743,6 +943,7 @@ const fillOpponentSpotsForDate = ({
         recipes,
         oppDaily: youWorkingDaily,
         requirePositiveDelta: false,
+        statWindow,
       },
     )
     if (!picked) continue
@@ -818,7 +1019,7 @@ export const buildStreamingPlan = ({
   state,
   schedule,
   board,
-  addLimit = WEEKLY_ADD_LIMIT,
+  addLimit: addLimitInput,
   strategyMode: inputStrategy,
   adpByPlayerId,
   injuryOutDaysByPlayerId,
@@ -830,7 +1031,11 @@ export const buildStreamingPlan = ({
   today,
   oppSpotCount,
   opponentTeamIndex,
+  youIdle = false,
+  statWindow: inputStatWindow,
 }: BuildStreamingPlanInput): StreamingPlan => {
+  const window = inputStatWindow ?? "season"
+  const addLimit = addLimitInput ?? streamingAddLimitForSchedule(schedule)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const freeAgents = state.availablePlayerIds
     .map((id) => playersById.get(id))
@@ -870,10 +1075,10 @@ export const buildStreamingPlan = ({
   const addsBySpot = Array.from({ length: spotCount }, () => 0)
   const dayCount = schedule.matchup.days.length
   let addsUsed = 0
-  let gameStarts = 0
-  let didProtectDrops = false
+  const didProtectDrops = false
   const days: StreamingPlanDay[] = []
   const weekDroppedPlayers = new Set<string>()
+  const releasedStreamerIds = new Set<string>()
   const youTeam = state.teams[state.perspectiveTeamIndex]
   const rosterSlots = rosterSlotsFor(state)
   let workingDaily: DailyLineups =
@@ -885,6 +1090,12 @@ export const buildStreamingPlan = ({
       state.players,
       schedule,
     )
+  const previewBaseDaily: DailyLineups = Object.fromEntries(
+    Object.entries(workingDaily).map(([day, entries]) => [
+      day,
+      entries.map((entry) => ({ ...entry })),
+    ]),
+  )
   const oppTeam =
     typeof opponentTeamIndex === "number"
       ? state.teams.find((team) => team.teamIndex === opponentTeamIndex)
@@ -915,7 +1126,8 @@ export const buildStreamingPlan = ({
       requirePositiveContestedDelta?: boolean
       recipes: WinnerStreamRecipe[]
       oppDaily?: DailyLineups
-    } = { recipes: winnerStreamRecipes }
+      statWindow?: StatWindow
+    } = { recipes: winnerStreamRecipes, statWindow: window }
     if (requirePositiveDelta === false) {
       options.requirePositiveDelta = false
     }
@@ -939,16 +1151,25 @@ export const buildStreamingPlan = ({
     const categoryIds = categoryIdsFromBoard(board)
     const opp = oppTotalsFromBoard(board)
     const before = buildMatchupBoard(
-      youTotalsFromDaily(beforeDaily, state.players, schedule),
+      youTotalsFromDaily(beforeDaily, state.players, schedule, window),
       opp,
       categoryIds,
     )
     const after = buildMatchupBoard(
-      youTotalsFromDaily(afterDaily, state.players, schedule),
+      youTotalsFromDaily(afterDaily, state.players, schedule, window),
       opp,
       categoryIds,
     )
     return targetCategoryIdsFromBoards(before, after)
+  }
+  const clearPlannedOccupant = (playerId: string, fromDate: string) => {
+    releasedStreamerIds.add(playerId)
+    for (const day of schedule.matchup.days) {
+      if (day < fromDate) continue
+      workingDaily[day] = (workingDaily[day] ?? []).map((entry) =>
+        entry.playerId === playerId ? { ...entry, playerId: null } : entry,
+      )
+    }
   }
 
   for (const [dayIndex, date] of schedule.matchup.days.entries()) {
@@ -971,23 +1192,119 @@ export const buildStreamingPlan = ({
         (typeof forced === "string" && forced !== "hold")
       )
     }
+    const holeByDate = Object.fromEntries(
+      schedule.matchup.days.map((day) => [
+        day,
+        buildHoleDayLineup({
+          day,
+          teamEntries: youTeam?.entries ?? [],
+          players: state.players,
+          schedule,
+          cutPlayerIds: weekDroppedPlayers,
+          savedDay: daily?.[day],
+          rosterSlots,
+        }),
+      ]),
+    )
+    const holeLineup = holeByDate[date] ?? []
+    const holeCount = countOpenActiveSlots(holeLineup)
+    const streamerCap = Math.min(spotCount, holeCount)
+    const rankAllYouCandidates = (
+      candidateIds: string[],
+      targetWeakCats = weakCats,
+    ): SeasonPlayer[] =>
+      rankHoleEligibleFas(
+        candidateIds
+          .map((id) => playersById.get(id))
+          .filter((player): player is SeasonPlayer => Boolean(player)),
+        date,
+        schedule,
+        targetWeakCats,
+        seatedToday,
+        holeByDate,
+        window,
+      )
 
+    const rankYouCandidates = (
+      candidateIds: string[],
+      targetWeakCats = weakCats,
+    ) => {
+      const ranked = rankAllYouCandidates(candidateIds, targetWeakCats)
+      return topHoleTierIds(ranked, date, schedule, holeByDate)
+    }
+
+    if (youIdle) {
+      for (let spotIndex = 0; spotIndex < spotCount; spotIndex += 1) {
+        occupants[spotIndex] = null
+        cells[spotIndex] = {
+          spotIndex,
+          playerId: null,
+          action: "empty",
+          droppedPlayerId: null,
+          rosterDropPlayerId: null,
+          rosterDropKind: "none",
+          addIndex: null,
+          alternativePlayerIds: [],
+          targetCategoryIds: [],
+        }
+      }
+    } else if (holeCount === 0) {
+      for (let spotIndex = 0; spotIndex < spotCount; spotIndex += 1) {
+        const previousId = occupants[spotIndex]
+        if (previousId) {
+          markDropped(previousId, date)
+          clearPlannedOccupant(previousId, date)
+        }
+        occupants[spotIndex] = null
+        cells[spotIndex] = {
+          spotIndex,
+          playerId: null,
+          action: "empty",
+          droppedPlayerId: null,
+          rosterDropPlayerId: null,
+          rosterDropKind: "none",
+          addIndex: null,
+          alternativePlayerIds: [],
+          targetCategoryIds: [],
+        }
+      }
+    } else {
     // Pass 1: keep streamers who still have games left this week (hold through
-    // off nights). Only free the spot when they have zero remaining games.
-    // A today player/open_slot force skips hold so the chosen drop can spend an add.
-    const afterDrop: (string | null)[] = occupants.map((playerId) => {
+    // off nights). 1-spot always frees off nights. 2/3-spot frees an off night
+    // when a today FA can sit more remaining games than the occupant.
+    const afterDrop: (string | null)[] = occupants.map((playerId, spotIndex) => {
+      if (spotIndex >= streamerCap) {
+        if (playerId) clearPlannedOccupant(playerId, date)
+        return null
+      }
       if (!playerId) return null
       const player = playersById.get(playerId)
-      if (!player) return null
-      if (remainingGameDays(player, date, schedule) <= 0) return null
-      if (spotCount === 1 && !playsOn(player, date, schedule)) return null
+      if (
+        !player ||
+        !playsOn(player, date, schedule) ||
+        !playerHasEligibleHole(player, holeLineup) ||
+        remainingGameDays(player, date, schedule) <= 0
+      ) {
+        clearPlannedOccupant(playerId, date)
+        return null
+      }
       return playerId
     })
 
     const needFill: number[] = []
     for (let spotIndex = 0; spotIndex < spotCount; spotIndex++) {
       const heldId = afterDrop[spotIndex]
-      if (heldId && !forceFillForSpot(spotIndex)) {
+      if (
+        heldId &&
+        !forceFillForSpot(spotIndex) &&
+        seatStreamerIfOpen(
+          holeLineup,
+          heldId,
+          date,
+          playersById,
+          schedule,
+        )
+      ) {
         occupants[spotIndex] = heldId
         seatedToday.add(heldId)
         cells[spotIndex] = {
@@ -1002,6 +1319,21 @@ export const buildStreamingPlan = ({
           targetCategoryIds: [],
         }
       } else {
+        if (spotIndex >= streamerCap) {
+          occupants[spotIndex] = null
+          cells[spotIndex] = {
+            spotIndex,
+            playerId: null,
+            action: "empty",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: null,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          }
+          continue
+        }
         needFill.push(spotIndex)
       }
     }
@@ -1076,20 +1408,19 @@ export const buildStreamingPlan = ({
           dayIndex,
           dayCount,
           budgetBehind,
+          window,
         )
-        const candidateIds =
+        const candidatePoolIds =
           rankedBlocks.length > 0
             ? rankedBlocks.map((block) => block.playerId)
             : budgetBehind || allowsThinFill(strategyMode, dayIndex, dayCount)
-              ? rankEligibleFas(
-                  addableFreeAgents(date),
-                  date,
-                  schedule,
-                  weakCats,
-                  seatedToday,
-                  budgetBehind,
-                ).map((entry) => entry.id)
+              ? addableFreeAgents(date).map((player) => player.id)
               : []
+        const allRankedCandidateIds = onlyAddable(
+          rankAllYouCandidates(candidatePoolIds).map((player) => player.id),
+          date,
+        )
+        const candidateIds = rankYouCandidates(candidatePoolIds)
         const addableIds = onlyAddable(candidateIds, date)
         const tryMove = (
           drop: StreamerMoveDrop,
@@ -1131,27 +1462,51 @@ export const buildStreamingPlan = ({
           rosterDrop = { kind: "player", playerId: forcedId, didProtect: false }
           picked = tryMove({ kind: "player", playerId: forcedId }, false)
           if (!picked) reservedForcedDrops.delete(forcedId)
+        } else if (addableIds.some((id) => releasedStreamerIds.has(id))) {
+          const releasedIds = addableIds.filter((id) =>
+            releasedStreamerIds.has(id),
+          )
+          picked = pickBestStreamerMove(
+            releasedIds,
+            workingDaily,
+            date,
+            { kind: "none", playerId: null },
+            state.players,
+            schedule,
+            board,
+            isCompatibleAlternative,
+            ourPickOptions(false),
+          )
         } else if (hasOpenNonIlSlot(youTeam?.entries ?? [])) {
           rosterDrop = { kind: "open_slot", playerId: null, didProtect: false }
           picked = tryMove({ kind: "none", playerId: null }, false)
         } else {
-          for (const dropId of rankRosterDropPlayerIds(
-            youTeam?.entries ?? [],
-            playersById,
+          const unavailableDropIds = new Set([
+            ...weekDroppedPlayers,
+            ...reservedForcedDrops,
+          ])
+          const dropId = pickAutoRosterCut({
             date,
+            days: schedule.matchup.days,
+            teamEntries: (youTeam?.entries ?? []).map((entry) =>
+              entry.playerId && unavailableDropIds.has(entry.playerId)
+                ? { ...entry, playerId: null }
+                : entry,
+            ),
+            players: state.players,
             schedule,
-            weakCats,
-            new Set([...weekDroppedPlayers, ...reservedForcedDrops]),
-            adpByPlayerId,
-            injuryOutDaysByPlayerId,
-            board,
-            budgetBehind,
-          )) {
+            seatedTonight: holeLineup,
+          })
+          if (dropId) {
             const result = tryMove({ kind: "player", playerId: dropId }, true)
-            if (!result) continue
-            picked = result
-            rosterDrop = { kind: "player", playerId: dropId, didProtect: false }
-            break
+            if (result) {
+              picked = result
+              rosterDrop = {
+                kind: "player",
+                playerId: dropId,
+                didProtect: false,
+              }
+            }
           }
         }
 
@@ -1159,7 +1514,12 @@ export const buildStreamingPlan = ({
           targetCategoryIds = targetCatsFromMove(workingDaily, picked.nextDaily)
           workingDaily = picked.nextDaily
           playerId = picked.playerId
-          alternativePlayerIds = picked.alternativePlayerIds
+          alternativePlayerIds = allRankedCandidateIds
+            .filter((candidateId) => candidateId !== picked.playerId)
+            .filter((candidateId) =>
+              isCompatibleAlternative(picked.playerId, candidateId),
+            )
+            .slice(0, 3)
           if (previousId && !forceFill) {
             action = "drop_add"
             droppedPlayerId = previousId
@@ -1173,7 +1533,15 @@ export const buildStreamingPlan = ({
           addsUsed += 1
           addsBySpot[spotIndex]! += 1
           addIndex = addsUsed
+          releasedStreamerIds.delete(picked.playerId)
           seatedToday.add(picked.playerId)
+          seatStreamerIfOpen(
+            holeLineup,
+            picked.playerId,
+            date,
+            playersById,
+            schedule,
+          )
           if (previousId && !forceFill) markDropped(previousId, date)
           if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
             weekDroppedPlayers.add(rosterDrop.playerId)
@@ -1184,10 +1552,25 @@ export const buildStreamingPlan = ({
 
       if (!playerId && previousId) {
         const previous = playersById.get(previousId)
-        if (previous && remainingGameDays(previous, date, schedule) > 0) {
-          action = "hold"
-          playerId = previousId
-          seatedToday.add(previousId)
+        if (
+          previous &&
+          playsOn(previous, date, schedule) &&
+          playerHasEligibleHole(previous, holeLineup) &&
+          remainingGameDays(previous, date, schedule) > 0
+        ) {
+          if (
+            seatStreamerIfOpen(
+              holeLineup,
+              previousId,
+              date,
+              playersById,
+              schedule,
+            )
+          ) {
+            action = "hold"
+            playerId = previousId
+            seatedToday.add(previousId)
+          }
         }
       }
 
@@ -1213,6 +1596,7 @@ export const buildStreamingPlan = ({
       schedule,
       board,
       oppSpotCount ? oppWorkingDaily : undefined,
+      window,
     )
     const hasCloseLoss = liveBoard.categories.some(isCloseLosingCategory)
     const spotOrder = [...Array(spotCount).keys()].sort(
@@ -1247,6 +1631,7 @@ export const buildStreamingPlan = ({
         dayIndex,
         dayCount,
         budgetBehind,
+        window,
       )
       let candidateIds = rankedBlocks.map((block) => block.playerId)
       if (
@@ -1255,22 +1640,42 @@ export const buildStreamingPlan = ({
           ((isMultiSpotOffNight && (isLateWeek || budgetBehind)) ||
             (budgetBehind && heldPlaysToday)))
       ) {
-        const todayFaIds = rankEligibleFas(
-          addableFreeAgents(date),
-          date,
-          schedule,
-          weakCats,
-          seatedToday,
-          budgetBehind,
-        ).map((entry) => entry.id)
+        const todayFaIds = rankYouCandidates(
+          addableFreeAgents(date).map((player) => player.id),
+        )
         candidateIds = [...new Set([...candidateIds, ...todayFaIds])]
       }
 
+      const heldSeatable = remainingSeatableGameDays(
+        occupant,
+        date,
+        schedule,
+        workingDaily,
+        playersById,
+      )
       const todayBlock = rankedBlocks[0] ?? null
+      const volumeUpgradeIds = candidateIds.filter((upgradeId) => {
+        const upgradePlayer = playersById.get(upgradeId)
+        if (!upgradePlayer || !playsOn(upgradePlayer, date, schedule)) {
+          return false
+        }
+        return (
+          remainingSeatableGameDays(
+            upgradePlayer,
+            date,
+            schedule,
+            workingDaily,
+            playersById,
+          ) > heldSeatable
+        )
+      })
+      const hasVolumeUpgrade = volumeUpgradeIds.length > 0
+
       if (isMultiSpotOffNight) {
         if (todayBlock == null) {
-          if (!(isLateWeek || budgetBehind)) continue
+          if (!(isLateWeek || budgetBehind || hasVolumeUpgrade)) continue
         } else if (
+          !hasVolumeUpgrade &&
           !allowsMultiSpotOffNightUpgrade(
             todayBlock.tier,
             dayIndex,
@@ -1304,14 +1709,9 @@ export const buildStreamingPlan = ({
               )
         })
       } else if (heldPlaysToday && budgetBehind) {
-        const todayIds = rankEligibleFas(
-          addableFreeAgents(date),
-          date,
-          schedule,
-          weakCats,
-          seatedToday,
-          true,
-        ).map((entry) => entry.id)
+        const todayIds = rankYouCandidates(
+          addableFreeAgents(date).map((player) => player.id),
+        )
         candidateIds = [...new Set([...candidateIds, ...todayIds])]
       }
       candidateIds = candidateIds.filter((upgradeId) => {
@@ -1323,6 +1723,11 @@ export const buildStreamingPlan = ({
         )
       })
       candidateIds = onlyAddable(candidateIds, date)
+      candidateIds = rankYouCandidates(candidateIds)
+      if (isMultiSpotOffNight && hasVolumeUpgrade) {
+        const volumeSet = new Set(volumeUpgradeIds)
+        candidateIds = candidateIds.filter((upgradeId) => volumeSet.has(upgradeId))
+      }
 
       let picked =
         candidateIds.length === 0
@@ -1336,31 +1741,31 @@ export const buildStreamingPlan = ({
               schedule,
               board,
               isCompatibleAlternative,
-              ourPickOptions(isOneSpotOffNight ? false : undefined),
+              ourPickOptions(
+                isOneSpotOffNight || (isMultiSpotOffNight && hasVolumeUpgrade)
+                  ? false
+                  : undefined,
+              ),
             )
 
       if (!picked && spotCount === 1 && heldPlaysToday && hasCloseLoss) {
         const closeLossCats = liveBoard.categories
           .filter(isCloseLosingCategory)
           .map((row) => row.categoryId)
-        const heldCloseScore = weakCatScore(occupant, closeLossCats)
+        const heldCloseScore = weakCatScore(occupant, closeLossCats, window)
         const chaseIds = onlyAddable(
-          rankEligibleFas(
-            addableFreeAgents(date),
-            date,
-            schedule,
+          rankYouCandidates(
+            addableFreeAgents(date).map((player) => player.id),
             closeLossCats,
-            seatedToday,
-            true,
           )
-            .map((entry) => entry.id)
             .filter((upgradeId) => {
               const upgradePlayer = playersById.get(upgradeId)
               return Boolean(
                 upgradePlayer &&
                   playsOn(upgradePlayer, date, schedule) &&
                   remainingGameDays(upgradePlayer, date, schedule) > 0 &&
-                  weakCatScore(upgradePlayer, closeLossCats) > heldCloseScore,
+                  weakCatScore(upgradePlayer, closeLossCats, window) >
+                    heldCloseScore,
               )
             }),
           date,
@@ -1400,28 +1805,16 @@ export const buildStreamingPlan = ({
         targetCategoryIds,
       }
     }
+    }
 
-    const dayCells = cells.map((cell) => {
-      const resolved = cell!
-      if (resolved.playerId) {
-        const player = playersById.get(resolved.playerId)
-        if (player && playsOn(player, date, schedule)) gameStarts += 1
-      }
-      return resolved
-    })
+    const dayCells = cells.map((cell) => cell!)
 
     if (oppSpotCount) {
       const takenToday = new Set<string>(seatedToday)
       for (const cell of dayCells) {
         if (cell.playerId) takenToday.add(cell.playerId)
       }
-      const candidateIds = rankEligibleFas(
-        addableFreeAgents(date),
-        date,
-        schedule,
-        weakCats,
-        takenToday,
-      ).map((entry) => entry.id)
+      const candidateIds = addableFreeAgents(date).map((entry) => entry.id)
       const filled = fillOpponentSpotsForDate({
         date,
         spotCount: oppSpotCount,
@@ -1429,6 +1822,7 @@ export const buildStreamingPlan = ({
         oppWorkingDaily,
         youWorkingDaily: workingDaily,
         oppEntries: oppTeam?.entries ?? [],
+        rosterSlots,
         takenToday,
         addLimit,
         addsUsed: oppAddsUsed,
@@ -1446,6 +1840,7 @@ export const buildStreamingPlan = ({
         isCompatibleAlternative,
         candidateIds,
         onDropped: markDropped,
+        statWindow: window,
       })
       oppWorkingDaily = filled.workingDaily
       oppAddsUsed = filled.addsUsed
@@ -1461,11 +1856,11 @@ export const buildStreamingPlan = ({
     days.push({ date, cells: dayCells })
   }
 
-  return {
+  const plan: StreamingPlan = {
     spotCount,
     addLimit,
     addsUsed,
-    gameStarts,
+    gameStarts: 0,
     strategyMode,
     suggestedStrategyMode,
     summaryReasons: buildSummaryReasons(
@@ -1485,6 +1880,17 @@ export const buildStreamingPlan = ({
         })),
     opponentDaily: oppSpotCount ? oppWorkingDaily : {},
   }
+  plan.gameStarts = countTeamStarts(
+    applyStreamingPlanPreview(
+      previewBaseDaily,
+      plan,
+      playersById,
+      schedule,
+    ),
+    state.players,
+    schedule,
+  )
+  return plan
 }
 
 export const buildAllStreamingPlans = (

@@ -257,10 +257,9 @@ describe("MatchupWorkspace", () => {
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
     expect(screen.getByLabelText("Matchup plans")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "You none" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
+    expect(
+      await screen.findByRole("button", { name: /recommended/i }),
+    ).toHaveAttribute("aria-pressed", "true")
     expect(screen.getByRole("button", { name: /Auto · 1 open/i })).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -613,7 +612,8 @@ describe("MatchupWorkspace", () => {
       await screen.findByRole("heading", { name: "Daily lineup" }),
     ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("button", { name: "You 1-spot" }))
+    await screen.findByRole("button", { name: /recommended/i })
+    fireEvent.click(screen.getByRole("button", { name: /You 1-spot/ }))
     expect(
       (await screen.findAllByText(/Previewing 1-spot/i)).length,
     ).toBeGreaterThan(0)
@@ -628,6 +628,7 @@ describe("MatchupWorkspace", () => {
       name: /Start Austin Reaves on/i,
     })
     expect(startButtons.length).toBeGreaterThan(0)
+    expect(startButtons[startButtons.length - 1]).not.toBeDisabled()
     fireEvent.click(startButtons[startButtons.length - 1]!)
 
     await waitFor(() => {
@@ -635,5 +636,40 @@ describe("MatchupWorkspace", () => {
         screen.getAllByRole("button", { name: /Sit Austin Reaves on/i }).length,
       ).toBeGreaterThan(1)
     })
+  }, 15000)
+
+  it("sends stored statWindow on the first matchup fetch", async () => {
+    window.localStorage.setItem("matchup-stat-window:league-1", "l15")
+    render(<MatchupWorkspace leagueId="league-1" />)
+
+    await waitFor(() => {
+      const urls = vi.mocked(fetch).mock.calls.map(([request]) => String(request))
+      expect(
+        urls.some(
+          (url) =>
+            url.startsWith("/api/matchup?") && url.includes("statWindow=l15"),
+        ),
+      ).toBe(true)
+    })
+  })
+
+  it("refetches matchup with statWindow=l7 when the Stat window changes", async () => {
+    render(<MatchupWorkspace leagueId="season-1" />)
+
+    const select = await screen.findByLabelText("Stat window")
+    fireEvent.change(select, { target: { value: "l7" } })
+
+    await waitFor(() => {
+      const urls = vi.mocked(fetch).mock.calls.map(([request]) => String(request))
+      expect(
+        urls.some(
+          (url) =>
+            url.startsWith("/api/matchup?") && url.includes("statWindow=l7"),
+        ),
+      ).toBe(true)
+    })
+    expect(window.localStorage.getItem("matchup-stat-window:season-1")).toBe(
+      "l7",
+    )
   })
 })

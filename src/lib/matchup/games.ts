@@ -1,5 +1,20 @@
-import { B2B_SECOND_NIGHT_PLAY_RATE } from "@/lib/matchup/constants"
+import {
+  B2B_SECOND_NIGHT_PLAY_RATE,
+  WEEKLY_ADD_LIMIT,
+} from "@/lib/matchup/constants"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
+
+/** Matchup days that have at least one NBA game. Fallback when the slate is empty. */
+export const streamingAddLimitForSchedule = (
+  schedule: ScheduleResponse,
+): number => {
+  const matchupDays = new Set(schedule.matchup.days)
+  const gameDays = new Set<string>()
+  for (const game of schedule.games) {
+    if (matchupDays.has(game.date)) gameDays.add(game.date)
+  }
+  return gameDays.size > 0 ? gameDays.size : WEEKLY_ADD_LIMIT
+}
 
 export const previousIsoDate = (iso: string): string => {
   const [year, month, day] = iso.split("-").map(Number)

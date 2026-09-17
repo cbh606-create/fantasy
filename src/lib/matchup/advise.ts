@@ -13,7 +13,7 @@ import { suggestSitStart } from "./sitStart"
 import { suggestStreamers } from "./streamers"
 import { buildAdpByPlayerIdFromProjPool } from "./streamingDropPolicy"
 import { buildAllStreamingPlans } from "./streamingPlans"
-import type { MatchupAdvice, WinnerStreamRecipe } from "./types"
+import type { MatchupAdvice, StatWindow, WinnerStreamRecipe } from "./types"
 import { activeTeamWeeklyTotals } from "./weekly"
 
 type ProjAdpPlayer = {
@@ -49,6 +49,7 @@ export const adviseMatchup = (
   options: {
     addLimit?: number
     winnerStreamRecipes?: WinnerStreamRecipe[]
+    statWindow?: StatWindow
   } = {},
 ): MatchupAdvice | { error: string } => {
   if (opponentTeamIndex === state.perspectiveTeamIndex) {
@@ -64,14 +65,25 @@ export const adviseMatchup = (
     return { error: "invalid_opponent" }
   }
 
+  const statWindow = options.statWindow ?? "season"
   const gamesMap = weightedGamesThisWeekByPlayerId(state.players, schedule)
   const streamerGamesMap = gamesThisWeekByPlayerId(state.players, schedule)
   const streamerB2bMap = b2bSecondNightsThisWeekByPlayerId(state.players, schedule)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const categoryIds = enabledCategoryIds(state)
 
-  const youTotals = activeTeamWeeklyTotals(youTeam.entries, playersById, gamesMap)
-  const oppTotals = activeTeamWeeklyTotals(oppTeam.entries, playersById, gamesMap)
+  const youTotals = activeTeamWeeklyTotals(
+    youTeam.entries,
+    playersById,
+    gamesMap,
+    statWindow,
+  )
+  const oppTotals = activeTeamWeeklyTotals(
+    oppTeam.entries,
+    playersById,
+    gamesMap,
+    statWindow,
+  )
   const board = buildMatchupBoard(youTotals, oppTotals, categoryIds)
 
   const sitStart = suggestSitStart({
@@ -80,6 +92,7 @@ export const adviseMatchup = (
     players: state.players,
     gamesMap,
     categoryIds,
+    statWindow,
   })
 
   // Streamers: integer game-days + separate B2B count (not 0.75 weighting).
@@ -89,6 +102,7 @@ export const adviseMatchup = (
     gamesMap: streamerGamesMap,
     b2bMap: streamerB2bMap,
     recipes: options.winnerStreamRecipes,
+    statWindow,
   })
 
   const adpByPlayerId = buildAdpByPlayerIdFromProjPool(
@@ -102,6 +116,7 @@ export const adviseMatchup = (
     addLimit: options.addLimit,
     adpByPlayerId,
     winnerStreamRecipes: options.winnerStreamRecipes,
+    statWindow,
   })
 
   return {

@@ -185,7 +185,9 @@ export const DailyLineupPanel = ({
     const isOutsideStreamerWindow = Boolean(
       ownedDates && !ownedDates.has(day),
     )
-    const isLocked = isOutsideStreamerWindow
+    const droppedFrom = droppedFromDateByPlayerId[player.id]
+    const isPlanDroppedOnDay = Boolean(droppedFrom && day >= droppedFrom)
+    const isLocked = isOutsideStreamerWindow || isPlanDroppedOnDay
     const teamAbbr = player.teamAbbr ?? ""
     const gameWeight = teamAbbr
       ? gameWeightForTeamDate(teamAbbr, day, schedule)
@@ -208,7 +210,9 @@ export const DailyLineupPanel = ({
     const ariaLabel = startedSlot
       ? `${action} ${player.name} on ${formatMatchupDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
       : `${action} ${player.name} on ${formatMatchupDayLabel(day)}`
-    const lockedAriaLabel = `${player.name} not on streaming plan on ${formatMatchupDayLabel(day)}`
+    const lockedAriaLabel = isPlanDroppedOnDay
+      ? `${player.name} dropped from streaming plan on ${formatMatchupDayLabel(day)}`
+      : `${player.name} not on streaming plan on ${formatMatchupDayLabel(day)}`
     const irAriaLabel = `${player.name} on IR ${formatMatchupDayLabel(day)}`
 
     if (!hasGame) {

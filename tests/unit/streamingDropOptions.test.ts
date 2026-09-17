@@ -118,4 +118,24 @@ describe("eligibleRosterDropPlayerIds", () => {
 
     expect(ids).toEqual(["bench", "star"])
   })
+
+  it("omits tonight starters from auto roster-drop options", () => {
+    const entries: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: "a" },
+      { slot: "BE", playerId: "b" },
+    ]
+    const ids = eligibleRosterDropPlayerIds(
+      entries,
+      {
+        a: player("a", "Alpha"),
+        b: player("b", "Beta"),
+      },
+      [],
+      undefined,
+      undefined,
+      { seatedTonightIds: new Set(["a"]) },
+    )
+
+    expect(ids).toEqual(["b"])
+  })
 })

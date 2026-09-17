@@ -6,9 +6,9 @@ import {
   type DailyLineups,
   youTotalsFromDaily,
 } from "./dailyLineups"
-import { eligibleForSlot } from "./eligibility"
+import { eligibleForSlot, isSpecificPositionSlot } from "./eligibility"
 import { gameWeightForTeamDate } from "./games"
-import type { MatchupBoard, WinnerStreamRecipe } from "./types"
+import type { MatchupBoard, StatWindow, WinnerStreamRecipe } from "./types"
 import { compareStreamerRank, winnerPriorHits } from "./winnerStreamPrior"
 
 export type StreamerMoveDrop = {
@@ -47,6 +47,7 @@ export const seatStreamerIfOpen = (
   date: string,
   playersById: Map<string, SeasonPlayer> | Record<string, SeasonPlayer>,
   schedule: ScheduleResponse,
+  options?: { allowFlexSlots?: boolean },
 ): boolean => {
   if (!entries) return false
   if (entries.some((entry) => entry.playerId === playerId)) return true
@@ -59,9 +60,26 @@ export const seatStreamerIfOpen = (
     return occupantHasNoGame(entry.playerId, date, playersById, schedule)
   }
 
-  const index = entries.findIndex(
-    (entry) => slotIsOpen(entry) && eligibleForSlot(player, entry.slot),
+  const hasSpecificEmpty = entries.some(
+    (entry) => entry.playerId === null && isSpecificPositionSlot(entry.slot),
   )
+  const hasEligibleSpecificEmpty = entries.some(
+    (entry) =>
+      entry.playerId === null &&
+      isSpecificPositionSlot(entry.slot) &&
+      eligibleForSlot(player, entry.slot),
+  )
+
+  const index = entries.findIndex((entry) => {
+    if (!eligibleForSlot(player, entry.slot)) return false
+    if (hasEligibleSpecificEmpty) {
+      return entry.playerId === null && isSpecificPositionSlot(entry.slot)
+    }
+    if (hasSpecificEmpty && !options?.allowFlexSlots) {
+      return entry.playerId === null && isSpecificPositionSlot(entry.slot)
+    }
+    return slotIsOpen(entry)
+  })
   if (index < 0) return false
   const slot = entries[index]
   if (!slot) return false
@@ -106,8 +124,16 @@ export const applyStreamerMoveToDaily = (
     return { daily: next, seatedGameDays: 0 }
   }
 
-  let seatedGameDays = 0
+  if (gameWeightForTeamDate(addPlayer.teamAbbr, fromDate, schedule) === 0) {
+    return { daily: next, seatedGameDays: 0 }
+  }
+  if (!seatStreamerIfOpen(next[fromDate], addPlayerId, fromDate, playersById, schedule)) {
+    return { daily: next, seatedGameDays: 0 }
+  }
+
+  let seatedGameDays = 1
   for (const day of days) {
+    if (day === fromDate) continue
     if (gameWeightForTeamDate(addPlayer.teamAbbr, day, schedule) === 0) continue
     if (seatStreamerIfOpen(next[day], addPlayerId, day, playersById, schedule)) {
       seatedGameDays += 1
@@ -133,11 +159,12 @@ export const matchupBoardFromDaily = (
   schedule: ScheduleResponse,
   board: MatchupBoard,
   oppDaily?: DailyLineups,
+  statWindow?: StatWindow,
 ): MatchupBoard => {
   const categoryIds = categoryIdsFromBoard(board)
-  const you = youTotalsFromDaily(daily, players, schedule)
+  const you = youTotalsFromDaily(daily, players, schedule, statWindow)
   const opp = oppDaily
-    ? youTotalsFromDaily(oppDaily, players, schedule)
+    ? youTotalsFromDaily(oppDaily, players, schedule, statWindow)
     : oppTotalsFromBoard(board)
   return buildMatchupBoard(you, opp, categoryIds)
 }
@@ -147,9 +174,17 @@ export const planningMatchupBoard = (
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
   frozenBoard: MatchupBoard,
+  statWindow?: StatWindow,
 ): MatchupBoard => {
   if (!daily) return frozenBoard
-  return matchupBoardFromDaily(daily, players, schedule, frozenBoard)
+  return matchupBoardFromDaily(
+    daily,
+    players,
+    schedule,
+    frozenBoard,
+    undefined,
+    statWindow,
+  )
 }
 
 const contestedCategoryIds = (board: MatchupBoard): CategoryId[] =>
@@ -179,7 +214,16 @@ export const projectedCatWinsFromDaily = (
   schedule: ScheduleResponse,
   board: MatchupBoard,
   oppDaily?: DailyLineups,
-): number => matchupBoardFromDaily(daily, players, schedule, board, oppDaily).projectedCatWins
+  statWindow?: StatWindow,
+): number =>
+  matchupBoardFromDaily(
+    daily,
+    players,
+    schedule,
+    board,
+    oppDaily,
+    statWindow,
+  ).projectedCatWins
 
 const scoreStreamerMoveWithBefore = (
   workingDaily: DailyLineups,
@@ -191,6 +235,7 @@ const scoreStreamerMoveWithBefore = (
   board: MatchupBoard,
   beforeBoard: MatchupBoard,
   oppDaily?: DailyLineups,
+  statWindow?: StatWindow,
 ): {
   delta: number
   contestedDelta: number
@@ -213,6 +258,7 @@ const scoreStreamerMoveWithBefore = (
     schedule,
     board,
     oppDaily,
+    statWindow,
   )
   return {
     delta: afterBoard.projectedCatWins - beforeBoard.projectedCatWins,
@@ -231,6 +277,7 @@ export const scoreStreamerMove = (
   schedule: ScheduleResponse,
   board: MatchupBoard,
   oppDaily?: DailyLineups,
+  statWindow?: StatWindow,
 ): {
   delta: number
   contestedDelta: number
@@ -243,6 +290,7 @@ export const scoreStreamerMove = (
     schedule,
     board,
     oppDaily,
+    statWindow,
   )
   return scoreStreamerMoveWithBefore(
     workingDaily,
@@ -254,6 +302,7 @@ export const scoreStreamerMove = (
     board,
     beforeBoard,
     oppDaily,
+    statWindow,
   )
 }
 
@@ -271,6 +320,7 @@ export const pickBestStreamerMove = (
     requirePositiveContestedDelta?: boolean
     recipes?: WinnerStreamRecipe[]
     oppDaily?: DailyLineups
+    statWindow?: StatWindow
   },
 ): {
   playerId: string
@@ -293,6 +343,7 @@ export const pickBestStreamerMove = (
     schedule,
     board,
     options?.oppDaily,
+    options?.statWindow,
   )
   const scored = candidateIds.flatMap((playerId, index) => {
     const result = scoreStreamerMoveWithBefore(
@@ -305,6 +356,7 @@ export const pickBestStreamerMove = (
       board,
       beforeBoard,
       options?.oppDaily,
+      options?.statWindow,
     )
     if (!result) return []
     return [{ playerId, index, ...result }]

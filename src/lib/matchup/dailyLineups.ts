@@ -10,6 +10,7 @@ import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import { isActiveSlot } from "./constants"
 import { activeSlotsFor, eligibleForSlot } from "./eligibility"
 import { gameWeightForTeamDate } from "./games"
+import type { StatWindow } from "./types"
 import { weeklyPlayerStats } from "./weekly"
 
 export type DailyLineups = Record<string, SeasonRosterEntry[]>
@@ -349,6 +350,7 @@ export const youTotalsFromDaily = (
   daily: DailyLineups,
   players: SeasonPlayer[],
   schedule: ScheduleResponse,
+  statWindow: StatWindow = "season",
 ): Record<CategoryId, number> => {
   const playersById = new Map(players.map((player) => [player.id, player]))
   const gamesMap = effectiveGamesByPlayerId(daily, players, schedule)
@@ -369,7 +371,11 @@ export const youTotalsFromDaily = (
     const player = playersById.get(playerId)
     if (!player) continue
 
-    const weekly = weeklyPlayerStats(player, gamesMap.get(playerId) ?? 0)
+    const weekly = weeklyPlayerStats(
+      player,
+      gamesMap.get(playerId) ?? 0,
+      statWindow,
+    )
 
     for (const categoryId of COUNTING_CATEGORIES) {
       totals[categoryId] += weekly.projections[categoryId]

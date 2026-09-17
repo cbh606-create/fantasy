@@ -29,6 +29,15 @@ export type SeasonPlayer = {
     FTM: number
     FTA: number
   }
+  recentRates?: Partial<
+    Record<
+      "l7" | "l15" | "l30",
+      {
+        projections: Record<CategoryId, number>
+        shooting: SeasonPlayer["shooting"]
+      }
+    >
+  >
 }
 
 export type ScheduleGame = {

@@ -35,16 +35,21 @@ export const eligibleRosterDropPlayerIds = (
   earlierDroppedIds: string[],
   adpByPlayerId?: Record<string, number>,
   injuryOutDaysByPlayerId?: Record<string, number>,
-  options?: { includeProtected?: boolean },
+  options?: {
+    includeProtected?: boolean
+    seatedTonightIds?: ReadonlySet<string>
+  },
 ): string[] => {
   void adpByPlayerId
   void injuryOutDaysByPlayerId
-  void options
   const dropped = new Set(earlierDroppedIds)
   return entries
     .filter(
       (entry) =>
-        !isIlSlot(entry.slot) && entry.playerId && !dropped.has(entry.playerId),
+        !isIlSlot(entry.slot) &&
+        entry.playerId &&
+        !dropped.has(entry.playerId) &&
+        !options?.seatedTonightIds?.has(entry.playerId),
     )
     .map((entry) => playersById[entry.playerId!])
     .filter((player): player is SeasonPlayer => Boolean(player))

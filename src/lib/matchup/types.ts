@@ -1,6 +1,11 @@
 import type { CategoryId } from "@/lib/domain/types"
 import type { DailyLineups } from "./dailyLineups"
 
+export type StatWindow = "season" | "l7" | "l15" | "l30"
+
+export const isStatWindow = (value: unknown): value is StatWindow =>
+  value === "season" || value === "l7" || value === "l15" || value === "l30"
+
 export type CategoryOutcome = "W" | "L" | "T"
 
 export type MatchupCategoryRow = {
@@ -112,6 +117,7 @@ export type StreamingPlan = {
   spotCount: StreamingPlanSpotCount
   addLimit: number
   addsUsed: number
+  /** Team Starts after applying the planned you-side Daily overlay. */
   gameStarts: number
   strategyMode: StreamingStrategyMode
   suggestedStrategyMode: StreamingStrategyMode

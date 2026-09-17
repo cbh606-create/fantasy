@@ -34,6 +34,12 @@ import {
 import { suggestRatioSits } from "@/lib/matchup/ratioSits"
 import { planningMatchupBoard } from "@/lib/matchup/streamerMove"
 import { applyStreamingPlanPreview, previewSeatKey } from "@/lib/matchup/applyStreamingPlanPreview"
+import {
+  pickRecommendedYouSpot,
+  scoreYouSpotPlans,
+  shouldAutoApplyYouSpot,
+  type YouSpotCount,
+} from "@/lib/matchup/recommendYouSpot"
 import { rosterSlotsFor } from "@/lib/matchup/eligibility"
 import {
   emptyNonIlSeatCount,
@@ -45,8 +51,10 @@ import type {
   OppSpotChoice,
   RatioSitSuggestion,
   SitStartSuggestion,
+  StatWindow,
   StreamingPlan,
 } from "@/lib/matchup/types"
+import { isStatWindow } from "@/lib/matchup/types"
 import type {
   ScheduleResponse,
   SeasonLeagueState,
@@ -127,6 +135,14 @@ const readStoredOpponent = (leagueId: string): number | null => {
 
   const parsed = Number.parseInt(stored, 10)
   return Number.isInteger(parsed) ? parsed : null
+}
+
+const statWindowStorageKey = (id: string) => `matchup-stat-window:${id}`
+
+const readStoredStatWindow = (id: string): StatWindow => {
+  if (typeof window === "undefined") return "season"
+  const stored = window.localStorage.getItem(statWindowStorageKey(id))
+  return isStatWindow(stored) ? stored : "season"
 }
 
 const hasIncompleteActiveLineup = (state: SeasonLeagueState): boolean => {
@@ -217,6 +233,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [state, setState] = useState<SeasonLeagueState | null>(null)
   const [matchupData, setMatchupData] = useState<MatchupResponse | null>(null)
   const [opponentTeamIndex, setOpponentTeamIndex] = useState<number | null>(null)
+  const [statWindow, setStatWindow] = useState<StatWindow>(() =>
+    readStoredStatWindow(leagueId),
+  )
+  const statWindowRef = useRef(statWindow)
+  statWindowRef.current = statWindow
   const [daily, setDaily] = useState<DailyLineups | null>(null)
   const [previewPlan, setPreviewPlan] = useState<StreamingPlan | null>(null)
   const [previewSpotCount, setPreviewSpotCount] = useState<1 | 2 | 3 | null>(
@@ -227,6 +248,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     (string | null)[]
   >([])
   const [builtPlans, setBuiltPlans] = useState<StreamingPlan[]>([])
+  const [noneOpponentPlan, setNoneOpponentPlan] =
+    useState<StreamingPlan | null>(null)
+  const appliedOppKeyRef = useRef<string | null>(null)
   const [previewSatSeats, setPreviewSatSeats] = useState<Set<string>>(
     () => new Set(),
   )
@@ -279,15 +303,22 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         includeState?: boolean
         resetDaily?: boolean
         applyState?: boolean
+        statWindow?: StatWindow
       } = {},
     ) => {
-      const { signal, includeState = false, resetDaily = false, applyState = false } =
-        options
+      const {
+        signal,
+        includeState = false,
+        resetDaily = false,
+        applyState = false,
+        statWindow: statWindowParam = statWindowRef.current,
+      } = options
       const params = new URLSearchParams({
         seasonLeagueId: leagueId,
         opponentTeamIndex: String(opponentParam),
       })
       if (includeState) params.set("includeState", "1")
+      params.set("statWindow", statWindowParam)
 
       const response = await fetch(`/api/matchup?${params}`, { signal })
 
@@ -328,6 +359,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       try {
         setPreviewPlan(null)
         const storedOpponent = readStoredOpponent(leagueId)
+        const storedWindow = readStoredStatWindow(leagueId)
+        setStatWindow(storedWindow)
         let payload: MatchupResponse
 
         try {
@@ -335,6 +368,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             signal: controller.signal,
             includeState: true,
             applyState: true,
+            statWindow: storedWindow,
           })
         } catch (firstError) {
           if (controller.signal.aborted) return
@@ -349,6 +383,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             signal: controller.signal,
             includeState: true,
             applyState: true,
+            statWindow: storedWindow,
           })
         }
 
@@ -419,7 +454,46 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     }
   }
 
-  const handleYouSpotCountChange = (spot: 1 | 2 | 3 | null) => {
+  const handleStatWindowChange = async (nextWindow: StatWindow) => {
+    setStatWindow(nextWindow)
+    window.localStorage.setItem(statWindowStorageKey(leagueId), nextWindow)
+
+    if (opponentTeamIndex === null) return
+
+    opponentFetchRef.current?.abort()
+
+    const controller = new AbortController()
+    opponentFetchRef.current = controller
+
+    setOpponentError("")
+    setApplyError("")
+    setSuccessMessage("")
+    setIsRefreshing(true)
+
+    try {
+      await fetchMatchup(opponentTeamIndex, {
+        signal: controller.signal,
+        includeState: false,
+        statWindow: nextWindow,
+      })
+    } catch (requestError) {
+      if (requestError instanceof DOMException && requestError.name === "AbortError") {
+        return
+      }
+
+      setOpponentError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to load matchup advice",
+      )
+    } finally {
+      if (opponentFetchRef.current === controller) {
+        setIsRefreshing(false)
+      }
+    }
+  }
+
+  const applyYouSpot = useCallback((spot: YouSpotCount) => {
     setPreviewSpotCount(spot)
     setPreviewSatSeats(new Set())
     setKeepRosterSeats(new Set())
@@ -428,11 +502,22 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       return
     }
     setPreviewPlan(builtPlans.find((plan) => plan.spotCount === spot) ?? null)
+  }, [builtPlans])
+
+  const handleYouSpotCountChange = (spot: YouSpotCount) => {
+    applyYouSpot(spot)
   }
 
-  const handlePlansBuilt = useCallback((plans: StreamingPlan[]) => {
-    setBuiltPlans(plans)
-  }, [])
+  const handlePlansBuilt = useCallback(
+    (payload: {
+      plans: StreamingPlan[]
+      noneOpponentPlan: StreamingPlan | null
+    }) => {
+      setBuiltPlans(payload.plans)
+      setNoneOpponentPlan(payload.noneOpponentPlan)
+    },
+    [],
+  )
 
   useEffect(() => {
     if (previewSpotCount == null) return
@@ -457,6 +542,38 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     })
   }
 
+  const youSpotScores = useMemo(() => {
+    if (!daily || !matchupData || !state || !noneOpponentPlan) return []
+    const players = [...state.players]
+    const seen = new Set(players.map((player) => player.id))
+    for (const player of Object.values(matchupData.playersById)) {
+      if (seen.has(player.id)) continue
+      players.push(player)
+      seen.add(player.id)
+    }
+    return scoreYouSpotPlans({
+      plans: builtPlans,
+      noneOpponentDaily: noneOpponentPlan.opponentDaily,
+      baseDaily: daily,
+      players,
+      schedule: matchupData.schedule,
+      board: matchupData.board,
+      statWindow,
+    })
+  }, [builtPlans, daily, matchupData, noneOpponentPlan, state, statWindow])
+
+  const recommendedYouSpot = pickRecommendedYouSpot(youSpotScores)
+  const oppAssumptionKey = `${oppSpotChoice}:${forcedOpponentRosterDrops.join(",")}`
+
+  useEffect(() => {
+    if (recommendedYouSpot === undefined) return
+    if (!shouldAutoApplyYouSpot(appliedOppKeyRef.current, oppAssumptionKey)) {
+      return
+    }
+    appliedOppKeyRef.current = oppAssumptionKey
+    applyYouSpot(recommendedYouSpot)
+  }, [applyYouSpot, oppAssumptionKey, recommendedYouSpot])
+
   const handleTogglePlayerDay = (
     playerId: string,
     day: string,
@@ -468,6 +585,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       ...matchupData.playersById,
     }
     const streamerIds = previewStreamerIds(previewPlan)
+    const droppedFromById = previewDroppedFromDateByPlayerId(previewPlan)
     const overlayOptions = {
       omitSeats: previewSatSeats,
       keepRosterSeats,
@@ -492,18 +610,69 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
     if (!hasGame) return "missing_day"
 
+    const overlayStarted =
+      overlayDaily[day]?.some((entry) => entry.playerId === playerId) ?? false
+    const key = previewSeatKey(day, playerId)
+
     // Preview streamers: sit/start is overlay-only (omitSeats), not saved daily.
     if (previewPlan != null && streamerIds.has(playerId)) {
-      const key = previewSeatKey(day, playerId)
-      const started =
-        overlayDaily[day]?.some((entry) => entry.playerId === playerId) ?? false
-      setPreviewSatSeats((previous) => {
-        const next = new Set(previous)
-        if (started) next.add(key)
-        else next.delete(key)
-        return next
-      })
-      return started ? "sat" : "started"
+      if (overlayStarted) {
+        setPreviewSatSeats((previous) => {
+          const next = new Set(previous)
+          next.add(key)
+          return next
+        })
+        return "sat"
+      }
+      const nextOmit = new Set(previewSatSeats)
+      nextOmit.delete(key)
+      const seated =
+        applyStreamingPlanPreview(
+          daily,
+          previewPlan,
+          playersMap,
+          matchupData.schedule,
+          { omitSeats: nextOmit, keepRosterSeats },
+        )[day]?.some((entry) => entry.playerId === playerId) ?? false
+      if (!seated) return "full"
+      setPreviewSatSeats(nextOmit)
+      return "started"
+    }
+
+    if (previewPlan != null) {
+      const droppedFrom = droppedFromById[playerId]
+      const isPlanRosterDrop =
+        Boolean(droppedFrom && day >= droppedFrom) &&
+        !streamerIds.has(playerId)
+      if (overlayStarted) {
+        const nextKeeps = new Set(keepRosterSeats)
+        nextKeeps.delete(key)
+        const stillStarted =
+          applyStreamingPlanPreview(
+            daily,
+            previewPlan,
+            playersMap,
+            matchupData.schedule,
+            { omitSeats: previewSatSeats, keepRosterSeats: nextKeeps },
+          )[day]?.some((entry) => entry.playerId === playerId) ?? false
+        setKeepRosterSeats(nextKeeps)
+        if (!stillStarted) return "sat"
+      } else {
+        if (isPlanRosterDrop) return "ineligible"
+        const nextKeeps = new Set(keepRosterSeats)
+        nextKeeps.add(key)
+        const seated =
+          applyStreamingPlanPreview(
+            daily,
+            previewPlan,
+            playersMap,
+            matchupData.schedule,
+            { omitSeats: previewSatSeats, keepRosterSeats: nextKeeps },
+          )[day]?.some((entry) => entry.playerId === playerId) ?? false
+        if (!seated) return "full"
+        setKeepRosterSeats(nextKeeps)
+        return "started"
+      }
     }
 
     const { daily: next, status } = togglePlayerDay(
@@ -517,7 +686,6 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     )
 
     if (status === "started" || status === "sat") {
-      const key = previewSeatKey(day, playerId)
       setKeepRosterSeats((previous) => {
         const nextKeeps = new Set(previous)
         if (status === "started") nextKeeps.add(key)
@@ -622,8 +790,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       planningPlayers,
       matchupData.schedule,
       matchupData.board,
+      statWindow,
     )
-  }, [daily, state, matchupData])
+  }, [daily, state, matchupData, statWindow])
 
   const sitStartBadgesByPlayerId = useMemo(() => {
     if (!state || !matchupData || sitStartSuggestions.length === 0) {
@@ -696,6 +865,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     : undefined
   const displayOppPlan =
     previewPlan ??
+    noneOpponentPlan ??
     builtPlans.find((plan) => plan.spotCount === 1) ??
     builtPlans[0] ??
     null
@@ -743,15 +913,16 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const opponentDaily = displayOppPlan?.opponentDaily
   const liveOppTotals =
     opponentDaily && Object.keys(opponentDaily).length > 0
-      ? youTotalsFromDaily(
+      ?           youTotalsFromDaily(
           opponentDaily,
           playersForTotals,
           matchupData.schedule,
+          statWindow,
         )
       : oppTotalsFromBoard(matchupData.board)
 
   const liveBoard = buildMatchupBoard(
-    youTotalsFromDaily(displayDaily, playersForTotals, matchupData.schedule),
+    youTotalsFromDaily(displayDaily, playersForTotals, matchupData.schedule, statWindow),
     liveOppTotals,
     enabledCategoryIds(state),
   )
@@ -765,6 +936,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           schedule: matchupData.schedule,
           oppTotals: oppTotalsFromBoard(matchupData.board),
           categoryIds: liveBoard.categories.map((row) => row.categoryId),
+          statWindow,
         })
 
   return (
@@ -855,8 +1027,12 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           opponentEntries={oppTeam?.entries}
           oppSpotChoice={oppSpotChoice}
           playersById={playersMap}
+          recommendedYouSpot={recommendedYouSpot}
           resolvedOppSpotCount={oppSpotCount}
+          statWindow={statWindow}
+          onStatWindowChange={handleStatWindowChange}
           youSpotCount={previewSpotCount}
+          youSpotScores={youSpotScores}
         />
         <MatchupBoard board={liveBoard} />
 
@@ -910,6 +1086,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             playersById={matchupData.playersById}
             schedule={matchupData.schedule}
             state={state}
+            statWindow={statWindow}
             winnerStreamRecipes={matchupData.winnerStreamRecipes}
           />
         </div>

@@ -28,3 +28,6 @@ export const eligibleForSlot = (
 
   return positions.includes(slot)
 }
+
+export const isSpecificPositionSlot = (slot: SeasonSlot): boolean =>
+  slot === "PG" || slot === "SG" || slot === "SF" || slot === "PF" || slot === "C"

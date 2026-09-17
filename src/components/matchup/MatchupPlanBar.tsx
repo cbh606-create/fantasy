@@ -1,6 +1,11 @@
 import type { SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 import { eligibleRosterDropPlayerIds } from "@/lib/matchup/streamingDropOptions"
-import type { OppSpotChoice } from "@/lib/matchup/types"
+import type {
+  YouSpotCount,
+  YouSpotScore,
+} from "@/lib/matchup/recommendYouSpot"
+import type { OppSpotChoice, StatWindow } from "@/lib/matchup/types"
+import { isStatWindow } from "@/lib/matchup/types"
 
 const YOU_OPTIONS: { id: 1 | 2 | 3 | null; label: string }[] = [
   { id: null, label: "None" },
@@ -22,6 +27,10 @@ export const MatchupPlanBar = ({
   onOppSpotChoiceChange,
   onYouSpotCountChange,
   youSpotCount,
+  statWindow,
+  onStatWindowChange,
+  recommendedYouSpot,
+  youSpotScores,
   resolvedOppSpotCount,
   forcedOpponentRosterDrops,
   onForcedOpponentRosterDropChange,
@@ -31,8 +40,12 @@ export const MatchupPlanBar = ({
   openSeatCount: number
   oppSpotChoice: OppSpotChoice
   onOppSpotChoiceChange: (choice: OppSpotChoice) => void
-  onYouSpotCountChange: (spot: 1 | 2 | 3 | null) => void
-  youSpotCount: 1 | 2 | 3 | null
+  onYouSpotCountChange: (spot: YouSpotCount) => void
+  youSpotCount: YouSpotCount
+  statWindow: StatWindow
+  onStatWindowChange: (window: StatWindow) => void
+  recommendedYouSpot?: YouSpotCount
+  youSpotScores?: YouSpotScore[]
   resolvedOppSpotCount?: 1 | 2 | 3
   forcedOpponentRosterDrops?: (string | null)[]
   onForcedOpponentRosterDropChange?: (spotIndex: number, playerId: string | null) => void
@@ -43,10 +56,17 @@ export const MatchupPlanBar = ({
     onOppSpotChoiceChange("auto")
   }
 
+  const handleStatWindowChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const value = event.target.value
+    if (isStatWindow(value)) onStatWindowChange(value)
+  }
+
   return (
     <div
       aria-label="Matchup plans"
-      className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.8125rem]"
+      className="mb-3 flex flex-col items-start gap-2 text-[0.8125rem]"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[var(--color-mute)]">You</span>
@@ -54,22 +74,53 @@ export const MatchupPlanBar = ({
           const handleYouClick = () => {
             onYouSpotCountChange(option.id)
           }
+          const score = youSpotScores?.find((entry) => entry.spot === option.id)
+          const isRecommended =
+            recommendedYouSpot !== undefined && recommendedYouSpot === option.id
+          const startsLabel =
+            score == null ? "" : String(score.gameStarts)
+          const visible = [
+            option.label,
+            isRecommended ? "Rec" : null,
+            startsLabel ? `· ${startsLabel}` : null,
+          ]
+            .filter(Boolean)
+            .join(" ")
+          const ariaLabel = [
+            option.id == null ? "You none" : `You ${option.id}-spot`,
+            isRecommended ? "recommended" : null,
+            startsLabel,
+          ]
+            .filter(Boolean)
+            .join(" ")
           return (
             <button
-              aria-label={
-                option.id == null ? "You none" : `You ${option.id}-spot`
-              }
+              aria-label={ariaLabel}
               aria-pressed={youSpotCount === option.id}
               className={choiceButtonClass(youSpotCount === option.id)}
               key={option.label}
               onClick={handleYouClick}
               type="button"
             >
-              {option.label}
+              {visible}
             </button>
           )
         })}
       </div>
+      <label className="flex flex-wrap items-center gap-2">
+        <span className="text-[var(--color-mute)]">Stats</span>
+        <select
+          aria-label="Stat window"
+          className="rounded-full border border-[var(--color-hairline)] bg-transparent px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+          onChange={handleStatWindowChange}
+          value={statWindow}
+        >
+          <option value="season">Season</option>
+          <option value="l7">Last 7 days</option>
+          <option value="l15">Last 15 days</option>
+          <option value="l30">Last 30 days</option>
+        </select>
+      </label>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[var(--color-mute)]">Opp spots</span>
         <button

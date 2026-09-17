@@ -101,6 +101,153 @@ describe("applyStreamerMoveToDaily", () => {
     expect(result.daily[DAY]!.some((e) => e.playerId === "fa-was")).toBe(false)
     expect(result.daily[DAY]!.map((e) => e.playerId)).toEqual(entries.map((e) => e.playerId))
   })
+
+  it("rejects a guard add when the only open add-day slot is PF", () => {
+    const starters = [
+      player("pg", "NYK", ["PG"]),
+      player("sg", "LAL", ["SG"]),
+      player("sf", "BOS", ["SF"]),
+      player("c", "CHI", ["C"]),
+      player("g", "MIA", ["PG"]),
+      player("f", "ATL", ["SF"]),
+      player("u1", "DEN", ["SG"]),
+      player("u2", "GSW", ["SF"]),
+      player("u3", "MIL", ["PG"]),
+    ]
+    const dayEntries = emptyActive()
+    const filled = [0, 1, 2, 4, 5, 6, 7, 8, 9]
+    filled.forEach((index, i) => {
+      dayEntries[index] = { ...dayEntries[index]!, playerId: starters[i]!.id }
+    })
+    const laterEntries = emptyActive()
+    const guard = player("carrington", "WAS", ["PG", "SG"])
+    const daily: DailyLineups = { [DAY]: dayEntries, [DAY2]: laterEntries }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY2, days: [DAY, DAY2] },
+      games: [
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "LAL", awayAbbr: "BOS" },
+        { date: DAY, homeAbbr: "MIA", awayAbbr: "ATL" },
+        { date: DAY, homeAbbr: "DEN", awayAbbr: "GSW" },
+        { date: DAY, homeAbbr: "MIL", awayAbbr: "ORL" },
+        { date: DAY, homeAbbr: "WAS", awayAbbr: "TOR" },
+        { date: DAY2, homeAbbr: "WAS", awayAbbr: "CHA" },
+      ],
+    }
+    const playersById = Object.fromEntries([
+      ...starters.map((entry) => [entry.id, entry] as const),
+      ["carrington", guard] as const,
+    ])
+    const result = applyStreamerMoveToDaily(
+      daily,
+      DAY,
+      "carrington",
+      { kind: "none", playerId: null },
+      playersById,
+      schedule,
+    )
+    expect(result.seatedGameDays).toBe(0)
+    expect(result.daily[DAY]!.some((entry) => entry.playerId === "carrington")).toBe(
+      false,
+    )
+    expect(result.daily[DAY2]!.some((entry) => entry.playerId === "carrington")).toBe(
+      false,
+    )
+  })
+
+  it("does not seat a guard in UTIL while PF is empty", () => {
+    const starters = [
+      player("pg", "NYK", ["PG"]),
+      player("sg", "LAL", ["SG"]),
+      player("sf", "BOS", ["SF"]),
+      player("c", "CHI", ["C"]),
+      player("g", "MIA", ["PG"]),
+      player("f", "ATL", ["SF"]),
+      player("u1", "DEN", ["SG"]),
+      player("u2", "GSW", ["SF"]),
+    ]
+    const dayEntries = emptyActive()
+    const filled = [0, 1, 2, 4, 5, 6, 7, 8]
+    filled.forEach((index, i) => {
+      dayEntries[index] = { ...dayEntries[index]!, playerId: starters[i]!.id }
+    })
+    const guard = player("ellis", "SAC", ["SG"])
+    const daily: DailyLineups = { [DAY]: dayEntries }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "LAL", awayAbbr: "BOS" },
+        { date: DAY, homeAbbr: "MIA", awayAbbr: "ATL" },
+        { date: DAY, homeAbbr: "DEN", awayAbbr: "GSW" },
+        { date: DAY, homeAbbr: "SAC", awayAbbr: "ORL" },
+      ],
+    }
+    const playersById = Object.fromEntries([
+      ...starters.map((entry) => [entry.id, entry] as const),
+      ["ellis", guard] as const,
+    ])
+    const result = applyStreamerMoveToDaily(
+      daily,
+      DAY,
+      "ellis",
+      { kind: "none", playerId: null },
+      playersById,
+      schedule,
+    )
+    expect(result.seatedGameDays).toBe(0)
+    expect(result.daily[DAY]!.find((entry) => entry.slot === "PF")?.playerId).toBeNull()
+    expect(result.daily[DAY]!.some((entry) => entry.playerId === "ellis")).toBe(false)
+  })
+
+  it("seats a PF add into the empty PF slot", () => {
+    const starters = [
+      player("pg", "NYK", ["PG"]),
+      player("sg", "LAL", ["SG"]),
+      player("sf", "BOS", ["SF"]),
+      player("c", "CHI", ["C"]),
+      player("g", "MIA", ["PG"]),
+      player("f", "ATL", ["SF"]),
+      player("u1", "DEN", ["SG"]),
+      player("u2", "GSW", ["SF"]),
+    ]
+    const dayEntries = emptyActive()
+    const filled = [0, 1, 2, 4, 5, 6, 7, 8]
+    filled.forEach((index, i) => {
+      dayEntries[index] = { ...dayEntries[index]!, playerId: starters[i]!.id }
+    })
+    const big = player("pf-fa", "ORL", ["PF"])
+    const daily: DailyLineups = { [DAY]: dayEntries }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "LAL", awayAbbr: "BOS" },
+        { date: DAY, homeAbbr: "MIA", awayAbbr: "ATL" },
+        { date: DAY, homeAbbr: "DEN", awayAbbr: "GSW" },
+        { date: DAY, homeAbbr: "ORL", awayAbbr: "TOR" },
+      ],
+    }
+    const playersById = Object.fromEntries([
+      ...starters.map((entry) => [entry.id, entry] as const),
+      ["pf-fa", big] as const,
+    ])
+    const result = applyStreamerMoveToDaily(
+      daily,
+      DAY,
+      "pf-fa",
+      { kind: "none", playerId: null },
+      playersById,
+      schedule,
+    )
+    expect(result.seatedGameDays).toBe(1)
+    expect(result.daily[DAY]!.find((entry) => entry.slot === "PF")?.playerId).toBe(
+      "pf-fa",
+    )
+  })
 })
 
 const losingBlkBoard = (): MatchupBoard => ({
@@ -293,6 +440,118 @@ describe("pickBestStreamerMove", () => {
     )
     expect(picked?.playerId).toBe("fa-q")
     expect(picked!.delta).toBeGreaterThan(0)
+  })
+
+  it("picks a PF who can sit the add-day hole over a guard who only sits later", () => {
+    const starters = [
+      player("pg", "NYK", ["PG"]),
+      player("sg", "LAL", ["SG"]),
+      player("sf", "BOS", ["SF"]),
+      player("c", "CHI", ["C"]),
+      player("g", "MIA", ["PG"]),
+      player("f", "ATL", ["SF"]),
+      player("u1", "DEN", ["SG"]),
+      player("u2", "GSW", ["SF"]),
+      player("u3", "MIL", ["PG"]),
+    ]
+    const dayEntries = emptyActive()
+    ;[0, 1, 2, 4, 5, 6, 7, 8, 9].forEach((index, i) => {
+      dayEntries[index] = { ...dayEntries[index]!, playerId: starters[i]!.id }
+    })
+    const laterEntries = emptyActive()
+    const guard = player("carrington", "WAS", ["PG", "SG"])
+    guard.projections = { ...guard.projections, AST: 400, STL: 200, REB: 40 }
+    const big = player("pf-fa", "ORL", ["PF"])
+    big.projections = { ...big.projections, REB: 400, AST: 20, STL: 10 }
+    const daily: DailyLineups = { [DAY]: dayEntries, [DAY2]: laterEntries }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY2, days: [DAY, DAY2] },
+      games: [
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "LAL", awayAbbr: "BOS" },
+        { date: DAY, homeAbbr: "MIA", awayAbbr: "ATL" },
+        { date: DAY, homeAbbr: "DEN", awayAbbr: "GSW" },
+        { date: DAY, homeAbbr: "MIL", awayAbbr: "PHI" },
+        { date: DAY, homeAbbr: "WAS", awayAbbr: "TOR" },
+        { date: DAY, homeAbbr: "ORL", awayAbbr: "IND" },
+        { date: DAY2, homeAbbr: "WAS", awayAbbr: "CHA" },
+      ],
+    }
+    const picked = pickBestStreamerMove(
+      ["carrington", "pf-fa"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [...starters, guard, big],
+      schedule,
+      losingBlkBoard(),
+      () => true,
+      { requirePositiveDelta: false },
+    )
+    expect(picked?.playerId).toBe("pf-fa")
+  })
+
+  it("picks a PF over a guard when PF is empty even if UTIL is open", () => {
+    const starters = [
+      player("pg", "NYK", ["PG"]),
+      player("sg", "LAL", ["SG"]),
+      player("sf", "BOS", ["SF"]),
+      player("c", "CHI", ["C"]),
+      player("g", "MIA", ["PG"]),
+      player("f", "ATL", ["SF"]),
+      player("u1", "DEN", ["SG"]),
+      player("u2", "GSW", ["SF"]),
+    ]
+    const dayEntries = emptyActive()
+    ;[0, 1, 2, 4, 5, 6, 7, 8].forEach((index, i) => {
+      dayEntries[index] = { ...dayEntries[index]!, playerId: starters[i]!.id }
+    })
+    const guard = player("ellis", "SAC", ["SG"])
+    guard.projections = { ...guard.projections, STL: 400, AST: 300, REB: 40 }
+    const big = player("pf-fa", "ORL", ["PF"])
+    big.projections = { ...big.projections, REB: 400, STL: 10, AST: 20 }
+    const daily: DailyLineups = { [DAY]: dayEntries }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "LAL", awayAbbr: "BOS" },
+        { date: DAY, homeAbbr: "MIA", awayAbbr: "ATL" },
+        { date: DAY, homeAbbr: "DEN", awayAbbr: "GSW" },
+        { date: DAY, homeAbbr: "SAC", awayAbbr: "WAS" },
+        { date: DAY, homeAbbr: "ORL", awayAbbr: "TOR" },
+      ],
+    }
+    const losingRebBoard: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: categoryId === "REB" ? 40 : 50,
+        opp: categoryId === "REB" ? 48 : 10,
+        outcome: categoryId === "REB" ? "L" : "W",
+        winProb: categoryId === "REB" ? 0.42 : 0.9,
+      })),
+      wins: 8,
+      losses: 1,
+      ties: 0,
+      projectedCatWins: 7,
+    }
+    const picked = pickBestStreamerMove(
+      ["ellis", "pf-fa"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [...starters, guard, big],
+      schedule,
+      losingRebBoard,
+      () => true,
+      { requirePositiveDelta: false },
+    )
+    expect(picked?.playerId).toBe("pf-fa")
+    expect(picked?.nextDaily[DAY]!.find((entry) => entry.slot === "PF")?.playerId).toBe(
+      "pf-fa",
+    )
   })
 
   it("can pick the best-scoring FA even when every delta is not positive", () => {

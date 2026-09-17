@@ -19,7 +19,7 @@ import type {
   SeasonLeagueState,
   SeasonPlayer,
 } from "@/lib/season/types"
-import { WEEKLY_ADD_LIMIT } from "@/lib/matchup/constants"
+import { streamingAddLimitForSchedule } from "@/lib/matchup/games"
 import {
   MATCHUP_WEEK_MOVE_COL_CLASS,
   MATCHUP_WEEK_STREAMING_DAY_COL_CLASS,
@@ -51,6 +51,7 @@ import type {
   StreamingPlan,
   StreamingPlanDayCell,
   StreamingStrategyMode,
+  StatWindow,
   WinnerStreamRecipe,
 } from "@/lib/matchup/types"
 import type { CategoryId } from "@/lib/domain/types"
@@ -111,7 +112,10 @@ type StreamingPlansPanelProps = {
   onPreviewPlanChange?: (plan: StreamingPlan | null) => void
   onPreviewSpotCountChange?: (spot: 1 | 2 | 3 | null) => void
   previewSpotCount?: 1 | 2 | 3 | null
-  onPlansBuilt?: (plans: StreamingPlan[]) => void
+  onPlansBuilt?: (payload: {
+    plans: StreamingPlan[]
+    noneOpponentPlan: StreamingPlan | null
+  }) => void
   /** Resolved opponent stream spots. Parent resolves Auto; do not resolve here. */
   oppSpotCount?: 1 | 2 | 3
   forcedOpponentRosterDrops?: (string | null)[]
@@ -120,6 +124,7 @@ type StreamingPlansPanelProps = {
   daily?: DailyLineups
   winnerStreamRecipes?: WinnerStreamRecipe[]
   today?: string
+  statWindow?: StatWindow
 }
 
 const playerName = (
@@ -229,6 +234,7 @@ const DropSuggestTip = ({
   playersById,
   rosterPlayerIds,
   schedule,
+  statWindow,
 }: {
   board: MatchupBoard
   children: ReactNode
@@ -238,6 +244,7 @@ const DropSuggestTip = ({
   playersById: Record<string, SeasonPlayer>
   rosterPlayerIds: string[]
   schedule: ScheduleResponse
+  statWindow?: StatWindow
 }) => {
   const tipId = useId()
   const rootRef = useRef<HTMLSpanElement>(null)
@@ -272,6 +279,7 @@ const DropSuggestTip = ({
       fromDate: date,
       schedule,
       board,
+      statWindow,
     })
     if (!suggestion) return null
     return formatSuggestedDropTooltip(
@@ -337,6 +345,7 @@ const DropCell = ({
   rosterPlayerIds,
   schedule,
   spotIndex,
+  statWindow,
   today,
   todayInWeek,
   dropEditDate,
@@ -355,6 +364,7 @@ const DropCell = ({
   rosterPlayerIds: string[]
   schedule: ScheduleResponse
   spotIndex: number
+  statWindow?: StatWindow
   today: string
   todayInWeek: boolean
   dropEditDate: string | null
@@ -369,6 +379,7 @@ const DropCell = ({
       playersById={playersById}
       rosterPlayerIds={rosterPlayerIds}
       schedule={schedule}
+      statWindow={statWindow}
     >
       {child}
     </DropSuggestTip>
@@ -381,13 +392,18 @@ const DropCell = ({
       date,
       spotIndex,
     )
+    const seatedTonightIds = new Set(
+      (daily?.[date] ?? [])
+        .map((entry) => entry.playerId)
+        .filter((playerId): playerId is string => playerId !== null),
+    )
     const eligiblePlayerIds = eligibleRosterDropPlayerIds(
       rosterEntries,
       playersById,
       earlierDroppedIds,
       adpByPlayerId,
       undefined,
-      { includeProtected: true },
+      { includeProtected: true, seatedTonightIds },
     )
     const options = rosterDropSelectOptions({
       eligiblePlayerIds,
@@ -685,9 +701,17 @@ export const StreamingPlansPanel = ({
   daily,
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
   today = localIsoDate(),
+  statWindow,
 }: StreamingPlansPanelProps) => {
   const suggested = suggestStreamingStrategyMode(board)
-  const [addBudget, setAddBudget] = useState(WEEKLY_ADD_LIMIT)
+  const slateAddLimit = useMemo(
+    () => streamingAddLimitForSchedule(schedule),
+    [schedule],
+  )
+  const [addBudget, setAddBudget] = useState(slateAddLimit)
+  useEffect(() => {
+    setAddBudget(slateAddLimit)
+  }, [slateAddLimit])
   const [strategyMode, setStrategyMode] =
     useState<StreamingStrategyMode>(suggested)
   const [internalPreviewSpotCount, setInternalPreviewSpotCount] = useState<
@@ -728,6 +752,7 @@ export const StreamingPlansPanel = ({
             ? { forcedOpponentRosterDrops }
             : {}),
           opponentTeamIndex,
+          statWindow,
         }),
       ),
     [
@@ -744,12 +769,50 @@ export const StreamingPlansPanel = ({
       oppSpotCount,
       forcedOpponentRosterDrops,
       opponentTeamIndex,
+      statWindow,
     ],
   )
 
+  const noneOpponentPlan = useMemo(() => {
+    if (!oppSpotCount) return null
+    return buildStreamingPlan({
+      state,
+      schedule,
+      board,
+      addLimit: addBudget,
+      strategyMode,
+      adpByPlayerId,
+      spotCount: 1,
+      youIdle: true,
+      daily,
+      winnerStreamRecipes,
+      today,
+      oppSpotCount,
+      ...(forcedOpponentRosterDrops
+        ? { forcedOpponentRosterDrops }
+        : {}),
+      opponentTeamIndex,
+      statWindow,
+    })
+  }, [
+    addBudget,
+    adpByPlayerId,
+    board,
+    daily,
+    forcedOpponentRosterDrops,
+    opponentTeamIndex,
+    oppSpotCount,
+    schedule,
+    state,
+    statWindow,
+    strategyMode,
+    today,
+    winnerStreamRecipes,
+  ])
+
   useEffect(() => {
-    onPlansBuilt?.(plans)
-  }, [plans, onPlansBuilt])
+    onPlansBuilt?.({ plans, noneOpponentPlan })
+  }, [noneOpponentPlan, onPlansBuilt, plans])
 
   const streamHint = winnerStreamHint(board, winnerStreamRecipes)
 
@@ -1097,6 +1160,7 @@ export const StreamingPlansPanel = ({
                                       rosterPlayerIds={rosterPlayerIds}
                                       schedule={schedule}
                                       spotIndex={spotIndex}
+                                      statWindow={statWindow}
                                       today={today}
                                       todayInWeek={todayInWeek}
                                       dropEditDate={dropEditDate}
