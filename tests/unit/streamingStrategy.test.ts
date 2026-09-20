@@ -11,6 +11,7 @@ import {
   dailySwapPaceLimit,
   isAddBudgetBehind,
   normalizeStreamingStrategyMode,
+  addCapForSpot,
   softCapForSpot,
   suggestStreamingStrategyMode,
 } from "@/lib/matchup/streamingStrategy"
@@ -119,6 +120,17 @@ describe("mode policy helpers", () => {
     expect(allowsEarlySwap("conservative", 0, 1)).toBe(false)
     expect(allowsEarlySwap("conservative", 0, 2)).toBe(true)
     expect(allowsEarlySwap("aggressive", 0, 1)).toBe(true)
+  })
+
+  it("addCapForSpot splits the weekly limit as evenly as possible", () => {
+    expect([0, 1].map((spot) => addCapForSpot(7, 2, spot))).toEqual([4, 3])
+    expect([0, 1, 2].map((spot) => addCapForSpot(7, 3, spot))).toEqual([
+      3, 2, 2,
+    ])
+    expect([0, 1, 2].map((spot) => addCapForSpot(6, 3, spot))).toEqual([
+      2, 2, 2,
+    ])
+    expect(addCapForSpot(7, 1, 0)).toBe(7)
   })
 
   it("Aggressive soft-cap is ceil(addLimit/spotCount)+1", () => {

@@ -156,7 +156,7 @@ describe("applyStreamerMoveToDaily", () => {
     )
   })
 
-  it("does not seat a guard in UTIL while PF is empty", () => {
+  it("seats a guard in UTIL when PF is empty", () => {
     const starters = [
       player("pg", "NYK", ["PG"]),
       player("sg", "LAL", ["SG"]),
@@ -197,9 +197,9 @@ describe("applyStreamerMoveToDaily", () => {
       playersById,
       schedule,
     )
-    expect(result.seatedGameDays).toBe(0)
+    expect(result.seatedGameDays).toBe(1)
     expect(result.daily[DAY]!.find((entry) => entry.slot === "PF")?.playerId).toBeNull()
-    expect(result.daily[DAY]!.some((entry) => entry.playerId === "ellis")).toBe(false)
+    expect(result.daily[DAY]!.some((entry) => entry.playerId === "ellis")).toBe(true)
   })
 
   it("seats a PF add into the empty PF slot", () => {
@@ -492,7 +492,7 @@ describe("pickBestStreamerMove", () => {
     expect(picked?.playerId).toBe("pf-fa")
   })
 
-  it("picks a PF over a guard when PF is empty even if UTIL is open", () => {
+  it("can pick a guard into UTIL when a PF hole is also open", () => {
     const starters = [
       player("pg", "NYK", ["PG"]),
       player("sg", "LAL", ["SG"]),
@@ -548,9 +548,9 @@ describe("pickBestStreamerMove", () => {
       () => true,
       { requirePositiveDelta: false },
     )
-    expect(picked?.playerId).toBe("pf-fa")
-    expect(picked?.nextDaily[DAY]!.find((entry) => entry.slot === "PF")?.playerId).toBe(
-      "pf-fa",
+    expect(picked?.playerId).toBe("ellis")
+    expect(picked?.nextDaily[DAY]!.some((entry) => entry.playerId === "ellis")).toBe(
+      true,
     )
   })
 

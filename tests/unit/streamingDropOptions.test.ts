@@ -108,12 +108,25 @@ describe("eligibleRosterDropPlayerIds", () => {
   ]
   const adpByPlayerId = { star: 30, bench: 150 }
 
-  it("includes ADP-60 players in the dropbox", () => {
+  it("hides ADP-60 stars from drop suggestions", () => {
     const ids = eligibleRosterDropPlayerIds(
       entries,
       playersById,
       [],
       adpByPlayerId,
+    )
+
+    expect(ids).toEqual(["bench"])
+  })
+
+  it("can include protected stars when asked", () => {
+    const ids = eligibleRosterDropPlayerIds(
+      entries,
+      playersById,
+      [],
+      adpByPlayerId,
+      undefined,
+      { includeProtected: true },
     )
 
     expect(ids).toEqual(["bench", "star"])

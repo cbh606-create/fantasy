@@ -1,10 +1,9 @@
 import { buildDayLineupFromRoster, type DailyLineups } from "@/lib/matchup/dailyLineups"
 import { isActiveSlot } from "@/lib/matchup/constants"
-import {
-  eligibleForSlot,
-  isSpecificPositionSlot,
-} from "@/lib/matchup/eligibility"
+import { eligibleForSlot } from "@/lib/matchup/eligibility"
 import { gameWeightForTeamDate } from "@/lib/matchup/games"
+import { isAdpProtected } from "@/lib/matchup/streamingDropPolicy"
+import type { StreamingDensityTier } from "@/lib/matchup/types"
 import type {
   ScheduleResponse,
   SeasonPlayer,
@@ -41,7 +40,9 @@ const holeStartDates = (
     if (day < fromDate) continue
     if (!playerPlaysOnDate(player, day, schedule)) continue
     const lineup = holeByDate[day]
-    if (!lineup || !playerHasEligibleHole(player, lineup)) continue
+    if (!lineup) continue
+    const alreadySeated = lineup.some((entry) => entry.playerId === player.id)
+    if (!alreadySeated && !playerHasEligibleHole(player, lineup)) continue
     dates.push(day)
   }
   return dates
@@ -102,13 +103,6 @@ export const playerHasEligibleHole = (
 ): boolean => {
   if (!entries?.length) return false
   if (entries.some((entry) => entry.playerId === player.id)) return false
-  const specificEmpty = entries.filter(
-    (entry) =>
-      entry.playerId === null && isSpecificPositionSlot(entry.slot),
-  )
-  if (specificEmpty.length > 0) {
-    return specificEmpty.some((entry) => eligibleForSlot(player, entry.slot))
-  }
   return entries.some(
     (entry) =>
       isActiveSlot(entry.slot) &&
@@ -125,6 +119,37 @@ export const remainingHoleStarts = (
   schedule: ScheduleResponse,
 ): number =>
   holeStartDates(player, fromDate, days, holeByDate, schedule).length
+
+export const holeWindowTier = (
+  player: SeasonPlayer,
+  fromDate: string,
+  days: string[],
+  holeByDate: Record<string, SeasonRosterEntry[]>,
+  schedule: ScheduleResponse,
+): StreamingDensityTier | null => {
+  const windowDays = days.filter((day) => day >= fromDate).slice(0, 4)
+  const starts = remainingHoleStarts(
+    player,
+    fromDate,
+    windowDays,
+    holeByDate,
+    schedule,
+  )
+  if (starts >= 3) return "elite"
+  if (starts === 2) {
+    return countHoleB2bPairs(
+      player,
+      fromDate,
+      windowDays,
+      holeByDate,
+      schedule,
+    ) > 0
+      ? "strong"
+      : "ok"
+  }
+  if (starts === 1) return "thin"
+  return null
+}
 
 export const countHoleB2bPairs = (
   player: SeasonPlayer,
@@ -174,8 +199,17 @@ export const pickAutoRosterCut = (args: {
   players: SeasonPlayer[]
   schedule: ScheduleResponse
   seatedTonight: SeasonRosterEntry[]
+  adpByPlayerId?: Record<string, number>
 }): string | null => {
-  const { date, days, teamEntries, players, schedule, seatedTonight } = args
+  const {
+    date,
+    days,
+    teamEntries,
+    players,
+    schedule,
+    seatedTonight,
+    adpByPlayerId,
+  } = args
 
   const seatedTonightIds = new Set(
     seatedTonight
@@ -194,6 +228,7 @@ export const pickAutoRosterCut = (args: {
     seen.add(entry.playerId)
     if (seatedTonightIds.has(entry.playerId)) continue
     if (!playersById.has(entry.playerId)) continue
+    if (isAdpProtected(adpByPlayerId?.[entry.playerId])) continue
     candidates.push(entry.playerId)
   }
 

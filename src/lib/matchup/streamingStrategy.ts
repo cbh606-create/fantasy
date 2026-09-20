@@ -54,6 +54,18 @@ export const softCapForSpot = (
   return mode === "aggressive" ? base + 1 : base
 }
 
+/** Hard per-spot add split. 7/2 → 4,3; 7/3 → 3,2,2. */
+export const addCapForSpot = (
+  addLimit: number,
+  spotCount: number,
+  spotIndex: number,
+): number => {
+  if (spotCount <= 0) return 0
+  const base = Math.floor(addLimit / spotCount)
+  const remainder = addLimit % spotCount
+  return base + (spotIndex < remainder ? 1 : 0)
+}
+
 /** Last 3 matchup days — looser swap / thin-fill policy. */
 export const isLateStreamingWeek = (
   dayIndex: number,

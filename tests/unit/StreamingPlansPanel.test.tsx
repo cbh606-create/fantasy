@@ -412,7 +412,7 @@ describe("StreamingPlansPanel", () => {
     ).toBeGreaterThan(0)
   })
 
-  it("lists ADP-protected players in today's dropbox", () => {
+  it("hides ADP-protected players from today's dropbox", () => {
     render(
       <StreamingPlansPanel
         adpByPlayerId={{ star: 25, scrub: 200 }}
@@ -425,7 +425,8 @@ describe("StreamingPlansPanel", () => {
       />,
     )
     const select = screen.getAllByRole("combobox", { name: /Roster drop/i })[0]
-    expect(select).toHaveTextContent("Star")
+    expect(select).toHaveTextContent("Scrub")
+    expect(select).not.toHaveTextContent("Star")
   })
 
   it("shows a Hold dropbox only on today and chips on a chosen drop", () => {

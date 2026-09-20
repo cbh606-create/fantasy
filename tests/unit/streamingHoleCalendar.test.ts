@@ -5,6 +5,7 @@ import {
   countHoleB2bPairs,
   countOpenActiveSlots,
   countTeamStarts,
+  holeWindowTier,
   pickAutoRosterCut,
   playerHasEligibleHole,
   remainingHoleStarts,
@@ -200,14 +201,14 @@ describe("playerHasEligibleHole", () => {
     expect(playerHasEligibleHole(pf, benchOnly)).toBe(false)
   })
 
-  it("does not claim UTIL while an unplayable specific slot is empty", () => {
+  it("counts UTIL as a hole when a specific slot the FA cannot play is empty", () => {
     const guard = player("guard", "LAL", { positions: ["PG"] })
     const lineup: SeasonRosterEntry[] = [
       { slot: "C", playerId: null },
       { slot: "UTIL", playerId: null },
     ]
 
-    expect(playerHasEligibleHole(guard, lineup)).toBe(false)
+    expect(playerHasEligibleHole(guard, lineup)).toBe(true)
   })
 })
 
@@ -231,6 +232,47 @@ describe("remainingHoleStarts", () => {
       { date: "2025-10-23", homeAbbr: "OKC", awayAbbr: "ORL" },
     ])
     expect(remainingHoleStarts(fa, "2025-10-21", days, holeByDate, schedule)).toBe(1)
+  })
+})
+
+describe("holeWindowTier", () => {
+  const days = [
+    "2025-11-03",
+    "2025-11-04",
+    "2025-11-05",
+    "2025-11-06",
+    "2025-11-07",
+  ]
+  const open = emptyActives()
+  const holeByDate = Object.fromEntries(days.map((day) => [day, open]))
+
+  it("labels 3-in-4 elite, B2B strong, 2-in-3 ok, and a single game thin", () => {
+    const elite = player("fa-elite", "BOS")
+    const b2b = player("fa-b2b", "NYK")
+    const twoInThree = player("fa-ok", "CHI")
+    const thin = player("fa-thin", "DET")
+    const schedule = scheduleOf(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "ORL" },
+      { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ATL" },
+      { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "BKN" },
+      { date: "2025-11-03", homeAbbr: "CHI", awayAbbr: "MIL" },
+      { date: "2025-11-05", homeAbbr: "CHI", awayAbbr: "IND" },
+      { date: "2025-11-03", homeAbbr: "DET", awayAbbr: "CHA" },
+    ])
+    expect(holeWindowTier(elite, days[0]!, days, holeByDate, schedule)).toBe(
+      "elite",
+    )
+    expect(holeWindowTier(b2b, days[0]!, days, holeByDate, schedule)).toBe(
+      "strong",
+    )
+    expect(holeWindowTier(twoInThree, days[0]!, days, holeByDate, schedule)).toBe(
+      "ok",
+    )
+    expect(holeWindowTier(thin, days[0]!, days, holeByDate, schedule)).toBe(
+      "thin",
+    )
   })
 })
 
@@ -306,6 +348,29 @@ describe("pickAutoRosterCut", () => {
       seatedTonight,
     })
     expect(cut).toBe("r-zero")
+  })
+
+  it("does not auto-cut an ADP-60 roster star", () => {
+    const days = ["2025-10-21", "2025-10-22"]
+    const reaves = player("r-reaves", "LAL", { positions: ["SG"] })
+    const streamer = player("r-be", "DET", { positions: ["PF"] })
+    const schedule = scheduleOf(days, [
+      { date: "2025-10-22", homeAbbr: "LAL", awayAbbr: "BOS" },
+      { date: "2025-10-22", homeAbbr: "DET", awayAbbr: "CHA" },
+    ])
+    const cut = pickAutoRosterCut({
+      date: "2025-10-21",
+      days,
+      teamEntries: [
+        { slot: "SG", playerId: "r-reaves" },
+        { slot: "BE", playerId: "r-be" },
+      ],
+      players: [reaves, streamer],
+      schedule,
+      seatedTonight: [{ slot: "PG", playerId: null }],
+      adpByPlayerId: { "r-reaves": 38, "r-be": 140 },
+    })
+    expect(cut).toBe("r-be")
   })
 
   it("counts remaining games from date onward only", () => {

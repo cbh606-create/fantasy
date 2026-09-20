@@ -3,6 +3,7 @@ import type {
   SeasonPlayer,
   SeasonRosterEntry,
 } from "@/lib/season/types"
+import { isAdpProtected } from "./streamingDropPolicy"
 import { streamingAddDropKey } from "./streamingPlans"
 import type { StreamingPlan } from "./types"
 
@@ -40,7 +41,6 @@ export const eligibleRosterDropPlayerIds = (
     seatedTonightIds?: ReadonlySet<string>
   },
 ): string[] => {
-  void adpByPlayerId
   void injuryOutDaysByPlayerId
   const dropped = new Set(earlierDroppedIds)
   return entries
@@ -53,6 +53,11 @@ export const eligibleRosterDropPlayerIds = (
     )
     .map((entry) => playersById[entry.playerId!])
     .filter((player): player is SeasonPlayer => Boolean(player))
+    .filter(
+      (player) =>
+        options?.includeProtected ||
+        !isAdpProtected(adpByPlayerId?.[player.id]),
+    )
     .map((player) => player.id)
     .sort((left, right) =>
       (playersById[left]?.name ?? left).localeCompare(

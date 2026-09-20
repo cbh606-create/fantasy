@@ -60,9 +60,6 @@ export const seatStreamerIfOpen = (
     return occupantHasNoGame(entry.playerId, date, playersById, schedule)
   }
 
-  const hasSpecificEmpty = entries.some(
-    (entry) => entry.playerId === null && isSpecificPositionSlot(entry.slot),
-  )
   const hasEligibleSpecificEmpty = entries.some(
     (entry) =>
       entry.playerId === null &&
@@ -73,9 +70,6 @@ export const seatStreamerIfOpen = (
   const index = entries.findIndex((entry) => {
     if (!eligibleForSlot(player, entry.slot)) return false
     if (hasEligibleSpecificEmpty) {
-      return entry.playerId === null && isSpecificPositionSlot(entry.slot)
-    }
-    if (hasSpecificEmpty && !options?.allowFlexSlots) {
       return entry.playerId === null && isSpecificPositionSlot(entry.slot)
     }
     return slotIsOpen(entry)

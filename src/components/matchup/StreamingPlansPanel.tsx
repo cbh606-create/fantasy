@@ -403,7 +403,7 @@ const DropCell = ({
       earlierDroppedIds,
       adpByPlayerId,
       undefined,
-      { includeProtected: true, seatedTonightIds },
+      { seatedTonightIds },
     )
     const options = rosterDropSelectOptions({
       eligiblePlayerIds,
