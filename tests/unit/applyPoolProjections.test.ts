@@ -9,6 +9,7 @@ const pool = [
     name: "Nikola Jokic",
     teamAbbr: "DEN",
     projectedGames: 74,
+    shooting: { FGM: 800, FGA: 1400, FTM: 400, FTA: 480 },
     projections: {
       FG_PCT: 0.57,
       FT_PCT: 0.83,
@@ -48,6 +49,12 @@ describe("applyPoolProjections", () => {
     expect(report.matched).toHaveLength(1)
     expect(players[0].projections.PTS).toBe(2144)
     expect(players[0].projectedGames).toBe(74)
+    expect(players[0].shooting).toEqual({
+      FGM: 800,
+      FGA: 1400,
+      FTM: 400,
+      FTA: 480,
+    })
   })
 
   it("falls back to normalized name when ids differ", () => {

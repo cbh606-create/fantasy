@@ -13,6 +13,7 @@ import {
   STAT,
   num,
   pickBestStats,
+  shootingFromStats,
 } from "./lib/espn-season-stats.mjs"
 
 const args = Object.fromEntries(
@@ -117,6 +118,7 @@ const main = async () => {
     const next = {
       ...player,
       projections: projectionsFromStats(pick.stats),
+      shooting: shootingFromStats(pick.stats),
       statsSeasonId: pick.seasonId ?? null,
       statsKind: pick.kind,
       statsRowId: pick.id,

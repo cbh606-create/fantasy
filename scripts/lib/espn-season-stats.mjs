@@ -25,6 +25,13 @@ export const num = (stats, key, fallback = 0) => {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback
 }
 
+export const shootingFromStats = (stats) => ({
+  FGM: num(stats, STAT.FGM),
+  FGA: num(stats, STAT.FGA),
+  FTM: num(stats, STAT.FTM),
+  FTA: num(stats, STAT.FTA),
+})
+
 export const hasCountingStats = (stats) => {
   if (!stats) return false
   return (

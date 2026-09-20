@@ -3,6 +3,7 @@ import {
   pickBestStats,
   pickProjectedStats,
   pickActualStats,
+  shootingFromStats,
 } from "../../scripts/lib/espn-season-stats.mjs"
 
 const player = {
@@ -32,11 +33,48 @@ describe("espn-season-stats", () => {
     expect(pick?.stats["0"]).toBe(2144)
   })
 
+  it("prefers current-season 102027 projections over prior-season 102026", () => {
+    const bothSeasons = {
+      stats: [
+        ...player.stats,
+        {
+          id: "102027",
+          seasonId: 2027,
+          statSourceId: 1,
+          statSplitTypeId: 0,
+          stats: { "0": 1800, "6": 800, "3": 300, "17": 190, "42": 72 },
+        },
+      ],
+    }
+
+    const pick = pickBestStats(bothSeasons, 2027)
+    expect(pick?.kind).toBe("projection")
+    expect(pick?.id).toBe("102027")
+    expect(pick?.seasonId).toBe(2027)
+    expect(pick?.stats["0"]).toBe(1800)
+  })
+
   it("falls back to prior-season projections when current season has none", () => {
     const pick = pickBestStats(player, 2027)
     expect(pick?.kind).toBe("projection")
     expect(pick?.id).toBe("102026")
     expect(pick?.seasonId).toBe(2026)
+  })
+
+  it("reads season shooting totals from ESPN stat keys", () => {
+    expect(
+      shootingFromStats({
+        "13": 600,
+        "14": 1200,
+        "15": 300,
+        "16": 400,
+      }),
+    ).toEqual({
+      FGM: 600,
+      FGA: 1200,
+      FTM: 300,
+      FTA: 400,
+    })
   })
 
   it("uses actuals only when no projection row exists", () => {
