@@ -73,15 +73,15 @@ export const isLateStreamingWeek = (
 ): boolean => dayIndex >= Math.max(0, dayCount - 3)
 
 /**
- * Pace weekly adds across remaining days (2/3-spot).
- * Example: 7 adds / 7 days → 1 per day early; leftover stacks late.
+ * Do not ration adds across days. Spend remaining budget today when a
+ * legal add increases starts or contested score.
  */
 export const dailyAddPaceLimit = (
   remainingAdds: number,
   remainingDays: number,
 ): number => {
   if (remainingAdds <= 0 || remainingDays <= 0) return 0
-  return Math.max(1, Math.ceil(remainingAdds / remainingDays))
+  return remainingAdds
 }
 
 /**
@@ -108,11 +108,18 @@ export const dailySwapPaceLimit = (
   return Math.max(even, catchUp)
 }
 
+export type ThinFillContext = {
+  fillsEmptySlot?: boolean
+  noDenserFa?: boolean
+}
+
 export const allowsThinFill = (
   mode: StreamingStrategyMode,
   dayIndex: number,
   dayCount: number,
+  context?: ThinFillContext,
 ): boolean => {
+  if (context?.fillsEmptySlot || context?.noDenserFa) return true
   if (mode === "aggressive") return true
   return isLateStreamingWeek(dayIndex, dayCount)
 }
@@ -137,9 +144,14 @@ export const allowsEarlySwap = (
   return delta >= 2
 }
 
+export type EarlySwapContext = {
+  increasesStarts?: boolean
+  improvesContested?: boolean
+}
+
 /**
- * 2/3-spot early-week swaps: elite upgrade, or +2 tiers.
- * Late week uses allowsEarlySwap; budget catch-up allows same-tier churn on aggressive.
+ * Same-tier swap is allowed when it adds starts or contested score.
+ * Density upgrades are always allowed.
  */
 export const allowsMultiSpotEarlySwap = (
   mode: StreamingStrategyMode,
@@ -148,7 +160,10 @@ export const allowsMultiSpotEarlySwap = (
   dayIndex: number,
   dayCount: number,
   budgetBehind = false,
+  context?: EarlySwapContext,
 ): boolean => {
+  if (context?.increasesStarts || context?.improvesContested) return true
+  if (newRank > heldRank) return true
   if (budgetBehind) {
     if (mode === "aggressive") return newRank >= heldRank
     return allowsEarlySwap(mode, heldRank, newRank)
@@ -156,8 +171,7 @@ export const allowsMultiSpotEarlySwap = (
   if (isLateStreamingWeek(dayIndex, dayCount)) {
     return allowsEarlySwap(mode, heldRank, newRank)
   }
-  if (newRank >= densityTierRank("elite")) return true
-  return newRank - heldRank >= 2
+  return false
 }
 
 /**

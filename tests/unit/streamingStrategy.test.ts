@@ -85,13 +85,16 @@ describe("normalizeStreamingStrategyMode", () => {
 })
 
 describe("mode policy helpers", () => {
-  it("Conservative and balanced allow thin only on last 3 days", () => {
+  it("Conservative and balanced allow thin on last 3 days or when context says add", () => {
     expect(allowsThinFill("conservative", 3, 7)).toBe(false)
     expect(allowsThinFill("conservative", 4, 7)).toBe(true)
     expect(allowsThinFill("conservative", 6, 7)).toBe(true)
     expect(allowsThinFill("balanced", 3, 7)).toBe(false)
     expect(allowsThinFill("balanced", 4, 7)).toBe(true)
-    expect(allowsThinFill("balanced", 6, 7)).toBe(true)
+    expect(
+      allowsThinFill("conservative", 0, 7, { fillsEmptySlot: true }),
+    ).toBe(true)
+    expect(allowsThinFill("balanced", 1, 7, { noDenserFa: true })).toBe(true)
   })
 
   it("Aggressive always allows thin when days remain", () => {
@@ -139,33 +142,37 @@ describe("mode policy helpers", () => {
     expect(softCapForSpot(7, 3, "conservative")).toBe(3)
   })
 
-  it("dailyAddPaceLimit spreads remaining adds across remaining days", () => {
-    expect(dailyAddPaceLimit(7, 7)).toBe(1)
-    expect(dailyAddPaceLimit(5, 3)).toBe(2)
+  it("dailyAddPaceLimit spends remaining adds today instead of rationing", () => {
+    expect(dailyAddPaceLimit(7, 7)).toBe(7)
+    expect(dailyAddPaceLimit(5, 3)).toBe(5)
     expect(dailyAddPaceLimit(1, 4)).toBe(1)
     expect(dailyAddPaceLimit(0, 3)).toBe(0)
   })
 
-  it("dailySwapPaceLimit catches up when remaining adds meet remaining days", () => {
+  it("dailySwapPaceLimit does not keep leftover adds for later days", () => {
     expect(isAddBudgetBehind(5, 4)).toBe(true)
     expect(isAddBudgetBehind(5, 5)).toBe(true)
     expect(isAddBudgetBehind(4, 5)).toBe(false)
-    expect(dailySwapPaceLimit(5, 4)).toBe(2)
-    expect(dailySwapPaceLimit(5, 5)).toBe(1)
-    expect(dailySwapPaceLimit(4, 5)).toBe(1)
+    expect(dailySwapPaceLimit(5, 4)).toBe(5)
+    expect(dailySwapPaceLimit(5, 5)).toBe(5)
+    expect(dailySwapPaceLimit(4, 5)).toBe(4)
   })
 
-  it("multi-spot early swap is stricter before the last 3 days", () => {
-    // thin(0) → strong(2) is +2 → ok early week
+  it("multi-spot early swap allows a start or contested gain at the same tier", () => {
     expect(allowsMultiSpotEarlySwap("aggressive", 0, 2, 0, 7)).toBe(true)
-    // thin(0) → ok(1) is +1 → blocked early week even on aggressive
-    expect(allowsMultiSpotEarlySwap("aggressive", 0, 1, 0, 7)).toBe(false)
-    // elite always ok early week
+    expect(allowsMultiSpotEarlySwap("aggressive", 0, 1, 0, 7)).toBe(true)
     expect(allowsMultiSpotEarlySwap("aggressive", 2, 3, 0, 7)).toBe(true)
-    // late week uses normal aggressive +1
-    expect(allowsMultiSpotEarlySwap("aggressive", 0, 1, 4, 7)).toBe(true)
-    // budget catch-up allows same-tier churn on aggressive
-    expect(allowsMultiSpotEarlySwap("aggressive", 1, 1, 1, 7, true)).toBe(true)
+    expect(
+      allowsMultiSpotEarlySwap("aggressive", 1, 1, 0, 7, false, {
+        increasesStarts: true,
+      }),
+    ).toBe(true)
+    expect(
+      allowsMultiSpotEarlySwap("balanced", 2, 2, 0, 7, false, {
+        improvesContested: true,
+      }),
+    ).toBe(true)
+    expect(allowsMultiSpotEarlySwap("aggressive", 1, 1, 0, 7)).toBe(false)
   })
 
   it("multi-spot off-night needs strong+ early week; late week allows any tier", () => {

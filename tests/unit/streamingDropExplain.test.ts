@@ -78,7 +78,7 @@ const boardLosingStl = (): MatchupBoard => ({
     you: categoryId === "STL" ? 1 : 10,
     opp: categoryId === "STL" ? 5 : 8,
     outcome: categoryId === "STL" ? "L" : "W",
-    winProb: categoryId === "STL" ? 0.2 : 0.8,
+    winProb: categoryId === "STL" ? 0.4 : 0.8,
   })),
   wins: 8,
   losses: 1,
@@ -88,10 +88,12 @@ const boardLosingStl = (): MatchupBoard => ({
 
 describe("streamingDropExplain", () => {
   it("treats L, T, and fragile W as contested", () => {
-    expect(isContestedCategoryRow(row("STL", "L", 0.2))).toBe(true)
+    expect(isContestedCategoryRow(row("STL", "L", 0.2))).toBe(false)
+    expect(isContestedCategoryRow(row("STL", "L", 0.4))).toBe(true)
     expect(isContestedCategoryRow(row("BLK", "T", 0.5))).toBe(true)
     expect(isContestedCategoryRow(row("PTS", "W", 0.64))).toBe(true)
     expect(isContestedCategoryRow(row("REB", "W", 0.65))).toBe(false)
+    expect(isContestedCategoryRow(row("AST", "L", 0.75))).toBe(false)
   })
 
   it("treats a close L or T as a chase hole, not a blowout L", () => {

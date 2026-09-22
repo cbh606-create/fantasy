@@ -9,7 +9,7 @@ import {
   youTotalsFromDaily,
 } from "./dailyLineups"
 import { categoryIdsFromBoard, oppTotalsFromBoard } from "./streamerMove"
-import type { MatchupBoard, MatchupCategoryRow } from "./types"
+import type { MatchupBoard, MatchupCategoryRow, StatWindow } from "./types"
 import { weeklyPlayerStats } from "./weekly"
 
 export type SuggestStreamingDropInput = {
@@ -19,6 +19,7 @@ export type SuggestStreamingDropInput = {
   fromDate: string
   schedule: ScheduleResponse
   board: MatchupBoard
+  statWindow?: StatWindow
 }
 
 export type SuggestedStreamingDrop = {
@@ -26,8 +27,15 @@ export type SuggestedStreamingDrop = {
   categoryIds: CategoryId[]
 }
 
-export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean =>
-  row.outcome === "L" || row.outcome === "T" || row.winProb < 0.65
+const CONTESTED_WIN_PROB_MIN = 0.28
+const CONTESTED_WIN_PROB_MAX = 0.72
+
+export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean => {
+  if (row.winProb < CONTESTED_WIN_PROB_MIN) return false
+  if (row.winProb > CONTESTED_WIN_PROB_MAX) return false
+  if (row.outcome === "W" && row.winProb >= 0.65) return false
+  return true
+}
 
 export const isCloseLosingCategory = (row: MatchupCategoryRow): boolean =>
   row.outcome === "T" ||
@@ -129,9 +137,10 @@ const weeklyContestedContribution = (
   player: SeasonPlayer | undefined,
   games: number,
   contestedIds: CategoryId[],
+  window: StatWindow = "season",
 ): number => {
   if (!player) return 0
-  const projections = weeklyPlayerStats(player, games).projections
+  const projections = weeklyPlayerStats(player, games, window).projections
   return contestedIds.reduce(
     (sum, categoryId) => sum + catContribution(projections, categoryId),
     0,
@@ -141,8 +150,15 @@ const weeklyContestedContribution = (
 export const suggestStreamingDrop = (
   input: SuggestStreamingDropInput,
 ): SuggestedStreamingDrop | null => {
-  const { rosterPlayerIds, players, workingDaily, fromDate, schedule, board } =
-    input
+  const {
+    rosterPlayerIds,
+    players,
+    workingDaily,
+    fromDate,
+    schedule,
+    board,
+    statWindow = "season",
+  } = input
   if (rosterPlayerIds.length === 0) return null
 
   const contestedIds = board.categories
@@ -152,7 +168,7 @@ export const suggestStreamingDrop = (
   const categoryIds = categoryIdsFromBoard(board)
   const opp = oppTotalsFromBoard(board)
   const beforeBoard = buildMatchupBoard(
-    youTotalsFromDaily(workingDaily, players, schedule),
+    youTotalsFromDaily(workingDaily, players, schedule, statWindow),
     opp,
     categoryIds,
   )
@@ -174,7 +190,7 @@ export const suggestStreamingDrop = (
       fromDate,
     )
     const afterBoard = buildMatchupBoard(
-      youTotalsFromDaily(nextDaily, players, schedule),
+      youTotalsFromDaily(nextDaily, players, schedule, statWindow),
       opp,
       categoryIds,
     )
@@ -192,18 +208,24 @@ export const suggestStreamingDrop = (
         playersById.get(worstId),
         gamesByPlayerId.get(worstId) ?? 0,
         contestedIds,
+        statWindow,
       )
       const playerScore = weeklyContestedContribution(
         playersById.get(playerId),
         gamesByPlayerId.get(playerId) ?? 0,
         contestedIds,
+        statWindow,
       )
       return playerScore < worstScore ? playerId : worstId
     })
 
   const chosen = playersById.get(chosenId)
   const projections = chosen
-    ? weeklyPlayerStats(chosen, gamesByPlayerId.get(chosenId) ?? 0).projections
+    ? weeklyPlayerStats(
+        chosen,
+        gamesByPlayerId.get(chosenId) ?? 0,
+        statWindow,
+      ).projections
     : ({} as Record<CategoryId, number>)
 
   return {

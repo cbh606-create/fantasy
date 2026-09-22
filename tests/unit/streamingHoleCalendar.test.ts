@@ -9,6 +9,7 @@ import {
   pickAutoRosterCut,
   playerHasEligibleHole,
   remainingHoleStarts,
+  nextHoleStartDate,
 } from "@/lib/matchup/streamingHoleCalendar"
 import type {
   ScheduleResponse,
@@ -394,5 +395,43 @@ describe("pickAutoRosterCut", () => {
       seatedTonight: [],
     })
     expect(cut).toBe("r-past")
+  })
+
+  it("does not count a packed next game as a remaining hole start", () => {
+    const days = ["2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24"]
+    const ighodaro = player("fa-ighodaro", "POR", { positions: ["PF", "C"] })
+    const twoInThree = player("fa-22-24", "OKC", { positions: ["PF", "C"] })
+    const schedule = scheduleOf(days, [
+      { date: "2026-10-21", homeAbbr: "POR", awayAbbr: "WAS" },
+      { date: "2026-10-23", homeAbbr: "POR", awayAbbr: "WAS" },
+      { date: "2026-10-22", homeAbbr: "OKC", awayAbbr: "CHI" },
+      { date: "2026-10-24", homeAbbr: "OKC", awayAbbr: "BKN" },
+    ])
+    const pfOpen: SeasonRosterEntry[] = [
+      { slot: "PF", playerId: null },
+      { slot: "C", playerId: "r-c" },
+    ]
+    const packed: SeasonRosterEntry[] = [
+      { slot: "PF", playerId: "r-pf" },
+      { slot: "C", playerId: "r-c" },
+    ]
+    const holeByDate = {
+      "2026-10-21": pfOpen,
+      "2026-10-22": pfOpen,
+      "2026-10-23": packed,
+      "2026-10-24": pfOpen,
+    }
+    expect(
+      remainingHoleStarts(ighodaro, "2026-10-22", days, holeByDate, schedule),
+    ).toBe(0)
+    expect(
+      nextHoleStartDate(ighodaro, "2026-10-22", days, holeByDate, schedule),
+    ).toBeNull()
+    expect(
+      remainingHoleStarts(twoInThree, "2026-10-22", days, holeByDate, schedule),
+    ).toBe(2)
+    expect(
+      nextHoleStartDate(twoInThree, "2026-10-22", days, holeByDate, schedule),
+    ).toBe("2026-10-24")
   })
 })

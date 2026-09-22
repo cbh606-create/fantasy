@@ -120,6 +120,18 @@ export const remainingHoleStarts = (
 ): number =>
   holeStartDates(player, fromDate, days, holeByDate, schedule).length
 
+/** Next day after `afterDate` the player can actually start in a leftover hole. */
+export const nextHoleStartDate = (
+  player: SeasonPlayer,
+  afterDate: string,
+  days: string[],
+  holeByDate: Record<string, SeasonRosterEntry[]>,
+  schedule: ScheduleResponse,
+): string | null =>
+  holeStartDates(player, afterDate, days, holeByDate, schedule).find(
+    (day) => day > afterDate,
+  ) ?? null
+
 export const holeWindowTier = (
   player: SeasonPlayer,
   fromDate: string,
