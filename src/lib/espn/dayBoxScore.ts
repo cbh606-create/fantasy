@@ -161,6 +161,9 @@ export const pairClosedScoringPeriods = (input: {
   matchupPeriodDays: number[]
   currentScoringPeriod: number
 }): Map<string, number> => {
+  if (input.matchupDates.length !== input.matchupPeriodDays.length) {
+    throw new Error("espn_matchup_period_length_mismatch")
+  }
   const paired = new Map<string, number>()
   for (const date of input.dates) {
     const index = input.matchupDates.indexOf(date)

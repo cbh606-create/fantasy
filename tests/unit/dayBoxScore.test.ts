@@ -28,6 +28,17 @@ describe("pairClosedScoringPeriods", () => {
 
     expect([...paired]).toEqual([["2026-10-20", 10]]);
   });
+
+  it("throws when matchup dates and ESPN day ids differ in length", () => {
+    expect(() =>
+      pairClosedScoringPeriods({
+        dates: matchupDates,
+        matchupDates,
+        matchupPeriodDays: [10, 11],
+        currentScoringPeriod: 12,
+      }),
+    ).toThrow("espn_matchup_period_length_mismatch");
+  });
 });
 
 describe("mapEspnDayBoxScore", () => {
