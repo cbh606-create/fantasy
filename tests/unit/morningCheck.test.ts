@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest"
 import type { CategoryId } from "@/lib/domain/types"
+import { buildMatchupBoard } from "@/lib/matchup/board"
 import {
   blendWeekTotals,
+  buildMorningSummary,
   closeFinishedDays,
+  outcomesFromBoard,
   dayComparisonRows,
   emptyCategoryTotals,
   projectDayTotals,
@@ -231,5 +234,164 @@ describe("closeFinishedDays", () => {
     expect(blended.you.PTS).toBeCloseTo(18)
     expect(blended.opp.PTS).toBeCloseTo(12)
     expect(blended.you.FG_PCT).toBeCloseTo(8 / 16)
+  })
+})
+
+const boardFromPts = (youPts: number, oppPts: number) => {
+  const you = emptyCategoryTotals()
+  const opp = emptyCategoryTotals()
+  you.PTS = youPts
+  opp.PTS = oppPts
+  return buildMatchupBoard(you, opp)
+}
+
+const identicalAddDay = {
+  date: "2026-10-21",
+  cells: [
+    {
+      spotIndex: 0,
+      playerId: "fa-on",
+      action: "add" as const,
+      droppedPlayerId: null,
+      rosterDropPlayerId: null,
+      rosterDropKind: "none" as const,
+      addIndex: 1,
+      alternativePlayerIds: [],
+      targetCategoryIds: ["PTS"] as CategoryId[],
+    },
+  ],
+}
+
+describe("buildMorningSummary", () => {
+  it("lists all nine categories and marks only the flip", () => {
+    const previousOutcomes = outcomesFromBoard(boardFromPts(30, 20))
+    const summary = buildMorningSummary({
+      board: boardFromPts(10, 20),
+      previous: {
+        outcomes: previousOutcomes,
+        opponentRosterIds: ["c"],
+        opponentDays: [],
+        ourDays: [],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c", "new-fa"],
+      ourDays: [
+        {
+          date: "2026-10-21",
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-on",
+              action: "add",
+              droppedPlayerId: null,
+              rosterDropPlayerId: null,
+              rosterDropKind: "none",
+              addIndex: 1,
+              alternativePlayerIds: [],
+              targetCategoryIds: ["PTS"],
+            },
+          ],
+        },
+      ],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+
+    expect(summary.categories).toHaveLength(9)
+    expect(summary.categories.find((row) => row.categoryId === "PTS")).toMatchObject({
+      outcome: "L",
+      flipped: true,
+    })
+    expect(summary.categories.filter((row) => row.flipped).map((row) => row.categoryId)).toEqual([
+      "PTS",
+    ])
+    expect(summary.opponentMoves).toEqual(["added new-fa"])
+    expect(summary.recommendationChanges.length).toBeLessThanOrEqual(3)
+  })
+
+  it("leaves change lines empty when nothing factual changed", () => {
+    const quiet = buildMorningSummary({
+      board: boardFromPts(20, 10),
+      previous: {
+        outcomes: outcomesFromBoard(boardFromPts(20, 10)),
+        opponentRosterIds: ["c"],
+        opponentDays: [],
+        ourDays: [],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(quiet.recommendationChanges).toEqual([])
+    expect(quiet.recommendationsUnchanged).toBe(false)
+  })
+
+  it("states today's recommendations on the first check and does not mark flips", () => {
+    const first = buildMorningSummary({
+      board: boardFromPts(20, 10),
+      previous: null,
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [
+        {
+          date: "2026-10-21",
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-on",
+              action: "add",
+              droppedPlayerId: null,
+              rosterDropPlayerId: null,
+              rosterDropKind: "none",
+              addIndex: 1,
+              alternativePlayerIds: [],
+              targetCategoryIds: [],
+            },
+          ],
+        },
+      ],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(first.categories.every((row) => row.flipped === false)).toBe(true)
+    expect(first.recommendationChanges).toEqual([])
+    expect(first.todayRecommendations).toEqual(["2026-10-21 add fa-on"])
+  })
+
+  it("marks recommendations unchanged when PTS flips but today's add matches previous", () => {
+    const previousOutcomes = outcomesFromBoard(boardFromPts(30, 20))
+    const unchanged = buildMorningSummary({
+      board: boardFromPts(10, 20),
+      previous: {
+        outcomes: previousOutcomes,
+        opponentRosterIds: ["c"],
+        opponentDays: [],
+        ourDays: [identicalAddDay],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [identicalAddDay],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(unchanged.recommendationsUnchanged).toBe(true)
+    expect(unchanged.recommendationChanges).toEqual([])
   })
 })

@@ -8,7 +8,14 @@ import type {
 import { buildMatchupBoard } from "./board"
 import { isActiveSlot } from "./constants"
 import { gameWeightForTeamDate, teamHasGameOnDate } from "./games"
-import type { MatchupBoard, StatWindow } from "./types"
+import type {
+  CategoryOutcome,
+  MatchupBoard,
+  OpponentStreamDay,
+  SitStartSuggestion,
+  StatWindow,
+  StreamingPlanDay,
+} from "./types"
 import { weeklyPlayerStats } from "./weekly"
 
 export type CategoryTotals = Record<CategoryId, number>
@@ -340,3 +347,154 @@ export const blendedMatchupBoard = (
   totals: { you: CategoryTotals; opp: CategoryTotals },
   categoryIds: CategoryId[],
 ): MatchupBoard => buildMatchupBoard(totals.you, totals.opp, categoryIds)
+
+export type MorningPlanSnapshot = {
+  outcomes: Record<CategoryId, CategoryOutcome>
+  opponentRosterIds: string[]
+  opponentDays: OpponentStreamDay[]
+  ourDays: StreamingPlanDay[]
+  sitStart: SitStartSuggestion[]
+}
+
+export type MorningSummary = {
+  categories: Array<{
+    categoryId: CategoryId
+    outcome: CategoryOutcome
+    flipped: boolean
+  }>
+  opponentMoves: string[]
+  ourAbsences: string[]
+  recommendationChanges: string[]
+  recommendationsUnchanged: boolean
+  todayRecommendations: string[]
+  actualsPending: boolean
+}
+
+export const outcomesFromBoard = (
+  board: MatchupBoard,
+): Record<CategoryId, CategoryOutcome> =>
+  Object.fromEntries(
+    board.categories.map((row) => [row.categoryId, row.outcome]),
+  ) as Record<CategoryId, CategoryOutcome>
+
+const actionKey = (date: string, action: string, playerId: string | null) =>
+  `${date} ${action} ${playerId ?? "none"}`
+
+const planActionLines = (days: StreamingPlanDay[]): string[] =>
+  days.flatMap((day) =>
+    day.cells
+      .filter((cell) => cell.action === "add" || cell.action === "drop_add")
+      .map((cell) => actionKey(day.date, cell.action, cell.playerId)),
+  )
+
+const sitLines = (sitStart: SitStartSuggestion[], today: string): string[] =>
+  sitStart.map(
+    (swap) =>
+      `${today} sit ${swap.activePlayerId} start ${swap.benchPlayerId}`,
+  )
+
+export const buildMorningSummary = (input: {
+  board: MatchupBoard
+  previous: MorningPlanSnapshot | null
+  closedDays: ClosedDayRecord[]
+  currentOpponentRosterIds: string[]
+  ourDays: StreamingPlanDay[]
+  opponentDays: OpponentStreamDay[]
+  sitStart: SitStartSuggestion[]
+  outPlayerIds: string[]
+  today: string
+  actualsPending: boolean
+}): MorningSummary => {
+  const categories = input.board.categories.map((row) => ({
+    categoryId: row.categoryId,
+    outcome: row.outcome,
+    flipped: input.previous
+      ? input.previous.outcomes[row.categoryId] !== row.outcome
+      : false,
+  }))
+
+  const previousRoster = new Set(input.previous?.opponentRosterIds ?? [])
+  const currentRoster = new Set(input.currentOpponentRosterIds)
+  const opponentMoves: string[] = []
+  if (input.previous) {
+    for (const playerId of input.currentOpponentRosterIds) {
+      if (!previousRoster.has(playerId)) opponentMoves.push(`added ${playerId}`)
+    }
+    for (const playerId of input.previous.opponentRosterIds) {
+      if (!currentRoster.has(playerId)) opponentMoves.push(`dropped ${playerId}`)
+    }
+    const expectedAdds = new Set(
+      input.previous.opponentDays.flatMap((day) =>
+        day.cells
+          .filter((cell) => cell.action === "add" || cell.action === "drop_add")
+          .flatMap((cell) => (cell.playerId ? [cell.playerId] : [])),
+      ),
+    )
+    for (const playerId of expectedAdds) {
+      if (!currentRoster.has(playerId) && !previousRoster.has(playerId)) {
+        opponentMoves.push(`missed add ${playerId}`)
+      }
+    }
+  }
+
+  const outIds = new Set(input.outPlayerIds)
+  const ourAbsences: string[] = []
+  if (input.previous) {
+    for (const day of input.previous.ourDays) {
+      if (day.date < input.today) continue
+      for (const cell of day.cells) {
+        if (cell.playerId && outIds.has(cell.playerId)) {
+          ourAbsences.push(`out ${cell.playerId}`)
+        }
+      }
+    }
+  }
+  for (const day of input.closedDays) {
+    const played = new Set(day.youPlayedIds)
+    for (const playerId of day.youStartableIds) {
+      if (!played.has(playerId)) {
+        ourAbsences.push(`did not play ${playerId} on ${day.date}`)
+      }
+    }
+  }
+
+  const todayRecommendations = [
+    ...planActionLines(input.ourDays.filter((day) => day.date === input.today)),
+    ...sitLines(input.sitStart, input.today),
+  ].slice(0, 3)
+
+  const hasFact =
+    categories.some((row) => row.flipped) ||
+    opponentMoves.length > 0 ||
+    ourAbsences.length > 0
+
+  let recommendationChanges: string[] = []
+  let recommendationsUnchanged = false
+  if (input.previous && hasFact) {
+    const previousLines = new Set([
+      ...planActionLines(input.previous.ourDays),
+      ...sitLines(input.previous.sitStart, input.today),
+    ])
+    const nextLines = [
+      ...planActionLines(input.ourDays),
+      ...sitLines(input.sitStart, input.today),
+    ]
+    const changed = nextLines.filter((line) => !previousLines.has(line))
+    const todayFirst = [
+      ...changed.filter((line) => line.startsWith(input.today)),
+      ...changed.filter((line) => !line.startsWith(input.today)),
+    ]
+    recommendationChanges = todayFirst.slice(0, 3)
+    recommendationsUnchanged = recommendationChanges.length === 0
+  }
+
+  return {
+    categories,
+    opponentMoves: input.previous ? opponentMoves : [],
+    ourAbsences,
+    recommendationChanges,
+    recommendationsUnchanged,
+    todayRecommendations: input.previous ? [] : todayRecommendations,
+    actualsPending: input.actualsPending,
+  }
+}
