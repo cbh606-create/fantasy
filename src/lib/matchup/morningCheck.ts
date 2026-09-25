@@ -544,3 +544,7 @@ export const buildMorningSummary = (input: {
     actualsPending: input.actualsPending,
   }
 }
+
+export const morningActualsPendingCopy = "Last night's results are not in yet."
+export const morningStaleCopy = "Showing the last saved morning check."
+export const morningUnchangedCopy = "Recommendations are unchanged."

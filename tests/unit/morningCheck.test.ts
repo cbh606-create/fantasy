@@ -9,6 +9,9 @@ import {
   outcomesFromBoard,
   dayComparisonRows,
   emptyCategoryTotals,
+  morningActualsPendingCopy,
+  morningStaleCopy,
+  morningUnchangedCopy,
   projectDayTotals,
   startableIdsOnDate,
 } from "@/lib/matchup/morningCheck"
@@ -658,5 +661,13 @@ describe("buildMorningSummary", () => {
         flipped: false,
       })
     }
+  })
+})
+
+describe("morning check copy", () => {
+  it("keeps the pending and stale sentences stable", () => {
+    expect(morningActualsPendingCopy).toBe("Last night's results are not in yet.")
+    expect(morningStaleCopy).toBe("Showing the last saved morning check.")
+    expect(morningUnchangedCopy).toBe("Recommendations are unchanged.")
   })
 })

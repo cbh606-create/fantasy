@@ -3,7 +3,9 @@
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { DailyLineupPanel } from "@/components/matchup/DailyLineupPanel"
+import { DayComparison } from "@/components/matchup/DayComparison"
 import { MatchupPlanBar } from "@/components/matchup/MatchupPlanBar"
+import { MorningSummary } from "@/components/matchup/MorningSummary"
 import { InjuryAlertsPanel } from "@/components/matchup/InjuryAlertsPanel"
 import { MatchupBoard } from "@/components/matchup/MatchupBoard"
 import { OpponentPicker } from "@/components/matchup/OpponentPicker"
@@ -17,6 +19,7 @@ import { Banner } from "@/components/ui/Banner"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import { buildMatchupBoard } from "@/lib/matchup/board"
+import type { DayComparisonRow, MorningSummary as MorningSummaryData } from "@/lib/matchup/morningCheck"
 import { isActiveSlot } from "@/lib/matchup/constants"
 import {
   clearNoGameActiveSlots,
@@ -74,6 +77,9 @@ type MatchupResponse = MatchupAdvice & {
   playersById: Record<string, SeasonPlayer>
   teams: { teamIndex: number; name: string }[]
   state?: SeasonLeagueState
+  morningSummary?: MorningSummaryData
+  dayComparison?: DayComparisonRow[]
+  morningStale?: boolean
 }
 
 const enabledCategoryIds = (state: SeasonLeagueState): CategoryId[] => {
@@ -1075,6 +1081,12 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         <p className="mb-2 text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
           Using your day-by-day lineups
         </p>
+        {matchupData.morningSummary ? (
+          <MorningSummary
+            stale={matchupData.morningStale === true}
+            summary={matchupData.morningSummary}
+          />
+        ) : null}
         <div className="flex items-center gap-3">
           <MatchupPlanBar
             forcedOpponentRosterDrops={forcedOpponentRosterDrops}
@@ -1098,6 +1110,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           />
           <div className="min-w-0 max-w-3xl flex-1">
             <MatchupBoard board={liveBoard} />
+            <DayComparison rows={matchupData.dayComparison ?? []} />
           </div>
         </div>
 
