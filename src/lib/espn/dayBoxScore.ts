@@ -1,3 +1,4 @@
+import { espnCookieHeader, type EspnCookies } from "@/lib/espn/cookies"
 import {
   emptyCategoryTotals,
   type DayActuals,
@@ -138,4 +139,110 @@ export const mapEspnDayBoxScore = (input: {
     youShooting: you.shooting,
     oppShooting: opp.shooting,
   }
+}
+
+const FETCH_TIMEOUT_MS = 15_000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+type EspnLeagueStatus = {
+  status?: {
+    currentScoringPeriod?: number
+    currentMatchupPeriod?: number
+  }
+}
+
+const leagueUrl = (season: number, leagueId: string): URL =>
+  new URL(
+    `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/${leagueId}`,
+  )
+
+const fetchEspnJson = async (
+  url: URL,
+  cookies: EspnCookies,
+  fetchImpl: typeof fetch,
+  extraHeaders?: Record<string, string>,
+): Promise<unknown> => {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  try {
+    const response = await fetchImpl(url, {
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        Cookie: espnCookieHeader(cookies),
+        Origin: "https://fantasy.espn.com",
+        Referer: "https://fantasy.espn.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        ...extraHeaders,
+      },
+      redirect: "manual",
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new Error(`espn_http_${response.status}`)
+    return (await response.json()) as unknown
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+const daysBetween = (fromDate: string, toDate: string): number =>
+  Math.round((Date.parse(`${toDate}T00:00:00Z`) - Date.parse(`${fromDate}T00:00:00Z`)) / DAY_MS)
+
+export const fetchEspnDayActuals = async (params: {
+  leagueId: string
+  season: number
+  cookies: EspnCookies
+  dates: string[]
+  today: string
+  youTeamId: number
+  oppTeamId: number
+  fetchImpl?: typeof fetch
+}): Promise<Map<string, DayActuals>> => {
+  const fetchImpl = params.fetchImpl ?? fetch
+  const actualsByDate = new Map<string, DayActuals>()
+  if (params.dates.length === 0) return actualsByDate
+
+  const settingsUrl = leagueUrl(params.season, params.leagueId)
+  settingsUrl.searchParams.append("view", "mSettings")
+  const settings = (await fetchEspnJson(
+    settingsUrl,
+    params.cookies,
+    fetchImpl,
+  )) as EspnLeagueStatus
+  const currentScoringPeriod = settings.status?.currentScoringPeriod
+  const currentMatchupPeriod = settings.status?.currentMatchupPeriod
+  if (currentScoringPeriod == null || currentMatchupPeriod == null) {
+    throw new Error("espn_status_missing")
+  }
+
+  const payloads = await Promise.all(
+    params.dates.map(async (date) => {
+      const url = leagueUrl(params.season, params.leagueId)
+      url.searchParams.append("view", "mScoreboard")
+      url.searchParams.append("view", "mMatchupScore")
+      url.searchParams.set(
+        "scoringPeriodId",
+        String(currentScoringPeriod - daysBetween(date, params.today)),
+      )
+      const payload = (await fetchEspnJson(url, params.cookies, fetchImpl, {
+        "X-Fantasy-Filter": JSON.stringify({
+          schedule: {
+            filterMatchupPeriodIds: { value: [currentMatchupPeriod] },
+          },
+        }),
+      })) as EspnDayBoxPayload
+      return { date, payload }
+    }),
+  )
+
+  for (const { date, payload } of payloads) {
+    const actuals = mapEspnDayBoxScore({
+      payload,
+      date,
+      youTeamId: params.youTeamId,
+      oppTeamId: params.oppTeamId,
+    })
+    if (actuals) actualsByDate.set(date, actuals)
+  }
+  return actualsByDate
 }

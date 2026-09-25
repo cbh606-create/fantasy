@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
+import { db } from "@/lib/db"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { getUserEspnCookies } from "@/lib/espn/credentials"
+import { fetchEspnDayActuals } from "@/lib/espn/dayBoxScore"
 import { loadWinnerStreamRecipes } from "@/lib/espn/winnerStreamHistory"
 import { adviseMatchup } from "@/lib/matchup/advise"
+import type { DayActuals } from "@/lib/matchup/morningCheck"
+import {
+  actualsFromClosedDays,
+  morningCheckForOpponent,
+  parseMorningCheck,
+} from "@/lib/matchup/morningCheckStore"
 import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
 import {
   isStatWindow,
@@ -53,6 +61,35 @@ const loadMatchupWinnerRecipes = async (
   } catch {
     return []
   }
+}
+
+const loadMatchupDayActuals = async (input: {
+  loaded: LoadedSeasonLeague
+  userId: string
+  opponentTeamIndex: number
+  dates: string[]
+  today: string
+}): Promise<Map<string, DayActuals>> => {
+  const { loaded } = input
+  const oppTeam = loaded.state.teams.find(
+    (team) => team.teamIndex === input.opponentTeamIndex,
+  )
+  const youTeamId = loaded.state.espnTeamId
+  const oppTeamId = oppTeam?.espnTeamId
+  if (!loaded.espnLeagueId || youTeamId == null || oppTeamId == null) {
+    throw new Error("espn_team_ids_missing")
+  }
+  const cookies = await getUserEspnCookies(input.userId)
+  if (!cookies) throw new Error("espn_cookies_missing")
+  return fetchEspnDayActuals({
+    leagueId: loaded.espnLeagueId,
+    season: loaded.state.season,
+    cookies,
+    dates: input.dates,
+    today: input.today,
+    youTeamId,
+    oppTeamId,
+  })
 }
 
 const collectReferencedPlayerIds = (
@@ -144,10 +181,72 @@ export const GET = async (request: Request): Promise<Response> => {
 
   const schedule = await getMatchupSchedule()
   const winnerStreamRecipes = await loadMatchupWinnerRecipes(loaded, userId)
-  const advice = adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
-    winnerStreamRecipes,
-    statWindow,
+  const baseOptions = { winnerStreamRecipes, statWindow }
+  const today = new Date().toISOString().slice(0, 10)
+  const previous = morningCheckForOpponent(
+    parseMorningCheck(loaded.morningCheckJson),
+    schedule.matchup.startDate,
+    opponentTeamIndex,
+  )
+  const morningFor = (actualsByDate: Map<string, DayActuals>) => ({
+    today,
+    actualsByDate,
+    previous,
+    outPlayerIds: [],
   })
+
+  const loadMorningAdvice = async () => {
+    if (loaded.state.source !== "espn") {
+      return adviseMatchup(loaded.state, schedule, opponentTeamIndex, baseOptions)
+    }
+    if (previous?.checkedOn === today && !previous.actualsPending) {
+      return adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
+        ...baseOptions,
+        morning: morningFor(actualsFromClosedDays(previous.closedDays)),
+      })
+    }
+
+    let actualsByDate: Map<string, DayActuals>
+    try {
+      actualsByDate = await loadMatchupDayActuals({
+        loaded,
+        userId,
+        opponentTeamIndex,
+        dates: schedule.matchup.days.filter((date) => date < today),
+        today,
+      })
+    } catch {
+      const fallback = adviseMatchup(
+        loaded.state,
+        schedule,
+        opponentTeamIndex,
+        baseOptions,
+      )
+      if ("error" in fallback) return fallback
+      return {
+        ...fallback,
+        morningStale: true,
+        ...(previous?.summary ? { morningSummary: previous.summary } : {}),
+        ...(previous?.dayComparison
+          ? { dayComparison: previous.dayComparison }
+          : {}),
+      }
+    }
+
+    const blended = adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
+      ...baseOptions,
+      morning: morningFor(actualsByDate),
+    })
+    if (!("error" in blended) && blended.nextMorningCheck) {
+      await db.seasonLeague.update({
+        where: { id: loaded.id },
+        data: { morningCheckJson: JSON.stringify(blended.nextMorningCheck) },
+      })
+    }
+    return blended
+  }
+
+  const advice = await loadMorningAdvice()
 
   if ("error" in advice) {
     return NextResponse.json({ error: advice.error }, { status: 400 })

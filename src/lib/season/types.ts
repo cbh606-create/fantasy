@@ -67,6 +67,7 @@ export type SeasonRosterEntry = {
 export type SeasonTeamRoster = {
   teamIndex: number
   name: string
+  espnTeamId?: number
   entries: SeasonRosterEntry[]
 }
 
