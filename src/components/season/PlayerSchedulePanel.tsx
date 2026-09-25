@@ -57,8 +57,18 @@ export const PlayerSchedulePanel = ({
                 <span className="text-[var(--color-mute)]">{row.slot}</span>
                 {" · "}
                 {row.name}
+                <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                  {row.positions}
+                </span>
+                {row.teamAbbr ? (
+                  <span className="ml-1.5 font-normal text-[var(--color-mute)]">
+                    {row.teamAbbr}
+                  </span>
+                ) : null}
                 {row.teamUnknown ? (
-                  <span className="ml-2 text-xs font-normal text-[var(--color-mute)]">team unknown</span>
+                  <span className="ml-1.5 text-xs font-normal text-[var(--color-mute)]">
+                    team unknown
+                  </span>
                 ) : null}
               </th>
               <td className="px-3 py-3 text-center tabular-nums font-semibold">

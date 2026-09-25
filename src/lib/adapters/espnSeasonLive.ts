@@ -10,12 +10,31 @@ import {
   mergeAvailablePlayers,
 } from "./espnAvailable"
 import {
+  espnCookieHeader,
   readEnvEspnCookies,
   type EspnCookies,
 } from "@/lib/espn/cookies"
+import { applyPoolProjections } from "@/lib/players/applyPoolProjections"
+import { loadProjPoolPlayers } from "@/lib/players/loadProjPool"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
 const FETCH_TIMEOUT_MS = 15_000
+
+const overlayPoolProjections = async (
+  state: SeasonLeagueState,
+): Promise<SeasonLeagueState> => {
+  try {
+    const poolPlayers = await loadProjPoolPlayers()
+    const { players } = applyPoolProjections(state.players, poolPlayers)
+    return { ...state, players }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error"
+    console.warn(
+      `ESPN pool projection overlay skipped; using live-mapped stats: ${message}`,
+    )
+    return state
+  }
+}
 
 const resolveCookies = (cookies?: EspnCookies): EspnCookies => {
   const resolved = cookies ?? readEnvEspnCookies()
@@ -27,8 +46,9 @@ const resolveCookies = (cookies?: EspnCookies): EspnCookies => {
 
 const espnHeaders = (cookies: EspnCookies): Record<string, string> => ({
   Accept: "application/json, text/plain, */*",
-  // Keep SWID braces raw; percent-encode espn_s2 so `/` and `+` survive Cookie.
-  Cookie: `espn_s2=${encodeURIComponent(cookies.espnS2)}; SWID=${cookies.swid}`,
+  Cookie: espnCookieHeader(cookies),
+  Origin: "https://fantasy.espn.com",
+  Referer: "https://fantasy.espn.com/",
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
 })
@@ -134,9 +154,16 @@ export const fetchEspnSeasonLeague = async (params: {
       response.status === 307 ||
       response.status === 308
     ) {
+      const location = response.headers.get("location") ?? ""
+      let locationHost = "login"
+      try {
+        locationHost = new URL(location, "https://fantasy.espn.com").host
+      } catch {
+        // keep default
+      }
       throw new EspnAdapterError(
         "ESPN_AUTH",
-        `ESPN redirected (${response.status}) — private league cookies rejected`,
+        `ESPN redirected (${response.status} → ${locationHost}) — not logged in for this private league`,
       )
     }
 
@@ -155,12 +182,13 @@ export const fetchEspnSeasonLeague = async (params: {
     }
 
     const payload = await parseEspnJson<EspnLeaguePayload>(response)
-    const state = mapEspnLeagueToSeasonState(payload, params)
+    let state = mapEspnLeagueToSeasonState(payload, params)
 
     try {
       const faPlayers = await fetchEspnFreeAgents(params, cookies)
       if (faPlayers.length > 0) {
-        return mergeAvailablePlayers(state, faPlayers, "espn_fa")
+        state = mergeAvailablePlayers(state, faPlayers, "espn_fa")
+        return overlayPoolProjections(state)
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "unknown error"
@@ -171,14 +199,15 @@ export const fetchEspnSeasonLeague = async (params: {
 
     const ownershipIds = deriveAvailableFromOwnership(state)
     if (ownershipIds.length === 0) {
-      return { ...state, availablePlayerIds: [] }
+      return overlayPoolProjections({ ...state, availablePlayerIds: [] })
     }
 
     const ownershipPlayers = state.players.filter((player) =>
       ownershipIds.includes(player.id),
     )
-    return mergeAvailablePlayers(state, ownershipPlayers, "ownership")
-  } catch (error) {
+    return overlayPoolProjections(
+      mergeAvailablePlayers(state, ownershipPlayers, "ownership"),
+    )  } catch (error) {
     if (error instanceof EspnAdapterError) throw error
 
     if (error instanceof DOMException && error.name === "AbortError") {

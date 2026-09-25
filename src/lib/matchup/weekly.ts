@@ -2,6 +2,7 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 import { ASSUMED_SEASON_GAMES, isActiveSlot } from "./constants"
+import type { StatWindow } from "./types"
 import type { WeeklyPlayerStats } from "./types"
 
 const COUNTING_CATEGORIES = ALL_CATEGORY_IDS.filter(
@@ -25,10 +26,46 @@ export const weeklyProjectionFactor = (
 ): number => {
   if (games <= 0) return 0
   if (isPerGameProjectionPlayer(player)) return games
-  return games / ASSUMED_SEASON_GAMES
+  const seasonGames =
+    typeof player.projectedGames === "number" && player.projectedGames > 0
+      ? player.projectedGames
+      : ASSUMED_SEASON_GAMES
+  return games / seasonGames
 }
 
-export const weeklyPlayerStats = (
+const countingRatesLive = (projections: Record<CategoryId, number>) =>
+  projections.PTS > 0 ||
+  projections.REB > 0 ||
+  projections.AST > 0 ||
+  projections.TPM > 0
+
+type RateSet = {
+  projections: Record<CategoryId, number>
+  shooting: SeasonPlayer["shooting"]
+}
+
+const scalePerGameRates = (rates: RateSet, games: number): WeeklyPlayerStats => {
+  const factor = games <= 0 ? 0 : games
+  const projections = {} as Record<CategoryId, number>
+
+  for (const categoryId of COUNTING_CATEGORIES) {
+    projections[categoryId] = rates.projections[categoryId] * factor
+  }
+
+  const shooting = {
+    FGM: rates.shooting.FGM * factor,
+    FGA: rates.shooting.FGA * factor,
+    FTM: rates.shooting.FTM * factor,
+    FTA: rates.shooting.FTA * factor,
+  }
+
+  projections.FG_PCT = shooting.FGA > 0 ? shooting.FGM / shooting.FGA : 0
+  projections.FT_PCT = shooting.FTA > 0 ? shooting.FTM / shooting.FTA : 0
+
+  return { projections, shooting }
+}
+
+const scaleSeasonOrPerGamePlayer = (
   player: SeasonPlayer,
   games: number,
 ): WeeklyPlayerStats => {
@@ -52,10 +89,25 @@ export const weeklyPlayerStats = (
   return { projections, shooting }
 }
 
+export const weeklyPlayerStats = (
+  player: SeasonPlayer,
+  games: number,
+  window: StatWindow = "season",
+): WeeklyPlayerStats => {
+  if (window !== "season") {
+    const recent = player.recentRates?.[window]
+    if (recent && countingRatesLive(recent.projections)) {
+      return scalePerGameRates(recent, games)
+    }
+  }
+  return scaleSeasonOrPerGamePlayer(player, games)
+}
+
 export const activeTeamWeeklyTotals = (
   entries: SeasonRosterEntry[],
   playersById: Map<string, SeasonPlayer>,
   gamesMap: Map<string, number>,
+  window: StatWindow = "season",
 ): Record<CategoryId, number> => {
   const totals = emptyTotals()
   let totalFGM = 0
@@ -70,7 +122,7 @@ export const activeTeamWeeklyTotals = (
     if (!player) continue
 
     const games = gamesMap.get(entry.playerId) ?? 0
-    const weekly = weeklyPlayerStats(player, games)
+    const weekly = weeklyPlayerStats(player, games, window)
 
     for (const categoryId of COUNTING_CATEGORIES) {
       totals[categoryId] += weekly.projections[categoryId]

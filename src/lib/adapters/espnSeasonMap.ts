@@ -47,11 +47,74 @@ const PRO_TEAM_ABBR: Record<number, string> = {
 type EspnAverageStats = Record<string, number>
 
 type EspnPlayerStats = {
+  id?: string
   seasonId?: number
   statSourceId?: number
   statSplitTypeId?: number
   averageStats?: EspnAverageStats
   stats?: EspnAverageStats
+}
+
+const SPLIT_TO_WINDOW = { 1: "l7", 2: "l15", 3: "l30" } as const
+
+const perGameRateSet = (avg: EspnAverageStats) => {
+  const fgm = avg["13"] ?? 0
+  const fga = avg["14"] ?? 0
+  const ftm = avg["15"] ?? 0
+  const fta = avg["16"] ?? 0
+  return {
+    projections: {
+      FG_PCT: avg["19"] ?? (fga > 0 ? fgm / fga : 0),
+      FT_PCT: avg["20"] ?? (fta > 0 ? ftm / fta : 0),
+      TPM: avg["17"] ?? 0,
+      REB: avg["6"] ?? 0,
+      AST: avg["3"] ?? 0,
+      STL: avg["2"] ?? 0,
+      BLK: avg["1"] ?? 0,
+      TO: avg["11"] ?? 0,
+      PTS: avg["0"] ?? 0,
+    },
+    shooting: { FGM: fgm, FGA: fga, FTM: ftm, FTA: fta },
+  }
+}
+
+const splitRowHasCountingStats = (avg: EspnAverageStats) => {
+  const pts = avg["0"] ?? 0
+  const reb = avg["6"] ?? 0
+  const ast = avg["3"] ?? 0
+  const tpm = avg["17"] ?? 0
+  return pts > 0 || reb > 0 || ast > 0 || tpm > 0
+}
+
+const recentRatesFromEspn = (
+  player: EspnPlayer,
+  season: number,
+): SeasonPlayer["recentRates"] => {
+  const stats = player.stats ?? []
+  const recentRates: NonNullable<SeasonPlayer["recentRates"]> = {}
+
+  for (const splitTypeId of [1, 2, 3] as const) {
+    const window = SPLIT_TO_WINDOW[splitTypeId]
+    const bySplitType = stats.find(
+      (row) =>
+        row.seasonId === season &&
+        row.statSourceId === 0 &&
+        row.statSplitTypeId === splitTypeId,
+    )
+    const byId = stats.find(
+      (row) =>
+        row.statSourceId === 0 &&
+        row.id === `0${splitTypeId}${season}`,
+    )
+    const row = bySplitType ?? byId
+    const avg = row?.averageStats ?? row?.stats
+    if (!avg || !splitRowHasCountingStats(avg)) {
+      continue
+    }
+    recentRates[window] = perGameRateSet(avg)
+  }
+
+  return Object.keys(recentRates).length > 0 ? recentRates : undefined
 }
 
 type EspnPlayer = {
@@ -186,11 +249,14 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
   // ESPN averageStats are per-game; store season totals for Matchup weekly scaling.
   const seasonTotal = (perGame: number) => perGame * ASSUMED_SEASON_GAMES
 
+  const recentRates = recentRatesFromEspn(player, season)
+
   return {
     id: String(player.id),
     name: player.fullName?.trim() || `Player ${player.id}`,
     teamAbbr: PRO_TEAM_ABBR[player.proTeamId ?? -1],
     positions: positionsFromEspnPlayer(player),
+    ...(recentRates ? { recentRates } : {}),
     projections: {
       FG_PCT: avg["19"] ?? (fga > 0 ? fgm / fga : 0),
       FT_PCT: avg["20"] ?? (fta > 0 ? ftm / fta : 0),

@@ -82,3 +82,50 @@ export const categoryWinExpectancies = (
     return score + (weights[categoryId] ?? 0) * winExpectancy
   }, 0)
 }
+
+/** Means/SDs of individual player projections in a pool (not roster aggregates). */
+export const playerPoolStats = (players: Player[]): LeagueTotals => {
+  const means = emptyTotals()
+  const standardDeviations = emptyTotals()
+
+  if (players.length === 0) {
+    return { means, standardDeviations }
+  }
+
+  for (const categoryId of ALL_CATEGORY_IDS) {
+    means[categoryId] =
+      players.reduce(
+        (sum, player) => sum + player.projections[categoryId],
+        0,
+      ) / players.length
+
+    const variance =
+      players.reduce((sum, player) => {
+        const difference = player.projections[categoryId] - means[categoryId]
+        return sum + difference ** 2
+      }, 0) / players.length
+
+    standardDeviations[categoryId] = Math.sqrt(variance)
+  }
+
+  return { means, standardDeviations }
+}
+
+/** Raw weighted z-score vs the remaining pool — separates stars when league EV is flat. */
+export const weightedPlayerZScore = (
+  player: Player,
+  poolStats: LeagueTotals,
+  weights: CategoryTotals,
+): number => {
+  const { means, standardDeviations } = poolStats
+
+  return ALL_CATEGORY_IDS.reduce((score, categoryId) => {
+    const standardDeviation = standardDeviations[categoryId] || 1
+    const difference =
+      categoryId === "TO"
+        ? means[categoryId] - player.projections[categoryId]
+        : player.projections[categoryId] - means[categoryId]
+
+    return score + (weights[categoryId] ?? 0) * (difference / standardDeviation)
+  }, 0)
+}

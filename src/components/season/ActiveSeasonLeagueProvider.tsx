@@ -39,11 +39,13 @@ export const ActiveSeasonLeagueProvider = ({
 }: {
   children: ReactNode
 }) => {
-  const [activeId, setActiveIdState] = useState<string | null>(null)
+  // Sync read so SiteNav deep-links on first paint (avoids /tool → /tool/id hop).
+  const [activeId, setActiveIdState] = useState<string | null>(() =>
+    readActiveSeasonLeagueId(),
+  )
   const [leagues, setLeagues] = useState<SeasonLeagueListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
-  const [hasHydrated, setHasHydrated] = useState(false)
   const [hasLoadedLeagues, setHasLoadedLeagues] = useState(false)
 
   const setActiveId = useCallback((id: string | null) => {
@@ -64,11 +66,6 @@ export const ActiveSeasonLeagueProvider = ({
       clearActiveSeasonLeagueId()
       return null
     })
-  }, [])
-
-  useEffect(() => {
-    setActiveIdState(readActiveSeasonLeagueId())
-    setHasHydrated(true)
   }, [])
 
   useEffect(() => {
@@ -107,12 +104,12 @@ export const ActiveSeasonLeagueProvider = ({
   }, [])
 
   useEffect(() => {
-    if (!hasHydrated || !hasLoadedLeagues || !activeId) return
+    if (!hasLoadedLeagues || !activeId) return
     if (leagues.some((league) => league.id === activeId)) return
 
     clearActiveSeasonLeagueId()
     setActiveIdState(null)
-  }, [activeId, hasHydrated, hasLoadedLeagues, leagues])
+  }, [activeId, hasLoadedLeagues, leagues])
 
   const value = useMemo(
     () => ({ activeId, leagues, isLoading, error, setActiveId, removeLeague }),

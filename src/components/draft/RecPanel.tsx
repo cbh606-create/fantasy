@@ -4,6 +4,7 @@ import type {
   Player,
   SimulationResult,
 } from "@/lib/domain/types"
+import { formatNextPickShares } from "@/lib/sim/formatNextPickFrequency"
 
 const CATEGORY_LABELS: Record<CategoryId, string> = {
   FG_PCT: "FG%",
@@ -43,6 +44,10 @@ export const RecPanel = ({
       : result.nextPicks.slice(0, maxNextPicks)
     : []
   const isRow = layout === "row"
+  const hasSimCounts = (result?.meta.simCount ?? 0) > 0
+  const shareLabels = hasSimCounts
+    ? formatNextPickShares(nextPicks.map((pick) => pick.frequency))
+    : nextPicks.map(() => "")
 
   return (
     <aside
@@ -74,6 +79,11 @@ export const RecPanel = ({
             >
               Next picks
             </h2>
+            {hasSimCounts ? (
+              <p className="text-xs text-[var(--color-mute)]">
+                Based on {result.meta.simCount} sims
+              </p>
+            ) : null}
           </div>
           {isRow && isSimulating && result ? (
             <p className="text-xs text-[var(--color-mute)]" role="status">
@@ -85,7 +95,7 @@ export const RecPanel = ({
           <ol
             className={
               isRow
-                ? "mt-3 grid gap-2 sm:grid-cols-3"
+                ? "mt-3 grid grid-cols-6 gap-1.5"
                 : "mt-5 space-y-3"
             }
           >
@@ -97,28 +107,50 @@ export const RecPanel = ({
                 <li
                   className={
                     isRow
-                      ? "flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5"
+                      ? "flex min-w-0 items-center justify-between gap-1 rounded-lg bg-white px-1.5 py-1.5"
                       : "flex items-center justify-between gap-4 rounded-2xl bg-white px-4 py-3"
                   }
                   key={pick.playerId}
                 >
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="shrink-0 text-sm text-[var(--color-stone)]">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span
+                      className={
+                        isRow
+                          ? "shrink-0 text-[0.65rem] text-[var(--color-stone)]"
+                          : "shrink-0 text-sm text-[var(--color-stone)]"
+                      }
+                    >
                       {index + 1}
                     </span>
-                    {player ? <PlayerAvatar player={player} size="sm" /> : null}
-                    <span className="min-w-0 font-medium">
+                    {isRow || !player ? null : (
+                      <PlayerAvatar player={player} size="sm" />
+                    )}
+                    <span
+                      className={
+                        isRow
+                          ? "min-w-0 truncate text-xs font-medium"
+                          : "min-w-0 font-medium"
+                      }
+                    >
                       {displayName}
-                      {player ? (
+                      {isRow || !player ? null : (
                         <span className="ml-1.5 font-normal text-[var(--color-mute)]">
                           {player.teamAbbr ?? "—"}
                         </span>
-                      ) : null}
+                      )}
                     </span>
                   </div>
-                  <span className="shrink-0 text-sm tabular-nums text-[var(--color-mute)]">
-                    {Math.round(pick.frequency * 100)}%
-                  </span>
+                  {shareLabels[index] ? (
+                    <span
+                      className={
+                        isRow
+                          ? "shrink-0 text-[0.65rem] tabular-nums text-[var(--color-mute)]"
+                          : "shrink-0 text-sm tabular-nums text-[var(--color-mute)]"
+                      }
+                    >
+                      {shareLabels[index]}
+                    </span>
+                  ) : null}
                 </li>
               )
             })}

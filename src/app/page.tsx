@@ -20,12 +20,15 @@ export default function Home() {
         <p className="athletic-rise text-xs font-medium tracking-[0.28em] text-[var(--color-mute)] uppercase">
           Head-to-head performance
         </p>
-        <h1 className="athletic-rise-delay mt-4 font-[family-name:var(--font-bebas-neue)] text-[clamp(5.5rem,18vw,14rem)] leading-[0.76] tracking-[-0.01em] text-[var(--color-ink)] uppercase">
-          FANTASY
+        <h1
+          aria-label="The Edge"
+          className="athletic-rise-delay mt-4 font-[family-name:var(--font-bebas-neue)] text-[clamp(3.5rem,12vw,9rem)] leading-[0.78] tracking-[-0.01em] text-[var(--color-ink)] uppercase"
+        >
+          <span className="block whitespace-nowrap">The</span>
+          <span className="block">Edge</span>
         </h1>
         <p className="athletic-rise-delay mt-8 max-w-lg text-base leading-7 text-[var(--color-mute)] sm:text-lg">
-          Category projections, sit/start calls, and streamers — built for
-          winning this week.
+          Win the week.
         </p>
 
         <div className="athletic-rise-delay-2 mt-10 flex flex-wrap items-center gap-3">

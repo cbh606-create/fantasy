@@ -1,24 +1,40 @@
 import type { CategoryId, Player } from "@/lib/domain/types"
+import { positionNeedBonus } from "@/lib/sim/rosterNeeds"
 import {
   categoryWinExpectancies,
   leagueMeanTotals,
+  playerPoolStats,
   rosterTotals,
+  weightedPlayerZScore,
 } from "@/lib/sim/score"
 
 type CategoryWeights = Record<CategoryId, number>
+
+export const USER_PICK_TOP_K = 8
+export const USER_PICK_SOFTMAX_TAU = 0.08
+export const USER_PICK_POSITION_NEED_SCALE = 1 / 25
 
 const scorePlayer = (
   player: Player,
   userRoster: Player[],
   allRosters: Player[][],
+  poolStats: ReturnType<typeof playerPoolStats>,
   weights: CategoryWeights,
 ): number => {
-  const leagueMean = leagueMeanTotals(allRosters)
-
-  return categoryWinExpectancies(
+  // End-of-board style EV vs current league (matters once rosters diverge).
+  const categoryScore = categoryWinExpectancies(
     rosterTotals([...userRoster, player]),
-    leagueMean,
+    leagueMeanTotals(allRosters),
     weights,
+  )
+
+  // Pool-relative talent (matters on empty/early boards where league EV saturates).
+  const talentScore = weightedPlayerZScore(player, poolStats, weights)
+
+  return (
+    categoryScore +
+    talentScore +
+    USER_PICK_POSITION_NEED_SCALE * positionNeedBonus(player, userRoster)
   )
 }
 
@@ -33,29 +49,37 @@ export const greedyUserPick = (
     throw new RangeError("Cannot pick a user player from an empty pool")
   }
 
-  let bestScore = Number.NEGATIVE_INFINITY
-  let bestPlayers: Player[] = []
+  const poolStats = playerPoolStats(remaining)
+  const scored = remaining.map((player) => ({
+    player,
+    score: scorePlayer(player, userRoster, allRosters, poolStats, weights),
+  }))
 
-  for (const player of remaining) {
-    const score = scorePlayer(player, userRoster, allRosters, weights)
-
-    if (score > bestScore) {
-      bestScore = score
-      bestPlayers = [player]
-      continue
+  scored.sort((left, right) => {
+    if (right.score !== left.score) {
+      return right.score - left.score
     }
 
-    if (score === bestScore) {
-      bestPlayers.push(player)
+    return left.player.id.localeCompare(right.player.id)
+  })
+
+  const top = scored.slice(0, Math.min(USER_PICK_TOP_K, scored.length))
+  const maxScore = top[0].score
+  const softmaxWeights = top.map(({ score }) =>
+    Math.exp((score - maxScore) / USER_PICK_SOFTMAX_TAU),
+  )
+  const totalWeight = softmaxWeights.reduce((sum, weight) => sum + weight, 0)
+  const threshold = rng() * totalWeight
+
+  let cumulative = 0
+  for (let index = 0; index < top.length; index += 1) {
+    cumulative += softmaxWeights[index]
+    if (threshold < cumulative) {
+      return top[index].player
     }
   }
 
-  const selectedIndex = Math.min(
-    Math.floor(rng() * bestPlayers.length),
-    bestPlayers.length - 1,
-  )
-
-  return bestPlayers[selectedIndex]
+  return top[top.length - 1].player
 }
 
 export const evaluateForcePick = (
@@ -66,6 +90,7 @@ export const evaluateForcePick = (
   weights: CategoryWeights,
   rng: () => number,
 ): { player: Player; path: Player[]; score: number } => {
+  const poolStats = playerPoolStats(remaining)
   const player = greedyUserPick(
     remaining.filter((candidate) => candidate.id === forcePick.id),
     userRoster,
@@ -77,6 +102,6 @@ export const evaluateForcePick = (
   return {
     player,
     path: [player],
-    score: scorePlayer(player, userRoster, allRosters, weights),
+    score: scorePlayer(player, userRoster, allRosters, poolStats, weights),
   }
 }

@@ -59,6 +59,9 @@ export const normalizeEspnCookies = (input: {
   return { espnS2, swid }
 }
 
+export const espnCookieHeader = (cookies: EspnCookies): string =>
+  `espn_s2=${cookies.espnS2}; SWID=${cookies.swid}`
+
 export const readEnvEspnCookies = (): EspnCookies | null =>
   normalizeEspnCookies({
     espnS2: process.env.ESPN_S2 ?? "",

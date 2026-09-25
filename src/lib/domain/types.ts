@@ -33,6 +33,8 @@ export type Player = {
   name: string
   positions: Array<"PG" | "SG" | "SF" | "PF" | "C">
   projections: Record<CategoryId, number>
+  /** Projected (or source) games played used to scale season totals ↔ per-game. */
+  projectedGames?: number
   adp: number
   adpBySource?: Partial<
     Record<

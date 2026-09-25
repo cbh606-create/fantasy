@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { DealDetail } from "@/components/trade/DealDetail"
 import {
@@ -42,6 +43,10 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
           { signal: controller.signal },
         )
 
+        if (suggestionsResponse.status === 401) {
+          throw new Error("unauthorized")
+        }
+
         if (!suggestionsResponse.ok) {
           throw new Error("Unable to load trade suggestions")
         }
@@ -70,21 +75,22 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-mute)]" role="status">
-          Finding trade matches…
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/trade"
+        backLabel="← All trade leagues"
+        status="Finding trade matches…"
+      />
     )
   }
 
   if (!tradeData) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-sale)]" role="alert">
-          {error || "Unable to load trade suggestions"}
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/trade"
+        backLabel="← All trade leagues"
+        error={error || "Unable to load trade suggestions"}
+        unauthorizedHint="Sign in to load trade suggestions for your leagues."
+      />
     )
   }
 

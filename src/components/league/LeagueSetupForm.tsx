@@ -33,8 +33,6 @@ type LeagueResponse = {
   message?: string
 }
 
-type Strategy = "punt" | "focus"
-
 export const LeagueSetupForm = () => {
   const router = useRouter()
   const [leagueName, setLeagueName] = useState("My League")
@@ -45,8 +43,6 @@ export const LeagueSetupForm = () => {
   const [categories, setCategories] = useState<CategorySetting[]>(
     defaultCategorySettings,
   )
-  const [puntCategoryIds, setPuntCategoryIds] = useState<CategoryId[]>([])
-  const [focusCategoryIds, setFocusCategoryIds] = useState<CategoryId[]>([])
   const [pendingAction, setPendingAction] = useState<"espn" | "manual" | null>(
     null,
   )
@@ -85,36 +81,10 @@ export const LeagueSetupForm = () => {
     )
   }
 
-  const handleStrategyToggle = (
-    strategy: Strategy,
-    categoryId: CategoryId,
-  ) => {
-    if (strategy === "punt") {
-      setPuntCategoryIds((currentIds) =>
-        currentIds.includes(categoryId)
-          ? currentIds.filter((id) => id !== categoryId)
-          : [...currentIds, categoryId],
-      )
-      setFocusCategoryIds((currentIds) =>
-        currentIds.filter((id) => id !== categoryId),
-      )
-      return
-    }
-
-    setFocusCategoryIds((currentIds) =>
-      currentIds.includes(categoryId)
-        ? currentIds.filter((id) => id !== categoryId)
-        : [...currentIds, categoryId],
-    )
-    setPuntCategoryIds((currentIds) =>
-      currentIds.filter((id) => id !== categoryId),
-    )
-  }
-
   const createLeague = async (
     endpoint: string,
     body: Record<string, unknown>,
-    draftTab: "prep" | "mock" | "live" = "prep",
+    draftTab: "mock" | "live" = "mock",
   ) => {
     const response = await fetch(endpoint, {
       method: "POST",
@@ -147,7 +117,7 @@ export const LeagueSetupForm = () => {
       throw new Error(detail || "Unable to create your league")
     }
 
-    const tabQuery = draftTab === "prep" ? "" : `?tab=${draftTab}`
+    const tabQuery = draftTab === "mock" ? "" : `?tab=${draftTab}`
     router.push(`/leagues/${result.id}/draft${tabQuery}`)
   }
 
@@ -197,8 +167,8 @@ export const LeagueSetupForm = () => {
             teams,
             userPickSlot: pickSlot,
             categories,
-            puntCategoryIds,
-            focusCategoryIds,
+            puntCategoryIds: [],
+            focusCategoryIds: [],
             rounds: DEFAULT_DRAFT_ROUNDS,
             playerPoolSource: "proj_2026_27",
           },
@@ -338,42 +308,6 @@ export const LeagueSetupForm = () => {
           })}
         </div>
       </fieldset>
-
-      {(["punt", "focus"] as const).map((strategy) => (
-        <fieldset key={strategy}>
-          <legend className="text-xl font-semibold capitalize">
-            {strategy} categories
-          </legend>
-          <p className="mt-1 text-sm text-[var(--color-mute)]">
-            {strategy === "punt"
-              ? "Deprioritize categories you plan to concede."
-              : "Boost categories you want to dominate."}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {categories.map((category) => {
-              const selectedIds =
-                strategy === "punt" ? puntCategoryIds : focusCategoryIds
-              const label = CATEGORY_LABELS[category.id]
-
-              return (
-                <Chip
-                  aria-label={`${strategy === "punt" ? "Punt" : "Focus"} ${label}`}
-                  disabled={!category.enabled}
-                  key={category.id}
-                  onClick={() =>
-                    handleStrategyToggle(strategy, category.id)
-                  }
-                  variant={
-                    selectedIds.includes(category.id) ? "active" : "default"
-                  }
-                >
-                  {label}
-                </Chip>
-              )
-            })}
-          </div>
-        </fieldset>
-      ))}
 
       <section className="rounded-[2rem] bg-[var(--color-soft-cloud)] p-6 sm:p-8">
         <div className="mb-6">

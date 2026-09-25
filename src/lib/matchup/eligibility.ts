@@ -13,11 +13,10 @@ export const eligibleForSlot = (
   player: Pick<SeasonPlayer, "positions"> | null | undefined,
   slot: SeasonSlot,
 ): boolean => {
-  if (slot === "BE" || slot === "IL") return true
-  if (slot === "UTIL") return true
+  if (slot === "BE" || slot === "IL" || slot === "UTIL") return true
 
   const positions = player?.positions
-  if (!positions?.length) return false
+  if (!positions?.length) return true
 
   if (slot === "G") {
     return positions.some((p) => p === "PG" || p === "SG" || p === "G")
@@ -25,6 +24,15 @@ export const eligibleForSlot = (
   if (slot === "F") {
     return positions.some((p) => p === "SF" || p === "PF" || p === "F")
   }
+  if (slot === "PG" || slot === "SG") {
+    return positions.some((p) => p === slot || p === "G")
+  }
+  if (slot === "SF" || slot === "PF") {
+    return positions.some((p) => p === slot || p === "F")
+  }
 
   return positions.includes(slot)
 }
+
+export const isSpecificPositionSlot = (slot: SeasonSlot): boolean =>
+  slot === "PG" || slot === "SG" || slot === "SF" || slot === "PF" || slot === "C"

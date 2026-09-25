@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import scheduleFixture from "../../../../../../data/fixtures/nba-matchup-schedule.json"
 import { requireUserId } from "@/lib/auth"
-import type { ScheduleResponse } from "@/lib/season/types"
+import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
 import { loadOwnedSeasonLeague } from "@/lib/waivers/loadSeasonLeague"
 import {
   isAllowedDayCount,
@@ -74,7 +73,7 @@ export const POST = async (request: Request): Promise<Response> => {
     return NextResponse.json({ error: "invalid_state" }, { status: 500 })
   }
 
-  const schedule = scheduleFixture as ScheduleResponse
+  const schedule = await getMatchupSchedule()
   const result = previewMatchupStream({
     state: loaded.state,
     schedule,

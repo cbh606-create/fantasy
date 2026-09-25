@@ -4,6 +4,7 @@ export type InjuryEvent = {
   playerId: string
   teamAbbr: string
   status: InjuryStatus
+  expectedOutDays?: number
   note?: string
 }
 
