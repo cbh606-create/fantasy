@@ -5,3 +5,6 @@
 *.db
 .worktrees/
 .superpowers/
+
+token code.txt
+API Keys.txt
