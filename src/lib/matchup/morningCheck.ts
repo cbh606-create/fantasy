@@ -372,10 +372,17 @@ export type MorningSummary = {
 
 export const outcomesFromBoard = (
   board: MatchupBoard,
-): Record<CategoryId, CategoryOutcome> =>
-  Object.fromEntries(
+): Record<CategoryId, CategoryOutcome> => {
+  const boardOutcomes = new Map(
     board.categories.map((row) => [row.categoryId, row.outcome]),
+  )
+  return Object.fromEntries(
+    ALL_CATEGORY_IDS.map((categoryId) => [
+      categoryId,
+      boardOutcomes.get(categoryId) ?? "T",
+    ]),
   ) as Record<CategoryId, CategoryOutcome>
+}
 
 const actionKey = (
   date: string,

@@ -587,6 +587,45 @@ describe("buildMorningSummary", () => {
     expect(summary.opponentMoves).toContain("dropped early-drop")
   })
 
+  it("does not mark flips when saved outcomes fill omitted board categories with ties", () => {
+    const you = emptyCategoryTotals()
+    const opp = emptyCategoryTotals()
+    you.PTS = 30
+    opp.PTS = 20
+    const ptsOnlyBoard = buildMatchupBoard(you, opp, ["PTS"])
+    const savedOutcomes = outcomesFromBoard(ptsOnlyBoard)
+    const summary = buildMorningSummary({
+      board: ptsOnlyBoard,
+      previous: {
+        outcomes: savedOutcomes,
+        opponentRosterIds: ["c"],
+        opponentDays: [],
+        ourDays: [],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(summary.categories.find((row) => row.categoryId === "PTS")).toMatchObject({
+      outcome: "W",
+      flipped: false,
+    })
+    for (const categoryId of ALL_CATEGORY_IDS) {
+      if (categoryId === "PTS") continue
+      expect(summary.categories.find((row) => row.categoryId === categoryId)).toMatchObject({
+        outcome: "T",
+        flipped: false,
+      })
+    }
+    expect(summary.categories.every((row) => row.flipped === false)).toBe(true)
+  })
+
   it("fills missing board categories with tie outcomes in ALL_CATEGORY_IDS order", () => {
     const you = emptyCategoryTotals()
     const opp = emptyCategoryTotals()
