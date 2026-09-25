@@ -377,15 +377,28 @@ export const outcomesFromBoard = (
     board.categories.map((row) => [row.categoryId, row.outcome]),
   ) as Record<CategoryId, CategoryOutcome>
 
-const actionKey = (date: string, action: string, playerId: string | null) =>
-  `${date} ${action} ${playerId ?? "none"}`
+const actionKey = (
+  date: string,
+  action: string,
+  playerId: string | null,
+  droppedPlayerId: string | null,
+) =>
+  `${date} ${action} ${playerId ?? "none"} drop ${droppedPlayerId ?? "none"}`
 
-const planActionLines = (days: StreamingPlanDay[]): string[] =>
-  days.flatMap((day) =>
-    day.cells
+const planActionLines = (days: StreamingPlanDay[], today: string): string[] =>
+  days.flatMap((day) => {
+    if (day.date < today) return []
+    return day.cells
       .filter((cell) => cell.action === "add" || cell.action === "drop_add")
-      .map((cell) => actionKey(day.date, cell.action, cell.playerId)),
-  )
+      .map((cell) =>
+        actionKey(
+          day.date,
+          cell.action,
+          cell.playerId,
+          cell.droppedPlayerId,
+        ),
+      )
+  })
 
 const sitLines = (sitStart: SitStartSuggestion[], today: string): string[] =>
   sitStart.map(
@@ -420,8 +433,17 @@ export const buildMorningSummary = (input: {
     for (const playerId of input.currentOpponentRosterIds) {
       if (!previousRoster.has(playerId)) opponentMoves.push(`added ${playerId}`)
     }
+    const expectedDrops = new Set(
+      input.previous.opponentDays.flatMap((day) =>
+        day.cells.flatMap((cell) =>
+          cell.droppedPlayerId ? [cell.droppedPlayerId] : [],
+        ),
+      ),
+    )
     for (const playerId of input.previous.opponentRosterIds) {
-      if (!currentRoster.has(playerId)) opponentMoves.push(`dropped ${playerId}`)
+      if (!currentRoster.has(playerId) && !expectedDrops.has(playerId)) {
+        opponentMoves.push(`dropped ${playerId}`)
+      }
     }
     const expectedAdds = new Set(
       input.previous.opponentDays.flatMap((day) =>
@@ -459,7 +481,10 @@ export const buildMorningSummary = (input: {
   }
 
   const todayRecommendations = [
-    ...planActionLines(input.ourDays.filter((day) => day.date === input.today)),
+    ...planActionLines(
+      input.ourDays.filter((day) => day.date === input.today),
+      input.today,
+    ),
     ...sitLines(input.sitStart, input.today),
   ].slice(0, 3)
 
@@ -471,21 +496,26 @@ export const buildMorningSummary = (input: {
   let recommendationChanges: string[] = []
   let recommendationsUnchanged = false
   if (input.previous && hasFact) {
-    const previousLines = new Set([
-      ...planActionLines(input.previous.ourDays),
+    const previousPlanLines = [
+      ...planActionLines(input.previous.ourDays, input.today),
       ...sitLines(input.previous.sitStart, input.today),
-    ])
-    const nextLines = [
-      ...planActionLines(input.ourDays),
+    ]
+    const nextPlanLines = [
+      ...planActionLines(input.ourDays, input.today),
       ...sitLines(input.sitStart, input.today),
     ]
-    const changed = nextLines.filter((line) => !previousLines.has(line))
+    const previousSet = new Set(previousPlanLines)
+    const nextSet = new Set(nextPlanLines)
+    const symmetricDiff = [
+      ...nextPlanLines.filter((line) => !previousSet.has(line)),
+      ...previousPlanLines.filter((line) => !nextSet.has(line)),
+    ]
     const todayFirst = [
-      ...changed.filter((line) => line.startsWith(input.today)),
-      ...changed.filter((line) => !line.startsWith(input.today)),
+      ...symmetricDiff.filter((line) => line.startsWith(input.today)),
+      ...symmetricDiff.filter((line) => !line.startsWith(input.today)),
     ]
     recommendationChanges = todayFirst.slice(0, 3)
-    recommendationsUnchanged = recommendationChanges.length === 0
+    recommendationsUnchanged = symmetricDiff.length === 0
   }
 
   return {

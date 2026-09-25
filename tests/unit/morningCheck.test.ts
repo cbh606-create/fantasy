@@ -368,7 +368,114 @@ describe("buildMorningSummary", () => {
     })
     expect(first.categories.every((row) => row.flipped === false)).toBe(true)
     expect(first.recommendationChanges).toEqual([])
-    expect(first.todayRecommendations).toEqual(["2026-10-21 add fa-on"])
+    expect(first.todayRecommendations).toEqual([
+      "2026-10-21 add fa-on drop none",
+    ])
+  })
+
+  it("omits dropped lines for planned opponent drops but reports unexpected drops", () => {
+    const opponentDayWithPlannedDrop = {
+      date: "2026-10-21",
+      streamerPlayerId: "stream-fa",
+      droppedPlayerId: null,
+      rosterGameCount: 1,
+      cells: [
+        {
+          spotIndex: 0,
+          playerId: "stream-fa",
+          droppedPlayerId: "planned-drop",
+          action: "drop_add" as const,
+          addIndex: 1,
+        },
+      ],
+    }
+    const summary = buildMorningSummary({
+      board: boardFromPts(20, 10),
+      previous: {
+        outcomes: outcomesFromBoard(boardFromPts(20, 10)),
+        opponentRosterIds: ["c", "stream-fa", "planned-drop", "surprise-drop"],
+        opponentDays: [opponentDayWithPlannedDrop],
+        ourDays: [],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c", "stream-fa"],
+      ourDays: [],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(summary.opponentMoves).toEqual(["dropped surprise-drop"])
+  })
+
+  it("includes a removed saved add in recommendationChanges when PTS flips", () => {
+    const previousOutcomes = outcomesFromBoard(boardFromPts(30, 20))
+    const summary = buildMorningSummary({
+      board: boardFromPts(10, 20),
+      previous: {
+        outcomes: previousOutcomes,
+        opponentRosterIds: ["c"],
+        opponentDays: [],
+        ourDays: [identicalAddDay],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(summary.recommendationsUnchanged).toBe(false)
+    expect(summary.recommendationChanges).toEqual([
+      "2026-10-21 add fa-on drop none",
+    ])
+  })
+
+  it("includes drop_add when droppedPlayerId changes but added player stays", () => {
+    const previousOutcomes = outcomesFromBoard(boardFromPts(30, 20))
+    const dropAddCell = (
+      droppedPlayerId: string,
+    ): (typeof identicalAddDay)["cells"][0] => ({
+      spotIndex: 0,
+      playerId: "fa-on",
+      action: "drop_add",
+      droppedPlayerId,
+      rosterDropPlayerId: droppedPlayerId,
+      rosterDropKind: "stream",
+      addIndex: 1,
+      alternativePlayerIds: [],
+      targetCategoryIds: ["PTS"],
+    })
+    const summary = buildMorningSummary({
+      board: boardFromPts(10, 20),
+      previous: {
+        outcomes: previousOutcomes,
+        opponentRosterIds: ["c"],
+        opponentDays: [],
+        ourDays: [
+          { date: "2026-10-21", cells: [dropAddCell("old-bench")] },
+        ],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [{ date: "2026-10-21", cells: [dropAddCell("new-bench")] }],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(summary.recommendationsUnchanged).toBe(false)
+    expect(summary.recommendationChanges).toEqual([
+      "2026-10-21 drop_add fa-on drop new-bench",
+      "2026-10-21 drop_add fa-on drop old-bench",
+    ])
   })
 
   it("marks recommendations unchanged when PTS flips but today's add matches previous", () => {
