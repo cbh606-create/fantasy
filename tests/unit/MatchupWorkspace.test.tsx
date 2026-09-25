@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest"
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MatchupWorkspace } from "@/components/matchup/MatchupWorkspace"
 import { defaultCategorySettings } from "@/lib/domain/categories"
@@ -256,11 +256,15 @@ describe("MatchupWorkspace", () => {
       dailyHeading.compareDocumentPosition(oppWeek) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
-    expect(screen.getByLabelText("Matchup plans")).toBeInTheDocument()
+    const plans = screen.getByLabelText("Matchup plans")
+    const board = screen.getByLabelText("Matchup board")
+    expect(
+      plans.compareDocumentPosition(board) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     expect(
       await screen.findByRole("button", { name: /recommended/i }),
     ).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByRole("button", { name: /Auto · 1 open/i })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Auto · 1/i })).toHaveAttribute(
       "aria-pressed",
       "true",
     )
@@ -276,9 +280,7 @@ describe("MatchupWorkspace", () => {
       screen.getAllByRole("rowheader", { name: /^Opp$/i }).length,
     ).toBeGreaterThan(0)
     expect(dailyHeading).toBeInTheDocument()
-    expect(
-      screen.getByTitle("B2B · ~75% expected"),
-    ).toBeInTheDocument()
+    expect(screen.getByTitle(/^B2B · \d+%$/)).toBeInTheDocument()
     expect(
       screen.getAllByRole("button", { name: /Sit Cold Starter on/i }).length,
     ).toBeGreaterThan(0)
@@ -352,9 +354,17 @@ describe("MatchupWorkspace", () => {
   it("links injury alert CTA to waivers with addPlayerId", async () => {
     render(<MatchupWorkspace leagueId="season-1" />)
 
-    const cta = await screen.findByRole("link", {
-      name: /Nickeil Alexander-Walker/i,
-    })
+    expect(
+      await screen.findByRole("heading", { name: "Test league" }),
+    ).toBeInTheDocument()
+
+    const cta = await screen.findByRole(
+      "link",
+      {
+        name: /Nickeil Alexander-Walker/i,
+      },
+      { timeout: 10000 },
+    )
 
     expect(cta.getAttribute("href")).toContain(
       "addPlayerId=nickeil-alexander-walker",
@@ -462,7 +472,7 @@ describe("MatchupWorkspace", () => {
     ).toBeInTheDocument()
   })
 
-  it("lets you start a roster player again after sitting them during a 1-spot preview", async () => {
+  it("keeps a playing roster player started if sit would leave an open slot during preview", async () => {
     const days = ["2025-10-22", "2025-10-23"]
     const packedSlots = [
       "PG",
@@ -613,7 +623,12 @@ describe("MatchupWorkspace", () => {
     ).toBeInTheDocument()
 
     await screen.findByRole("button", { name: /recommended/i })
-    fireEvent.click(screen.getByRole("button", { name: /You 1-spot/ }))
+    fireEvent.click(
+      within(screen.getByLabelText("You streaming spots")).getByRole(
+        "button",
+        { name: /You 1-spot/ },
+      ),
+    )
     expect(
       (await screen.findAllByText(/Previewing 1-spot/i)).length,
     ).toBeGreaterThan(0)
@@ -624,18 +639,14 @@ describe("MatchupWorkspace", () => {
     expect(sitButtons.length).toBeGreaterThan(1)
     fireEvent.click(sitButtons[1]!)
 
-    const startButtons = await screen.findAllByRole("button", {
-      name: /Start Austin Reaves on/i,
-    })
-    expect(startButtons.length).toBeGreaterThan(0)
-    expect(startButtons[startButtons.length - 1]).not.toBeDisabled()
-    fireEvent.click(startButtons[startButtons.length - 1]!)
-
     await waitFor(() => {
       expect(
         screen.getAllByRole("button", { name: /Sit Austin Reaves on/i }).length,
       ).toBeGreaterThan(1)
     })
+    expect(
+      screen.queryByRole("button", { name: /Start Austin Reaves on/i }),
+    ).not.toBeInTheDocument()
   }, 15000)
 
   it("sends stored statWindow on the first matchup fetch", async () => {

@@ -1,4 +1,5 @@
 import type { CategoryId } from "@/lib/domain/types"
+import { normalizeNbaTeamAbbr } from "@/lib/nba/teamAbbr"
 import { normalizePlayerName } from "@/lib/players/hashtagImport"
 
 export type PoolProjectionPlayer = {
@@ -102,6 +103,9 @@ export const applyPoolProjections = <T extends SeasonProjectionTarget>(
     const next: T = {
       ...target,
       projections: { ...poolPlayer.projections },
+    }
+    if (!target.teamAbbr && poolPlayer.teamAbbr) {
+      next.teamAbbr = normalizeNbaTeamAbbr(poolPlayer.teamAbbr)
     }
     if (
       typeof poolPlayer.projectedGames === "number" &&

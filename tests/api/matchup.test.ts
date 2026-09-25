@@ -199,13 +199,11 @@ describe("GET /api/matchup", () => {
     }
 
     const plans = payload.streamingPlans as Array<{
-      strategyMode: string
-      suggestedStrategyMode: string
       summaryReasons: unknown
     }>
     expect(plans.length).toBeGreaterThan(0)
     for (const plan of plans) {
-      expect(plan.strategyMode).toBe(plan.suggestedStrategyMode)
+      expect(plan).not.toHaveProperty("strategyMode")
       expect(Array.isArray(plan.summaryReasons)).toBe(true)
     }
   })

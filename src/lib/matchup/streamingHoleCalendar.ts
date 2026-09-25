@@ -1,7 +1,7 @@
 import { buildDayLineupFromRoster, type DailyLineups } from "@/lib/matchup/dailyLineups"
 import { isActiveSlot } from "@/lib/matchup/constants"
 import { eligibleForSlot } from "@/lib/matchup/eligibility"
-import { gameWeightForTeamDate } from "@/lib/matchup/games"
+import { teamHasGameOnDate } from "@/lib/matchup/games"
 import { isAdpProtected } from "@/lib/matchup/streamingDropPolicy"
 import type { StreamingDensityTier } from "@/lib/matchup/types"
 import type {
@@ -25,7 +25,7 @@ const playerPlaysOnDate = (
 ): boolean => {
   const teamAbbr = player.teamAbbr
   if (!teamAbbr) return false
-  return gameWeightForTeamDate(teamAbbr, date, schedule) > 0
+  return teamHasGameOnDate(teamAbbr, date, schedule)
 }
 
 const holeStartDates = (
@@ -239,7 +239,9 @@ export const pickAutoRosterCut = (args: {
     }
     seen.add(entry.playerId)
     if (seatedTonightIds.has(entry.playerId)) continue
-    if (!playersById.has(entry.playerId)) continue
+    const rostered = playersById.get(entry.playerId)
+    if (!rostered) continue
+    if (playerPlaysOnDate(rostered, date, schedule)) continue
     if (isAdpProtected(adpByPlayerId?.[entry.playerId])) continue
     candidates.push(entry.playerId)
   }
@@ -252,7 +254,7 @@ export const pickAutoRosterCut = (args: {
     let count = 0
     for (const day of days) {
       if (day < date) continue
-      if (gameWeightForTeamDate(rostered.teamAbbr, day, schedule) > 0) {
+      if (teamHasGameOnDate(rostered.teamAbbr, day, schedule)) {
         count += 1
       }
     }

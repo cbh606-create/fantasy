@@ -19,7 +19,10 @@ import type {
   SeasonLeagueState,
   SeasonPlayer,
 } from "@/lib/season/types"
-import { streamingAddLimitForSchedule } from "@/lib/matchup/games"
+import {
+  teamHasGameOnDate,
+  streamingAddLimitForSchedule,
+} from "@/lib/matchup/games"
 import {
   MATCHUP_WEEK_MOVE_COL_CLASS,
   MATCHUP_WEEK_STREAMING_DAY_COL_CLASS,
@@ -44,13 +47,11 @@ import {
   formatSuggestedDropTooltip,
   suggestStreamingDrop,
 } from "@/lib/matchup/streamingDropExplain"
-import { suggestStreamingStrategyMode } from "@/lib/matchup/streamingStrategy"
 import { winnerStreamHint } from "@/lib/matchup/winnerStreamPrior"
 import type {
   MatchupBoard,
   StreamingPlan,
   StreamingPlanDayCell,
-  StreamingStrategyMode,
   StatWindow,
   WinnerStreamRecipe,
 } from "@/lib/matchup/types"
@@ -58,19 +59,6 @@ import type { CategoryId } from "@/lib/domain/types"
 
 const MIN_ADD_BUDGET = 1
 const MAX_ADD_BUDGET = 14
-
-const STRATEGY_OPTIONS: { id: StreamingStrategyMode; label: string }[] = [
-  { id: "aggressive", label: "Aggressive" },
-  { id: "balanced", label: "Balanced" },
-  { id: "conservative", label: "Conservative" },
-]
-
-const PREVIEW_OPTIONS: { id: 1 | 2 | 3 | null; label: string }[] = [
-  { id: null, label: "None" },
-  { id: 1, label: "1-spot" },
-  { id: 2, label: "2-spot" },
-  { id: 3, label: "3-spot" },
-]
 
 const EMPTY_WINNER_STREAM_RECIPES: WinnerStreamRecipe[] = []
 
@@ -143,15 +131,8 @@ const playerPlaysOn = (
   date: string,
   schedule: ScheduleResponse,
 ): boolean => {
-  const team = player?.teamAbbr?.toUpperCase()
-  if (!team) return false
-  return schedule.games.some((game) => {
-    if (game.date !== date) return false
-    return (
-      game.homeAbbr.toUpperCase() === team ||
-      game.awayAbbr.toUpperCase() === team
-    )
-  })
+  if (!player?.teamAbbr) return false
+  return teamHasGameOnDate(player.teamAbbr, date, schedule)
 }
 
 /** Soft row tints for spot 1…3 (including 1-spot plans). */
@@ -703,7 +684,6 @@ export const StreamingPlansPanel = ({
   today = localIsoDate(),
   statWindow,
 }: StreamingPlansPanelProps) => {
-  const suggested = suggestStreamingStrategyMode(board)
   const slateAddLimit = useMemo(
     () => streamingAddLimitForSchedule(schedule),
     [schedule],
@@ -712,8 +692,6 @@ export const StreamingPlansPanel = ({
   useEffect(() => {
     setAddBudget(slateAddLimit)
   }, [slateAddLimit])
-  const [strategyMode, setStrategyMode] =
-    useState<StreamingStrategyMode>(suggested)
   const [internalPreviewSpotCount, setInternalPreviewSpotCount] = useState<
     1 | 2 | 3 | null
   >(null)
@@ -730,7 +708,7 @@ export const StreamingPlansPanel = ({
 
   useEffect(() => {
     setForcedRosterDropsBySpotCount({})
-  }, [strategyMode, addBudget])
+  }, [addBudget])
 
   const plans = useMemo(
     () =>
@@ -740,7 +718,6 @@ export const StreamingPlansPanel = ({
           schedule,
           board,
           addLimit: addBudget,
-          strategyMode,
           adpByPlayerId,
           spotCount,
           forcedRosterDrops: forcedRosterDropsBySpotCount[spotCount],
@@ -760,7 +737,6 @@ export const StreamingPlansPanel = ({
       schedule,
       board,
       addBudget,
-      strategyMode,
       adpByPlayerId,
       forcedRosterDropsBySpotCount,
       daily,
@@ -780,7 +756,6 @@ export const StreamingPlansPanel = ({
       schedule,
       board,
       addLimit: addBudget,
-      strategyMode,
       adpByPlayerId,
       spotCount: 1,
       youIdle: true,
@@ -805,7 +780,6 @@ export const StreamingPlansPanel = ({
     schedule,
     state,
     statWindow,
-    strategyMode,
     today,
     winnerStreamRecipes,
   ])
@@ -831,18 +805,6 @@ export const StreamingPlansPanel = ({
       return { ...prev, [spotCount]: nextForSpot }
     })
     setPreviewSpotCount(spotCount)
-  }
-
-  const selectPreviewSpot = (spot: 1 | 2 | 3 | null) => {
-    setPreviewSpotCount(spot)
-    if (onPreviewSpotCountChange) return
-    if (spot == null) {
-      onPreviewPlanChange?.(null)
-      return
-    }
-    onPreviewPlanChange?.(
-      plans.find((plan) => plan.spotCount === spot) ?? null,
-    )
   }
 
   const previewSpotRef = useRef(previewSpotCount)
@@ -924,56 +886,11 @@ export const StreamingPlansPanel = ({
               +
             </button>
           </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
-              <span className="text-[var(--color-mute)]">Strategy</span>
-              {STRATEGY_OPTIONS.map((option) => (
-                <button
-                  aria-pressed={strategyMode === option.id}
-                  className={
-                    strategyMode === option.id
-                      ? "rounded-full border border-[var(--color-ink)] px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-                      : "rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-                  }
-                  key={option.id}
-                  onClick={() => setStrategyMode(option.id)}
-                  type="button"
-                >
-                  {option.label}
-                </button>
-              ))}
-              {strategyMode !== suggested ? (
-                <span className="text-[var(--color-mute)]">
-                  Suggested:{" "}
-                  {STRATEGY_OPTIONS.find((option) => option.id === suggested)
-                    ?.label ?? suggested}
-                </span>
-              ) : null}
-            </div>
-            {streamHint ? (
-              <p className="mt-1 max-w-md text-[0.75rem] text-[var(--color-mute)]">
-                {streamHint}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
-            <span className="text-[var(--color-mute)]">Preview</span>
-            {PREVIEW_OPTIONS.map((option) => (
-              <button
-                aria-pressed={previewSpotCount === option.id}
-                className={
-                  previewSpotCount === option.id
-                    ? "rounded-full border border-[var(--color-ink)] px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-                    : "rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-                }
-                key={option.label}
-                onClick={() => selectPreviewSpot(option.id)}
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          {streamHint ? (
+            <p className="max-w-md text-[0.75rem] text-[var(--color-mute)]">
+              {streamHint}
+            </p>
+          ) : null}
         </div>
       </div>
 

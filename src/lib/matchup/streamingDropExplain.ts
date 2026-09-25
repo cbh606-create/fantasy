@@ -37,6 +37,35 @@ export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean => {
   return true
 }
 
+const RANK_WIN_PROB_CAP = 0.7
+const AST_STL_CLUSTER_GAP = 0.08
+
+/** Chase cats used by ranking and pickBestStreamerMove. Max 2, except AST+STL cluster. */
+export const chaseCategoryIds = (
+  board: MatchupBoard,
+  puntCategoryIds: ReadonlySet<CategoryId> = new Set(),
+): CategoryId[] => {
+  const contested = board.categories.filter(
+    (row) =>
+      isContestedCategoryRow(row) &&
+      row.winProb < RANK_WIN_PROB_CAP &&
+      !puntCategoryIds.has(row.categoryId),
+  )
+  const ast = contested.find((row) => row.categoryId === "AST")
+  const stl = contested.find((row) => row.categoryId === "STL")
+  if (
+    ast &&
+    stl &&
+    Math.abs(ast.winProb - stl.winProb) <= AST_STL_CLUSTER_GAP
+  ) {
+    return ["AST", "STL"]
+  }
+  return [...contested]
+    .sort((left, right) => left.winProb - right.winProb)
+    .slice(0, 2)
+    .map((row) => row.categoryId)
+}
+
 export const isCloseLosingCategory = (row: MatchupCategoryRow): boolean =>
   row.outcome === "T" ||
   (row.outcome === "L" && row.winProb >= CLOSE_LOSS_MIN_WIN_PROB)

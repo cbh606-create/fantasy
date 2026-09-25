@@ -64,33 +64,21 @@ const baseState = (
 })
 
 describe("diversifyRosterTeamAbbrs", () => {
-  it("rewrites duplicate teamAbbrs within a manual roster", () => {
+  it("keeps real teammate teamAbbrs so they share the NBA schedule", () => {
     const players = [
       player("a", "BOS"),
       player("b", "LAL"),
       player("c", "BOS"),
       player("d", "LAL"),
-      player("e", "NYK"),
-      player("f", "MIA"),
-      player("g", "MIL"),
-      player("h", "DEN"),
-      player("i", "GSW"),
-      player("j", "OKC"),
-      player("k", "PHX"),
-      player("l", "DAL"),
-      player("m", "CLE"),
-      player("n", "MIN"),
+      player("e", "GS"),
+      player("f", "NY"),
     ]
 
     const next = diversifyRosterTeamAbbrs(baseState(players))
-    const abbrs = next.teams[0].entries
-      .map((entry) => next.players.find((p) => p.id === entry.playerId)?.teamAbbr)
-      .filter(Boolean)
-
-    expect(abbrs).toHaveLength(14)
-    expect(new Set(abbrs).size).toBe(14)
     expect(next.players.find((p) => p.id === "a")?.teamAbbr).toBe("BOS")
-    expect(next.players.find((p) => p.id === "c")?.teamAbbr).not.toBe("BOS")
+    expect(next.players.find((p) => p.id === "c")?.teamAbbr).toBe("BOS")
+    expect(next.players.find((p) => p.id === "e")?.teamAbbr).toBe("GSW")
+    expect(next.players.find((p) => p.id === "f")?.teamAbbr).toBe("NYK")
   })
 
   it("does not remap espn imports", () => {
@@ -107,30 +95,16 @@ describe("diversifyRosterTeamAbbrs", () => {
 })
 
 describe("normalizeSeasonAvailability", () => {
-  it("diversifies duplicate teamAbbrs for manual leagues on load", () => {
+  it("keeps duplicate real teamAbbrs for manual leagues on load", () => {
     const state = normalizeSeasonAvailability(
       baseState([
         player("a", "BOS"),
         player("b", "LAL"),
-        player("c", "NYK"),
-        player("d", "MIA"),
-        player("e", "MIL"),
-        player("f", "DEN"),
-        player("g", "GSW"),
-        player("h", "OKC"),
-        player("i", "BOS"),
-        player("j", "LAL"),
-        player("k", "NYK"),
-        player("l", "MIA"),
-        player("m", "MIL"),
-        player("n", "DEN"),
+        player("c", "BOS"),
       ]),
     )
 
-    const abbrs = state.teams[0].entries.map(
-      (entry) => state.players.find((p) => p.id === entry.playerId)?.teamAbbr,
-    )
-
-    expect(new Set(abbrs).size).toBe(14)
+    expect(state.players.find((p) => p.id === "a")?.teamAbbr).toBe("BOS")
+    expect(state.players.find((p) => p.id === "c")?.teamAbbr).toBe("BOS")
   })
 })

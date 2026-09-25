@@ -231,8 +231,8 @@ describe("StreamingPlansPanel", () => {
     expect(screen.getByRole("heading", { name: /^1-spot$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: /^2-spot$/i })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: /^3-spot$/i })).toBeInTheDocument()
-    expect(screen.getByRole("spinbutton", { name: /weekly add budget/i })).toHaveValue(3)
-    expect(screen.getAllByText(/Adds \d+\/3/).length).toBeGreaterThan(0)
+    expect(screen.getByRole("spinbutton", { name: /weekly add budget/i })).toHaveValue(7)
+    expect(screen.getAllByText(/Adds \d+\/7/).length).toBeGreaterThan(0)
   })
 
   it("rebuilds plans when weekly add budget changes", () => {
@@ -248,13 +248,13 @@ describe("StreamingPlansPanel", () => {
 
     const budget = screen.getByRole("spinbutton", { name: /weekly add budget/i })
     fireEvent.click(screen.getByRole("button", { name: /decrease weekly add budget/i }))
-    expect(budget).toHaveValue(2)
-    expect(screen.getAllByText(/Adds \d+\/2/).length).toBeGreaterThan(0)
+    expect(budget).toHaveValue(6)
+    expect(screen.getAllByText(/Adds \d+\/6/).length).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByRole("button", { name: /increase weekly add budget/i }))
     fireEvent.click(screen.getByRole("button", { name: /increase weekly add budget/i }))
-    expect(budget).toHaveValue(4)
-    expect(screen.getAllByText(/Adds \d+\/4/).length).toBeGreaterThan(0)
+    expect(budget).toHaveValue(8)
+    expect(screen.getAllByText(/Adds \d+\/8/).length).toBeGreaterThan(0)
   })
 
   it("renders Add and Drop rows for built plans", () => {
@@ -303,8 +303,6 @@ describe("StreamingPlansPanel", () => {
         state={state}
       />,
     )
-
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
 
     const link = screen.getAllByRole("link", { name: /Streamer/i })[0]!
     fireEvent.mouseEnter(link.parentElement!)
@@ -369,7 +367,7 @@ describe("StreamingPlansPanel", () => {
     )
   })
 
-  it("defaults strategy to board suggestion and rebuilds on toggle", () => {
+  it("does not render strategy toggles", () => {
     render(
       <StreamingPlansPanel
         board={board}
@@ -380,17 +378,15 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    expect(screen.getByRole("button", { name: "Conservative" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
-
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
-    expect(screen.getByRole("button", { name: "Aggressive" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
-    expect(screen.getByText("Suggested: Conservative")).toBeInTheDocument()
+    expect(screen.queryByText("Strategy")).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Aggressive" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Balanced" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Conservative" })).not.toBeInTheDocument()
+    expect(screen.queryByText("Preview")).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /^None$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /^1-spot$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /^2-spot$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /^3-spot$/i })).not.toBeInTheDocument()
   })
 
   it("shows summary reasons under a plan header", () => {
@@ -405,7 +401,7 @@ describe("StreamingPlansPanel", () => {
     )
 
     expect(
-      screen.getAllByText(/Prioritized 3-in-4|blocks|Skipped thin|Board/i).length,
+      screen.getAllByText(/Prioritized 3-in-4|blocks/i).length,
     ).toBeGreaterThan(0)
     expect(
       screen.getAllByText(/Fills empty stream spots for the week/).length,
@@ -455,29 +451,7 @@ describe("StreamingPlansPanel", () => {
     expect(screen.getAllByText("STL").length).toBeGreaterThan(0)
   })
 
-  it("renders None/1/2/3 preview selector defaulting to None", () => {
-    render(
-      <StreamingPlansPanel
-        board={board}
-        leagueId="lg1"
-        playersById={{}}
-        schedule={schedule}
-        state={state}
-      />,
-    )
-
-    const none = screen.getByRole("button", { name: /^None$/i })
-    const one = screen.getByRole("button", { name: /^1-spot$/i })
-    const two = screen.getByRole("button", { name: /^2-spot$/i })
-    const three = screen.getByRole("button", { name: /^3-spot$/i })
-
-    expect(none).toHaveAttribute("aria-pressed", "true")
-    expect(one).toHaveAttribute("aria-pressed", "false")
-    expect(two).toHaveAttribute("aria-pressed", "false")
-    expect(three).toHaveAttribute("aria-pressed", "false")
-  })
-
-  it("calls onPreviewPlanChange with the 1-spot plan when 1-spot is selected", () => {
+  it("applies a parent preview spot without a panel toggle", () => {
     const onPreviewPlanChange = vi.fn()
 
     render(
@@ -486,37 +460,16 @@ describe("StreamingPlansPanel", () => {
         leagueId="lg1"
         onPreviewPlanChange={onPreviewPlanChange}
         playersById={{}}
+        previewSpotCount={1}
         schedule={schedule}
         state={state}
       />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: /^1-spot$/i }))
-
-    expect(onPreviewPlanChange).toHaveBeenCalledTimes(1)
     expect(onPreviewPlanChange).toHaveBeenCalledWith(
       expect.objectContaining({ spotCount: 1 }),
     )
-  })
-
-  it("calls onPreviewPlanChange(null) when None is selected after a plan", () => {
-    const onPreviewPlanChange = vi.fn()
-
-    render(
-      <StreamingPlansPanel
-        board={board}
-        leagueId="lg1"
-        onPreviewPlanChange={onPreviewPlanChange}
-        playersById={{}}
-        schedule={schedule}
-        state={state}
-      />,
-    )
-
-    fireEvent.click(screen.getByRole("button", { name: /^1-spot$/i }))
-    fireEvent.click(screen.getByRole("button", { name: /^None$/i }))
-
-    expect(onPreviewPlanChange).toHaveBeenLastCalledWith(null)
+    expect(screen.getByRole("status")).toHaveTextContent("Previewing 1-spot")
   })
 
   it("renders roster drop selects on add cells and rebuilds on change", () => {
@@ -530,8 +483,6 @@ describe("StreamingPlansPanel", () => {
         today="2025-11-03"
       />,
     )
-
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
 
     const selects = screen.getAllByRole("combobox", { name: /roster drop/i })
     expect(selects.length).toBeGreaterThan(0)
@@ -560,8 +511,6 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
-
     const selects = screen.getAllByRole("combobox", { name: /Roster drop/i })
     expect(selects.length).toBeGreaterThan(0)
     expect(selects[0]).toHaveValue("open_slot")
@@ -586,8 +535,6 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
-
     expect(
       screen.queryByRole("combobox", { name: /Roster drop/i }),
     ).not.toBeInTheDocument()
@@ -608,7 +555,6 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
     expect(onPreviewPlanChange).not.toHaveBeenCalled()
 
     const oneSpotSelect = screen.getAllByRole("combobox", {
@@ -616,10 +562,6 @@ describe("StreamingPlansPanel", () => {
     })[0]!
     fireEvent.change(oneSpotSelect, { target: { value: "you-idle" } })
 
-    expect(screen.getByRole("button", { name: /^1-spot$/i })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
     const previewed = onPreviewPlanChange.mock.calls.at(-1)?.[0] as StreamingPlan
     expect(previewed?.spotCount).toBe(1)
     expect(previewed?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
@@ -640,15 +582,14 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
-    fireEvent.click(screen.getByRole("button", { name: /^1-spot$/i }))
+    const oneSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop .* spot 1/i,
+    })[0]!
+    fireEvent.change(oneSpotSelect, { target: { value: "you-idle" } })
 
     const initialPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
     expect(initialPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
 
-    const oneSpotSelect = screen.getAllByRole("combobox", {
-      name: /roster drop .* spot 1/i,
-    })[0]!
     expect(oneSpotSelect).toHaveValue("you-idle")
     fireEvent.change(oneSpotSelect, { target: { value: "you-play" } })
 
@@ -657,21 +598,16 @@ describe("StreamingPlansPanel", () => {
   })
 
   it("keeps roster drop overrides isolated per spot-count plan", () => {
-    const onPreviewPlanChange = vi.fn()
-
     render(
       <StreamingPlansPanel
         board={board}
         leagueId="lg1"
-        onPreviewPlanChange={onPreviewPlanChange}
         playersById={{}}
         schedule={dropSchedule}
         state={dropState}
         today="2025-11-03"
       />,
     )
-
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
 
     const oneSpotSelect = screen.getAllByRole("combobox", {
       name: /roster drop .* spot 1/i,
@@ -680,10 +616,6 @@ describe("StreamingPlansPanel", () => {
     fireEvent.change(oneSpotSelect, { target: { value: "you-play" } })
     expect(oneSpotSelect).toHaveValue("you-play")
 
-    fireEvent.click(screen.getByRole("button", { name: /^2-spot$/i }))
-    const twoSpotPlan = onPreviewPlanChange.mock.calls.at(-1)?.[0]
-    expect(twoSpotPlan?.spotCount).toBe(2)
-    expect(twoSpotPlan?.days[0]?.cells[0]?.rosterDropPlayerId).toBe("you-idle")
     const twoSpotSelect = screen.getAllByRole("combobox", {
       name: /roster drop .* spot 1/i,
     })[1]!
@@ -815,8 +747,6 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
-
     expect(
       screen.queryByRole("combobox", {
         name: new RegExp(formatMatchupDayLabel("2025-11-03"), "i"),
@@ -861,7 +791,6 @@ describe("StreamingPlansPanel", () => {
         today="2025-11-03"
       />,
     )
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
     expect(screen.getAllByText(/Opp:/).length).toBeGreaterThan(0)
   })
 
@@ -877,7 +806,6 @@ describe("StreamingPlansPanel", () => {
         today="2025-10-01"
       />,
     )
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
     const dropRow = screen.getAllByRole("rowheader", { name: /^Drop$/i })[0]!.closest(
       "tr",
     )!
@@ -922,8 +850,6 @@ describe("StreamingPlansPanel", () => {
         today="2025-11-04"
       />,
     )
-
-    fireEvent.click(screen.getByRole("button", { name: "Aggressive" }))
 
     const todaySelect = screen.getAllByRole("combobox", {
       name: /Roster drop.*spot 1/i,

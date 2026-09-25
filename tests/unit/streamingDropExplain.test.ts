@@ -5,6 +5,7 @@ import {
   formatHelpsCatsLine,
   formatSuggestedDropTooltip,
   isCloseLosingCategory,
+  chaseCategoryIds,
   isContestedCategoryRow,
   suggestStreamingDrop,
   targetCategoryIdsFromBoards,
@@ -94,6 +95,28 @@ describe("streamingDropExplain", () => {
     expect(isContestedCategoryRow(row("PTS", "W", 0.64))).toBe(true)
     expect(isContestedCategoryRow(row("REB", "W", 0.65))).toBe(false)
     expect(isContestedCategoryRow(row("AST", "L", 0.75))).toBe(false)
+  })
+
+  it("keeps AST and STL together when their winProb gap is within 0.08", () => {
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        if (categoryId === "REB") {
+          return { categoryId, you: 1, opp: 10, outcome: "L" as const, winProb: 0.36 }
+        }
+        if (categoryId === "AST") {
+          return { categoryId, you: 8, opp: 12, outcome: "L" as const, winProb: 0.4 }
+        }
+        if (categoryId === "STL") {
+          return { categoryId, you: 3, opp: 5, outcome: "L" as const, winProb: 0.42 }
+        }
+        return { categoryId, you: 10, opp: 8, outcome: "W" as const, winProb: 0.8 }
+      }),
+      wins: 6,
+      losses: 3,
+      ties: 0,
+      projectedCatWins: 6,
+    }
+    expect(chaseCategoryIds(board).sort()).toEqual(["AST", "STL"])
   })
 
   it("treats a close L or T as a chase hole, not a blowout L", () => {

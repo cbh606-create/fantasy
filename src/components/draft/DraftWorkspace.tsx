@@ -763,8 +763,8 @@ export const DraftWorkspace = ({
   if (isLoading) {
     return (
       <SeasonToolShell
-        backHref="/leagues/new"
-        backLabel="← Draft setup"
+        backHref="/"
+        backLabel="← Home"
         status="Loading draft workspace…"
       />
     )
@@ -773,8 +773,8 @@ export const DraftWorkspace = ({
   if (!state) {
     return (
       <SeasonToolShell
-        backHref="/leagues/new"
-        backLabel="← Draft setup"
+        backHref="/"
+        backLabel="← Home"
         error={error || "Unable to load this league"}
         unauthorizedHint="Sign in to load this draft league."
       />

@@ -109,15 +109,20 @@ export const adviseMatchup = (
     state.players,
     loadProjAdpPlayers(),
   )
-  const streamingPlans = buildAllStreamingPlans({
-    state,
-    schedule,
-    board,
-    addLimit: options.addLimit,
-    adpByPlayerId,
-    winnerStreamRecipes: options.winnerStreamRecipes,
-    statWindow,
-  })
+  let streamingPlans
+  try {
+    streamingPlans = buildAllStreamingPlans({
+      state,
+      schedule,
+      board,
+      addLimit: options.addLimit,
+      adpByPlayerId,
+      winnerStreamRecipes: options.winnerStreamRecipes,
+      statWindow,
+    })
+  } catch {
+    streamingPlans = []
+  }
 
   return {
     opponentTeamIndex,

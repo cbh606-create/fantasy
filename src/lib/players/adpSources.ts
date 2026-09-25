@@ -36,7 +36,7 @@ export const ADP_SOURCES: Record<
   },
   espn_article_h2h_points: {
     id: "espn_article_h2h_points",
-    label: "ESPN ADP",
+    label: "ESPN Rank",
     shortLabel: "ESPN",
   },
 }

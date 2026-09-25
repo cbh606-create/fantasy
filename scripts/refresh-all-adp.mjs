@@ -1,7 +1,7 @@
 /**
  * Refresh selectable mock-draft ADP sources onto the player pool.
  *
- * Live-fetches Yahoo Rank (player_ranks OR) + ESPN averageDraftPosition (writes fixtures),
+ * Live-fetches Yahoo Rank (player_ranks OR) + ESPN projections STANDARD rank (writes fixtures),
  * then merges Primary ADP.
  *
  * Usage:

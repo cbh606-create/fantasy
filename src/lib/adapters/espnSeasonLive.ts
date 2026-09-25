@@ -10,6 +10,7 @@ import {
   mergeAvailablePlayers,
 } from "./espnAvailable"
 import {
+  espnCookieHeader,
   readEnvEspnCookies,
   type EspnCookies,
 } from "@/lib/espn/cookies"
@@ -45,8 +46,9 @@ const resolveCookies = (cookies?: EspnCookies): EspnCookies => {
 
 const espnHeaders = (cookies: EspnCookies): Record<string, string> => ({
   Accept: "application/json, text/plain, */*",
-  // Keep SWID braces raw; percent-encode espn_s2 so `/` and `+` survive Cookie.
-  Cookie: `espn_s2=${encodeURIComponent(cookies.espnS2)}; SWID=${cookies.swid}`,
+  Cookie: espnCookieHeader(cookies),
+  Origin: "https://fantasy.espn.com",
+  Referer: "https://fantasy.espn.com/",
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
 })
@@ -152,9 +154,16 @@ export const fetchEspnSeasonLeague = async (params: {
       response.status === 307 ||
       response.status === 308
     ) {
+      const location = response.headers.get("location") ?? ""
+      let locationHost = "login"
+      try {
+        locationHost = new URL(location, "https://fantasy.espn.com").host
+      } catch {
+        // keep default
+      }
       throw new EspnAdapterError(
         "ESPN_AUTH",
-        `ESPN redirected (${response.status}) — private league cookies rejected`,
+        `ESPN redirected (${response.status} → ${locationHost}) — not logged in for this private league`,
       )
     }
 

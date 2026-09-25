@@ -397,6 +397,52 @@ describe("pickAutoRosterCut", () => {
     expect(cut).toBe("r-past")
   })
 
+  it("drops a no-game player instead of a same-day playing bench player", () => {
+    const days = ["2026-10-20", "2026-10-21", "2026-10-22"]
+    const playing = player("r-play", "BOS", { positions: ["SG"] })
+    const idle = player("r-idle", "DET", { positions: ["PF"] })
+    const schedule = scheduleOf(days, [
+      { date: "2026-10-20", homeAbbr: "BOS", awayAbbr: "NYK" },
+      { date: "2026-10-21", homeAbbr: "BOS", awayAbbr: "MIA" },
+      { date: "2026-10-22", homeAbbr: "DET", awayAbbr: "CHI" },
+      { date: "2026-10-24", homeAbbr: "DET", awayAbbr: "ORL" },
+    ])
+    const cut = pickAutoRosterCut({
+      date: "2026-10-20",
+      days,
+      teamEntries: [
+        { slot: "BE", playerId: "r-play" },
+        { slot: "BE", playerId: "r-idle" },
+      ],
+      players: [playing, idle],
+      schedule,
+      seatedTonight: [{ slot: "UTIL", playerId: null }],
+    })
+    expect(cut).toBe("r-idle")
+  })
+
+  it("returns null when every droppable roster player has a game that day", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const first = player("r-play-a", "BOS", { positions: ["SG"] })
+    const second = player("r-play-b", "NYK", { positions: ["PF"] })
+    const schedule = scheduleOf(days, [
+      { date: "2026-10-20", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "ORL" },
+    ])
+    const cut = pickAutoRosterCut({
+      date: "2026-10-20",
+      days,
+      teamEntries: [
+        { slot: "BE", playerId: "r-play-a" },
+        { slot: "BE", playerId: "r-play-b" },
+      ],
+      players: [first, second],
+      schedule,
+      seatedTonight: [{ slot: "UTIL", playerId: null }],
+    })
+    expect(cut).toBeNull()
+  })
+
   it("does not count a packed next game as a remaining hole start", () => {
     const days = ["2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24"]
     const ighodaro = player("fa-ighodaro", "POR", { positions: ["PF", "C"] })

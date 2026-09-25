@@ -40,7 +40,7 @@ const deltaClass = (outcome: CategoryOutcome): string => {
 export const MatchupBoard = ({ board }: MatchupBoardProps) => (
   <section
     aria-label="Matchup board"
-    className="mx-auto w-full max-w-5xl rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
+    className="w-full rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
   >
     <div className="flex min-h-[6rem] items-stretch gap-4 overflow-x-auto">
       <div className="flex shrink-0 flex-col justify-center border-r border-[var(--color-hairline)] pr-4">

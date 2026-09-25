@@ -1,36 +1,4 @@
-import type {
-  MatchupBoard,
-  StreamingDensityTier,
-  StreamingStrategyMode,
-} from "./types"
-
-const MODES: StreamingStrategyMode[] = [
-  "aggressive",
-  "balanced",
-  "conservative",
-]
-
-export const normalizeStreamingStrategyMode = (
-  value: unknown,
-): StreamingStrategyMode =>
-  typeof value === "string" &&
-  (MODES as string[]).includes(value)
-    ? (value as StreamingStrategyMode)
-    : "balanced"
-
-export const suggestStreamingStrategyMode = (
-  board: MatchupBoard,
-): StreamingStrategyMode => {
-  const total = board.categories.length
-  if (total === 0) return "balanced"
-  const behind = board.categories.filter(
-    (row) => row.outcome === "L" || row.outcome === "T",
-  ).length
-  const behindRatio = behind / total
-  if (behindRatio >= 0.5) return "aggressive"
-  if (behindRatio <= 0.15) return "conservative"
-  return "balanced"
-}
+import type { StreamingDensityTier } from "./types"
 
 export const densityTierRank = (tier: StreamingDensityTier): number => {
   switch (tier) {
@@ -45,15 +13,6 @@ export const densityTierRank = (tier: StreamingDensityTier): number => {
   }
 }
 
-export const softCapForSpot = (
-  addLimit: number,
-  spotCount: number,
-  mode: StreamingStrategyMode,
-): number => {
-  const base = Math.ceil(addLimit / spotCount)
-  return mode === "aggressive" ? base + 1 : base
-}
-
 /** Hard per-spot add split. 7/2 → 4,3; 7/3 → 3,2,2. */
 export const addCapForSpot = (
   addLimit: number,
@@ -66,6 +25,19 @@ export const addCapForSpot = (
   return base + (spotIndex < remainder ? 1 : 0)
 }
 
+/** Weekly addLimit is the only hard cap. Spot cap may overflow to add a start. */
+export const canSpotSpendAdd = (
+  addsUsed: number,
+  addLimit: number,
+  usedOnSpot: number,
+  spotCap: number,
+  increasesStarts: boolean,
+): boolean => {
+  if (addsUsed >= addLimit || addLimit <= 0) return false
+  if (usedOnSpot < spotCap) return true
+  return increasesStarts
+}
+
 /** Last 3 matchup days — looser swap / thin-fill policy. */
 export const isLateStreamingWeek = (
   dayIndex: number,
@@ -73,15 +45,22 @@ export const isLateStreamingWeek = (
 ): boolean => dayIndex >= Math.max(0, dayCount - 3)
 
 /**
- * Do not ration adds across days. Spend remaining budget today when a
- * legal add increases starts or contested score.
+ * Spread remaining adds across remaining days. Keep later-day blocks
+ * funded instead of spending the weekly budget today.
  */
 export const dailyAddPaceLimit = (
   remainingAdds: number,
   remainingDays: number,
+  emptySpots = 1,
 ): number => {
   if (remainingAdds <= 0 || remainingDays <= 0) return 0
-  return remainingAdds
+  if (remainingDays === 1) return remainingAdds
+  const even = Math.max(1, Math.ceil(remainingAdds / remainingDays))
+  const catchUp = remainingAdds - (remainingDays - 1)
+  let cap = even
+  if (emptySpots >= 2) cap = Math.max(cap, emptySpots)
+  if (remainingDays <= 3) cap = Math.max(cap, catchUp)
+  return Math.min(remainingAdds, cap)
 }
 
 /**
@@ -114,35 +93,16 @@ export type ThinFillContext = {
 }
 
 export const allowsThinFill = (
-  mode: StreamingStrategyMode,
   dayIndex: number,
   dayCount: number,
   context?: ThinFillContext,
 ): boolean => {
   if (context?.fillsEmptySlot || context?.noDenserFa) return true
-  if (mode === "aggressive") return true
   return isLateStreamingWeek(dayIndex, dayCount)
 }
 
-export const allowsAddForTier = (
-  mode: StreamingStrategyMode,
-  tier: StreamingDensityTier,
-): boolean => {
-  if (mode === "conservative") {
-    return tier === "elite" || tier === "strong" || tier === "ok"
-  }
-  return true
-}
-
-export const allowsEarlySwap = (
-  mode: StreamingStrategyMode,
-  heldRank: number,
-  newRank: number,
-): boolean => {
-  const delta = newRank - heldRank
-  if (mode === "aggressive") return delta >= 1
-  return delta >= 2
-}
+export const allowsEarlySwap = (heldRank: number, newRank: number): boolean =>
+  newRank - heldRank >= 2
 
 export type EarlySwapContext = {
   increasesStarts?: boolean
@@ -154,7 +114,6 @@ export type EarlySwapContext = {
  * Density upgrades are always allowed.
  */
 export const allowsMultiSpotEarlySwap = (
-  mode: StreamingStrategyMode,
   heldRank: number,
   newRank: number,
   dayIndex: number,
@@ -164,12 +123,8 @@ export const allowsMultiSpotEarlySwap = (
 ): boolean => {
   if (context?.increasesStarts || context?.improvesContested) return true
   if (newRank > heldRank) return true
-  if (budgetBehind) {
-    if (mode === "aggressive") return newRank >= heldRank
-    return allowsEarlySwap(mode, heldRank, newRank)
-  }
-  if (isLateStreamingWeek(dayIndex, dayCount)) {
-    return allowsEarlySwap(mode, heldRank, newRank)
+  if (budgetBehind || isLateStreamingWeek(dayIndex, dayCount)) {
+    return allowsEarlySwap(heldRank, newRank)
   }
   return false
 }

@@ -424,7 +424,6 @@ describe("pickBestStreamerMove", () => {
       matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY2, days: [DAY, DAY2] },
       games: [
         { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
-        { date: DAY2, homeAbbr: "BOS", awayAbbr: "MIA" },
         { date: DAY, homeAbbr: "NYK", awayAbbr: "ATL" },
       ],
     }
@@ -546,7 +545,7 @@ describe("pickBestStreamerMove", () => {
       schedule,
       losingRebBoard,
       () => true,
-      { requirePositiveDelta: false },
+      { requirePositiveDelta: false, chaseCategoryIds: ["STL", "AST"] },
     )
     expect(picked?.playerId).toBe("ellis")
     expect(picked?.nextDaily[DAY]!.some((entry) => entry.playerId === "ellis")).toBe(
@@ -732,6 +731,82 @@ describe("pickBestStreamerMove", () => {
       { requirePositiveDelta: false },
     )
     expect(picked?.playerId).toBe("fa-big")
+  })
+
+  it("scores contestedDelta on chaseCategoryIds only so extra counting stats cannot win", () => {
+    const highChase = player("fa-count-a", "BOS", ["UTIL"])
+    highChase.projections = {
+      ...highChase.projections,
+      AST: 11,
+      STL: 3.8,
+      REB: 1,
+      BLK: 0.1,
+      PTS: 6,
+      FG_PCT: 0.4,
+    }
+    const highOther = player("fa-count-b", "NYK", ["UTIL"])
+    highOther.projections = {
+      ...highOther.projections,
+      AST: 1.2,
+      STL: 0.3,
+      REB: 14,
+      BLK: 3.4,
+      PTS: 22,
+      FG_PCT: 0.64,
+    }
+    const daily: DailyLineups = { [DAY]: emptyActive(), [DAY2]: emptyActive() }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAY,
+        endDate: DAY2,
+        days: [DAY, DAY2],
+      },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY2, homeAbbr: "BOS", awayAbbr: "DET" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "MIA" },
+        { date: DAY2, homeAbbr: "NYK", awayAbbr: "ORL" },
+      ],
+    }
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        const contested =
+          categoryId === "AST" ||
+          categoryId === "STL" ||
+          categoryId === "REB" ||
+          categoryId === "BLK"
+        return {
+          categoryId,
+          you: contested ? 2 : 30,
+          opp: contested ? 8 : 10,
+          outcome: contested ? ("L" as const) : ("W" as const),
+          winProb: contested ? 0.4 : 0.8,
+        }
+      }),
+      wins: 5,
+      losses: 4,
+      ties: 0,
+      projectedCatWins: 5,
+    }
+    const picked = pickBestStreamerMove(
+      ["fa-count-a", "fa-count-b"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [highChase, highOther],
+      schedule,
+      board,
+      () => true,
+      {
+        requirePositiveDelta: false,
+        chaseCategoryIds: ["AST", "STL"],
+        startsFor: () => 2,
+        densityRankFor: (playerId) => (playerId === "fa-count-b" ? 3 : 1),
+      },
+    )
+    expect(picked?.playerId).toBe("fa-count-a")
   })
 })
 

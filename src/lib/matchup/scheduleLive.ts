@@ -2,6 +2,7 @@ import scheduleFixture from "../../../data/fixtures/nba-matchup-schedule.json"
 import seasonScheduleFile from "../../../data/fixtures/nba-schedule-2026-27.json"
 import { buildWeekDays, formatUtcIsoDate, parseIsoDate } from "@/lib/matchup/scheduleDates"
 import { nextWeekWithGames } from "@/lib/matchup/scheduleSeason"
+import { normalizeNbaTeamAbbr } from "@/lib/nba/teamAbbr"
 import type { ScheduleGame, ScheduleResponse } from "@/lib/season/types"
 
 export { buildWeekDays } from "@/lib/matchup/scheduleDates"
@@ -10,14 +11,6 @@ const ESPN_SCOREBOARD_URL =
   "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard"
 const CACHE_TTL_MS = 20 * 60 * 1000
 const NEW_YORK_TIME_ZONE = "America/New_York"
-const ESPN_TEAM_ABBR_MAP: Record<string, string> = {
-  GS: "GSW",
-  NY: "NYK",
-  NO: "NOP",
-  SA: "SAS",
-  WSH: "WAS",
-  UTAH: "UTA",
-}
 
 type NormalizeOptions = {
   scoringPeriodId: number
@@ -59,10 +52,7 @@ export const clearMatchupScheduleCache = () => {
   cachedSchedule = null
 }
 
-export const normalizeEspnTeamAbbr = (abbreviation: string): string => {
-  const normalized = abbreviation.trim().toUpperCase()
-  return ESPN_TEAM_ABBR_MAP[normalized] ?? normalized
-}
+export const normalizeEspnTeamAbbr = normalizeNbaTeamAbbr
 
 const formatNewYorkIsoDate = (date: Date) => {
   const parts = new Intl.DateTimeFormat("en-CA", {

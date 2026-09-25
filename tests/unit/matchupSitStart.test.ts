@@ -2,7 +2,13 @@ import { describe, expect, it, vi } from "vitest"
 import * as board from "@/lib/matchup/board"
 import { effectiveGamesByPlayerId } from "@/lib/matchup/dailyLineups"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
-import { applySitStartSwap, suggestSitStart } from "@/lib/matchup/sitStart"
+import {
+  applySitStartSwap,
+  sitStartBadgeKey,
+  sitStartBadgesByPlayerDay,
+  suggestSitStart,
+  visibleSitStartSuggestions,
+} from "@/lib/matchup/sitStart"
 import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
 const coldStarter: SeasonPlayer = {
@@ -204,6 +210,89 @@ describe("suggestSitStart", () => {
       ["PTS", "REB"],
     )
     spy.mockRestore()
+  })
+})
+
+describe("sit/start preview drop filter", () => {
+  const days = ["2026-10-20", "2026-10-21", "2026-10-22"]
+  const schedule: ScheduleResponse = {
+    source: "fixture",
+    matchup: {
+      scoringPeriodId: 1,
+      startDate: days[0]!,
+      endDate: days[2]!,
+      days,
+    },
+    games: [
+      { date: "2026-10-20", homeAbbr: "BOS", awayAbbr: "WAS" },
+      { date: "2026-10-22", homeAbbr: "BOS", awayAbbr: "ORL" },
+      { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2026-10-21", homeAbbr: "NYK", awayAbbr: "MIA" },
+    ],
+  }
+  const suggestion = {
+    benchPlayerId: "r-bench",
+    activePlayerId: "r-active",
+    deltaProjectedCatWins: 0.4,
+    reason: "+0.40 cat wins · 2 games",
+  }
+  const playersById = {
+    "r-bench": { ...benchStar, id: "r-bench", teamAbbr: "BOS" },
+    "r-active": { ...coldStarter, id: "r-active", teamAbbr: "NYK" },
+  }
+  const youPreviewEntries: SeasonRosterEntry[] = [
+    { slot: "UTIL", playerId: "r-active" },
+    { slot: "BE", playerId: "r-bench" },
+  ]
+  const daily: DailyLineups = {
+    "2026-10-20": [
+      { slot: "UTIL", playerId: "r-active" },
+      { slot: "BE", playerId: "r-bench" },
+    ],
+    "2026-10-21": [{ slot: "UTIL", playerId: "r-active" }],
+    "2026-10-22": [{ slot: "UTIL", playerId: "r-bench" }],
+  }
+  const displayArgs = {
+    days,
+    schedule,
+    playersById,
+    youEntries: youPreviewEntries,
+    daily,
+  }
+
+  it("hides Sit for / Start over after a 3-spot preview drops that roster player", () => {
+    const droppedFromByPlayerId = { "r-bench": "2026-10-20" }
+    const visible = visibleSitStartSuggestions([suggestion], {
+      ...displayArgs,
+      droppedFromByPlayerId,
+    })
+    const badges = sitStartBadgesByPlayerDay([suggestion], {
+      ...displayArgs,
+      droppedFromByPlayerId,
+    })
+
+    expect(visible).toEqual([])
+    expect(Object.values(badges).join(" ")).not.toMatch(/Sit for|Start over/)
+  })
+
+  it("does not put that swap text on another player's cell on a no-game day", () => {
+    const badges = sitStartBadgesByPlayerDay([suggestion], displayArgs)
+
+    expect(badges[sitStartBadgeKey("2026-10-20", "r-active")]).toMatch(/Sit for/)
+    expect(badges[sitStartBadgeKey("2026-10-20", "r-bench")]).toMatch(/Start over/)
+    expect(badges[sitStartBadgeKey("2026-10-21", "r-active")]).toBeUndefined()
+    expect(badges[sitStartBadgeKey("2026-10-22", "r-bench")]).toBeUndefined()
+  })
+
+  it("shows the same swap again when preview drops are cleared", () => {
+    const hidden = visibleSitStartSuggestions([suggestion], {
+      ...displayArgs,
+      droppedFromByPlayerId: { "r-bench": "2026-10-20" },
+    })
+    const shown = visibleSitStartSuggestions([suggestion], displayArgs)
+
+    expect(hidden).toEqual([])
+    expect(shown).toEqual([suggestion])
   })
 })
 

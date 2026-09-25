@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
+  autofillOpenSlotsFromRoster,
+  buildDayLineupFromRoster,
   buildLineupDisplayRows,
   dailyLineupsMatchDays,
   effectiveGamesByPlayerId,
@@ -326,7 +328,7 @@ describe("setSlotPlayer", () => {
 })
 
 describe("togglePlayerDay", () => {
-  it("sits a starter and starts into the first empty slot", () => {
+  it("keeps a playing starter started when sitting would leave an eligible hole", () => {
     const daily = initDailyLineups(
       schedule.matchup.days,
       activeEntries,
@@ -345,11 +347,29 @@ describe("togglePlayerDay", () => {
       undefined,
       schedule,
     )
-    expect(sat.status).toBe("sat")
-    expect(sat.daily["2025-11-03"][0].playerId).toBeNull()
+    expect(sat.status).toBe("started")
+    expect(sat.daily).toBe(daily)
+    expect(sat.daily["2025-11-03"][0].playerId).toBe("star")
+  })
+
+  it("starts into the first empty slot", () => {
+    const daily = initDailyLineups(
+      schedule.matchup.days,
+      activeEntries,
+      undefined,
+      [star, scrub],
+      schedule,
+    )
+    const playersById = { star, scrub }
+    const opened = {
+      ...daily,
+      "2025-11-03": daily["2025-11-03"]!.map((entry, index) =>
+        index === 0 ? { ...entry, playerId: null } : entry,
+      ),
+    }
 
     const started = togglePlayerDay(
-      sat.daily,
+      opened,
       "2025-11-03",
       "star",
       true,
@@ -450,7 +470,7 @@ describe("togglePlayerDay", () => {
     expect(blocked.daily).toBe(fullDaily)
   })
 
-  it("returns ineligible when no empty slot accepts the player", () => {
+  it("starts a playing player into any empty active slot when one exists", () => {
     const center = { ...star, id: "center", positions: ["C"] as const }
     const daily = {
       "2025-11-03": [{ slot: "PG" as const, playerId: null }],
@@ -466,8 +486,8 @@ describe("togglePlayerDay", () => {
       schedule,
     )
 
-    expect(result.status).toBe("ineligible")
-    expect(result.daily).toBe(daily)
+    expect(result.status).toBe("started")
+    expect(result.daily["2025-11-03"]?.[0]?.playerId).toBe("center")
   })
 })
 
@@ -740,27 +760,35 @@ describe("buildLineupDisplayRows focus-day seats", () => {
     ])
   })
 
-  it("puts a Sit player with a game on BE and leaves the home active empty", () => {
+  it("starts a playing player missing from daily when an eligible active is empty", () => {
     const daily: DailyLineups = {
       [mon]: mondayStarts[mon]!.map((entry) =>
         entry.slot === "C" ? { ...entry, playerId: null } : entry,
       ),
     }
     const rows = buildLineupDisplayRows(roster, [], [], { ...focus, daily })
-    expect(occupant(rows, "C")).toBeNull()
-    expect(rows.filter((row) => row.slot === "BE").map((row) => row.playerId)).toContain("d")
+    expect(rows.find((row) => row.playerId === "d")?.slot).not.toBe("BE")
+    expect(
+      rows.some(
+        (row) =>
+          row.playerId === "d" &&
+          row.slot !== "BE" &&
+          row.slot !== "IL" &&
+          row.slot !== "PV",
+      ),
+    ).toBe(true)
     expect(daily[mon]?.find((entry) => entry.slot === "C")?.playerId).toBeNull()
   })
 
-  it("does not put a plan-dropped-style roster id on an active when they are not started", () => {
+  it("starts a playing player missing from daily instead of leaving them on BE", () => {
     const daily: DailyLineups = {
       [mon]: mondayStarts[mon]!.map((entry) =>
         entry.slot === "PG" ? { ...entry, playerId: null } : entry,
       ),
     }
     const rows = buildLineupDisplayRows(roster, [], [], { ...focus, daily })
-    expect(occupant(rows, "PG")).toBeNull()
-    expect(rows.find((row) => row.playerId === "a")?.slot).toBe("BE")
+    expect(rows.find((row) => row.playerId === "a")?.slot).not.toBe("BE")
+    expect(occupant(rows, "PG")).toBe("a")
   })
 
   it("does not write an off-night fill into daily", () => {
@@ -849,5 +877,517 @@ describe("buildLineupDisplayRows focus-day seats", () => {
     expect(rows.filter((row) => row.slot === "PV").map((row) => row.playerId)).toEqual([
       "streamer",
     ])
+  })
+})
+
+describe("buildDayLineupFromRoster keeps playing roster players", () => {
+  it("seats a roster player on a B2B second night when the slot is empty", () => {
+    const b2bSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2026-03-09",
+        endDate: "2026-03-10",
+        days: ["2026-03-09", "2026-03-10"],
+      },
+      games: [
+        { date: "2026-03-09", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: "2026-03-10", homeAbbr: "BOS", awayAbbr: "MIA" },
+      ],
+    }
+    const starter: SeasonPlayer = {
+      ...star,
+      id: "starter-b2b",
+      teamAbbr: "BOS",
+      positions: ["PG"],
+    }
+    const entries: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: "starter-b2b" },
+      { slot: "SG", playerId: null },
+    ]
+    const first = buildDayLineupFromRoster(
+      "2026-03-09",
+      entries,
+      [starter],
+      b2bSchedule,
+      ["PG", "SG"],
+    )
+    const second = buildDayLineupFromRoster(
+      "2026-03-10",
+      entries,
+      [starter],
+      b2bSchedule,
+      ["PG", "SG"],
+    )
+    expect(first.some((entry) => entry.playerId === "starter-b2b")).toBe(true)
+    expect(second.some((entry) => entry.playerId === "starter-b2b")).toBe(true)
+  })
+
+  it("moves a playing roster player into a slot whose occupant has no game", () => {
+    const daySchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2026-03-09",
+        endDate: "2026-03-09",
+        days: ["2026-03-09"],
+      },
+      games: [{ date: "2026-03-09", homeAbbr: "BOS", awayAbbr: "NYK" }],
+    }
+    const playing: SeasonPlayer = {
+      ...star,
+      id: "playing",
+      teamAbbr: "BOS",
+      positions: ["SG"],
+    }
+    const idle: SeasonPlayer = {
+      ...scrub,
+      id: "idle",
+      teamAbbr: "CHI",
+      positions: ["PG"],
+    }
+    const lineup = buildDayLineupFromRoster(
+      "2026-03-09",
+      [
+        { slot: "PG", playerId: "idle" },
+        { slot: "SG", playerId: "playing" },
+      ],
+      [playing, idle],
+      daySchedule,
+      ["PG", "SG"],
+    )
+    expect(lineup.some((entry) => entry.playerId === "playing")).toBe(true)
+    expect(lineup.some((entry) => entry.playerId === "idle")).toBe(false)
+  })
+
+  it("starts a playing bench player into an eligible empty slot", () => {
+    const day = "2026-03-11"
+    const daySchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: day,
+        endDate: day,
+        days: [day],
+      },
+      games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+    }
+    const benchPlay: SeasonPlayer = {
+      ...star,
+      id: "bench-play",
+      teamAbbr: "BOS",
+      positions: ["PG"],
+    }
+    const lineup = buildDayLineupFromRoster(
+      day,
+      [
+        { slot: "PG", playerId: null },
+        { slot: "SG", playerId: null },
+        { slot: "BE", playerId: "bench-play" },
+      ],
+      [benchPlay],
+      daySchedule,
+      ["PG", "SG", "BE"],
+    )
+    expect(lineup.some((entry) => entry.playerId === "bench-play")).toBe(true)
+    expect(lineup.find((entry) => entry.playerId === "bench-play")?.slot).not.toBe(
+      "BE",
+    )
+  })
+
+  it("may sit an 11th playing player only when ten other playing actives are filled", () => {
+    const day = "2026-03-11"
+    const teams = [
+      "BOS",
+      "NYK",
+      "MIA",
+      "CHI",
+      "ATL",
+      "ORL",
+      "CLE",
+      "DET",
+      "SAS",
+      "MIL",
+      "WAS",
+    ] as const
+    const slots = [
+      "PG",
+      "SG",
+      "SF",
+      "PF",
+      "C",
+      "G",
+      "F",
+      "UTIL",
+      "UTIL",
+      "UTIL",
+      "BE",
+    ] as const
+    const makers = teams.map((teamAbbr, index) => ({
+      player: {
+        ...star,
+        id: `pack-${index}`,
+        teamAbbr,
+        positions: ["PG", "SG", "SF", "PF", "C", "G", "F"] as SeasonPosition[],
+      },
+      slot: slots[index]!,
+    }))
+    const daySchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: day,
+        endDate: day,
+        days: [day],
+      },
+      games: teams.slice(0, 10).map((homeAbbr, index) => ({
+        date: day,
+        homeAbbr,
+        awayAbbr: teams[index + 1] ?? "PHI",
+      })),
+    }
+    const lineup = buildDayLineupFromRoster(
+      day,
+      makers.map(({ player, slot }) => ({ slot, playerId: player.id })),
+      makers.map(({ player }) => player),
+      daySchedule,
+      [...slots],
+    )
+    const started = lineup
+      .map((entry) => entry.playerId)
+      .filter((playerId): playerId is string => Boolean(playerId))
+    expect(started).toHaveLength(10)
+    expect(started).not.toContain("pack-10")
+    expect(
+      lineup.every((entry) => {
+        if (!entry.playerId) return false
+        const player = makers.find((row) => row.player.id === entry.playerId)
+        return Boolean(player && player.player.teamAbbr !== "WAS")
+      }),
+    ).toBe(true)
+  })
+})
+
+describe("daily sit/start reseat rules", () => {
+  const day = "2026-03-12"
+  const makePlayer = (
+    id: string,
+    teamAbbr: string,
+    positions: SeasonPosition[],
+  ): SeasonPlayer => ({
+    ...star,
+    id,
+    name: id,
+    teamAbbr,
+    positions,
+  })
+
+  it("starts a B2B night-2 player into an eligible empty slot", () => {
+    const b2bSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2026-03-11",
+        endDate: day,
+        days: ["2026-03-11", day],
+      },
+      games: [
+        { date: "2026-03-11", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: day, homeAbbr: "BOS", awayAbbr: "MIA" },
+      ],
+    }
+    const nightTwo = makePlayer("night-two", "BOS", ["PG"])
+    const lineup = buildDayLineupFromRoster(
+      day,
+      [
+        { slot: "PG", playerId: null },
+        { slot: "BE", playerId: "night-two" },
+      ],
+      [nightTwo],
+      b2bSchedule,
+      ["PG", "BE"],
+    )
+    expect(lineup.some((entry) => entry.playerId === "night-two")).toBe(true)
+
+    const started = togglePlayerDay(
+      { [day]: [{ slot: "PG", playerId: null }] },
+      day,
+      "night-two",
+      true,
+      { "night-two": nightTwo },
+      undefined,
+      b2bSchedule,
+    )
+    expect(started.status).toBe("started")
+    expect(started.daily[day]?.some((entry) => entry.playerId === "night-two")).toBe(
+      true,
+    )
+  })
+
+  it("treats a 0.75 occupant as filling the slot for full-night checks", () => {
+    const b2bSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2026-03-11",
+        endDate: day,
+        days: ["2026-03-11", day],
+      },
+      games: [
+        { date: "2026-03-11", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: day, homeAbbr: "BOS", awayAbbr: "MIA" },
+      ],
+    }
+    const occupant = makePlayer("b2b-occ", "BOS", ["PG"])
+    const extra = makePlayer("extra-play", "NYK", ["SG"])
+    const entries = [{ slot: "PG" as const, playerId: "b2b-occ" }]
+    const daily = { [day]: entries }
+    const playersById = { "b2b-occ": occupant, "extra-play": extra }
+
+    expect(isDailyLineupFullForDate(daily, day, playersById, b2bSchedule)).toBe(
+      true,
+    )
+    const blocked = togglePlayerDay(
+      daily,
+      day,
+      "extra-play",
+      true,
+      playersById,
+      undefined,
+      b2bSchedule,
+    )
+    expect(blocked.status).toBe("full")
+  })
+
+  it("does not display a no-game occupant over a playing player missing from daily", () => {
+    const displayDay = "2026-03-12"
+    const displaySchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: displayDay,
+        endDate: displayDay,
+        days: [displayDay],
+      },
+      games: [{ date: displayDay, homeAbbr: "BOS", awayAbbr: "NYK" }],
+    }
+    const playing = makePlayer("disp-play", "BOS", ["SG"])
+    const idle = makePlayer("disp-idle", "CHI", ["PG"])
+    const roster: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: "disp-idle" },
+      { slot: "SG", playerId: "disp-play" },
+      { slot: "BE", playerId: null },
+    ]
+    const rows = buildLineupDisplayRows(roster, [], [], {
+      focusDay: displayDay,
+      schedule: displaySchedule,
+      playersById: { "disp-play": playing, "disp-idle": idle },
+      daily: {
+        [displayDay]: [
+          { slot: "PG", playerId: "disp-idle" },
+          { slot: "SG", playerId: null },
+        ],
+      },
+    })
+    expect(rows.find((row) => row.playerId === "disp-play")?.slot).not.toBe("BE")
+    expect(rows.some((row) => row.slot !== "BE" && row.playerId === "disp-play")).toBe(
+      true,
+    )
+    expect(
+      rows.some((row) => row.slot !== "BE" && row.slot !== "IL" && row.playerId === "disp-idle") &&
+        rows.find((row) => row.playerId === "disp-play")?.slot === "BE",
+    ).toBe(false)
+  })
+
+  it("may show an 11th playing player on BE when ten playing actives are filled", () => {
+    const packedDay = "2026-03-12"
+    const teams = [
+      "BOS",
+      "NYK",
+      "MIA",
+      "CHI",
+      "ATL",
+      "ORL",
+      "CLE",
+      "DET",
+      "SAS",
+      "MIL",
+      "WAS",
+    ] as const
+    const slots = [
+      "PG",
+      "SG",
+      "SF",
+      "PF",
+      "C",
+      "G",
+      "F",
+      "UTIL",
+      "UTIL",
+      "UTIL",
+      "BE",
+    ] as const
+    const rosterPlayers = teams.map((teamAbbr, index) =>
+      makePlayer(`row-${index}`, teamAbbr, ["PG", "SG", "SF", "PF", "C", "G", "F"]),
+    )
+    const packedSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: packedDay,
+        endDate: packedDay,
+        days: [packedDay],
+      },
+      games: teams.slice(0, 10).map((homeAbbr, index) => ({
+        date: packedDay,
+        homeAbbr,
+        awayAbbr: teams[index + 1] ?? "PHI",
+      })),
+    }
+    const roster: SeasonRosterEntry[] = slots.map((slot, index) => ({
+      slot,
+      playerId: rosterPlayers[index]!.id,
+    }))
+    const daily: DailyLineups = {
+      [packedDay]: slots.slice(0, 10).map((slot, index) => ({
+        slot,
+        playerId: rosterPlayers[index]!.id,
+      })),
+    }
+    const rows = buildLineupDisplayRows(roster, [], [], {
+      focusDay: packedDay,
+      schedule: packedSchedule,
+      playersById: Object.fromEntries(
+        rosterPlayers.map((entry) => [entry.id, entry]),
+      ),
+      daily,
+    })
+    expect(rows.find((row) => row.playerId === "row-10")?.slot).toBe("BE")
+    expect(
+      rows.filter(
+        (row) =>
+          row.slot !== "BE" &&
+          row.slot !== "IL" &&
+          row.slot !== "PV" &&
+          row.playerId,
+      ),
+    ).toHaveLength(10)
+  })
+
+  it("starts a G-only player into an empty PG instead of leaving them Sit", () => {
+    const guard = makePlayer("flex-g", "BOS", ["G"])
+    const lineup = buildDayLineupFromRoster(
+      day,
+      [
+        { slot: "PG", playerId: null },
+        { slot: "SG", playerId: null },
+        { slot: "BE", playerId: "flex-g" },
+      ],
+      [guard],
+      {
+        source: "fixture",
+        matchup: { scoringPeriodId: 1, startDate: day, endDate: day, days: [day] },
+        games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+      },
+      ["PG", "SG", "BE"],
+    )
+    expect(lineup.some((entry) => entry.playerId === "flex-g")).toBe(true)
+    expect(lineup.find((entry) => entry.playerId === "flex-g")?.slot).toBe("PG")
+  })
+
+  it("starts a playing player into a no-game occupant's slot", () => {
+    const playing = makePlayer("flex-play", "BOS", ["G"])
+    const idle = makePlayer("flex-idle", "CHI", ["PG"])
+    const lineup = buildDayLineupFromRoster(
+      day,
+      [
+        { slot: "PG", playerId: "flex-idle" },
+        { slot: "BE", playerId: "flex-play" },
+      ],
+      [playing, idle],
+      {
+        source: "fixture",
+        matchup: { scoringPeriodId: 1, startDate: day, endDate: day, days: [day] },
+        games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+      },
+      ["PG", "BE"],
+    )
+    expect(lineup.some((entry) => entry.playerId === "flex-play")).toBe(true)
+    expect(lineup.some((entry) => entry.playerId === "flex-idle")).toBe(false)
+  })
+
+  it("keeps an IL player off the active lineup even when they have a game", () => {
+    const injured = makePlayer("il-play", "BOS", ["PG"])
+    const lineup = buildDayLineupFromRoster(
+      day,
+      [
+        { slot: "PG", playerId: null },
+        { slot: "IL", playerId: "il-play" },
+      ],
+      [injured],
+      {
+        source: "fixture",
+        matchup: { scoringPeriodId: 1, startDate: day, endDate: day, days: [day] },
+        games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+      },
+      ["PG", "IL"],
+    )
+    expect(lineup.some((entry) => entry.playerId === "il-play")).toBe(false)
+  })
+
+  it("refills a stale stored daily so a playing player is no longer Sit", () => {
+    const guard = makePlayer("stale-g", "BOS", ["G"])
+    const stored: DailyLineups = {
+      [day]: [
+        { slot: "PG", playerId: null },
+        { slot: "SG", playerId: null },
+      ],
+    }
+    const filled = autofillOpenSlotsFromRoster(
+      stored,
+      {
+        source: "fixture",
+        matchup: { scoringPeriodId: 1, startDate: day, endDate: day, days: [day] },
+        games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+      },
+      [guard],
+      [
+        { slot: "PG", playerId: null },
+        { slot: "SG", playerId: null },
+        { slot: "BE", playerId: "stale-g" },
+      ],
+      ["PG", "SG", "BE"],
+    )
+    expect(filled[day]?.some((entry) => entry.playerId === "stale-g")).toBe(true)
+  })
+
+  it("displays a G-only playing player as Start when PG is empty", () => {
+    const guard = makePlayer("grid-g", "BOS", ["G"])
+    const rows = buildLineupDisplayRows(
+      [
+        { slot: "PG", playerId: null },
+        { slot: "BE", playerId: "grid-g" },
+      ],
+      [],
+      [],
+      {
+        focusDay: day,
+        schedule: {
+          source: "fixture",
+          matchup: {
+            scoringPeriodId: 1,
+            startDate: day,
+            endDate: day,
+            days: [day],
+          },
+          games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+        },
+        playersById: { "grid-g": guard },
+        daily: {
+          [day]: [{ slot: "PG", playerId: null }],
+        },
+      },
+    )
+    expect(rows.find((row) => row.playerId === "grid-g")?.slot).toBe("PG")
   })
 })

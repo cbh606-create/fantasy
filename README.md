@@ -71,7 +71,7 @@ npm run players:adp-refresh
 That runs, in order:
 
 1. **Yahoo Rank** (live `player_ranks` OR — same as mock draft Rank → `yahoo_draft_analysis_rank`, writes fixture)
-2. **ESPN ADP** (live `ownership.averageDraftPosition` → `espn_article_h2h_points`, writes fixture)
+2. **ESPN Rank** (live projections-page `draftRanksByRankType.STANDARD.rank` → `espn_article_h2h_points`, writes fixture)
 3. **Merge** (sync meta + project default Primary into `player.adp`)
 
 FantasyPros Yahoo ADP stays **hidden** (their public page is still 2025-26).

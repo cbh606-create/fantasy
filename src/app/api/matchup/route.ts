@@ -5,7 +5,11 @@ import { getUserEspnCookies } from "@/lib/espn/credentials"
 import { loadWinnerStreamRecipes } from "@/lib/espn/winnerStreamHistory"
 import { adviseMatchup } from "@/lib/matchup/advise"
 import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
-import type { MatchupAdvice, WinnerStreamRecipe } from "@/lib/matchup/types"
+import {
+  isStatWindow,
+  type MatchupAdvice,
+  type WinnerStreamRecipe,
+} from "@/lib/matchup/types"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import {
   loadOwnedSeasonLeague,
@@ -109,6 +113,8 @@ export const GET = async (request: Request): Promise<Response> => {
   const seasonLeagueId = params.get("seasonLeagueId")
   const opponentRaw = params.get("opponentTeamIndex")
   const includeState = params.get("includeState") === "1"
+  const rawWindow = params.get("statWindow")
+  const statWindow = isStatWindow(rawWindow) ? rawWindow : "season"
 
   if (!seasonLeagueId || opponentRaw === null) {
     return NextResponse.json({ error: "validation" }, { status: 400 })
@@ -140,6 +146,7 @@ export const GET = async (request: Request): Promise<Response> => {
   const winnerStreamRecipes = await loadMatchupWinnerRecipes(loaded, userId)
   const advice = adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
     winnerStreamRecipes,
+    statWindow,
   })
 
   if ("error" in advice) {

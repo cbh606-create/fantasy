@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { adviseMatchup } from "@/lib/matchup/advise"
 import { suggestStreamers } from "@/lib/matchup/streamers"
-import { suggestStreamingStrategyMode } from "@/lib/matchup/streamingStrategy"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { MatchupBoard } from "@/lib/matchup/types"
 import type { ScheduleResponse, SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
@@ -231,16 +230,14 @@ describe("adviseMatchup", () => {
     expect(advice.streamingPlans.map((p) => p.spotCount)).toEqual([1, 2, 3])
   })
 
-  it("omitted strategyMode uses board suggestion", () => {
+  it("builds three streaming plans with summary reasons", () => {
     const advice = adviseMatchup(state, schedule, 1)
 
     expect(advice).not.toHaveProperty("error")
     if ("error" in advice) return
 
-    const suggested = suggestStreamingStrategyMode(advice.board)
     for (const plan of advice.streamingPlans) {
-      expect(plan.suggestedStrategyMode).toBe(suggested)
-      expect(plan.strategyMode).toBe(plan.suggestedStrategyMode)
+      expect(plan).not.toHaveProperty("strategyMode")
       expect(plan.summaryReasons.length).toBeGreaterThan(0)
     }
   })

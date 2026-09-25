@@ -1,5 +1,8 @@
 import type { CategoryId } from "@/lib/domain/types"
-import type { EspnCookies } from "@/lib/espn/cookies"
+import {
+  espnCookieHeader,
+  type EspnCookies,
+} from "@/lib/espn/cookies"
 import {
   buildWinnerStreamRecipes,
   type WinnerStreamAddEvent,
@@ -94,7 +97,9 @@ export const resetWinnerStreamHistoryCache = () => {
 
 const espnHeaders = (cookies: EspnCookies): Record<string, string> => ({
   Accept: "application/json, text/plain, */*",
-  Cookie: `espn_s2=${encodeURIComponent(cookies.espnS2)}; SWID=${cookies.swid}`,
+  Cookie: espnCookieHeader(cookies),
+  Origin: "https://fantasy.espn.com",
+  Referer: "https://fantasy.espn.com/",
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
 })

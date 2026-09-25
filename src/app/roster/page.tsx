@@ -122,7 +122,7 @@ export default function RosterListPage() {
         authFailed,
         message:
           verifyPayload.message ??
-          "ESPN rejected these cookies for this league. Paste fresh espn_s2 / SWID.",
+          "ESPN rejected these cookies for this league. Cookies stay saved — check League ID / Team ID / Season, or paste a replacement.",
         summary: "",
       }
     }
@@ -144,17 +144,6 @@ export default function RosterListPage() {
       summary,
     }
   }, [parseLeagueParams])
-
-  const clearRejectedEspnCredentials = async () => {
-    try {
-      await fetch("/api/espn/credentials", { method: "DELETE" })
-    } catch {
-      // Still reset local UI even if disconnect fails.
-    }
-    setEspnConnected(false)
-    setEspnLinkStatus("none")
-    setVerifiedSummary("")
-  }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -204,10 +193,10 @@ export default function RosterListPage() {
           }
 
           if (verified.authFailed) {
-            await clearRejectedEspnCredentials()
+            setEspnLinkStatus("expired")
             setConnectTone("bad")
             setConnectMessage(
-              "Saved ESPN cookies were rejected. Paste fresh espn_s2 / SWID below.",
+              "ESPN rejected this league with the saved cookies. They stay on your account — fix League ID / Team ID / Season, or paste a replacement espn_s2 / SWID.",
             )
             return
           }
@@ -261,10 +250,10 @@ export default function RosterListPage() {
         return
       }
       if (verified.authFailed) {
-        await clearRejectedEspnCredentials()
+        setEspnLinkStatus("expired")
         setConnectTone("bad")
         setConnectMessage(
-          "Saved ESPN cookies were rejected. Paste fresh espn_s2 / SWID below.",
+          "ESPN rejected this league with the saved cookies. They stay on your account — fix League ID / Team ID / Season, or paste a replacement espn_s2 / SWID.",
         )
         return
       }
@@ -540,7 +529,7 @@ export default function RosterListPage() {
 
     if (espnLinkStatus === "expired") {
       setError(
-        "Your ESPN connection expired. Reconnect with ESPN above, then try importing again.",
+        "ESPN still rejects this league. Check League ID / Team ID / Season, click Verify, or paste replacement cookies.",
       )
       return
     }
@@ -648,8 +637,9 @@ export default function RosterListPage() {
             </p>
             <h2 className="mt-2 text-2xl font-semibold">Connect your account</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--color-mute)]">
-              Paste espn_s2 and SWID from fantasy.espn.com (most reliable). We
-              store them on your account only for league sync.
+              Paste espn_s2 and SWID once. We keep them on this signed-in
+              account until you disconnect or paste replacements. ESPN itself
+              can still expire them after days or weeks.
             </p>
             {connectMessage ? (
               <p
@@ -900,7 +890,8 @@ export default function RosterListPage() {
                 </p>
               ) : espnLinkStatus === "expired" ? (
                 <p className="text-[0.75rem] text-[var(--color-sale)]">
-                  Reconnect with fresh cookies above before importing.
+                  ESPN rejected this league. Fix League ID / Team ID / Season and
+                  Verify, or paste replacement cookies.
                 </p>
               ) : null}
             </form>

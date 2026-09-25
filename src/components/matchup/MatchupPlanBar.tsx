@@ -18,8 +18,67 @@ const OPP_SPOTS = [1, 2, 3] as const
 
 const choiceButtonClass = (pressed: boolean) =>
   pressed
-    ? "rounded-full border border-[var(--color-ink)] px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-    : "rounded-full border border-[var(--color-hairline)] px-2.5 py-1 font-medium text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+    ? "rounded-full border border-[var(--color-ink)] px-2 py-0.5 text-center font-medium whitespace-nowrap text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+    : "rounded-full border border-[var(--color-hairline)] px-2 py-0.5 text-center font-medium whitespace-nowrap text-[var(--color-mute)] transition-colors hover:bg-[var(--color-soft-cloud)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+
+const selectClass =
+  "min-w-[7.5rem] rounded-full border border-[var(--color-hairline)] bg-transparent px-2 py-0.5 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+
+export const YouSpotToggle = ({
+  onYouSpotCountChange,
+  youSpotCount,
+  recommendedYouSpot,
+  youSpotScores,
+}: {
+  onYouSpotCountChange: (spot: YouSpotCount) => void
+  youSpotCount: YouSpotCount
+  recommendedYouSpot?: YouSpotCount
+  youSpotScores?: YouSpotScore[]
+}) => (
+  <div
+    aria-label="You streaming spots"
+    className="flex min-w-0 flex-col gap-1"
+  >
+    <span className="text-[var(--color-mute)]">You</span>
+    <div className="grid grid-cols-2 gap-1">
+      {YOU_OPTIONS.map((option) => {
+        const handleYouClick = () => {
+          onYouSpotCountChange(option.id)
+        }
+        const score = youSpotScores?.find((entry) => entry.spot === option.id)
+        const isRecommended =
+          recommendedYouSpot !== undefined && recommendedYouSpot === option.id
+        const startsLabel = score == null ? "" : String(score.gameStarts)
+        const visible = [
+          option.label,
+          isRecommended ? "Rec" : null,
+          startsLabel ? `· ${startsLabel}` : null,
+        ]
+          .filter(Boolean)
+          .join(" ")
+        const ariaLabel = [
+          option.id == null ? "You none" : `You ${option.id}-spot`,
+          isRecommended ? "recommended" : null,
+          startsLabel,
+        ]
+          .filter(Boolean)
+          .join(" ")
+        return (
+          <button
+            aria-label={ariaLabel}
+            aria-pressed={youSpotCount === option.id}
+            className={choiceButtonClass(youSpotCount === option.id)}
+            key={option.label}
+            onClick={handleYouClick}
+            type="button"
+          >
+            {visible}
+          </button>
+        )
+      })}
+    </div>
+  </div>
+)
 
 export const MatchupPlanBar = ({
   openSeatCount,
@@ -27,10 +86,10 @@ export const MatchupPlanBar = ({
   onOppSpotChoiceChange,
   onYouSpotCountChange,
   youSpotCount,
-  statWindow,
-  onStatWindowChange,
   recommendedYouSpot,
   youSpotScores,
+  statWindow,
+  onStatWindowChange,
   resolvedOppSpotCount,
   forcedOpponentRosterDrops,
   onForcedOpponentRosterDropChange,
@@ -42,10 +101,10 @@ export const MatchupPlanBar = ({
   onOppSpotChoiceChange: (choice: OppSpotChoice) => void
   onYouSpotCountChange: (spot: YouSpotCount) => void
   youSpotCount: YouSpotCount
-  statWindow: StatWindow
-  onStatWindowChange: (window: StatWindow) => void
   recommendedYouSpot?: YouSpotCount
   youSpotScores?: YouSpotScore[]
+  statWindow: StatWindow
+  onStatWindowChange: (window: StatWindow) => void
   resolvedOppSpotCount?: 1 | 2 | 3
   forcedOpponentRosterDrops?: (string | null)[]
   onForcedOpponentRosterDropChange?: (spotIndex: number, playerId: string | null) => void
@@ -64,54 +123,51 @@ export const MatchupPlanBar = ({
   }
 
   return (
-    <div
+    <aside
       aria-label="Matchup plans"
-      className="mb-3 flex flex-col items-start gap-2 text-[0.8125rem]"
+      className="flex shrink-0 flex-row flex-wrap items-start gap-x-3 gap-y-2 text-[0.8125rem]"
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[var(--color-mute)]">You</span>
-        {YOU_OPTIONS.map((option) => {
-          const handleYouClick = () => {
-            onYouSpotCountChange(option.id)
-          }
-          const score = youSpotScores?.find((entry) => entry.spot === option.id)
-          const isRecommended =
-            recommendedYouSpot !== undefined && recommendedYouSpot === option.id
-          const startsLabel =
-            score == null ? "" : String(score.gameStarts)
-          const visible = [
-            option.label,
-            isRecommended ? "Rec" : null,
-            startsLabel ? `· ${startsLabel}` : null,
-          ]
-            .filter(Boolean)
-            .join(" ")
-          const ariaLabel = [
-            option.id == null ? "You none" : `You ${option.id}-spot`,
-            isRecommended ? "recommended" : null,
-            startsLabel,
-          ]
-            .filter(Boolean)
-            .join(" ")
-          return (
-            <button
-              aria-label={ariaLabel}
-              aria-pressed={youSpotCount === option.id}
-              className={choiceButtonClass(youSpotCount === option.id)}
-              key={option.label}
-              onClick={handleYouClick}
-              type="button"
-            >
-              {visible}
-            </button>
-          )
-        })}
+      <YouSpotToggle
+        onYouSpotCountChange={onYouSpotCountChange}
+        recommendedYouSpot={recommendedYouSpot}
+        youSpotCount={youSpotCount}
+        youSpotScores={youSpotScores}
+      />
+      <div className="flex min-w-0 flex-col gap-1">
+        <span className="text-[var(--color-mute)]">Opp</span>
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            aria-pressed={oppSpotChoice === "auto"}
+            className={choiceButtonClass(oppSpotChoice === "auto")}
+            onClick={handleAutoClick}
+            type="button"
+          >
+            {`Auto · ${openSeatCount}`}
+          </button>
+          {OPP_SPOTS.map((choice) => {
+            const handleOppClick = () => {
+              onOppSpotChoiceChange(choice)
+            }
+            return (
+              <button
+                aria-label={`Opp ${choice}-spot`}
+                aria-pressed={oppSpotChoice === choice}
+                className={choiceButtonClass(oppSpotChoice === choice)}
+                key={choice}
+                onClick={handleOppClick}
+                type="button"
+              >
+                {`${choice}-spot`}
+              </button>
+            )
+          })}
+        </div>
       </div>
-      <label className="flex flex-wrap items-center gap-2">
+      <label className="flex min-w-0 flex-col gap-1">
         <span className="text-[var(--color-mute)]">Stats</span>
         <select
           aria-label="Stat window"
-          className="rounded-full border border-[var(--color-hairline)] bg-transparent px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+          className={selectClass}
           onChange={handleStatWindowChange}
           value={statWindow}
         >
@@ -121,36 +177,8 @@ export const MatchupPlanBar = ({
           <option value="l30">Last 30 days</option>
         </select>
       </label>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[var(--color-mute)]">Opp spots</span>
-        <button
-          aria-pressed={oppSpotChoice === "auto"}
-          className={choiceButtonClass(oppSpotChoice === "auto")}
-          onClick={handleAutoClick}
-          type="button"
-        >
-          {`Auto · ${openSeatCount} open`}
-        </button>
-        {OPP_SPOTS.map((choice) => {
-          const handleOppClick = () => {
-            onOppSpotChoiceChange(choice)
-          }
-          return (
-            <button
-              aria-label={`Opp ${choice}-spot`}
-              aria-pressed={oppSpotChoice === choice}
-              className={choiceButtonClass(oppSpotChoice === choice)}
-              key={choice}
-              onClick={handleOppClick}
-              type="button"
-            >
-              {choice}
-            </button>
-          )
-        })}
-      </div>
       {resolvedOppSpotCount ? (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-col gap-1">
           <span className="text-[var(--color-mute)]">Opp drop</span>
           {Array.from({ length: resolvedOppSpotCount }, (_, spotIndex) => {
             const earlier = (forcedOpponentRosterDrops ?? [])
@@ -174,14 +202,11 @@ export const MatchupPlanBar = ({
               )
             }
             return (
-              <label
-                className="flex items-center gap-1"
-                key={spotIndex}
-              >
+              <label className="flex flex-col gap-0.5" key={spotIndex}>
                 <span className="sr-only">{`Opp drop spot ${spotIndex + 1}`}</span>
                 <select
                   aria-label={`Opp drop spot ${spotIndex + 1}`}
-                  className="rounded-full border border-[var(--color-hairline)] bg-transparent px-2.5 py-1 font-medium text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                  className={selectClass}
                   onChange={handleOppDropChange}
                   value={selectValue}
                 >
@@ -197,6 +222,6 @@ export const MatchupPlanBar = ({
           })}
         </div>
       ) : null}
-    </div>
+    </aside>
   )
 }

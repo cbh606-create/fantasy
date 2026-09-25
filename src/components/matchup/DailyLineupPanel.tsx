@@ -13,9 +13,11 @@ import {
   findPlayerSlotIndex,
 } from "@/lib/matchup/dailyLineups"
 import {
-  gameWeightForTeamDate,
+  b2bNight2PlayRateForPlayer,
+  teamHasGameOnDate,
   isB2bSecondNight,
 } from "@/lib/matchup/games"
+import { sitStartBadgeKey } from "@/lib/matchup/sitStart"
 import {
   MATCHUP_WEEK_DAY_COL_CLASS,
   MATCHUP_WEEK_PLAYER_COL_CLASS,
@@ -48,8 +50,8 @@ type DailyLineupPanelProps = {
   /** Preview streamer id → dates they occupy a plan spot (lock other game days). */
   streamerOwnedDatesByPlayerId?: Record<string, ReadonlySet<string> | string[]>
   extraPlayers?: SeasonPlayer[]
-  /** Sit/start hints keyed by player id — shown on that player's game cells. */
-  sitStartBadgesByPlayerId?: Record<string, string>
+  /** Sit/start hints keyed `${date}:${playerId}` — only on days the swap applies. */
+  sitStartBadgesByPlayerDay?: Record<string, string>
   /** Players currently on the IL/IR roster slot — shade game cells only. */
   ilPlayerIds?: Set<string> | string[]
   /** Weekly roster seats (PG→IR). Empty slots stay as empty rows. */
@@ -86,7 +88,7 @@ export const DailyLineupPanel = ({
   droppedFromDateByPlayerId = {},
   streamerOwnedDatesByPlayerId = {},
   extraPlayers,
-  sitStartBadgesByPlayerId = {},
+  sitStartBadgesByPlayerDay = {},
   ilPlayerIds,
   rosterEntries = [],
   weekFooter,
@@ -130,7 +132,7 @@ export const DailyLineupPanel = ({
       const player = playersById.get(entry.playerId)
       const teamAbbr = player?.teamAbbr
       if (!teamAbbr) continue
-      if (gameWeightForTeamDate(teamAbbr, day, schedule) > 0) count += 1
+      if (teamHasGameOnDate(teamAbbr, day, schedule)) count += 1
     }
 
     return count
@@ -186,13 +188,14 @@ export const DailyLineupPanel = ({
       ownedDates && !ownedDates.has(day),
     )
     const droppedFrom = droppedFromDateByPlayerId[player.id]
-    const isPlanDroppedOnDay = Boolean(droppedFrom && day >= droppedFrom)
+    const isPlanDroppedOnDay = Boolean(
+      !isPreview && droppedFrom && day >= droppedFrom,
+    )
     const isLocked = isOutsideStreamerWindow || isPlanDroppedOnDay
     const teamAbbr = player.teamAbbr ?? ""
-    const gameWeight = teamAbbr
-      ? gameWeightForTeamDate(teamAbbr, day, schedule)
-      : 0
-    const hasGame = gameWeight > 0
+    const hasGame = teamAbbr
+      ? teamHasGameOnDate(teamAbbr, day, schedule)
+      : false
     const isB2b = teamAbbr
       ? isB2bSecondNight(teamAbbr, day, schedule)
       : false
@@ -205,7 +208,7 @@ export const DailyLineupPanel = ({
     )?.slot
     const label = dayOpponentLabel(player, day, schedule)
     const shortLabel = shortOpponentLabel(label)
-    const sitStartHint = sitStartBadgesByPlayerId[player.id]
+    const sitStartHint = sitStartBadgesByPlayerDay[sitStartBadgeKey(day, player.id)]
     const action = started ? "Sit" : "Start"
     const ariaLabel = startedSlot
       ? `${action} ${player.name} on ${formatMatchupDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
@@ -268,7 +271,7 @@ export const DailyLineupPanel = ({
             {isB2b && !isLocked && !onIl ? (
               <span
                 className="ml-1 text-[0.5625rem] font-semibold tracking-wide text-current opacity-70"
-                title="B2B · ~75% expected"
+                title={`B2B · ${Math.round(b2bNight2PlayRateForPlayer(player.id) * 100)}%`}
               >
                 B2B
               </span>
@@ -403,7 +406,7 @@ export const DailyLineupPanel = ({
                 ? droppedFromDateByPlayerId[namePlayer.id]
                 : undefined
               const isPlanDropped = Boolean(
-                droppedFrom && activeFocusDay >= droppedFrom,
+                !isPreview && droppedFrom && activeFocusDay >= droppedFrom,
               )
 
               return (

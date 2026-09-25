@@ -77,7 +77,7 @@ describe("DailyLineupPanel sit/start badges", () => {
         rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
         rosterPlayers={[rostered]}
         schedule={schedule}
-        sitStartBadgesByPlayerId={{ "you-1": "Start over Streamer A" }}
+        sitStartBadgesByPlayerDay={{ "2025-11-03:you-1": "Start over Streamer A" }}
       />,
     )
 
@@ -320,6 +320,39 @@ describe("DailyLineupPanel preview overlay", () => {
     fireEvent.click(onPlan)
     expect(onTogglePlayerDay).toHaveBeenCalledWith("fa-a", "2025-11-04")
   })
+
+  it("keeps start enabled after sitting a preview streamer on a plan-owned day", () => {
+    const onTogglePlayerDay = vi.fn(() => "started" as const)
+
+    render(
+      <DailyLineupPanel
+        daily={{
+          ...daily,
+          "2025-11-04": [{ slot: "UTIL", playerId: "you-1" }],
+        }}
+        days={days}
+        droppedFromDateByPlayerId={{ "fa-a": "2025-11-04" }}
+        extraPlayers={[streamer]}
+        onReset={vi.fn()}
+        onTogglePlayerDay={onTogglePlayerDay}
+        previewActive
+        previewPlayerIds={["fa-a"]}
+        previewSpotCount={1}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+        streamerOwnedDatesByPlayerId={{ "fa-a": ["2025-11-04"] }}
+      />,
+    )
+
+    const startAgain = screen.getByRole("button", {
+      name: /Start Streamer A on/i,
+    })
+    expect(startAgain).not.toBeDisabled()
+    expect(startAgain.className).not.toMatch(/opacity-70/)
+    fireEvent.click(startAgain)
+    expect(onTogglePlayerDay).toHaveBeenCalledWith("fa-a", "2025-11-04")
+  })
 })
 
 describe("DailyLineupPanel IL game cells", () => {
@@ -461,7 +494,7 @@ describe("DailyLineupPanel slot column and day sort", () => {
     ).toBe(true)
   })
 
-  it("puts a sitting PG on BE and leaves the PG row empty", () => {
+  it("shows a playing PG on the PG row when daily left that slot empty", () => {
     render(
       <DailyLineupPanel
         daily={{
@@ -487,14 +520,14 @@ describe("DailyLineupPanel slot column and day sort", () => {
       const header = row.querySelector("th")
       return header?.textContent === "PG"
     })
-    expect(pgRow?.textContent).not.toContain("Point Guard")
+    expect(pgRow?.textContent).toContain("Point Guard")
     expect(
       screen.getAllByRole("row").some(
         (row) =>
           row.querySelector("th")?.textContent === "BE" &&
           row.textContent?.includes("Point Guard"),
       ),
-    ).toBe(true)
+    ).toBe(false)
   })
 
   it("keeps an unstarted preview streamer on PV when an active is empty", () => {
@@ -578,7 +611,7 @@ describe("DailyLineupPanel slot column and day sort", () => {
       bodyText.indexOf("Bench Wing"),
     )
     expect(screen.getByRole("rowheader", { name: "PG" })).toBeInTheDocument()
-    expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(2)
+    expect(screen.getAllByRole("rowheader", { name: "BE" }).length).toBe(1)
   })
 
   it("keeps the player label on one line and shows an ESPN headshot", () => {
@@ -636,5 +669,32 @@ describe("DailyLineupPanel slot column and day sort", () => {
     const cell = screen.getByText("Roster Cut").closest("td")
     expect(cell?.querySelector("img")).toBeNull()
     expect(cell?.textContent).not.toMatch(/\bRC\b/)
+  })
+})
+
+describe("DailyLineupPanel B2B badge", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it("shows that player's night-2 play rate and not a hardcoded 75% label", async () => {
+    const { setB2bNight2RateTableForTests } = await import("@/lib/matchup/games")
+    setB2bNight2RateTableForTests({
+      "you-1": { appearances: 3, opportunities: 5 },
+    })
+    render(
+      <DailyLineupPanel
+        daily={daily}
+        days={days}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+      />,
+    )
+
+    expect(screen.queryByTitle(/~75% expected/i)).not.toBeInTheDocument()
+    expect(screen.getByTitle(/60%/)).toBeInTheDocument()
   })
 })

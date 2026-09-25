@@ -83,6 +83,20 @@ describe("mapEspnLeagueToSeasonState", () => {
     })
   })
 
+  it("attaches per-game last-7 rates and skips empty splits", () => {
+    const state = mapEspnLeagueToSeasonState(
+      sample as EspnLeaguePayload,
+      { leagueId: "120853513", season: 2026, teamId: 9 },
+    )
+    const star = state.players.find((player) => player.id === "201")
+    const rim = state.players.find((player) => player.id === "202")
+    expect(star?.recentRates?.l7?.projections.PTS).toBe(30)
+    expect(star?.recentRates?.l15?.projections.PTS).toBe(28)
+    expect(star?.recentRates?.l30?.projections.PTS).toBe(26)
+    expect(star?.projections.PTS).toBeCloseTo(24.1 * 82)
+    expect(rim?.recentRates?.l7).toBeUndefined()
+  })
+
   it("packs team entries using custom ESPN roster slot counts", () => {
     const customPayload = structuredClone(sample) as EspnLeaguePayload
     customPayload.settings!.rosterSettings = {

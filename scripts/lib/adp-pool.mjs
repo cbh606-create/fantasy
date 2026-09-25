@@ -16,8 +16,8 @@ export const SOURCE_META = {
     url: "https://www.fantasypros.com/nba/adp/overall.php",
   },
   espn_article_h2h_points: {
-    label: "ESPN ADP",
-    url: "https://fantasy.espn.com/basketball/",
+    label: "ESPN Rank",
+    url: "https://fantasy.espn.com/basketball/players/projections",
   },
 }
 

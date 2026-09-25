@@ -1,7 +1,12 @@
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { MAX_STREAMERS, MIN_STREAMER_GAMES } from "./constants"
-import type { MatchupBoard, StreamerSuggestion, WinnerStreamRecipe } from "./types"
+import type {
+  MatchupBoard,
+  StatWindow,
+  StreamerSuggestion,
+  WinnerStreamRecipe,
+} from "./types"
 import { weeklyPlayerStats } from "./weekly"
 import { winnerPriorHits } from "./winnerStreamPrior"
 
@@ -21,6 +26,7 @@ type SuggestStreamersInput = {
   gamesMap: Map<string, number>
   b2bMap?: Map<string, number>
   recipes?: WinnerStreamRecipe[]
+  statWindow?: StatWindow
 }
 
 const weakCategories = (board: MatchupBoard): CategoryId[] =>
@@ -32,8 +38,9 @@ const categoryContribution = (
   player: SeasonPlayer,
   games: number,
   categoryId: CategoryId,
+  window: StatWindow = "season",
 ): number => {
-  const weekly = weeklyPlayerStats(player, games)
+  const weekly = weeklyPlayerStats(player, games, window)
   const value = weekly.projections[categoryId]
   return categoryId === "TO" ? -value : value
 }
@@ -42,22 +49,24 @@ const streamerScore = (
   player: SeasonPlayer,
   games: number,
   weakCats: CategoryId[],
+  window: StatWindow = "season",
 ): number =>
   weakCats.reduce((sum, categoryId) => {
     if (!STREAMER_COUNTING_CATEGORIES.includes(categoryId)) return sum
-    return sum + categoryContribution(player, games, categoryId)
+    return sum + categoryContribution(player, games, categoryId, window)
   }, 0)
 
 const helpedCategories = (
   player: SeasonPlayer,
   games: number,
   weakCats: CategoryId[],
+  window: StatWindow = "season",
 ): CategoryId[] =>
   weakCats
     .filter((categoryId) => STREAMER_COUNTING_CATEGORIES.includes(categoryId))
     .map((categoryId) => ({
       categoryId,
-      contribution: categoryContribution(player, games, categoryId),
+      contribution: categoryContribution(player, games, categoryId, window),
     }))
     .filter(({ contribution }) => contribution > 0)
     .sort((left, right) => right.contribution - left.contribution)
@@ -89,6 +98,7 @@ export const suggestStreamers = ({
   gamesMap,
   b2bMap = new Map(),
   recipes = [],
+  statWindow = "season",
 }: SuggestStreamersInput): StreamerSuggestion[] => {
   const weakCats = weakCategories(board)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
@@ -121,8 +131,13 @@ export const suggestStreamers = ({
         if (gamesThisWeek < minGames) return []
 
         const b2bNights = b2bMap.get(playerId) ?? 0
-        const score = streamerScore(player, gamesThisWeek, weakCats)
-        const helped = helpedCategories(player, gamesThisWeek, weakCats)
+        const score = streamerScore(player, gamesThisWeek, weakCats, statWindow)
+        const helped = helpedCategories(
+          player,
+          gamesThisWeek,
+          weakCats,
+          statWindow,
+        )
 
         return [
           {

@@ -2,20 +2,23 @@
 import "@testing-library/jest-dom/vitest"
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { MatchupPlanBar } from "@/components/matchup/MatchupPlanBar"
+import {
+  MatchupPlanBar,
+  YouSpotToggle,
+} from "@/components/matchup/MatchupPlanBar"
+
+const youBarProps = {
+  onYouSpotCountChange: vi.fn(),
+  youSpotCount: null as const,
+}
 
 describe("MatchupPlanBar", () => {
   afterEach(() => cleanup())
 
   it("marks the recommended You spot with Rec and team starts", () => {
     render(
-      <MatchupPlanBar
-        openSeatCount={1}
-        oppSpotChoice="auto"
-        onOppSpotChoiceChange={vi.fn()}
+      <YouSpotToggle
         onYouSpotCountChange={vi.fn()}
-        statWindow="season"
-        onStatWindowChange={vi.fn()}
         recommendedYouSpot={2}
         youSpotCount={2}
         youSpotScores={[
@@ -41,45 +44,52 @@ describe("MatchupPlanBar", () => {
     ).not.toBeInTheDocument()
   })
 
-  it("lets you pick You and Opp plans", () => {
-    const onYouSpotCountChange = vi.fn()
+  it("lets you pick Opp plans", () => {
     const onOppSpotChoiceChange = vi.fn()
     render(
       <MatchupPlanBar
+        {...youBarProps}
         openSeatCount={1}
         oppSpotChoice="auto"
         onOppSpotChoiceChange={onOppSpotChoiceChange}
-        onYouSpotCountChange={onYouSpotCountChange}
-        youSpotCount={null}
         statWindow="season"
         onStatWindowChange={vi.fn()}
       />,
     )
 
-    expect(screen.getByRole("button", { name: "You none" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Auto · 1/i })).toHaveAttribute(
       "aria-pressed",
       "true",
     )
-    expect(screen.getByRole("button", { name: /Auto · 1 open/i })).toHaveAttribute(
+    fireEvent.click(screen.getByRole("button", { name: "Opp 3-spot" }))
+    expect(onOppSpotChoiceChange).toHaveBeenCalledWith(3)
+    expect(screen.getByLabelText("Matchup plans")).toHaveClass("flex-row")
+  })
+
+  it("lets you pick a You spot", () => {
+    const onYouSpotCountChange = vi.fn()
+    render(
+      <YouSpotToggle
+        onYouSpotCountChange={onYouSpotCountChange}
+        youSpotCount={null}
+      />,
+    )
+    expect(screen.getByRole("button", { name: "You none" })).toHaveAttribute(
       "aria-pressed",
       "true",
     )
     fireEvent.click(screen.getByRole("button", { name: "You 2-spot" }))
     expect(onYouSpotCountChange).toHaveBeenCalledWith(2)
-    fireEvent.click(screen.getByRole("button", { name: "Opp 3-spot" }))
-    expect(onOppSpotChoiceChange).toHaveBeenCalledWith(3)
-    expect(screen.getByLabelText("Matchup plans")).toHaveClass("flex-col")
   })
 
   it("renders one Opp drop select per resolved spot and reports a player pick", () => {
     const onForcedOpponentRosterDropChange = vi.fn()
     render(
       <MatchupPlanBar
+        {...youBarProps}
         openSeatCount={0}
         oppSpotChoice={2}
         onOppSpotChoiceChange={vi.fn()}
-        onYouSpotCountChange={vi.fn()}
-        youSpotCount={null}
         statWindow="season"
         onStatWindowChange={vi.fn()}
         resolvedOppSpotCount={2}
@@ -153,7 +163,7 @@ describe("MatchupPlanBar", () => {
     const plans = screen.getByLabelText("Matchup plans")
     const oppDropRow = screen.getByText("Opp drop").parentElement
     expect(oppDropRow?.parentElement).toBe(plans)
-    expect(screen.getByText("Opp spots").parentElement).not.toBe(oppDropRow)
+    expect(screen.getByText("Opp").parentElement).not.toBe(oppDropRow)
     expect(screen.queryByText("Injured")).not.toBeInTheDocument()
     fireEvent.change(spot1, { target: { value: "r0" } })
     expect(onForcedOpponentRosterDropChange).toHaveBeenCalledWith(0, "r0")
@@ -162,11 +172,10 @@ describe("MatchupPlanBar", () => {
   it("lists Season Last 7 Last 15 and Last 30 options", () => {
     render(
       <MatchupPlanBar
+        {...youBarProps}
         openSeatCount={1}
         oppSpotChoice="auto"
         onOppSpotChoiceChange={vi.fn()}
-        onYouSpotCountChange={vi.fn()}
-        youSpotCount={null}
         statWindow="season"
         onStatWindowChange={vi.fn()}
       />,
@@ -181,11 +190,10 @@ describe("MatchupPlanBar", () => {
     const onStatWindowChange = vi.fn()
     render(
       <MatchupPlanBar
+        {...youBarProps}
         openSeatCount={1}
         oppSpotChoice="auto"
         onOppSpotChoiceChange={vi.fn()}
-        onYouSpotCountChange={vi.fn()}
-        youSpotCount={null}
         statWindow="season"
         onStatWindowChange={onStatWindowChange}
       />,

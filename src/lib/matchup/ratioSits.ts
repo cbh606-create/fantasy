@@ -8,7 +8,7 @@ import {
   type DailyLineups,
 } from "./dailyLineups"
 import { gameWeightForTeamDate } from "./games"
-import type { RatioSitSuggestion } from "./types"
+import type { RatioSitSuggestion, StatWindow } from "./types"
 
 const RATIO_TARGETS: CategoryId[] = ["FG_PCT", "FT_PCT", "TO"]
 const COUNTING_PROTECT: CategoryId[] = [
@@ -41,10 +41,11 @@ export const suggestRatioSits = (input: {
   schedule: ScheduleResponse
   oppTotals: Record<CategoryId, number>
   categoryIds: CategoryId[]
+  statWindow?: StatWindow
 }): RatioSitSuggestion[] => {
-  const { daily, players, schedule, oppTotals, categoryIds } = input
+  const { daily, players, schedule, oppTotals, categoryIds, statWindow } = input
   const enabled = new Set(categoryIds)
-  const baselineYou = youTotalsFromDaily(daily, players, schedule)
+  const baselineYou = youTotalsFromDaily(daily, players, schedule, statWindow)
   const baselineBoard = buildMatchupBoard(baselineYou, oppTotals, categoryIds)
   const baselineByCat = Object.fromEntries(
     baselineBoard.categories.map((row) => [row.categoryId, row]),
@@ -67,7 +68,7 @@ export const suggestRatioSits = (input: {
       if (gameWeightForTeamDate(player.teamAbbr, date, schedule) <= 0) continue
 
       const nextDaily = clearPlayerOnDay(daily, date, playerId)
-      const nextYou = youTotalsFromDaily(nextDaily, players, schedule)
+      const nextYou = youTotalsFromDaily(nextDaily, players, schedule, statWindow)
       const nextBoard = buildMatchupBoard(nextYou, oppTotals, categoryIds)
       const nextByCat = Object.fromEntries(
         nextBoard.categories.map((row) => [row.categoryId, row]),

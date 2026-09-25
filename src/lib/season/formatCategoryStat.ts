@@ -13,6 +13,22 @@ export const formatCategoryStat = (
   return value.toFixed(1)
 }
 
+export const categoryStatLead = (
+  categoryId: CategoryId,
+  you: number,
+  opp: number,
+): number => (categoryId === "TO" ? opp - you : you - opp)
+
+export const formatCategoryStatDelta = (
+  categoryId: CategoryId,
+  delta: number,
+): string => {
+  const formatted = formatCategoryStat(categoryId, Math.abs(delta))
+  if (delta > 0) return `+${formatted}`
+  if (delta < 0) return `-${formatted}`
+  return formatted
+}
+
 export const CATEGORY_SHORT_LABELS: Record<CategoryId, string> = {
   FG_PCT: "FG%",
   FT_PCT: "FT%",

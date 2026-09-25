@@ -32,6 +32,10 @@ import {
   type TogglePlayerDayResult,
 } from "@/lib/matchup/dailyLineups"
 import { suggestRatioSits } from "@/lib/matchup/ratioSits"
+import {
+  sitStartBadgesByPlayerDay,
+  visibleSitStartSuggestions,
+} from "@/lib/matchup/sitStart"
 import { planningMatchupBoard } from "@/lib/matchup/streamerMove"
 import { applyStreamingPlanPreview, previewSeatKey } from "@/lib/matchup/applyStreamingPlanPreview"
 import {
@@ -87,6 +91,15 @@ const oppTotalsFromBoard = (
     board.categories.map((row) => [row.categoryId, row.opp]),
   ) as Record<CategoryId, number>
 
+const youRosterPlayerIds = (state: SeasonLeagueState): string[] => {
+  const youTeam = state.teams.find(
+    (team) => team.teamIndex === state.perspectiveTeamIndex,
+  )
+  return (youTeam?.entries ?? []).flatMap((entry) =>
+    entry.slot !== "IL" && entry.playerId ? [entry.playerId] : [],
+  )
+}
+
 const resolveDailyLineups = (
   leagueId: string,
   days: string[],
@@ -125,6 +138,19 @@ const resolveDailyLineups = (
   return fresh
 }
 
+const isAbortError = (error: unknown, signal?: AbortSignal) => {
+  if (signal?.aborted) return true
+  if (error instanceof DOMException && error.name === "AbortError") return true
+  return error instanceof Error && error.name === "AbortError"
+}
+
+const matchupFetchErrorMessage = (error: unknown) => {
+  if (error instanceof Error && error.message === "Failed to fetch") {
+    return "Matchup server did not respond. Wait a moment and refresh."
+  }
+  return error instanceof Error ? error.message : "Unable to load matchup workspace"
+}
+
 const opponentStorageKey = (leagueId: string) => `matchup-opponent:${leagueId}`
 
 const readStoredOpponent = (leagueId: string): number | null => {
@@ -159,16 +185,6 @@ const hasIncompleteActiveLineup = (state: SeasonLeagueState): boolean => {
 const swapKey = (suggestion: SitStartSuggestion) =>
   `${suggestion.benchPlayerId}:${suggestion.activePlayerId}`
 
-const playerShortName = (
-  playerId: string,
-  playersById: Record<string, SeasonPlayer>,
-) => {
-  const name = playersById[playerId]?.name?.trim()
-  if (!name) return "?"
-  const parts = name.split(/\s+/)
-  return parts.length > 1 ? parts[parts.length - 1]! : name
-}
-
 const previewStreamerIds = (plan: StreamingPlan | null): Set<string> => {
   const ids = new Set<string>()
   if (!plan) return ids
@@ -180,7 +196,7 @@ const previewStreamerIds = (plan: StreamingPlan | null): Set<string> => {
   return ids
 }
 
-/** Earliest plan date when a player is dropped (roster cut or streamer swap-out). */
+/** Earliest plan date when a roster player is cut. Streamer swap-outs stay toggleable. */
 const previewDroppedFromDateByPlayerId = (
   plan: StreamingPlan | null,
 ): Record<string, string> => {
@@ -195,14 +211,11 @@ const previewDroppedFromDateByPlayerId = (
   for (const day of plan.days) {
     for (const cell of day.cells) {
       if (
-        cell.action === "add" &&
+        (cell.action === "add" || cell.action === "drop_add") &&
         cell.rosterDropKind === "player" &&
         cell.rosterDropPlayerId
       ) {
         noteDrop(cell.rosterDropPlayerId, day.date)
-      }
-      if (cell.action === "drop_add" && cell.droppedPlayerId) {
-        noteDrop(cell.droppedPlayerId, day.date)
       }
     }
   }
@@ -320,17 +333,35 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       if (includeState) params.set("includeState", "1")
       params.set("statWindow", statWindowParam)
 
-      const response = await fetch(`/api/matchup?${params}`, { signal })
+      const load = async () => {
+        const response = await fetch(`/api/matchup?${params}`, { signal })
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as {
-          error?: string
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => ({}))) as {
+            error?: string
+          }
+          throw new Error(payload.error ?? "Unable to load matchup advice")
         }
-        throw new Error(payload.error ?? "Unable to load matchup advice")
+
+        return (await response.json()) as MatchupResponse
       }
 
-      const payload = (await response.json()) as MatchupResponse
+      let payload: MatchupResponse
+      try {
+        payload = await load()
+      } catch (firstError) {
+        if (isAbortError(firstError, signal)) throw firstError
+        if (
+          !(firstError instanceof Error) ||
+          firstError.message !== "Failed to fetch"
+        ) {
+          throw firstError
+        }
+        payload = await load()
+      }
       setMatchupData(payload)
+      setError("")
+      setOpponentError("")
       setOpponentTeamIndex(payload.opponentTeamIndex)
 
       if (applyState || includeState) {
@@ -357,6 +388,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
     const bootstrap = async () => {
       try {
+        setError("")
         setPreviewPlan(null)
         const storedOpponent = readStoredOpponent(leagueId)
         const storedWindow = readStoredStatWindow(leagueId)
@@ -371,7 +403,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             statWindow: storedWindow,
           })
         } catch (firstError) {
-          if (controller.signal.aborted) return
+          if (isAbortError(firstError, controller.signal)) return
 
           const message =
             firstError instanceof Error ? firstError.message : ""
@@ -394,12 +426,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           String(payload.opponentTeamIndex),
         )
       } catch (requestError) {
-        if (requestError instanceof DOMException && requestError.name === "AbortError") return
+        if (isAbortError(requestError, controller.signal)) return
 
-        const message =
-          requestError instanceof Error
-            ? requestError.message
-            : "Unable to load matchup workspace"
+        const message = matchupFetchErrorMessage(requestError)
         setError(
           message === "no_opponent"
             ? "No opponent teams available"
@@ -438,15 +467,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
       window.localStorage.setItem(opponentStorageKey(leagueId), String(teamIndex))
     } catch (requestError) {
-      if (requestError instanceof DOMException && requestError.name === "AbortError") {
+      if (isAbortError(requestError, controller.signal)) {
         return
       }
 
-      setOpponentError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to load matchup advice",
-      )
+      setOpponentError(matchupFetchErrorMessage(requestError))
     } finally {
       if (opponentFetchRef.current === controller) {
         setIsRefreshing(false)
@@ -477,15 +502,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         statWindow: nextWindow,
       })
     } catch (requestError) {
-      if (requestError instanceof DOMException && requestError.name === "AbortError") {
+      if (isAbortError(requestError, controller.signal)) {
         return
       }
 
-      setOpponentError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to load matchup advice",
-      )
+      setOpponentError(matchupFetchErrorMessage(requestError))
     } finally {
       if (opponentFetchRef.current === controller) {
         setIsRefreshing(false)
@@ -589,6 +610,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     const overlayOptions = {
       omitSeats: previewSatSeats,
       keepRosterSeats,
+      rosterPlayerIds: youRosterPlayerIds(state),
     }
     const overlayDaily =
       previewPlan != null
@@ -632,7 +654,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           previewPlan,
           playersMap,
           matchupData.schedule,
-          { omitSeats: nextOmit, keepRosterSeats },
+          {
+            omitSeats: nextOmit,
+            keepRosterSeats,
+            rosterPlayerIds: youRosterPlayerIds(state),
+          },
         )[day]?.some((entry) => entry.playerId === playerId) ?? false
       if (!seated) return "full"
       setPreviewSatSeats(nextOmit)
@@ -653,7 +679,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             previewPlan,
             playersMap,
             matchupData.schedule,
-            { omitSeats: previewSatSeats, keepRosterSeats: nextKeeps },
+            {
+              omitSeats: previewSatSeats,
+              keepRosterSeats: nextKeeps,
+              rosterPlayerIds: youRosterPlayerIds(state),
+            },
           )[day]?.some((entry) => entry.playerId === playerId) ?? false
         setKeepRosterSeats(nextKeeps)
         if (!stillStarted) return "sat"
@@ -667,7 +697,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             previewPlan,
             playersMap,
             matchupData.schedule,
-            { omitSeats: previewSatSeats, keepRosterSeats: nextKeeps },
+            {
+              omitSeats: previewSatSeats,
+              keepRosterSeats: nextKeeps,
+              rosterPlayerIds: youRosterPlayerIds(state),
+            },
           )[day]?.some((entry) => entry.playerId === playerId) ?? false
         if (!seated) return "full"
         setKeepRosterSeats(nextKeeps)
@@ -766,6 +800,52 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   }
 
   const sitStartSuggestions = matchupData?.sitStart ?? []
+  const sitStartDisplay = useMemo(() => {
+    if (!state || !matchupData || !daily) {
+      return { suggestions: [] as typeof sitStartSuggestions, badges: {} }
+    }
+    const youTeam = state.teams.find(
+      (team) => team.teamIndex === state.perspectiveTeamIndex,
+    )
+    const playersById: Record<string, SeasonPlayer> = {
+      ...Object.fromEntries(state.players.map((player) => [player.id, player])),
+      ...matchupData.playersById,
+    }
+    const previewDaily = previewPlan
+      ? applyStreamingPlanPreview(
+          daily,
+          previewPlan,
+          playersById,
+          matchupData.schedule,
+          {
+            omitSeats: previewSatSeats,
+            keepRosterSeats,
+            rosterPlayerIds: youRosterPlayerIds(state),
+          },
+        )
+      : daily
+    const input = {
+      days: matchupData.schedule.matchup.days,
+      schedule: matchupData.schedule,
+      playersById,
+      youEntries: youTeam?.entries ?? [],
+      daily: previewDaily,
+      droppedFromByPlayerId: previewDroppedFromDateByPlayerId(previewPlan),
+    }
+    const suggestions = visibleSitStartSuggestions(sitStartSuggestions, input)
+    return {
+      suggestions,
+      badges: sitStartBadgesByPlayerDay(suggestions, input),
+    }
+  }, [
+    daily,
+    keepRosterSeats,
+    matchupData,
+    previewPlan,
+    previewSatSeats,
+    sitStartSuggestions,
+    state,
+  ])
 
   const planningBoard = useMemo(() => {
     if (!state || !matchupData || !daily) return undefined
@@ -793,29 +873,6 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       statWindow,
     )
   }, [daily, state, matchupData, statWindow])
-
-  const sitStartBadgesByPlayerId = useMemo(() => {
-    if (!state || !matchupData || sitStartSuggestions.length === 0) {
-      return undefined
-    }
-
-    const playersById: Record<string, SeasonPlayer> = {
-      ...Object.fromEntries(state.players.map((player) => [player.id, player])),
-      ...matchupData.playersById,
-    }
-    const badges: Record<string, string> = {}
-    for (const suggestion of sitStartSuggestions) {
-      if (!badges[suggestion.benchPlayerId]) {
-        badges[suggestion.benchPlayerId] =
-          `Start over ${playerShortName(suggestion.activePlayerId, playersById)}`
-      }
-      if (!badges[suggestion.activePlayerId]) {
-        badges[suggestion.activePlayerId] =
-          `Sit for ${playerShortName(suggestion.benchPlayerId, playersById)}`
-      }
-    }
-    return badges
-  }, [sitStartSuggestions, state, matchupData])
 
   if (isLoading) {
     return (
@@ -852,7 +909,11 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
           previewPlan,
           playersMap,
           matchupData.schedule,
-          { omitSeats: previewSatSeats, keepRosterSeats },
+          {
+            omitSeats: previewSatSeats,
+            keepRosterSeats,
+            rosterPlayerIds: youRosterPlayerIds(state),
+          },
         )
       : daily
 
@@ -1014,27 +1075,31 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         <p className="mb-2 text-[0.7rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
           Using your day-by-day lineups
         </p>
-        <MatchupPlanBar
-          forcedOpponentRosterDrops={forcedOpponentRosterDrops}
-          onForcedOpponentRosterDropChange={
-            handleForcedOpponentRosterDropChange
-          }
-          onOppSpotChoiceChange={handleOppSpotChoiceChange}
-          onYouSpotCountChange={handleYouSpotCountChange}
-          openSeatCount={
-            oppTeam ? emptyNonIlSeatCount(oppTeam.entries) : 0
-          }
-          opponentEntries={oppTeam?.entries}
-          oppSpotChoice={oppSpotChoice}
-          playersById={playersMap}
-          recommendedYouSpot={recommendedYouSpot}
-          resolvedOppSpotCount={oppSpotCount}
-          statWindow={statWindow}
-          onStatWindowChange={handleStatWindowChange}
-          youSpotCount={previewSpotCount}
-          youSpotScores={youSpotScores}
-        />
-        <MatchupBoard board={liveBoard} />
+        <div className="flex items-center gap-3">
+          <MatchupPlanBar
+            forcedOpponentRosterDrops={forcedOpponentRosterDrops}
+            onForcedOpponentRosterDropChange={
+              handleForcedOpponentRosterDropChange
+            }
+            onOppSpotChoiceChange={handleOppSpotChoiceChange}
+            onYouSpotCountChange={handleYouSpotCountChange}
+            openSeatCount={
+              oppTeam ? emptyNonIlSeatCount(oppTeam.entries) : 0
+            }
+            opponentEntries={oppTeam?.entries}
+            oppSpotChoice={oppSpotChoice}
+            playersById={playersMap}
+            recommendedYouSpot={recommendedYouSpot}
+            resolvedOppSpotCount={oppSpotCount}
+            statWindow={statWindow}
+            onStatWindowChange={handleStatWindowChange}
+            youSpotCount={previewSpotCount}
+            youSpotScores={youSpotScores}
+          />
+          <div className="min-w-0 max-w-3xl flex-1">
+            <MatchupBoard board={liveBoard} />
+          </div>
+        </div>
 
         <div className="mt-6 grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] xl:gap-3">
           <div className="min-w-0">
@@ -1057,7 +1122,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
               streamerOwnedDatesByPlayerId={previewStreamerOwnedDatesByPlayerId(
                 previewPlan,
               )}
-              sitStartBadgesByPlayerId={sitStartBadgesByPlayerId}
+              sitStartBadgesByPlayerDay={sitStartDisplay.badges}
               weekFooter={
                 oppTeam ? (
                   <OpponentWeekStrip
@@ -1097,7 +1162,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             applyingSwapKey={applyingSwapKey}
             onApply={handleApplySwap}
             playersById={matchupData.playersById}
-            suggestions={sitStartSuggestions}
+            suggestions={sitStartDisplay.suggestions}
           />
           {previewPlan == null ? (
             <RatioSitsPanel

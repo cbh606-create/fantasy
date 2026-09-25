@@ -4,6 +4,8 @@ import type { CategoryId } from "@/lib/domain/types"
 
 export const ASSUMED_SEASON_GAMES = 82
 export const B2B_SECOND_NIGHT_PLAY_RATE = 0.75
+/** Night-2 logs with fewer opportunities than this use the 0.75 fallback. */
+export const B2B_NIGHT2_MIN_OPPORTUNITIES = 4
 export const MAX_SIT_START = 5
 export const MAX_RATIO_SITS = 5
 export const MAX_STREAMERS = 8

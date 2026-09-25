@@ -64,11 +64,6 @@ export type StreamerSuggestion = {
   reasons: string[]
 }
 
-export type StreamingStrategyMode =
-  | "aggressive"
-  | "balanced"
-  | "conservative"
-
 export type StreamingDensityTier = "elite" | "strong" | "ok" | "thin"
 
 export type StreamingPlanSpotCount = 1 | 2 | 3
@@ -119,8 +114,6 @@ export type StreamingPlan = {
   addsUsed: number
   /** Team Starts after applying the planned you-side Daily overlay. */
   gameStarts: number
-  strategyMode: StreamingStrategyMode
-  suggestedStrategyMode: StreamingStrategyMode
   summaryReasons: string[]
   days: StreamingPlanDay[]
   opponentDays: OpponentStreamDay[]

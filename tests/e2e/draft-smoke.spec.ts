@@ -130,7 +130,7 @@ test("manual setup reaches mock and shows strategy chips plus next picks", async
     await route.fulfill({ json: simulationResult("p01") })
   })
 
-  await page.goto("/leagues/new")
+  await page.goto("/leagues/new?setup=1")
   const leagueNameField = page.getByLabel("League name")
   await leagueNameField.click()
   await leagueNameField.fill("")

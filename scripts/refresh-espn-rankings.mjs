@@ -1,7 +1,8 @@
 /**
- * Overlay ESPN Fantasy averageDraftPosition onto the player pool.
+ * Overlay ESPN projections-page STANDARD rank onto the player pool.
  *
- * Live: lm-api-reads kona_player_info ownership.averageDraftPosition.
+ * Live: lm-api-reads kona_player_info draftRanksByRankType.STANDARD.rank
+ * (the Rank column on /basketball/players/projections — not ADP).
  * Fixture fallback when live fetch fails or --fixture is set.
  *
  * Usage:
@@ -19,13 +20,16 @@ import {
   normalizeName,
   projectPrimary,
 } from "./lib/adp-pool.mjs"
+import { espnRankFromPlayer } from "./lib/espn-ranks.mjs"
 
 const SOURCE_ID = "espn_article_h2h_points"
 const FIXTURE_REL = "data/players/espn_adp_2026_27.json"
 const LEGACY_ARTICLE_FIXTURE =
   "data/players/espn_h2h_points_rankings_2026_27.json"
 const USER_AGENT =
-  "fantasy-draft-tool/0.1 (local ESPN ADP refresh; +https://github.com/cbh606-create/fantasy)"
+  "fantasy-draft-tool/0.1 (local ESPN rank refresh; +https://github.com/cbh606-create/fantasy)"
+const PROJECTIONS_URL =
+  "https://fantasy.espn.com/basketball/players/projections"
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((arg) => {
@@ -59,13 +63,15 @@ const EMPTY_PROJECTIONS = {
   PTS: 0,
 }
 
-const fetchEspnAdpLive = async () => {
+const fetchEspnRankLive = async () => {
   const fantasyFilter = {
     players: {
       filterSlotIds: { value: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
       limit: 2000,
       offset: 0,
       sortPercOwned: { sortPriority: 1, sortAsc: false },
+      filterStatsForSourceIds: { value: [0, 1] },
+      useFullProjectionTable: { value: true },
     },
   }
   const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${seasonId}/players?scoringPeriodId=0&view=kona_player_info`
@@ -77,21 +83,20 @@ const fetchEspnAdpLive = async () => {
     },
   })
   if (!response.ok) {
-    throw new Error(`ESPN ADP fetch failed: HTTP ${response.status}`)
+    throw new Error(`ESPN rank fetch failed: HTTP ${response.status}`)
   }
 
   const payload = await response.json()
   const players = Array.isArray(payload) ? payload : payload.players || []
   const rows = []
-  for (const player of players) {
+  for (const row of players) {
+    const player = row?.player || row
     const name = player?.fullName
-    const adp = Number(player?.ownership?.averageDraftPosition)
-    if (!name || !Number.isFinite(adp) || adp <= 0) continue
-    // Undrafted / filler ADP clusters around the late pool — skip obvious dumps.
-    if (adp >= 140 && (player?.ownership?.percentOwned ?? 0) < 1) continue
+    const rank = espnRankFromPlayer(row)
+    if (!name || rank == null) continue
     rows.push({
       name,
-      adp,
+      adp: rank,
       key: normalizeName(name),
       espnId: player.id != null ? String(player.id) : undefined,
     })
@@ -103,7 +108,7 @@ const fetchEspnAdpLive = async () => {
   }
   const unique = [...byKey.values()].sort((a, b) => a.adp - b.adp)
   if (unique.length < 50) {
-    throw new Error(`ESPN returned only ${unique.length} ADP rows`)
+    throw new Error(`ESPN returned only ${unique.length} STANDARD rank rows`)
   }
   return unique
 }
@@ -136,34 +141,35 @@ const saveFixture = async (rows) => {
   const payload = {
     meta: {
       source: SOURCE_ID,
-      label: "ESPN averageDraftPosition",
+      label: "ESPN projections STANDARD rank",
       seasonId,
       api: `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${seasonId}/players`,
+      url: PROJECTIONS_URL,
       fetchedAt: new Date().toISOString(),
       count: rows.length,
-      note: "ESPN Fantasy ownership.averageDraftPosition",
+      note: "draftRanksByRankType.STANDARD.rank from ESPN projections, not ADP",
     },
     rankings: rows.map((row) => ({
       name: row.name,
-      adp: row.adp,
+      rank: row.adp,
       ...(row.espnId ? { espnId: row.espnId } : {}),
     })),
   }
   await writeFile(fixturePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8")
-  console.log(`Wrote fixture ${fixturePath} (${rows.length} ADP rows)`)
+  console.log(`Wrote fixture ${fixturePath} (${rows.length} rank rows)`)
 }
 
 const loadRows = async () => {
   if (forceFixture) {
     const rows = await loadFixtureRows()
     if (rows.length < 50) {
-      throw new Error(`Fixture has only ${rows.length} ESPN ADP rows`)
+      throw new Error(`Fixture has only ${rows.length} ESPN rank rows`)
     }
     return { rows, source: "fixture" }
   }
 
   try {
-    const rows = await fetchEspnAdpLive()
+    const rows = await fetchEspnRankLive()
     if (writeFixture) await saveFixture(rows)
     return { rows, source: "live" }
   } catch (error) {
@@ -171,7 +177,7 @@ const loadRows = async () => {
     const rows = await loadFixtureRows()
     if (rows.length < 50) {
       throw new Error(
-        `Live ESPN failed and fixture has only ${rows.length} ADP rows`,
+        `Live ESPN failed and fixture has only ${rows.length} rank rows`,
       )
     }
     return { rows, source: "fixture" }
@@ -191,9 +197,18 @@ const main = async () => {
     SOURCE_ID,
     rows.map((row) => ({ name: row.name, adp: row.adp })),
     {
-      url: `https://fantasy.espn.com/basketball/players/add?leagueId=0&seasonId=${seasonId}`,
+      url: PROJECTIONS_URL,
     },
   )
+
+  const rankedKeys = new Set(rows.map((row) => normalizeName(row.name)))
+  withSource.players = withSource.players.map((player) => {
+    if (rankedKeys.has(normalizeName(player.name))) return player
+    if (player.adpBySource?.[SOURCE_ID] == null) return player
+    const adpBySource = { ...player.adpBySource }
+    delete adpBySource[SOURCE_ID]
+    return { ...player, adpBySource }
+  })
 
   const playersByKey = new Map(
     withSource.players.map((player) => [normalizeName(player.name), player]),
@@ -205,7 +220,7 @@ const main = async () => {
     if (playersByKey.has(key)) continue
 
     const stub = {
-      id: row.espnId ? `espn-${row.espnId}` : `espn-adp-${key.replace(/\s+/g, "-")}`,
+      id: row.espnId ? `espn-${row.espnId}` : `espn-rank-${key.replace(/\s+/g, "-")}`,
       name: row.name,
       positions: ["SF"],
       projections: { ...EMPTY_PROJECTIONS },
@@ -235,7 +250,7 @@ const main = async () => {
 
   await writeFile(outPath, `${JSON.stringify(next, null, 2)}\n`, "utf8")
 
-  console.log(`ESPN ADP rows (${source}): ${rows.length}`)
+  console.log(`ESPN rank rows (${source}): ${rows.length}`)
   console.log(`Matched onto pool: ${matched}`)
   console.log(`Added missing ranked players: ${added}`)
   console.log(`Primary source: ${primarySource}`)
