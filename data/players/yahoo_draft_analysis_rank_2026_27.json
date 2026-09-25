@@ -3,8 +3,8 @@
     "source": "yahoo_draft_analysis_rank",
     "url": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
     "api": "https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2/league/478.l.public/players",
-    "fetchedAt": "2026-09-20T14:21:12.020Z",
-    "count": 674,
+    "fetchedAt": "2026-09-25T14:26:12.324Z",
+    "count": 684,
     "note": "Yahoo player_ranks OR (mock draft Rank / draftanalysis Rank column)"
   },
   "rankings": [
@@ -2157,552 +2157,592 @@
       "adp": 537
     },
     {
-      "name": "Yang Hansen",
+      "name": "Elfrid Payton",
       "adp": 538
     },
     {
-      "name": "Koby Brea",
+      "name": "Yang Hansen",
       "adp": 539
     },
     {
-      "name": "Rocco Zikarsky",
+      "name": "Koby Brea",
       "adp": 540
     },
     {
-      "name": "Kobe Bufkin",
+      "name": "Rocco Zikarsky",
       "adp": 541
     },
     {
-      "name": "Isaiah Crawford",
+      "name": "Kobe Bufkin",
       "adp": 542
     },
     {
-      "name": "Nigel Hayes-Davis",
+      "name": "Isaiah Crawford",
       "adp": 543
     },
     {
-      "name": "Adou Thiero",
+      "name": "Nigel Hayes-Davis",
       "adp": 544
     },
     {
-      "name": "Curtis Jones",
+      "name": "Adou Thiero",
       "adp": 545
     },
     {
-      "name": "Enrique Freeman",
+      "name": "Curtis Jones",
       "adp": 546
     },
     {
-      "name": "Keshon Gilbert",
+      "name": "Enrique Freeman",
       "adp": 547
     },
     {
-      "name": "Chris Mañon",
+      "name": "Keshon Gilbert",
       "adp": 548
     },
     {
-      "name": "Isaac Jones",
+      "name": "Chris Mañon",
       "adp": 549
     },
     {
-      "name": "Trey Jemison III",
+      "name": "Isaac Jones",
       "adp": 550
     },
     {
-      "name": "Skal Labissière",
+      "name": "Trey Jemison III",
       "adp": 551
     },
     {
-      "name": "Zyon Pullin",
+      "name": "Skal Labissière",
       "adp": 552
     },
     {
-      "name": "Norchad Omier",
+      "name": "Zyon Pullin",
       "adp": 553
     },
     {
-      "name": "Drew Peterson",
+      "name": "Norchad Omier",
       "adp": 554
     },
     {
-      "name": "Olivier Sarr",
+      "name": "Drew Peterson",
       "adp": 555
     },
     {
-      "name": "N'Faly Dante",
+      "name": "Olivier Sarr",
       "adp": 556
     },
     {
-      "name": "Payton Sandfort",
+      "name": "N'Faly Dante",
       "adp": 557
     },
     {
-      "name": "Nikola Topić",
+      "name": "Payton Sandfort",
       "adp": 558
     },
     {
-      "name": "John Tonje",
+      "name": "Nikola Topić",
       "adp": 559
     },
     {
-      "name": "Jahmir Young",
+      "name": "John Tonje",
       "adp": 560
     },
     {
-      "name": "Mouhamadou Gueye",
+      "name": "Jahmir Young",
       "adp": 561
     },
     {
-      "name": "Grant Nelson",
+      "name": "Mouhamadou Gueye",
       "adp": 562
     },
     {
-      "name": "Vladislav Goldin",
+      "name": "Grant Nelson",
       "adp": 563
     },
     {
-      "name": "Chris Livingston",
+      "name": "Vladislav Goldin",
       "adp": 564
     },
     {
-      "name": "Jayson Kent",
+      "name": "Chris Livingston",
       "adp": 565
     },
     {
-      "name": "Lawson Lovering",
+      "name": "Jayson Kent",
       "adp": 566
     },
     {
-      "name": "Jacob Toppin",
+      "name": "Lawson Lovering",
       "adp": 567
     },
     {
-      "name": "Josh Oduro",
+      "name": "Jacob Toppin",
       "adp": 568
     },
     {
-      "name": "Markelle Fultz",
+      "name": "Josh Oduro",
       "adp": 569
     },
     {
-      "name": "Harrison Ingram",
+      "name": "Markelle Fultz",
       "adp": 570
     },
     {
-      "name": "Dario Šarić",
+      "name": "Harrison Ingram",
       "adp": 571
     },
     {
-      "name": "CJ Huntley",
+      "name": "Dario Šarić",
       "adp": 572
     },
     {
-      "name": "Hayden Gray",
+      "name": "CJ Huntley",
       "adp": 573
     },
     {
-      "name": "Hunter Dickinson",
+      "name": "Hayden Gray",
       "adp": 574
     },
     {
-      "name": "Javonte Cooke",
+      "name": "Kevin Knox II",
       "adp": 575
     },
     {
-      "name": "Stanley Umude",
+      "name": "Hunter Dickinson",
       "adp": 576
     },
     {
-      "name": "Toby Okani",
+      "name": "Javonte Cooke",
       "adp": 577
     },
     {
-      "name": "Adam Flagler",
+      "name": "Stanley Umude",
       "adp": 578
     },
     {
-      "name": "Bobi Klintman",
+      "name": "Toby Okani",
       "adp": 579
     },
     {
-      "name": "Ömer Yurtseven",
+      "name": "Adam Flagler",
       "adp": 580
     },
     {
-      "name": "Tristen Newton",
+      "name": "Bobi Klintman",
       "adp": 581
     },
     {
-      "name": "Sean Pedulla",
+      "name": "Ömer Yurtseven",
       "adp": 582
     },
     {
-      "name": "Alex Antetokounmpo",
+      "name": "Tristen Newton",
       "adp": 583
     },
     {
-      "name": "Max Shulga",
+      "name": "Sean Pedulla",
       "adp": 584
     },
     {
-      "name": "James Wiseman",
+      "name": "Alex Antetokounmpo",
       "adp": 585
     },
     {
-      "name": "Mark Sears",
+      "name": "Max Shulga",
       "adp": 586
     },
     {
-      "name": "Trevor Keels",
+      "name": "James Wiseman",
       "adp": 587
     },
     {
-      "name": "Trentyn Flowers",
+      "name": "Mark Sears",
       "adp": 588
     },
     {
-      "name": "Buddy Boeheim",
+      "name": "Trevor Keels",
       "adp": 589
     },
     {
-      "name": "Alex Morales",
+      "name": "Trentyn Flowers",
       "adp": 590
     },
     {
-      "name": "Noa Essengue",
+      "name": "Buddy Boeheim",
       "adp": 591
     },
     {
-      "name": "Braden Smith",
+      "name": "Alex Morales",
       "adp": 592
     },
     {
-      "name": "Bryce Hopkins",
+      "name": "Noa Essengue",
       "adp": 593
     },
     {
-      "name": "Alex Karaban",
+      "name": "Braden Smith",
       "adp": 594
     },
     {
-      "name": "Quadir Copeland",
+      "name": "Bryce Hopkins",
       "adp": 595
     },
     {
-      "name": "Tobi Lawal",
+      "name": "Alex Karaban",
       "adp": 596
     },
     {
-      "name": "Lajae Jones",
+      "name": "Quadir Copeland",
       "adp": 597
     },
     {
-      "name": "Allen Graves",
+      "name": "Tobi Lawal",
       "adp": 598
     },
     {
-      "name": "Ja'Kobi Gillespie",
+      "name": "Lajae Jones",
       "adp": 599
     },
     {
-      "name": "Otega Oweh",
+      "name": "Allen Graves",
       "adp": 600
     },
     {
-      "name": "Tyler Nickel",
+      "name": "Ja'Kobi Gillespie",
       "adp": 601
     },
     {
-      "name": "Koa Peat",
+      "name": "Otega Oweh",
       "adp": 602
     },
     {
-      "name": "Meleek Thomas",
+      "name": "Tyler Nickel",
       "adp": 603
     },
     {
-      "name": "Sergio De Larrea",
+      "name": "Koa Peat",
       "adp": 604
     },
     {
-      "name": "Jaylin Sellers",
+      "name": "Meleek Thomas",
       "adp": 605
     },
     {
-      "name": "Tamar Bates",
+      "name": "Sergio De Larrea",
       "adp": 606
     },
     {
-      "name": "Chance McMillian",
+      "name": "Jaylin Sellers",
       "adp": 607
     },
     {
-      "name": "Kylan Boswell",
+      "name": "Tamar Bates",
       "adp": 608
     },
     {
-      "name": "Jack Kayil",
+      "name": "Chance McMillian",
       "adp": 609
     },
     {
-      "name": "AK Okereke",
+      "name": "Kylan Boswell",
       "adp": 610
     },
     {
-      "name": "Henri Veesaar",
+      "name": "Jack Kayil",
       "adp": 611
     },
     {
-      "name": "Josh Dix",
+      "name": "AK Okereke",
       "adp": 612
     },
     {
-      "name": "Tobe Awaka",
+      "name": "Henri Veesaar",
       "adp": 613
     },
     {
-      "name": "Sean McNeil",
+      "name": "Josh Dix",
       "adp": 614
     },
     {
-      "name": "Jaden Bradley",
+      "name": "Tobe Awaka",
       "adp": 615
     },
     {
-      "name": "Deivon Smith",
+      "name": "Sean McNeil",
       "adp": 616
     },
     {
-      "name": "Malik Dia",
+      "name": "Boopie Miller",
       "adp": 617
     },
     {
-      "name": "Bruce Thornton",
+      "name": "Jaden Bradley",
       "adp": 618
     },
     {
-      "name": "Ebuka Okorie",
+      "name": "Deivon Smith",
       "adp": 619
     },
     {
-      "name": "Aday Mara",
+      "name": "Jake Stephens",
       "adp": 620
     },
     {
-      "name": "Vsevolod Ishchenko",
+      "name": "Malik Dia",
       "adp": 621
     },
     {
-      "name": "Igor Milicic Jr.",
+      "name": "Bruce Thornton",
       "adp": 622
     },
     {
-      "name": "Izaiyah Nelson",
+      "name": "Ebuka Okorie",
       "adp": 623
     },
     {
-      "name": "Thomas Sorber",
+      "name": "Aday Mara",
       "adp": 624
     },
     {
-      "name": "Nick Martinelli",
+      "name": "Vsevolod Ishchenko",
       "adp": 625
     },
     {
-      "name": "Mario Hezonja",
+      "name": "Igor Milicic Jr.",
       "adp": 626
     },
     {
-      "name": "Ryan Conwell",
+      "name": "Izaiyah Nelson",
       "adp": 627
     },
     {
-      "name": "Carson Cooper",
+      "name": "Thomas Sorber",
       "adp": 628
     },
     {
-      "name": "Malique Lewis",
+      "name": "Graham Ike",
       "adp": 629
     },
     {
-      "name": "Kingston Flemings",
+      "name": "Nick Martinelli",
       "adp": 630
     },
     {
-      "name": "Tarris Reed Jr.",
+      "name": "Justin Harmon",
       "adp": 631
     },
     {
-      "name": "Dillon Mitchell",
+      "name": "Mario Hezonja",
       "adp": 632
     },
     {
-      "name": "Cameron Carr",
+      "name": "Ryan Conwell",
       "adp": 633
     },
     {
-      "name": "Tarik Biberovic",
+      "name": "Carson Cooper",
       "adp": 634
     },
     {
-      "name": "Ernest Udeh Jr.",
+      "name": "Malique Lewis",
       "adp": 635
     },
     {
-      "name": "Michael Ajayi",
+      "name": "Kingston Flemings",
       "adp": 636
     },
     {
-      "name": "Rafael Castro",
+      "name": "Ibrahima Diallo",
       "adp": 637
     },
     {
-      "name": "Richie Saunders",
+      "name": "Dillon Mitchell",
       "adp": 638
     },
     {
-      "name": "Alex Toohey",
+      "name": "Tarris Reed Jr.",
       "adp": 639
     },
     {
-      "name": "Chris Cenac Jr.",
+      "name": "Cameron Carr",
       "adp": 640
     },
     {
-      "name": "Bennett Stirtz",
+      "name": "Tarik Biberovic",
       "adp": 641
     },
     {
-      "name": "Trevon Brazile",
+      "name": "Ernest Udeh Jr.",
       "adp": 642
     },
     {
-      "name": "Kobe Stewart",
+      "name": "Michael Ajayi",
       "adp": 643
     },
     {
-      "name": "Jayden Quaintance",
+      "name": "Rafael Castro",
       "adp": 644
     },
     {
-      "name": "Labaron Philon Jr.",
+      "name": "Richie Saunders",
       "adp": 645
     },
     {
-      "name": "Emanuel Sharp",
+      "name": "Alex Toohey",
       "adp": 646
     },
     {
-      "name": "Tre Donaldson",
+      "name": "Chris Cenac Jr.",
       "adp": 647
     },
     {
-      "name": "Trey Kaufman-Renn",
+      "name": "Bennett Stirtz",
       "adp": 648
     },
     {
-      "name": "John Butler Jr.",
+      "name": "Trevon Brazile",
       "adp": 649
     },
     {
-      "name": "Christian Anderson Jr.",
+      "name": "Kobe Stewart",
       "adp": 650
     },
     {
-      "name": "Joshua Jefferson",
+      "name": "Jayden Quaintance",
       "adp": 651
     },
     {
-      "name": "Ugonna Onyenso",
+      "name": "Labaron Philon Jr.",
       "adp": 652
     },
     {
-      "name": "Trey Townsend",
+      "name": "Jayden Nunn",
       "adp": 653
     },
     {
-      "name": "Arthur Kaluma",
+      "name": "Emanuel Sharp",
       "adp": 654
     },
     {
-      "name": "Khalifa Diop",
+      "name": "Tre Donaldson",
       "adp": 655
     },
     {
-      "name": "Jaron Pierre Jr.",
+      "name": "Trey Kaufman-Renn",
       "adp": 656
     },
     {
-      "name": "Isaiah Evans",
+      "name": "John Butler Jr.",
       "adp": 657
     },
     {
-      "name": "Karim Lopez",
+      "name": "Christian Anderson Jr.",
       "adp": 658
     },
     {
-      "name": "Nate Ament",
+      "name": "Dain Dainja",
       "adp": 659
     },
     {
-      "name": "Dailyn Swain",
+      "name": "Joshua Jefferson",
       "adp": 660
     },
     {
-      "name": "Tyler Bilodeau",
+      "name": "Ugonna Onyenso",
       "adp": 661
     },
     {
-      "name": "Jamarion Sharp",
+      "name": "Trey Townsend",
       "adp": 662
     },
     {
-      "name": "Bogoljub Marković",
+      "name": "Arthur Kaluma",
       "adp": 663
     },
     {
-      "name": "Alpha Diallo",
+      "name": "Khalifa Diop",
       "adp": 664
     },
     {
-      "name": "Felix Okpara",
+      "name": "Jaron Pierre Jr.",
       "adp": 665
     },
     {
-      "name": "Maliq Brown",
+      "name": "Isaiah Evans",
       "adp": 666
     },
     {
-      "name": "Baba Miller",
+      "name": "Karim Lopez",
       "adp": 667
     },
     {
-      "name": "Zuby Ejiofor",
+      "name": "Nate Ament",
       "adp": 668
     },
     {
-      "name": "Darius Brown",
+      "name": "Dailyn Swain",
       "adp": 669
     },
     {
-      "name": "Chucky Hepburn",
+      "name": "Tyler Bilodeau",
       "adp": 670
     },
     {
-      "name": "Liam Robbins",
+      "name": "Jamarion Sharp",
       "adp": 671
     },
     {
-      "name": "Hunter Sallis",
+      "name": "Bogoljub Marković",
       "adp": 672
     },
     {
-      "name": "Johni Broome",
+      "name": "Alpha Diallo",
       "adp": 673
     },
     {
-      "name": "Jahmyl Telfort",
+      "name": "Felix Okpara",
       "adp": 674
+    },
+    {
+      "name": "Maliq Brown",
+      "adp": 675
+    },
+    {
+      "name": "Baba Miller",
+      "adp": 676
+    },
+    {
+      "name": "Zuby Ejiofor",
+      "adp": 677
+    },
+    {
+      "name": "James Johnson",
+      "adp": 678
+    },
+    {
+      "name": "Darius Brown",
+      "adp": 679
+    },
+    {
+      "name": "Chucky Hepburn",
+      "adp": 680
+    },
+    {
+      "name": "Liam Robbins",
+      "adp": 681
+    },
+    {
+      "name": "Hunter Sallis",
+      "adp": 682
+    },
+    {
+      "name": "Johni Broome",
+      "adp": 683
+    },
+    {
+      "name": "Jahmyl Telfort",
+      "adp": 684
     }
   ]
 }

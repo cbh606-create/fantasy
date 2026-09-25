@@ -7,23 +7,23 @@
     "count": 313,
     "adpSource": "yahoo_draft_analysis_rank",
     "adpSourceUrl": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
-    "adpUpdatedAt": "2026-09-20T14:31:05.955Z",
+    "adpUpdatedAt": "2026-09-25T14:26:16.134Z",
     "adpArticleParsed": 411,
     "adpArticleMatched": 270,
     "adpArticleAdded": 0,
-    "adpMatched": 286,
-    "adpUnmatched": 14,
-    "adpRankRows": 674,
+    "adpMatched": 297,
+    "adpUnmatched": 16,
+    "adpRankRows": 684,
     "adpFetchSource": "live",
     "adpSources": {
       "yahoo_draft_analysis_rank": {
         "id": "yahoo_draft_analysis_rank",
         "label": "Yahoo Rank",
         "url": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
-        "updatedAt": "2026-09-20T14:21:12.041Z",
-        "matched": 286,
-        "unmatched": 14,
-        "rowCount": 674
+        "updatedAt": "2026-09-25T14:26:12.341Z",
+        "matched": 297,
+        "unmatched": 16,
+        "rowCount": 684
       },
       "fantasypros_yahoo": {
         "id": "fantasypros_yahoo",
@@ -38,7 +38,7 @@
         "id": "espn_article_h2h_points",
         "label": "ESPN Rank",
         "url": "https://fantasy.espn.com/basketball/players/projections",
-        "updatedAt": "2026-09-20T14:31:05.567Z",
+        "updatedAt": "2026-09-25T14:26:15.126Z",
         "matched": 270,
         "unmatched": 43,
         "rowCount": 411
@@ -5441,32 +5441,6 @@
       }
     },
     {
-      "id": "espn-3907387",
-      "name": "Ben Simmons",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 139.44,
-      "adpBySource": {
-        "espn_article_h2h_points": 311
-      },
-      "status": "active",
-      "espnId": "3907387",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3907387.png",
-      "teamAbbr": "SAC"
-    },
-    {
       "id": "espn-4397102",
       "name": "Bol Bol",
       "positions": [
@@ -6132,32 +6106,6 @@
       }
     },
     {
-      "id": "espn-4592691",
-      "name": "Jake LaRavia",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 147,
-      "adpBySource": {
-        "espn_article_h2h_points": 147
-      },
-      "status": "active",
-      "espnId": "4592691",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4592691.png",
-      "teamAbbr": "LAL"
-    },
-    {
       "id": "espn-6440",
       "name": "Tobias Harris",
       "positions": [
@@ -6581,32 +6529,6 @@
       }
     },
     {
-      "id": "espn-4432810",
-      "name": "Isaiah Stewart",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 158,
-      "adpBySource": {
-        "espn_article_h2h_points": 158
-      },
-      "status": "active",
-      "espnId": "4432810",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432810.png",
-      "teamAbbr": "MEM"
-    },
-    {
       "id": "espn-4873153",
       "name": "Morez Johnson Jr.",
       "positions": [
@@ -6682,32 +6604,6 @@
         "FTM": 145,
         "FTA": 170
       }
-    },
-    {
-      "id": "espn-4431679",
-      "name": "Precious Achiuwa",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 160,
-      "adpBySource": {
-        "espn_article_h2h_points": 160
-      },
-      "status": "active",
-      "espnId": "4431679",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431679.png",
-      "teamAbbr": "SAC"
     },
     {
       "id": "espn-4277811",
@@ -6980,8 +6876,8 @@
       }
     },
     {
-      "id": "espn-4432241",
-      "name": "Jamal Shead",
+      "id": "espn-4432810",
+      "name": "Isaiah Stewart",
       "positions": [
         "SF"
       ],
@@ -6996,14 +6892,15 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 167,
+      "adp": 168,
       "adpBySource": {
-        "espn_article_h2h_points": 167
+        "espn_article_h2h_points": 158,
+        "yahoo_draft_analysis_rank": 168
       },
       "status": "active",
-      "espnId": "4432241",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432241.png",
-      "teamAbbr": "TOR"
+      "espnId": "4432810",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432810.png",
+      "teamAbbr": "MEM"
     },
     {
       "id": "espn-4683678",
@@ -7353,32 +7250,6 @@
       }
     },
     {
-      "id": "espn-4576060",
-      "name": "Ryan Kalkbrenner",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 177,
-      "adpBySource": {
-        "espn_article_h2h_points": 177
-      },
-      "status": "active",
-      "espnId": "4576060",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4576060.png",
-      "teamAbbr": "CHA"
-    },
-    {
       "id": "espn-4351852",
       "name": "Mitchell Robinson",
       "positions": [
@@ -7608,58 +7479,6 @@
       }
     },
     {
-      "id": "espn-4432582",
-      "name": "Max Christie",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 184,
-      "adpBySource": {
-        "espn_article_h2h_points": 184
-      },
-      "status": "active",
-      "espnId": "4432582",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432582.png",
-      "teamAbbr": "DAL"
-    },
-    {
-      "id": "espn-5105550",
-      "name": "GG Jackson",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 185,
-      "adpBySource": {
-        "espn_article_h2h_points": 185
-      },
-      "status": "active",
-      "espnId": "5105550",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105550.png",
-      "teamAbbr": "MEM"
-    },
-    {
       "id": "espn-4066648",
       "name": "Rui Hachimura",
       "positions": [
@@ -7738,32 +7557,6 @@
       }
     },
     {
-      "id": "espn-4066211",
-      "name": "Robert Williams III",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 188,
-      "adpBySource": {
-        "espn_article_h2h_points": 188
-      },
-      "status": "active",
-      "espnId": "4066211",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066211.png",
-      "teamAbbr": "POR"
-    },
-    {
       "id": "espn-5082206",
       "name": "Brayden Burries",
       "positions": [
@@ -7837,32 +7630,6 @@
         "FTM": 129,
         "FTA": 156
       }
-    },
-    {
-      "id": "espn-4683747",
-      "name": "Jaylon Tyson",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 189,
-      "adpBySource": {
-        "espn_article_h2h_points": 189
-      },
-      "status": "active",
-      "espnId": "4683747",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683747.png",
-      "teamAbbr": "CLE"
     },
     {
       "id": "espn-5104155",
@@ -8019,32 +7786,6 @@
         "FTM": 133,
         "FTA": 179
       }
-    },
-    {
-      "id": "espn-5107173",
-      "name": "Danny Wolf",
-      "positions": [
-        "SF"
-      ],
-      "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
-        "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
-      },
-      "adp": 193,
-      "adpBySource": {
-        "espn_article_h2h_points": 193
-      },
-      "status": "active",
-      "espnId": "5107173",
-      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5107173.png",
-      "teamAbbr": "BKN"
     },
     {
       "id": "espn-4278355",
@@ -8391,6 +8132,33 @@
       }
     },
     {
+      "id": "espn-4066211",
+      "name": "Robert Williams III",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 204,
+      "adpBySource": {
+        "espn_article_h2h_points": 188,
+        "yahoo_draft_analysis_rank": 204
+      },
+      "status": "active",
+      "espnId": "4066211",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4066211.png",
+      "teamAbbr": "POR"
+    },
+    {
       "id": "espn-3157465",
       "name": "Duncan Robinson",
       "positions": [
@@ -8621,6 +8389,33 @@
       }
     },
     {
+      "id": "espn-4432582",
+      "name": "Max Christie",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 212,
+      "adpBySource": {
+        "espn_article_h2h_points": 184,
+        "yahoo_draft_analysis_rank": 212
+      },
+      "status": "active",
+      "espnId": "4432582",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432582.png",
+      "teamAbbr": "DAL"
+    },
+    {
       "id": "espn-4914336",
       "name": "Shaedon Sharpe",
       "positions": [
@@ -8658,6 +8453,33 @@
         "FTM": 68,
         "FTA": 86
       }
+    },
+    {
+      "id": "espn-4576060",
+      "name": "Ryan Kalkbrenner",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 214,
+      "adpBySource": {
+        "espn_article_h2h_points": 177,
+        "yahoo_draft_analysis_rank": 214
+      },
+      "status": "active",
+      "espnId": "4576060",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4576060.png",
+      "teamAbbr": "CHA"
     },
     {
       "id": "espn-3934673",
@@ -8889,6 +8711,33 @@
       }
     },
     {
+      "id": "espn-4592691",
+      "name": "Jake LaRavia",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 223,
+      "adpBySource": {
+        "espn_article_h2h_points": 147,
+        "yahoo_draft_analysis_rank": 223
+      },
+      "status": "active",
+      "espnId": "4592691",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4592691.png",
+      "teamAbbr": "LAL"
+    },
+    {
       "id": "espn-4433174",
       "name": "Dylan Cardwell",
       "positions": [
@@ -9036,6 +8885,33 @@
         "FTM": 54,
         "FTA": 62
       }
+    },
+    {
+      "id": "espn-4683747",
+      "name": "Jaylon Tyson",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 232,
+      "adpBySource": {
+        "espn_article_h2h_points": 189,
+        "yahoo_draft_analysis_rank": 232
+      },
+      "status": "active",
+      "espnId": "4683747",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4683747.png",
+      "teamAbbr": "CLE"
     },
     {
       "id": "espn-4432823",
@@ -9457,6 +9333,33 @@
       }
     },
     {
+      "id": "espn-4431679",
+      "name": "Precious Achiuwa",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 261,
+      "adpBySource": {
+        "espn_article_h2h_points": 160,
+        "yahoo_draft_analysis_rank": 261
+      },
+      "status": "active",
+      "espnId": "4431679",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4431679.png",
+      "teamAbbr": "SAC"
+    },
+    {
       "id": "espn-4845374",
       "name": "Bub Carrington",
       "positions": [
@@ -9531,6 +9434,33 @@
         "FTM": 94,
         "FTA": 131
       }
+    },
+    {
+      "id": "espn-4432241",
+      "name": "Jamal Shead",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 267,
+      "adpBySource": {
+        "espn_article_h2h_points": 167,
+        "yahoo_draft_analysis_rank": 267
+      },
+      "status": "active",
+      "espnId": "4432241",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432241.png",
+      "teamAbbr": "TOR"
     },
     {
       "id": "espn-4277869",
@@ -10176,6 +10106,33 @@
       }
     },
     {
+      "id": "espn-5105550",
+      "name": "GG Jackson",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 306,
+      "adpBySource": {
+        "espn_article_h2h_points": 185,
+        "yahoo_draft_analysis_rank": 306
+      },
+      "status": "active",
+      "espnId": "5105550",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105550.png",
+      "teamAbbr": "MEM"
+    },
+    {
       "id": "espn-3135046",
       "name": "Tyus Jones",
       "positions": [
@@ -10251,6 +10208,33 @@
         "FTM": 87,
         "FTA": 106
       }
+    },
+    {
+      "id": "espn-5107173",
+      "name": "Danny Wolf",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 325,
+      "adpBySource": {
+        "espn_article_h2h_points": 193,
+        "yahoo_draft_analysis_rank": 325
+      },
+      "status": "active",
+      "espnId": "5107173",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5107173.png",
+      "teamAbbr": "BKN"
     },
     {
       "id": "espn-3133626",
@@ -10962,6 +10946,33 @@
       }
     },
     {
+      "id": "espn-3907387",
+      "name": "Ben Simmons",
+      "positions": [
+        "SF"
+      ],
+      "projections": {
+        "FG_PCT": 0,
+        "FT_PCT": 0,
+        "TPM": 0,
+        "REB": 0,
+        "AST": 0,
+        "STL": 0,
+        "BLK": 0,
+        "TO": 0,
+        "PTS": 0
+      },
+      "adp": 478,
+      "adpBySource": {
+        "espn_article_h2h_points": 311,
+        "yahoo_draft_analysis_rank": 478
+      },
+      "status": "active",
+      "espnId": "3907387",
+      "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/3907387.png",
+      "teamAbbr": "SAC"
+    },
+    {
       "id": "espn-5159895",
       "name": "Yuki Kawamura",
       "positions": [
@@ -11085,12 +11096,12 @@
         "TO": 91,
         "PTS": 259
       },
-      "adp": 538,
+      "adp": 539,
       "espnId": "5217746",
       "status": "active",
       "statsSeasonId": 2027,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 538,
+        "yahoo_draft_analysis_rank": 539,
         "fantasypros_yahoo": 197,
         "espn_article_h2h_points": 341
       },
@@ -11123,12 +11134,12 @@
         "TO": 1,
         "PTS": 19
       },
-      "adp": 583,
+      "adp": 585,
       "espnId": "4432452",
       "status": "active",
       "statsSeasonId": 2026,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 583
+        "yahoo_draft_analysis_rank": 585
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4432452.png",
       "projectedGames": 6,
@@ -11158,12 +11169,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 600,
+      "adp": 602,
       "espnId": "5106270",
       "status": "gtd",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 600
+        "yahoo_draft_analysis_rank": 602
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5106270.png",
       "teamAbbr": "OKC"
@@ -11185,12 +11196,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 602,
+      "adp": 604,
       "espnId": "5041953",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 602
+        "yahoo_draft_analysis_rank": 604
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5041953.png",
       "teamAbbr": "PHX"
@@ -11212,12 +11223,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 603,
+      "adp": 605,
       "espnId": "5041951",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 603
+        "yahoo_draft_analysis_rank": 605
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5041951.png",
       "teamAbbr": "CLE"
@@ -11239,12 +11250,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 604,
+      "adp": 606,
       "espnId": "5279129",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 604
+        "yahoo_draft_analysis_rank": 606
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5279129.png",
       "teamAbbr": "DAL"
@@ -11267,12 +11278,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 619,
+      "adp": 623,
       "espnId": "5258459",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 619
+        "yahoo_draft_analysis_rank": 623
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5258459.png",
       "teamAbbr": "DET"
@@ -11294,12 +11305,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 620,
+      "adp": 624,
       "espnId": "5174983",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 620
+        "yahoo_draft_analysis_rank": 624
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5174983.png",
       "teamAbbr": "OKC"
@@ -11322,12 +11333,12 @@
         "TO": 149,
         "PTS": 775
       },
-      "adp": 630,
+      "adp": 636,
       "espnId": "5149077",
       "status": "active",
       "statsSeasonId": 2027,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 630,
+        "yahoo_draft_analysis_rank": 636,
         "espn_article_h2h_points": 191
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5149077.png",
@@ -11359,12 +11370,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 631,
+      "adp": 639,
       "espnId": "5105809",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 631
+        "yahoo_draft_analysis_rank": 639
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105809.png",
       "teamAbbr": "SAS"
@@ -11387,12 +11398,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 633,
+      "adp": 640,
       "espnId": "5113969",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 633
+        "yahoo_draft_analysis_rank": 640
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5113969.png",
       "teamAbbr": "LAL"
@@ -11414,12 +11425,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 638,
+      "adp": 645,
       "espnId": "5105462",
       "status": "out",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 638
+        "yahoo_draft_analysis_rank": 645
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5105462.png",
       "teamAbbr": "MEM"
@@ -11442,12 +11453,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 645,
+      "adp": 652,
       "espnId": "4873090",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 645
+        "yahoo_draft_analysis_rank": 652
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/4873090.png",
       "teamAbbr": "PHI"
@@ -11469,12 +11480,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 650,
+      "adp": 658,
       "espnId": "5060701",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 650
+        "yahoo_draft_analysis_rank": 658
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5060701.png",
       "teamAbbr": "CHA"
@@ -11496,12 +11507,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 657,
+      "adp": 666,
       "espnId": "5061585",
       "status": "active",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 657
+        "yahoo_draft_analysis_rank": 666
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5061585.png",
       "teamAbbr": "MIN"
@@ -11523,12 +11534,12 @@
         "TO": 0,
         "PTS": 0
       },
-      "adp": 658,
+      "adp": 667,
       "espnId": "5231919",
       "status": "gtd",
       "statsSeasonId": null,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 658
+        "yahoo_draft_analysis_rank": 667
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5231919.png",
       "teamAbbr": "MEM"
@@ -11550,12 +11561,12 @@
         "TO": 77,
         "PTS": 396
       },
-      "adp": 659,
+      "adp": 668,
       "espnId": "5164559",
       "status": "active",
       "statsSeasonId": 2027,
       "adpBySource": {
-        "yahoo_draft_analysis_rank": 659,
+        "yahoo_draft_analysis_rank": 668,
         "espn_article_h2h_points": 295
       },
       "imageUrl": "https://a.espncdn.com/i/headshots/nba/players/full/5164559.png",
