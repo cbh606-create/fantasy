@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { CategoryId } from "@/lib/domain/types"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { buildMatchupBoard } from "@/lib/matchup/board"
 import {
   blendWeekTotals,
@@ -375,7 +376,7 @@ describe("buildMorningSummary", () => {
 
   it("omits dropped lines for planned opponent drops but reports unexpected drops", () => {
     const opponentDayWithPlannedDrop = {
-      date: "2026-10-21",
+      date: "2026-10-20",
       streamerPlayerId: "stream-fa",
       droppedPlayerId: null,
       rosterGameCount: 1,
@@ -500,5 +501,123 @@ describe("buildMorningSummary", () => {
     })
     expect(unchanged.recommendationsUnchanged).toBe(true)
     expect(unchanged.recommendationChanges).toEqual([])
+  })
+
+  it("does not missed-add a future planned opponent add but does for a past plan", () => {
+    const opponentAddCell = (date: string) => ({
+      date,
+      streamerPlayerId: "future-fa",
+      droppedPlayerId: null,
+      rosterGameCount: 1,
+      cells: [
+        {
+          spotIndex: 0,
+          playerId: "future-fa",
+          droppedPlayerId: null,
+          action: "add" as const,
+          addIndex: 1,
+        },
+      ],
+    })
+    const base = {
+      board: boardFromPts(20, 10),
+      previous: {
+        outcomes: outcomesFromBoard(boardFromPts(20, 10)),
+        opponentRosterIds: ["c"],
+        opponentDays: [opponentAddCell("2026-10-22")],
+        ourDays: [] as typeof identicalAddDay[],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    }
+    const futurePlan = buildMorningSummary(base)
+    expect(futurePlan.opponentMoves).not.toContain("missed add future-fa")
+
+    const pastPlan = buildMorningSummary({
+      ...base,
+      previous: {
+        ...base.previous,
+        opponentDays: [opponentAddCell("2026-10-20")],
+      },
+    })
+    expect(pastPlan.opponentMoves).toContain("missed add future-fa")
+  })
+
+  it("reports dropped when an early drop beats a future planned opponent drop", () => {
+    const opponentDayWithFutureDrop = {
+      date: "2026-10-22",
+      streamerPlayerId: "stream-fa",
+      droppedPlayerId: null,
+      rosterGameCount: 1,
+      cells: [
+        {
+          spotIndex: 0,
+          playerId: "stream-fa",
+          droppedPlayerId: "early-drop",
+          action: "drop_add" as const,
+          addIndex: 1,
+        },
+      ],
+    }
+    const summary = buildMorningSummary({
+      board: boardFromPts(20, 10),
+      previous: {
+        outcomes: outcomesFromBoard(boardFromPts(20, 10)),
+        opponentRosterIds: ["c", "early-drop"],
+        opponentDays: [opponentDayWithFutureDrop],
+        ourDays: [],
+        sitStart: [],
+      },
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(summary.opponentMoves).toContain("dropped early-drop")
+  })
+
+  it("fills missing board categories with tie outcomes in ALL_CATEGORY_IDS order", () => {
+    const you = emptyCategoryTotals()
+    const opp = emptyCategoryTotals()
+    you.PTS = 30
+    opp.PTS = 20
+    const ptsOnlyBoard = buildMatchupBoard(you, opp, ["PTS"])
+    const summary = buildMorningSummary({
+      board: ptsOnlyBoard,
+      previous: null,
+      closedDays: [],
+      currentOpponentRosterIds: ["c"],
+      ourDays: [],
+      opponentDays: [],
+      sitStart: [],
+      outPlayerIds: [],
+      today: "2026-10-21",
+      actualsPending: false,
+    })
+    expect(summary.categories.map((row) => row.categoryId)).toEqual([
+      ...ALL_CATEGORY_IDS,
+    ])
+    expect(summary.categories).toHaveLength(9)
+    expect(summary.categories.find((row) => row.categoryId === "PTS")?.outcome).toBe(
+      "W",
+    )
+    for (const categoryId of ALL_CATEGORY_IDS) {
+      if (categoryId === "PTS") continue
+      expect(summary.categories.find((row) => row.categoryId === categoryId)).toMatchObject({
+        outcome: "T",
+        flipped: false,
+      })
+    }
   })
 })

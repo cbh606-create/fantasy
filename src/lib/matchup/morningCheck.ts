@@ -418,13 +418,19 @@ export const buildMorningSummary = (input: {
   today: string
   actualsPending: boolean
 }): MorningSummary => {
-  const categories = input.board.categories.map((row) => ({
-    categoryId: row.categoryId,
-    outcome: row.outcome,
-    flipped: input.previous
-      ? input.previous.outcomes[row.categoryId] !== row.outcome
-      : false,
-  }))
+  const boardOutcomes = new Map(
+    input.board.categories.map((row) => [row.categoryId, row.outcome]),
+  )
+  const categories = ALL_CATEGORY_IDS.map((categoryId) => {
+    const outcome = boardOutcomes.get(categoryId) ?? "T"
+    return {
+      categoryId,
+      outcome,
+      flipped: input.previous
+        ? input.previous.outcomes[categoryId] !== outcome
+        : false,
+    }
+  })
 
   const previousRoster = new Set(input.previous?.opponentRosterIds ?? [])
   const currentRoster = new Set(input.currentOpponentRosterIds)
@@ -433,8 +439,11 @@ export const buildMorningSummary = (input: {
     for (const playerId of input.currentOpponentRosterIds) {
       if (!previousRoster.has(playerId)) opponentMoves.push(`added ${playerId}`)
     }
+    const savedOpponentDaysBeforeToday = input.previous.opponentDays.filter(
+      (day) => day.date < input.today,
+    )
     const expectedDrops = new Set(
-      input.previous.opponentDays.flatMap((day) =>
+      savedOpponentDaysBeforeToday.flatMap((day) =>
         day.cells.flatMap((cell) =>
           cell.droppedPlayerId ? [cell.droppedPlayerId] : [],
         ),
@@ -446,7 +455,7 @@ export const buildMorningSummary = (input: {
       }
     }
     const expectedAdds = new Set(
-      input.previous.opponentDays.flatMap((day) =>
+      savedOpponentDaysBeforeToday.flatMap((day) =>
         day.cells
           .filter((cell) => cell.action === "add" || cell.action === "drop_add")
           .flatMap((cell) => (cell.playerId ? [cell.playerId] : [])),
