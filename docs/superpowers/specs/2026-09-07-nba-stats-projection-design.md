@@ -181,17 +181,17 @@ regressed = w * observed + (1 - w) * positionMean
 
 ### 5.3 Minutes → team 240
 
+Canonical rule: `docs/superpowers/specs/2026-09-07-minutes-team-rotation-design.md`.
+
 For each team independently:
 
-1. Prior MPG = last-season `mpg` if the player has a box; else rookie prior MPG (see §6).
-2. Caps after every pass: `min(38, max(0, mpg))`. Players with prior MPG `< 8` start at that prior (they can receive vacancy).
-3. Let `S = sum(prior mpg)` on the current roster.
-4. If `|S - 240| <= 0.5`, stop (then snap-scale to exact 240).
-5. If `S < 240` (vacancy): extra `240 - S` goes to players in proportion to **claim**  
+1. Prior MPG = last-season `mpg` if the player has a box; else rookie prior MPG (see §6). Cap each assigned MPG to `[0, 38]`.
+2. Rank the current roster by prior MPG. Ranks 1–5 keep `min(priorMpg, 38)` (no team-wide scale, no vacancy add).
+3. `rotationN` = last-season boxes on this `teamId` with `mpg >= 10` and `teamId !== "TOT"`, clamped to `[8, roster size]` when the roster has 8+ players. Empty history → 10. Shorter rosters may sum under 240.
+4. Split `240 − sum(ranks 1–5)` across ranks 6…N by  
    `claim = priorMpg * 0.5 + departedSameBucketMpg * 0.5`  
-   `departedSameBucketMpg` = sum of `departed.lastMpg` whose position bucket matches the player, divided equally among current players in that bucket (0 if the bucket is empty — leftover goes league-wide by `priorMpg`).
-6. If `S > 240`: cut the surplus in proportion to how far each player is **above** 20 MPG (true bench: if everyone is ≤ 20, cut by `priorMpg`).
-7. Repeat at most 8 times; final multiply so `sum === 240` exactly (float).
+   using only ranks 6…N as receivers. `departedSameBucketMpg` is departed `lastMpg` in that bucket, split equally among those bench receivers (if none, split that departed leftover by `priorMpg` among 6…N).
+5. Ranks N+1…end get 0. Snap-scale **only** ranks 6…N so the team hits 240.
 
 Do not invent players. Only allocate to `RosterSnapshot.players`.
 
@@ -335,7 +335,7 @@ No HTTP in the pure module. A future NBA Stats adapter maps timeouts to empty ar
 ## 10. Testing
 
 - **Unit:** per-36; regression weight; one-team minutes sum 240; weighted usage 100 (or documented closest); compose usageScale vs minutes-driven split; rookie uses same `PlayerProjection` shape; `applyAging` identity; FG% from shooting.
-- **Fixture pipeline:** 15-man team, departed 36-mpg star → remaining same-bucket players gain minutes; rookie 1st-overall MPG above undrafted on the same team; no player MPG > 38.
+- **Fixture pipeline:** 15-man team, departed 36-mpg star → remaining same-bucket ranks 6…N gain minutes; rookie 1st-overall MPG above undrafted on the same team; no player MPG > 38.
 - **Backtest harness:** given two fixture seasons, compute MAE + Spearman vs last-year baseline. Fixture numbers are constructed so the model **beats** baseline (proves the harness), not so we claim real NBA accuracy in CI.
 - **No** live NBA HTTP in CI. **No** BBM in CI.
 
