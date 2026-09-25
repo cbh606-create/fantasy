@@ -352,6 +352,7 @@ export const mapEspnLeagueToSeasonState = (
     return {
       teamIndex,
       name: teamName(team),
+      espnTeamId: team.id,
       entries: packEntries(rawEntries, packingSlots),
     }
   })
