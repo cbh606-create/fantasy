@@ -1,5 +1,34 @@
 import { describe, expect, it } from "vitest"
-import { mapEspnDayBoxScore } from "@/lib/espn/dayBoxScore"
+import { mapEspnDayBoxScore, pairClosedScoringPeriods } from "@/lib/espn/dayBoxScore"
+
+describe("pairClosedScoringPeriods", () => {
+  const matchupDates = ["2026-10-20", "2026-10-21", "2026-10-22"];
+
+  it("pairs dates with matchup period days and omits the current day", () => {
+    const paired = pairClosedScoringPeriods({
+      dates: matchupDates,
+      matchupDates,
+      matchupPeriodDays: [10, 11, 12],
+      currentScoringPeriod: 12,
+    });
+
+    expect([...paired]).toEqual([
+      ["2026-10-20", 10],
+      ["2026-10-21", 11],
+    ]);
+  });
+
+  it("omits a date that is not in the matchup calendar", () => {
+    const paired = pairClosedScoringPeriods({
+      dates: ["2026-10-19", "2026-10-20"],
+      matchupDates,
+      matchupPeriodDays: [10, 11, 12],
+      currentScoringPeriod: 12,
+    });
+
+    expect([...paired]).toEqual([["2026-10-20", 10]]);
+  });
+});
 
 describe("mapEspnDayBoxScore", () => {
   it("sums the two teams and records who played", () => {

@@ -68,7 +68,7 @@ const loadMatchupDayActuals = async (input: {
   userId: string
   opponentTeamIndex: number
   dates: string[]
-  today: string
+  matchupDates: string[]
 }): Promise<Map<string, DayActuals>> => {
   const { loaded } = input
   const oppTeam = loaded.state.teams.find(
@@ -86,7 +86,7 @@ const loadMatchupDayActuals = async (input: {
     season: loaded.state.season,
     cookies,
     dates: input.dates,
-    today: input.today,
+    matchupDates: input.matchupDates,
     youTeamId,
     oppTeamId,
   })
@@ -213,24 +213,17 @@ export const GET = async (request: Request): Promise<Response> => {
         userId,
         opponentTeamIndex,
         dates: schedule.matchup.days.filter((date) => date < today),
-        today,
+        matchupDates: schedule.matchup.days,
       })
     } catch {
-      const fallback = adviseMatchup(
-        loaded.state,
-        schedule,
-        opponentTeamIndex,
-        baseOptions,
-      )
+      const fallback = previous
+        ? adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
+            ...baseOptions,
+            morning: morningFor(actualsFromClosedDays(previous.closedDays)),
+          })
+        : adviseMatchup(loaded.state, schedule, opponentTeamIndex, baseOptions)
       if ("error" in fallback) return fallback
-      return {
-        ...fallback,
-        morningStale: true,
-        ...(previous?.summary ? { morningSummary: previous.summary } : {}),
-        ...(previous?.dayComparison
-          ? { dayComparison: previous.dayComparison }
-          : {}),
-      }
+      return { ...fallback, morningStale: true }
     }
 
     const blended = adviseMatchup(loaded.state, schedule, opponentTeamIndex, {

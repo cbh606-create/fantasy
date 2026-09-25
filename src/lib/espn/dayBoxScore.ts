@@ -142,13 +142,35 @@ export const mapEspnDayBoxScore = (input: {
 }
 
 const FETCH_TIMEOUT_MS = 15_000
-const DAY_MS = 24 * 60 * 60 * 1000
 
 type EspnLeagueStatus = {
   status?: {
     currentScoringPeriod?: number
     currentMatchupPeriod?: number
   }
+  settings?: {
+    scheduleSettings?: {
+      matchupPeriods?: Record<string, number[]>
+    }
+  }
+}
+
+export const pairClosedScoringPeriods = (input: {
+  dates: string[]
+  matchupDates: string[]
+  matchupPeriodDays: number[]
+  currentScoringPeriod: number
+}): Map<string, number> => {
+  const paired = new Map<string, number>()
+  for (const date of input.dates) {
+    const index = input.matchupDates.indexOf(date)
+    if (index < 0) continue
+    const scoringPeriodId = input.matchupPeriodDays[index]
+    if (typeof scoringPeriodId !== "number") continue
+    if (scoringPeriodId >= input.currentScoringPeriod) continue
+    paired.set(date, scoringPeriodId)
+  }
+  return paired
 }
 
 const leagueUrl = (season: number, leagueId: string): URL =>
@@ -185,15 +207,12 @@ const fetchEspnJson = async (
   }
 }
 
-const daysBetween = (fromDate: string, toDate: string): number =>
-  Math.round((Date.parse(`${toDate}T00:00:00Z`) - Date.parse(`${fromDate}T00:00:00Z`)) / DAY_MS)
-
 export const fetchEspnDayActuals = async (params: {
   leagueId: string
   season: number
   cookies: EspnCookies
   dates: string[]
-  today: string
+  matchupDates: string[]
   youTeamId: number
   oppTeamId: number
   fetchImpl?: typeof fetch
@@ -215,15 +234,20 @@ export const fetchEspnDayActuals = async (params: {
     throw new Error("espn_status_missing")
   }
 
+  const scoringPeriodByDate = pairClosedScoringPeriods({
+    dates: params.dates,
+    matchupDates: params.matchupDates,
+    matchupPeriodDays:
+      settings.settings?.scheduleSettings?.matchupPeriods?.[String(currentMatchupPeriod)] ?? [],
+    currentScoringPeriod,
+  })
+
   const payloads = await Promise.all(
-    params.dates.map(async (date) => {
+    [...scoringPeriodByDate].map(async ([date, scoringPeriodId]) => {
       const url = leagueUrl(params.season, params.leagueId)
       url.searchParams.append("view", "mScoreboard")
       url.searchParams.append("view", "mMatchupScore")
-      url.searchParams.set(
-        "scoringPeriodId",
-        String(currentScoringPeriod - daysBetween(date, params.today)),
-      )
+      url.searchParams.set("scoringPeriodId", String(scoringPeriodId))
       const payload = (await fetchEspnJson(url, params.cookies, fetchImpl, {
         "X-Fantasy-Filter": JSON.stringify({
           schedule: {
