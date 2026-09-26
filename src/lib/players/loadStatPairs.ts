@@ -19,6 +19,13 @@ type LastSeasonFilePlayer = {
   shooting?: StatPairShooting
 }
 
+type LastSeasonPlayerWithProjections = Omit<
+  LastSeasonFilePlayer,
+  "projections"
+> & {
+  projections: Record<CategoryId, number>
+}
+
 type CurrentStatPairPlayer = {
   seasonRates?: {
     gamesPlayed: number
@@ -28,7 +35,9 @@ type CurrentStatPairPlayer = {
   projections?: Record<CategoryId, number>
 }
 
-const readLastSeasonPlayers = async (): Promise<LastSeasonFilePlayer[]> => {
+const readLastSeasonPlayers = async (): Promise<
+  LastSeasonPlayerWithProjections[]
+> => {
   try {
     const parsed = JSON.parse(
       await readFile(LAST_SEASON_STATS_PATH, "utf8"),
