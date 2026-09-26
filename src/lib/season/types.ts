@@ -38,6 +38,12 @@ export type SeasonPlayer = {
       }
     >
   >
+  /** Season-to-date per-game actuals. Kept when a projection overlay replaces totals. */
+  seasonRates?: {
+    gamesPlayed: number
+    projections: Record<CategoryId, number>
+    shooting: SeasonPlayer["shooting"]
+  }
 }
 
 export type ScheduleGame = {

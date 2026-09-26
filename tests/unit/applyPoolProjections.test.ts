@@ -75,4 +75,27 @@ describe("applyPoolProjections", () => {
     expect(report.unmatched).toHaveLength(1)
     expect(players[0].projections.PTS).toBe(100)
   })
+
+  it("keeps seasonRates when the projection overlay replaces totals", () => {
+    const target = seasonPlayer({
+      seasonRates: {
+        gamesPlayed: 24,
+        projections: {
+          FG_PCT: 0.45,
+          FT_PCT: 0.8,
+          TPM: 2,
+          REB: 4,
+          AST: 3,
+          STL: 1,
+          BLK: 0.2,
+          TO: 1,
+          PTS: 12,
+        },
+        shooting: { FGM: 5, FGA: 11, FTM: 2, FTA: 2 },
+      },
+    })
+    const { players } = applyPoolProjections([target], pool)
+    expect(players[0].projections.PTS).toBe(2144)
+    expect(players[0].seasonRates).toEqual(target.seasonRates)
+  })
 })

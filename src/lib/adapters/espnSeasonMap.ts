@@ -117,6 +117,26 @@ const recentRatesFromEspn = (
   return Object.keys(recentRates).length > 0 ? recentRates : undefined
 }
 
+const seasonRatesFromEspn = (
+  player: EspnPlayer,
+  season: number,
+): SeasonPlayer["seasonRates"] => {
+  const row = (player.stats ?? []).find(
+    (stat) =>
+      stat.seasonId === season &&
+      stat.statSourceId === 0 &&
+      stat.statSplitTypeId === 0,
+  )
+  const gamesPlayed = row?.stats?.["42"]
+  if (!row?.averageStats || typeof gamesPlayed !== "number" || !(gamesPlayed > 0)) {
+    return undefined
+  }
+  return {
+    gamesPlayed,
+    ...perGameRateSet(row.averageStats),
+  }
+}
+
 type EspnPlayer = {
   id: number
   fullName?: string
@@ -250,6 +270,7 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
   const seasonTotal = (perGame: number) => perGame * ASSUMED_SEASON_GAMES
 
   const recentRates = recentRatesFromEspn(player, season)
+  const seasonRates = seasonRatesFromEspn(player, season)
 
   return {
     id: String(player.id),
@@ -257,6 +278,7 @@ const playerFromEspn = (player: EspnPlayer, season: number): SeasonPlayer => {
     teamAbbr: PRO_TEAM_ABBR[player.proTeamId ?? -1],
     positions: positionsFromEspnPlayer(player),
     ...(recentRates ? { recentRates } : {}),
+    ...(seasonRates ? { seasonRates } : {}),
     projections: {
       FG_PCT: avg["19"] ?? (fga > 0 ? fgm / fga : 0),
       FT_PCT: avg["20"] ?? (fta > 0 ? ftm / fta : 0),
