@@ -12,6 +12,7 @@ import { OpponentPicker } from "@/components/matchup/OpponentPicker"
 import { OpponentWeekStrip } from "@/components/matchup/OpponentWeekStrip"
 import { RatioSitsPanel } from "@/components/matchup/RatioSitsPanel"
 import { SitStartPanel } from "@/components/matchup/SitStartPanel"
+import { StatPairTable } from "@/components/matchup/StatPairTable"
 import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
@@ -1172,6 +1173,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         </div>
 
         <div className="mt-8 space-y-8">
+          <StatPairTable rows={matchupData.statPairs ?? []} />
           <InjuryAlertsPanel leagueId={leagueId} />
           <SitStartPanel
             applyingSwapKey={applyingSwapKey}
