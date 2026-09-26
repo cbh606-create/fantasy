@@ -6,6 +6,8 @@ import { getUserEspnCookies } from "@/lib/espn/credentials"
 import { fetchEspnDayActuals } from "@/lib/espn/dayBoxScore"
 import { loadWinnerStreamRecipes } from "@/lib/espn/winnerStreamHistory"
 import { adviseMatchup } from "@/lib/matchup/advise"
+import { loadStatPairs } from "@/lib/players/loadStatPairs"
+import type { StatPairRow } from "@/lib/players/statPairCorrelation"
 import type { DayActuals } from "@/lib/matchup/morningCheck"
 import {
   actualsFromClosedDays,
@@ -245,6 +247,13 @@ export const GET = async (request: Request): Promise<Response> => {
     return NextResponse.json({ error: advice.error }, { status: 400 })
   }
 
+  let statPairs: StatPairRow[] = []
+  try {
+    statPairs = await loadStatPairs(loaded.state.players)
+  } catch {
+    statPairs = []
+  }
+
   const referencedPlayerIds = collectReferencedPlayerIds(loaded.state, advice)
   const playersById = Object.fromEntries(
     loaded.state.players.flatMap((player) =>
@@ -261,6 +270,7 @@ export const GET = async (request: Request): Promise<Response> => {
     schedule,
     playersById,
     teams,
+    statPairs,
     ...(includeState ? { state: loaded.state } : {}),
   })
 }
