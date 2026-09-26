@@ -62,6 +62,7 @@ import type {
   StreamingPlan,
 } from "@/lib/matchup/types"
 import { isStatWindow } from "@/lib/matchup/types"
+import type { StatPairRow } from "@/lib/players/statPairCorrelation"
 import type {
   ScheduleResponse,
   SeasonLeagueState,
@@ -80,6 +81,7 @@ type MatchupResponse = MatchupAdvice & {
   morningSummary?: MorningSummaryData
   dayComparison?: DayComparisonRow[]
   morningStale?: boolean
+  statPairs?: StatPairRow[]
 }
 
 const enabledCategoryIds = (state: SeasonLeagueState): CategoryId[] => {
