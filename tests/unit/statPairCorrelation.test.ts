@@ -142,13 +142,18 @@ describe("buildStatPairRows", () => {
 
   it("returns 36 pairs with measured rows before unmeasured rows", () => {
     const observations = counted(MIN_PAIR_ROWS, (index) =>
-      perGameObservation(40, totals((index + 1) * 40, (index + 1) * 40, 40)),
+      perGameObservation(40, totals((index + 1) * 40, (index + 1) * 40, (index + 1) * 40)),
     )
     const rows = buildStatPairRows(observations)
     expect(rows).toHaveLength(36)
     const astPts = rows.find((row) => row.categoryA === "AST" && row.categoryB === "PTS")
     expect(astPts?.measured).toBe(true)
+    expect(astPts?.r).toBeGreaterThan(0)
     expect(astPts?.n).toBe(MIN_PAIR_ROWS)
+    const astTo = rows.find((row) => row.categoryA === "AST" && row.categoryB === "TO")
+    expect(astTo?.measured).toBe(true)
+    expect(astTo?.r).toBeLessThan(0)
+    expect(astTo?.r).not.toBeCloseTo(astPts?.r ?? 0)
     const rebStl = rows.find((row) => row.categoryA === "REB" && row.categoryB === "STL")
     expect(rebStl).toMatchObject({ r: 0, penalty: 0, measured: false, n: MIN_PAIR_ROWS })
     const firstUnmeasured = rows.findIndex((row) => !row.measured)

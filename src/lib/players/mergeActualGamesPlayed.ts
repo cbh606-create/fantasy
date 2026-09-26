@@ -40,7 +40,7 @@ export const actualGamesPlayed = (
 export const mergeActualGamesPlayed = <T extends PlayerWithProjections>(
   players: readonly T[],
   gamesByEspnId: Record<string, number>,
-): T[] =>
+): Array<T & { projectedGames?: number }> =>
   players.map((player) => {
     const espnId = player.espnId
     if (!espnId) return player
