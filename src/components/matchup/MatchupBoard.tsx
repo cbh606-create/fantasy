@@ -47,92 +47,92 @@ export const MatchupBoard = ({ board, scoringMode }: MatchupBoardProps) => {
       : `${board.wins}–${board.losses}–${board.ties}`
 
   return (
-  <section
-    aria-label="Matchup board"
-    className="w-full rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
-  >
-    <div className="flex min-h-[6rem] items-stretch gap-4 overflow-x-auto">
-      <div className="flex shrink-0 flex-col justify-center border-r border-[var(--color-hairline)] pr-4">
-        <p className="font-[family-name:var(--font-bebas-neue)] text-3xl leading-none tracking-wide tabular-nums text-[var(--color-ink)] sm:text-4xl">
-          {headline}
-        </p>
-        <p className="mt-1 whitespace-nowrap text-[0.8125rem] text-[var(--color-mute)]">
-          Proj {board.projectedCatWins.toFixed(2)}
-        </p>
-      </div>
+    <section
+      aria-label="Matchup board"
+      className="w-full rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
+    >
+      <div className="flex min-h-[6rem] items-stretch gap-4 overflow-x-auto">
+        <div className="flex shrink-0 flex-col justify-center border-r border-[var(--color-hairline)] pr-4">
+          <p className="font-[family-name:var(--font-bebas-neue)] text-3xl leading-none tracking-wide tabular-nums text-[var(--color-ink)] sm:text-4xl">
+            {headline}
+          </p>
+          <p className="mt-1 whitespace-nowrap text-[0.8125rem] text-[var(--color-mute)]">
+            Proj {board.projectedCatWins.toFixed(2)}
+          </p>
+        </div>
 
-      <table className="w-full min-w-[28rem] flex-1 border-collapse text-base">
-        <thead>
-          <tr className="text-[0.75rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
-            <th className="px-1.5 py-1 text-left font-medium" scope="col">
-              <span className="sr-only">Team</span>
-            </th>
-            {board.categories.map((row) => (
-              <th
-                className="px-1.5 py-1 text-center font-medium"
-                key={row.categoryId}
-                scope="col"
-              >
-                {CATEGORY_SHORT_LABELS[row.categoryId]}
+        <table className="w-full min-w-[28rem] flex-1 border-collapse text-base">
+          <thead>
+            <tr className="text-[0.75rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
+              <th className="px-1.5 py-1 text-left font-medium" scope="col">
+                <span className="sr-only">Team</span>
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th
-              className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
-              scope="row"
-            >
-              You
-            </th>
-            {board.categories.map((row) => (
-              <td
-                className={`px-1.5 py-0.5 text-center ${valueClass("you", row.outcome)}`}
-                key={`you-${row.categoryId}`}
+              {board.categories.map((row) => (
+                <th
+                  className="px-1.5 py-1 text-center font-medium"
+                  key={row.categoryId}
+                  scope="col"
+                >
+                  {CATEGORY_SHORT_LABELS[row.categoryId]}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th
+                className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+                scope="row"
               >
-                {formatCategoryStat(row.categoryId, row.you)}
-              </td>
-            ))}
-          </tr>
-          <tr>
-            <th
-              className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
-              scope="row"
-            >
-              Opp
-            </th>
-            {board.categories.map((row) => (
-              <td
-                className={`px-1.5 py-0.5 text-center ${valueClass("opp", row.outcome)}`}
-                key={`opp-${row.categoryId}`}
+                You
+              </th>
+              {board.categories.map((row) => (
+                <td
+                  className={`px-1.5 py-0.5 text-center ${valueClass("you", row.outcome)}`}
+                  key={`you-${row.categoryId}`}
+                >
+                  {formatCategoryStat(row.categoryId, row.you)}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th
+                className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+                scope="row"
               >
-                {formatCategoryStat(row.categoryId, row.opp)}
-              </td>
-            ))}
-          </tr>
-          <tr>
-            <th
-              className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
-              scope="row"
-            >
-              Diff
-            </th>
-            {board.categories.map((row) => (
-              <td
-                className={`px-1.5 py-0.5 text-center text-[0.8125rem] ${deltaClass(row.outcome)}`}
-                key={`diff-${row.categoryId}`}
+                Opp
+              </th>
+              {board.categories.map((row) => (
+                <td
+                  className={`px-1.5 py-0.5 text-center ${valueClass("opp", row.outcome)}`}
+                  key={`opp-${row.categoryId}`}
+                >
+                  {formatCategoryStat(row.categoryId, row.opp)}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th
+                className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+                scope="row"
               >
-                {formatCategoryStatDelta(
-                  row.categoryId,
-                  categoryStatLead(row.categoryId, row.you, row.opp),
-                )}
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+                Diff
+              </th>
+              {board.categories.map((row) => (
+                <td
+                  className={`px-1.5 py-0.5 text-center text-[0.8125rem] ${deltaClass(row.outcome)}`}
+                  key={`diff-${row.categoryId}`}
+                >
+                  {formatCategoryStatDelta(
+                    row.categoryId,
+                    categoryStatLead(row.categoryId, row.you, row.opp),
+                  )}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   )
 }

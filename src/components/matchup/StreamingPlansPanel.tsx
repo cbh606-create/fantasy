@@ -116,6 +116,7 @@ type StreamingPlansPanelProps = {
   winnerStreamRecipes?: WinnerStreamRecipe[]
   today?: string
   statWindow?: StatWindow
+  puntSeedReady?: boolean
 }
 
 const playerName = (
@@ -686,6 +687,7 @@ export const StreamingPlansPanel = ({
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
   today = localIsoDate(),
   statWindow,
+  puntSeedReady = true,
 }: StreamingPlansPanelProps) => {
   const slateAddLimit = useMemo(
     () => streamingAddLimitForSchedule(schedule),
@@ -711,11 +713,27 @@ export const StreamingPlansPanel = ({
   const [puntCategoryIds, setPuntCategoryIds] = useState<CategoryId[]>([])
   const boardForPuntSeedRef = useRef(board)
   boardForPuntSeedRef.current = board
+  const seededPuntKeysRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     if (state.scoringMode !== "most_categories") return
-    setPuntCategoryIds(mostCategoriesSeedPuntIds(boardForPuntSeedRef.current))
-  }, [state.scoringMode, opponentTeamIndex, statWindow])
+    if (!puntSeedReady) return
+
+    const key = `${state.scoringMode}:${opponentTeamIndex}:${statWindow}`
+    if (seededPuntKeysRef.current.has(key)) return
+    seededPuntKeysRef.current.add(key)
+
+    const next = mostCategoriesSeedPuntIds(boardForPuntSeedRef.current)
+    setPuntCategoryIds((current) => {
+      if (
+        current.length === next.length &&
+        current.every((id) => next.includes(id))
+      ) {
+        return current
+      }
+      return next
+    })
+  }, [state.scoringMode, opponentTeamIndex, statWindow, puntSeedReady])
 
   const handleTogglePunt = (categoryId: CategoryId) => {
     setPuntCategoryIds((current) =>

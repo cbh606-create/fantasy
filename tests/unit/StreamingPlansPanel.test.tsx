@@ -1026,4 +1026,38 @@ describe("StreamingPlansPanel", () => {
       "true",
     )
   })
+
+  it("waits to seed punts until puntSeedReady is true", () => {
+    const { rerender } = render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        puntSeedReady={false}
+        schedule={schedule}
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+
+    rerender(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        puntSeedReady={true}
+        schedule={schedule}
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+  })
 })

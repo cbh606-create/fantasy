@@ -1165,6 +1165,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             oppSpotCount={oppSpotCount}
             forcedOpponentRosterDrops={forcedOpponentRosterDrops}
             playersById={matchupData.playersById}
+            puntSeedReady={!isRefreshing}
             schedule={matchupData.schedule}
             state={state}
             statWindow={statWindow}
