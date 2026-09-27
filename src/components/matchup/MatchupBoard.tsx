@@ -1,5 +1,7 @@
 import type { MatchupBoard as MatchupBoardData } from "@/lib/matchup/types"
 import type { CategoryOutcome } from "@/lib/matchup/types"
+import { mostCategoriesHeadline } from "@/lib/matchup/mostCategories"
+import type { SeasonScoringMode } from "@/lib/season/types"
 import {
   CATEGORY_SHORT_LABELS,
   categoryStatLead,
@@ -9,6 +11,7 @@ import {
 
 type MatchupBoardProps = {
   board: MatchupBoardData
+  scoringMode?: SeasonScoringMode
 }
 
 const valueClass = (
@@ -37,7 +40,13 @@ const deltaClass = (outcome: CategoryOutcome): string => {
   return "tabular-nums text-[var(--color-mute)]"
 }
 
-export const MatchupBoard = ({ board }: MatchupBoardProps) => (
+export const MatchupBoard = ({ board, scoringMode }: MatchupBoardProps) => {
+  const headline =
+    scoringMode === "most_categories"
+      ? mostCategoriesHeadline(board.wins, board.losses)
+      : `${board.wins}–${board.losses}–${board.ties}`
+
+  return (
   <section
     aria-label="Matchup board"
     className="w-full rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
@@ -45,7 +54,7 @@ export const MatchupBoard = ({ board }: MatchupBoardProps) => (
     <div className="flex min-h-[6rem] items-stretch gap-4 overflow-x-auto">
       <div className="flex shrink-0 flex-col justify-center border-r border-[var(--color-hairline)] pr-4">
         <p className="font-[family-name:var(--font-bebas-neue)] text-3xl leading-none tracking-wide tabular-nums text-[var(--color-ink)] sm:text-4xl">
-          {board.wins}–{board.losses}–{board.ties}
+          {headline}
         </p>
         <p className="mt-1 whitespace-nowrap text-[0.8125rem] text-[var(--color-mute)]">
           Proj {board.projectedCatWins.toFixed(2)}
@@ -125,4 +134,5 @@ export const MatchupBoard = ({ board }: MatchupBoardProps) => (
       </table>
     </div>
   </section>
-)
+  )
+}
