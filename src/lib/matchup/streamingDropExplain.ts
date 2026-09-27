@@ -27,7 +27,7 @@ export type SuggestedStreamingDrop = {
   categoryIds: CategoryId[]
 }
 
-const CONTESTED_WIN_PROB_MIN = 0.28
+export const CONTESTED_WIN_PROB_MIN = 0.28
 const CONTESTED_WIN_PROB_MAX = 0.72
 
 export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean => {
