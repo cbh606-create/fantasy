@@ -858,4 +858,172 @@ describe("StreamingPlansPanel", () => {
     fireEvent.change(todaySelect, { target: { value: "you-1" } })
     expect(todaySelect).toHaveValue("you-1")
   })
+
+  it("seeds punts under 0.28 only for most categories", () => {
+    const { rerender } = render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        opponentTeamIndex={1}
+        playersById={{}}
+        schedule={schedule}
+        statWindow="season"
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    expect(screen.getByRole("button", { name: "Punt PTS" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Punt STL" }))
+    fireEvent.click(screen.getByRole("button", { name: "Punt PTS" }))
+
+    rerender(
+      <StreamingPlansPanel
+        board={{
+          ...board,
+          categories: board.categories.map((category) =>
+            category.categoryId === "STL"
+              ? { ...category, you: 2 }
+              : category,
+          ),
+        }}
+        leagueId="lg1"
+        opponentTeamIndex={1}
+        playersById={{}}
+        schedule={schedule}
+        statWindow="season"
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+    expect(screen.getByRole("button", { name: "Punt PTS" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+
+    rerender(
+      <StreamingPlansPanel
+        board={{
+          ...board,
+          categories: board.categories.map((category) => {
+            if (category.categoryId === "REB") {
+              return { ...category, winProb: 0.27 }
+            }
+            if (category.categoryId === "STL") {
+              return { ...category, winProb: 0.5 }
+            }
+            return category
+          }),
+        }}
+        leagueId="lg1"
+        opponentTeamIndex={2}
+        playersById={{}}
+        schedule={schedule}
+        statWindow="season"
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt REB" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+    expect(screen.getByRole("button", { name: "Punt PTS" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+
+    rerender(
+      <StreamingPlansPanel
+        board={{
+          ...board,
+          categories: board.categories.map((category) =>
+            category.categoryId === "BLK"
+              ? { ...category, winProb: 0.1 }
+              : { ...category, winProb: 0.6 },
+          ),
+        }}
+        leagueId="lg1"
+        opponentTeamIndex={2}
+        playersById={{}}
+        schedule={schedule}
+        statWindow="l7"
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt BLK" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+    expect(screen.getByRole("button", { name: "Punt REB" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+  })
+
+  it("does not seed punts for each category", () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={{ ...state, scoringMode: "each_category" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+  })
+
+  it("seeds again after the panel remounts", () => {
+    const { unmount } = render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+    fireEvent.click(screen.getByRole("button", { name: "Punt STL" }))
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
+
+    unmount()
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={schedule}
+        state={{ ...state, scoringMode: "most_categories" }}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Punt STL" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+  })
 })

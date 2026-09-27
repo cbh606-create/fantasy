@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from "react"
 import { createPortal } from "react-dom"
+import { Chip } from "@/components/ui/Chip"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import { formatPlayerPositions } from "@/lib/season/slotLabels"
 import type {
@@ -30,6 +32,7 @@ import {
   formatMatchupDayLabel,
 } from "@/lib/matchup/weekCalendarLayout"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
+import { mostCategoriesSeedPuntIds } from "@/lib/matchup/mostCategories"
 import {
   buildStreamingPlan,
   streamingAddDropKey,
@@ -705,6 +708,22 @@ export const StreamingPlansPanel = ({
     useState<
       Partial<Record<1 | 2 | 3, Record<string, ForcedRosterDropValue>>>
     >({})
+  const [puntCategoryIds, setPuntCategoryIds] = useState<CategoryId[]>([])
+  const boardForPuntSeedRef = useRef(board)
+  boardForPuntSeedRef.current = board
+
+  useEffect(() => {
+    if (state.scoringMode !== "most_categories") return
+    setPuntCategoryIds(mostCategoriesSeedPuntIds(boardForPuntSeedRef.current))
+  }, [state.scoringMode, opponentTeamIndex, statWindow])
+
+  const handleTogglePunt = (categoryId: CategoryId) => {
+    setPuntCategoryIds((current) =>
+      current.includes(categoryId)
+        ? current.filter((id) => id !== categoryId)
+        : [...current, categoryId],
+    )
+  }
 
   useEffect(() => {
     setForcedRosterDropsBySpotCount({})
@@ -730,6 +749,7 @@ export const StreamingPlansPanel = ({
             : {}),
           opponentTeamIndex,
           statWindow,
+          puntCategoryIds,
         }),
       ),
     [
@@ -746,6 +766,7 @@ export const StreamingPlansPanel = ({
       forcedOpponentRosterDrops,
       opponentTeamIndex,
       statWindow,
+      puntCategoryIds,
     ],
   )
 
@@ -768,6 +789,7 @@ export const StreamingPlansPanel = ({
         : {}),
       opponentTeamIndex,
       statWindow,
+      puntCategoryIds,
     })
   }, [
     addBudget,
@@ -780,6 +802,7 @@ export const StreamingPlansPanel = ({
     schedule,
     state,
     statWindow,
+    puntCategoryIds,
     today,
     winnerStreamRecipes,
   ])
@@ -836,6 +859,27 @@ export const StreamingPlansPanel = ({
 
   return (
     <section className="min-w-0">
+      <div className="mb-3">
+        <p className="text-[0.65rem] tracking-[0.16em] text-[var(--color-mute)] uppercase">
+          Punt
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {ALL_CATEGORY_IDS.map((categoryId) => {
+            const label = CATEGORY_SHORT_LABELS[categoryId]
+            const selected = puntCategoryIds.includes(categoryId)
+            return (
+              <Chip
+                aria-label={`Punt ${label}`}
+                key={categoryId}
+                onClick={() => handleTogglePunt(categoryId)}
+                variant={selected ? "active" : "default"}
+              >
+                {label}
+              </Chip>
+            )
+          })}
+        </div>
+      </div>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Streaming plans</h2>
