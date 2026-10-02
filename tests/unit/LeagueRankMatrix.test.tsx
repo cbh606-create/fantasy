@@ -126,4 +126,82 @@ describe("LeagueRankMatrix z row", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
   })
+
+  it("focuses the first dialog control on Tab when focus left the panel", () => {
+    renderMatrix(true)
+    fireEvent.click(screen.getByRole("button", { name: "Show REB league z" }))
+    const close = screen.getByRole("button", { name: "Close" })
+    close.blur()
+    expect(document.activeElement).not.toBe(close)
+
+    fireEvent.keyDown(document, { key: "Tab" })
+
+    expect(close).toHaveFocus()
+  })
+})
+
+const teamsOverallFixture: SeasonTeamRoster[] = [
+  { teamIndex: 0, name: "Mine", entries: [] },
+  { teamIndex: 1, name: "Alpha", entries: [] },
+  { teamIndex: 2, name: "Leader", entries: [] },
+]
+
+const analysisOverallFixture = (): SeasonAnalysis => ({
+  byTeam: [],
+  byCategory: ALL_CATEGORY_IDS.map((categoryId) => ({
+    categoryId,
+    rows: [
+      { teamIndex: 0, rank: 2, z: 0.2, raw: 1 },
+      { teamIndex: 1, rank: 3, z: -1.4, raw: 1 },
+      { teamIndex: 2, rank: 1, z: 0.4, raw: 1 },
+    ],
+  })),
+  overall: {
+    rows: [
+      { teamIndex: 2, rank: 1, rankSum: 20 },
+      { teamIndex: 0, rank: 2, rankSum: 30 },
+      { teamIndex: 1, rank: 3, rankSum: 40 },
+    ],
+  },
+})
+
+describe("LeagueRankMatrix overall column", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it("sorts by overall rank so rank-1 team is first even when not first in teams", () => {
+    render(
+      <LeagueRankMatrix
+        analysis={analysisOverallFixture()}
+        perspectiveTeamIndex={0}
+        teams={teamsOverallFixture}
+      />,
+    )
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sort by Overall, best first" }),
+    )
+
+    const tbody = document.querySelector("tbody")
+    if (!tbody) throw new Error("missing tbody")
+    const firstTeamRow = within(tbody as HTMLElement).getAllByRole("row")[0]
+    expect(within(firstTeamRow).getByRole("rowheader")).toHaveTextContent(
+      "Leader",
+    )
+  })
+
+  it("shows rank sum in the overall cell title", () => {
+    render(
+      <LeagueRankMatrix
+        analysis={analysisOverallFixture()}
+        perspectiveTeamIndex={0}
+        teams={teamsOverallFixture}
+      />,
+    )
+
+    expect(
+      screen.getByTitle("Rank sum 20 (lower is better)"),
+    ).toBeInTheDocument()
+  })
 })

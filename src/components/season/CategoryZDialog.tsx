@@ -47,11 +47,19 @@ export const CategoryZDialog = ({
       const first = focusable[0]
       const last = focusable[focusable.length - 1]
       const active = document.activeElement
+      const activeInsidePanel =
+        active instanceof Node && panelRef.current.contains(active)
 
-      if (event.shiftKey && active === first) {
+      if (
+        event.shiftKey &&
+        (active === first || !activeInsidePanel)
+      ) {
         event.preventDefault()
         last?.focus()
-      } else if (!event.shiftKey && active === last) {
+      } else if (
+        !event.shiftKey &&
+        (active === last || !activeInsidePanel)
+      ) {
         event.preventDefault()
         first?.focus()
       }
