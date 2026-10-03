@@ -4,6 +4,9 @@ import { db } from "@/lib/db"
 import { rateLimit } from "@/lib/rateLimit"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
+import { classifyTeam } from "@/lib/trade/classify"
+import { parseSuggestionQuery } from "@/lib/trade/suggestionQuery"
+import { createTradeAnalysisContext } from "@/lib/trade/simulate"
 import { suggestTrades } from "@/lib/trade/suggest"
 
 const SUGGESTIONS_LIMIT = 10
@@ -55,7 +58,32 @@ export const GET = async (request: Request): Promise<Response> => {
   }
 
   const effectiveState = applyLocalLineup(state, localLineup)
-  const result = suggestTrades(effectiveState)
+  const query = parseSuggestionQuery(new URL(request.url))
+
+  if (query.mode === "invalid") {
+    return NextResponse.json({ error: "validation" }, { status: 400 })
+  }
+
+  if (query.mode === "preview") {
+    const context = createTradeAnalysisContext(effectiveState)
+    const sides = classifyTeam(
+      context.totalsByTeam,
+      effectiveState.perspectiveTeamIndex,
+    )
+
+    return NextResponse.json({
+      suggestions: [],
+      youWeak: sides.weak,
+      youStrong: sides.strong,
+      analysisPerspectiveTeamIndex: effectiveState.perspectiveTeamIndex,
+      state: effectiveState,
+    })
+  }
+
+  const result = suggestTrades(effectiveState, {
+    targetCategoryIds: query.targetCategoryIds,
+    excludedPlayerIds: query.excludedPlayerIds,
+  })
 
   return NextResponse.json({
     ...result,
