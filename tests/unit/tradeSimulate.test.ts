@@ -230,4 +230,17 @@ describe("applyTradePackage excluded drops", () => {
     expect(playerIdsOf(result.state, 0)).toContain("you-0")
     expect(playerIdsOf(result.state, 1)).toContain("them-1")
   })
+
+  it("ignores unknown excluded ids when the roster cannot fit another player", () => {
+    const league = twoTeamState([18])
+    const { droppedPlayerId, rejected } = applyTradePackage(
+      league,
+      incoming,
+      undefined,
+      ["not-a-player"],
+    )
+
+    expect(rejected).toBeUndefined()
+    expect(droppedPlayerId).toBe("them-1")
+  })
 })

@@ -170,12 +170,17 @@ export const applyTradePackage = (
   })
 
   const values = precomputedValues ?? buildPlayerValueMap(state)
+  const yourProtectedPlayerIds = excludedPlayerIds.filter((playerId) =>
+    yourTeam.entries.some(
+      (entry) => entry.slot !== "IL" && entry.playerId === playerId,
+    ),
+  )
   const yourDrop = assignAsymmetricPlayers(
     yourTeam.entries,
     yourIndexes,
     tradePackage.themPlayerIds,
     values,
-    excludedPlayerIds,
+    yourProtectedPlayerIds,
   )
   const theirDrop = assignAsymmetricPlayers(
     theirTeam.entries,
