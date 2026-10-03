@@ -217,14 +217,17 @@ describe("applyTradePackage excluded drops", () => {
 
   it("rejects the package when every remaining player is excluded", () => {
     const league = twoTeamState([18, 1])
-    const { rejected, droppedPlayerId } = applyTradePackage(
+    const result = applyTradePackage(
       league,
       incoming,
       undefined,
       ["you-1"],
     )
 
-    expect(rejected).toBe(true)
-    expect(droppedPlayerId).toBeUndefined()
+    expect(result.rejected).toBe(true)
+    expect(result.droppedPlayerId).toBeUndefined()
+    expect(result.state).toBe(league)
+    expect(playerIdsOf(result.state, 0)).toContain("you-0")
+    expect(playerIdsOf(result.state, 1)).toContain("them-1")
   })
 })

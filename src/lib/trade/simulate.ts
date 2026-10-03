@@ -185,7 +185,7 @@ export const applyTradePackage = (
   )
 
   if (yourDrop.unplaceable) {
-    return { state: { ...state, teams }, rejected: true }
+    return { state, rejected: true }
   }
 
   const droppedPlayerId = yourDrop.droppedPlayerId ?? theirDrop.droppedPlayerId
