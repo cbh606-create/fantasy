@@ -30,6 +30,9 @@ describe("RankNonagon", () => {
       />,
     )
 
+    const rankText = screen.getByText("#8 → #4").closest("text")
+    expect(rankText).toHaveAttribute("font-size", "9")
+
     expect(screen.getByText("#8 → #4")).toBeInTheDocument()
     expect(screen.getAllByText("#5")).toHaveLength(8)
     for (const label of labels) {

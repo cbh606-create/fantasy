@@ -4,6 +4,10 @@ import "@testing-library/jest-dom/vitest"
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { TradeWorkspace } from "@/components/trade/TradeWorkspace"
+import {
+  ALL_HOLD_EMPTY_COPY,
+  NO_SUGGESTIONS_COPY,
+} from "@/components/trade/SuggestionList"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
@@ -222,6 +226,69 @@ describe("TradeWorkspace", () => {
 
     expect(await screen.findByText("Unable to load trade suggestions")).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Their Center" })).toBeInTheDocument()
+  })
+
+  it("explains an empty list when every roster player is on hold", async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input)
+
+      if (url === previewUrl) {
+        return new Response(JSON.stringify({
+          ...generatedBody,
+          suggestions: [],
+        }), { status: 200 })
+      }
+
+      if (url === excludedUrl) {
+        return new Response(JSON.stringify({
+          ...generatedBody,
+          suggestions: [],
+        }), { status: 200 })
+      }
+
+      return new Response("missing", { status: 404 })
+    })
+
+    render(<TradeWorkspace leagueId="season-1" />)
+    await screen.findByText("Select a category, then generate trade suggestions.")
+
+    fireEvent.click(screen.getByRole("button", { name: "3PM" }))
+    fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
+
+    expect(await screen.findByText(ALL_HOLD_EMPTY_COPY)).toBeInTheDocument()
+    expect(screen.queryByText(NO_SUGGESTIONS_COPY)).toBeNull()
+  })
+
+  it("keeps the no-deals message when at least one player is included", async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input)
+
+      if (url === previewUrl) {
+        return new Response(JSON.stringify({
+          ...generatedBody,
+          suggestions: [],
+        }), { status: 200 })
+      }
+
+      if (url === generateUrl) {
+        return new Response(JSON.stringify({
+          ...generatedBody,
+          suggestions: [],
+        }), { status: 200 })
+      }
+
+      return new Response("missing", { status: 404 })
+    })
+
+    render(<TradeWorkspace leagueId="season-1" />)
+    await screen.findByText("Select a category, then generate trade suggestions.")
+
+    fireEvent.click(screen.getByRole("button", { name: "3PM" }))
+    fireEvent.click(screen.getByRole("button", { name: /your guard/i }))
+    fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
+
+    expect(await screen.findByText(NO_SUGGESTIONS_COPY)).toBeInTheDocument()
+    expect(screen.queryByText(ALL_HOLD_EMPTY_COPY)).toBeNull()
   })
 
   it("keeps simulation picks after visiting suggestions", async () => {

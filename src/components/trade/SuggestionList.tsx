@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react"
+import { tradableRosterPlayerIds } from "@/components/trade/RosterIncludeGroups"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import { TRADE_PAGE_SIZE } from "@/lib/trade/constants"
 import type { TradeSuggestion } from "@/lib/trade/types"
@@ -6,9 +7,24 @@ import type { TradeSuggestion } from "@/lib/trade/types"
 export const NO_SUGGESTIONS_COPY =
   "No mutually beneficial deals found under current rules."
 
+export const ALL_HOLD_EMPTY_COPY =
+  "Every player is on Hold. Tap a player to make them tradable."
+
+const isAllRosterOnHold = (
+  state: SeasonLeagueState,
+  excludedIds: string[],
+) => {
+  const tradableIds = tradableRosterPlayerIds(state)
+  if (!tradableIds.length) return false
+
+  const excluded = new Set(excludedIds)
+  return tradableIds.every((playerId) => excluded.has(playerId))
+}
+
 type SuggestionListProps = {
   suggestions: TradeSuggestion[]
   state: SeasonLeagueState
+  excludedIds?: string[]
   selectedId: string | null
   onSelect: (suggestionId: string) => void
   selectedDetail?: ReactNode
@@ -22,6 +38,7 @@ const playerNames = (playerIds: string[], state: SeasonLeagueState) =>
 export const SuggestionList = ({
   suggestions,
   state,
+  excludedIds = [],
   selectedId,
   onSelect,
   selectedDetail,
@@ -36,9 +53,13 @@ export const SuggestionList = ({
   }
 
   if (!suggestions.length) {
+    const emptyCopy = isAllRosterOnHold(state, excludedIds)
+      ? ALL_HOLD_EMPTY_COPY
+      : NO_SUGGESTIONS_COPY
+
     return (
       <p className="border-y border-[var(--color-hairline)] py-6 text-sm text-[var(--color-mute)]">
-        {NO_SUGGESTIONS_COPY}
+        {emptyCopy}
       </p>
     )
   }

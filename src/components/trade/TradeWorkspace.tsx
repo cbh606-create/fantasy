@@ -236,6 +236,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             ) : null}
             {hasGenerated ? (
               <SuggestionList
+                excludedIds={excludedIds}
                 onSelect={setSelectedId}
                 selectedDetail={selectedSuggestion ? (
                   <DealDetail
