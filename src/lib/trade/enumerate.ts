@@ -18,6 +18,7 @@ const combinations = (playerIds: string[]): string[][] => [
 export const enumeratePackages = (
   state: SeasonLeagueState,
   totalsByTeam: TeamCategoryTotals[] = seasonTeamTotals(state),
+  excludedPlayerIds: readonly string[] = [],
 ): TradePackage[] => {
   const yourTeam = state.teams.find(
     ({ teamIndex }) => teamIndex === state.perspectiveTeamIndex,
@@ -27,8 +28,11 @@ export const enumeratePackages = (
     return []
   }
 
+  const excluded = new Set(excludedPlayerIds)
   const yourSides = classifyTeam(totalsByTeam, state.perspectiveTeamIndex)
-  const yourCombinations = combinations(tradablePlayerIds(yourTeam))
+  const yourCombinations = combinations(
+    tradablePlayerIds(yourTeam).filter((playerId) => !excluded.has(playerId)),
+  )
 
   return state.teams.flatMap((team) => {
     if (team.teamIndex === state.perspectiveTeamIndex) {

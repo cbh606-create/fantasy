@@ -82,6 +82,19 @@ describe("enumeratePackages", () => {
     )).toBe(true)
   })
 
+  it("omits an excluded player from your combinations only", () => {
+    const packages = enumeratePackages(state(), undefined, ["scrub", "not-a-player"])
+    const oneForOnes = packages.filter((tradePackage) => tradePackage.shape === "1:1")
+
+    expect(oneForOnes.some((tradePackage) =>
+      tradePackage.youPlayerIds.includes("scrub"),
+    )).toBe(false)
+    expect(oneForOnes.some((tradePackage) =>
+      tradePackage.themPlayerIds.includes("them-0"),
+    )).toBe(true)
+    expect(oneForOnes).toHaveLength(5)
+  })
+
   it("skips a team that is weak and strong in the same categories", () => {
     const league = state()
     league.players = league.players.map((rosterPlayer) =>
