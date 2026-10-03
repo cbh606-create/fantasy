@@ -1,7 +1,7 @@
 # Simulation roster layout
 
 **Date:** 2026-10-04
-**Status:** Pending review
+**Status:** Approved
 **Product:** Trade finder — one-screen simulation with vertical rosters and rank charts
 **Related:** [Trade simulation](./2026-10-03-trade-simulation-design.md)
 
