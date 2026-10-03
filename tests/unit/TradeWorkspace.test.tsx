@@ -133,8 +133,10 @@ describe("TradeWorkspace", () => {
       name: "Weak categories",
     })
     expect(weakCategoriesHeading).toBeInTheDocument()
-    expect(within(weakCategoriesHeading.closest("section")!).getByText("AST"))
-      .toBeInTheDocument()
+    const weakSection = weakCategoriesHeading.closest("section")!
+    expect(within(weakSection).getByText("AST")).toBeInTheDocument()
+    expect(within(weakSection).getByText("Below average")).toBeInTheDocument()
+    expect(within(weakSection).getByText("Above average")).toBeInTheDocument()
 
     const secondSuggestion = screen.getByRole("button", {
       name: /trade your guard for their wing/i,
@@ -142,7 +144,8 @@ describe("TradeWorkspace", () => {
     fireEvent.click(secondSuggestion)
 
     expect(screen.getByRole("heading", { name: "Their Wing" })).toBeInTheDocument()
-    expect(screen.getByText("9 → 6")).toBeInTheDocument()
+    expect(screen.getByText("Packages are even")).toBeInTheDocument()
+    expect(screen.queryByText("9 → 6")).toBeNull()
     expect(secondSuggestion).toHaveAttribute("aria-pressed", "true")
   })
 })

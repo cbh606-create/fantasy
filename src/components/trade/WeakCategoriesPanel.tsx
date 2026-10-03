@@ -33,13 +33,13 @@ export const WeakCategoriesPanel = ({
     <div className="mt-4 grid gap-4 text-[0.8125rem] sm:grid-cols-2">
       <div>
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
-          Improve
+          Below average
         </p>
         <CategoryPills categories={weak} />
       </div>
       <div>
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
-          Can trade
+          Above average
         </p>
         <CategoryPills categories={strong} />
       </div>
