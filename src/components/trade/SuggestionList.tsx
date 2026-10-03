@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import { TRADE_PAGE_SIZE } from "@/lib/trade/constants"
 import type { TradeSuggestion } from "@/lib/trade/types"
@@ -11,6 +11,7 @@ type SuggestionListProps = {
   state: SeasonLeagueState
   selectedId: string | null
   onSelect: (suggestionId: string) => void
+  selectedDetail?: ReactNode
 }
 
 const playerNames = (playerIds: string[], state: SeasonLeagueState) =>
@@ -23,6 +24,7 @@ export const SuggestionList = ({
   state,
   selectedId,
   onSelect,
+  selectedDetail,
 }: SuggestionListProps) => {
   const suggestionKey = suggestions.map((suggestion) => suggestion.id).join(",")
   const [visibleCount, setVisibleCount] = useState(TRADE_PAGE_SIZE)
@@ -50,7 +52,7 @@ export const SuggestionList = ({
     <>
       <ul
         aria-label="Trade suggestions"
-        className="divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)]"
+        className="border-t border-[var(--color-hairline)]"
       >
         {suggestions.slice(0, visibleCount).map((suggestion) => {
           const giveNames = playerNames(suggestion.givePlayerIds, state)
@@ -58,14 +60,18 @@ export const SuggestionList = ({
           const counterparty = state.teams.find(
             (team) => team.teamIndex === suggestion.counterpartyTeamIndex,
           )?.name ?? `Team ${suggestion.counterpartyTeamIndex + 1}`
+          const selected = selectedId === suggestion.id
 
           return (
-            <li key={suggestion.id}>
+            <li
+              className="border-b border-[var(--color-hairline)] lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start lg:gap-x-8"
+              key={suggestion.id}
+            >
               <button
                 aria-label={`Trade ${giveNames} for ${getNames}`}
-                aria-pressed={selectedId === suggestion.id}
+                aria-pressed={selected}
                 className={`w-full px-3 py-3 text-left text-[0.8125rem] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
-                  selectedId === suggestion.id
+                  selected
                     ? "bg-[var(--color-soft-cloud)]"
                     : "hover:bg-[var(--color-soft-cloud)]"
                 }`}
@@ -85,6 +91,11 @@ export const SuggestionList = ({
                   {suggestion.reasons[0] ?? "Mutually beneficial package"}
                 </span>
               </button>
+              {selected && selectedDetail ? (
+                <div className="px-3 py-4 lg:px-0 lg:py-3">
+                  {selectedDetail}
+                </div>
+              ) : null}
             </li>
           )
         })}

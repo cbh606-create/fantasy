@@ -11,7 +11,7 @@ describe("trade constants", () => {
   it("pins MVP thresholds from the spec", () => {
     expect(NEED_RANK_FLOOR).toBe(9)
     expect(SURPLUS_RANK_CEILING).toBe(4)
-    expect(FAIRNESS_BAND).toBe(0.25)
+    expect(FAIRNESS_BAND).toBe(0.1)
     expect(OVERPAY_RATIO).toBe(1.2)
     expect(TRADE_PAGE_SIZE).toBe(20)
   })

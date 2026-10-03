@@ -120,7 +120,7 @@ const mirrorState = buildLeague(
 
 // Same mirror, but both teams are also weak in STL and YOU's star steals a hair
 // more than the rest, so the AST/REB swap still costs YOU a weak STL total.
-const stealStarStats = { REB: 16, AST: 2, STL: 1.1 }
+const stealStarStats = { REB: 16, AST: 2, STL: 1.02 }
 const stealRoleStats = { REB: 16, AST: 2, STL: 1 }
 const worsenedState = buildLeague(
   [
@@ -230,7 +230,7 @@ describe("suggestTrades", () => {
     expect(suggestion!.youGains.map((gain) => gain.categoryId)).toContain("AST")
     expect(suggestion!.themGains.map((gain) => gain.categoryId)).toContain("REB")
     expect(suggestion!.youWorsened).toEqual([])
-    expect(suggestion!.valueGap).toBeLessThanOrEqual(0.25)
+    expect(suggestion!.valueGap).toBeLessThanOrEqual(0.1)
     expect(suggestion!.overpayRatio).toBeUndefined()
     expect(suggestion!.reasons[0]).toContain("REB")
     expect(suggestion!.reasons.join(" ")).toContain("balanced 1:1")
@@ -350,7 +350,7 @@ describe("suggestTrades", () => {
         createPlayer("you-e", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
       ],
       [
-        createPlayer("them-star", { REB: 2, AST: 16, PTS: 30, TPM: 0 }),
+        createPlayer("them-star", { REB: 2, AST: 16, PTS: 32, TPM: 0 }),
         createPlayer("them-b", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
         createPlayer("them-c", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
         createPlayer("them-d", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
