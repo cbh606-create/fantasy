@@ -1,11 +1,6 @@
 import type { SeasonLeagueState, SeasonTeamRoster } from "@/lib/season/types"
 import { seasonTeamTotals } from "@/lib/season/analysis"
-import {
-  classifyTeam,
-  matchedWeaks,
-  teamsMatch,
-  type TeamCategorySides,
-} from "./classify"
+import { classifyTeam, teamsMatch } from "./classify"
 import type { TradePackage, TradeShape } from "./types"
 
 const tradablePlayerIds = (team: SeasonTeamRoster): string[] =>
@@ -13,23 +8,6 @@ const tradablePlayerIds = (team: SeasonTeamRoster): string[] =>
     .flatMap((entry) =>
       entry.slot === "IL" || !entry.playerId ? [] : [entry.playerId])
     .sort()
-
-const tradePartnerMatch = (you: TeamCategorySides, them: TeamCategorySides) => {
-  if (!teamsMatch(you, them)) {
-    return false
-  }
-
-  const youReceive = matchedWeaks(you, them)
-  const themReceive = matchedWeaks(them, you)
-
-  return (
-    youReceive.length > 0
-    && themReceive.length > 0
-    && !youReceive.some((categoryId) => themReceive.includes(categoryId))
-    && !you.weak.some((categoryId) => them.weak.includes(categoryId))
-    && !you.strong.some((categoryId) => them.strong.includes(categoryId))
-  )
-}
 
 const combinations = (playerIds: string[]): string[][] => [
   ...playerIds.map((playerId) => [playerId]),
@@ -57,9 +35,7 @@ export const enumeratePackages = (
       return []
     }
 
-    const theirSides = classifyTeam(totalsByTeam, team.teamIndex)
-
-    if (!tradePartnerMatch(yourSides, theirSides)) {
+    if (!teamsMatch(yourSides, classifyTeam(totalsByTeam, team.teamIndex))) {
       return []
     }
 

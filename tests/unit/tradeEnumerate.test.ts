@@ -36,13 +36,19 @@ const player = (
 }
 
 const state = (): SeasonLeagueState => {
+  const specialist = { REB: 20, AST: 1 }
   const you = [
-    player("scrub", { PTS: 0, REB: 0, AST: 0, STL: 0, BLK: 0, TPM: 0, TO: 9 }),
+    player("scrub", specialist),
     ...Array.from({ length: 5 }, (_, index) =>
-      player(`you-${index}`, { REB: 20, AST: 1 })),
+      player(`you-${index}`, specialist)),
   ]
-  const them = [player("them-0", { REB: 1, AST: 20 })]
-  const filler = [player("filler")]
+  const them = [
+    player("them-0", { REB: 1, AST: 20 }),
+    ...Array.from({ length: 5 }, (_, index) =>
+      player(`them-il-${index}`, specialist)),
+  ]
+  const filler = Array.from({ length: 6 }, (_, index) =>
+    player(`filler-${index}`, specialist))
   const rosters = [you, them, ...Array.from({ length: 10 }, () => filler)]
 
   return {
@@ -54,7 +60,7 @@ const state = (): SeasonLeagueState => {
       teamIndex,
       name: `Team ${teamIndex}`,
       entries: teamPlayers.map((rosterPlayer) => ({
-        slot: "UTIL" as const,
+        slot: teamIndex === 1 && rosterPlayer.id !== "them-0" ? "IL" as const : "UTIL" as const,
         playerId: rosterPlayer.id,
       })),
     })),
@@ -84,10 +90,6 @@ describe("enumeratePackages", () => {
         : rosterPlayer,
     )
 
-    const packages = enumeratePackages(league)
-
-    expect(
-      packages.every((tradePackage) => tradePackage.counterpartyTeamIndex !== 1),
-    ).toBe(true)
+    expect(enumeratePackages(league)).toHaveLength(0)
   })
 })
