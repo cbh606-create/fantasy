@@ -296,17 +296,22 @@ describe("applyTradePackage excluded drops", () => {
 
   it("uses an open non-IL slot before the named drop", () => {
     const league = twoTeamState([18, 1, 12])
+    league.teams[0].entries.push({ slot: "IL", playerId: null })
     league.teams[0].entries.push({ slot: "BE", playerId: null })
     const result = applyTradePackage(league, incoming, undefined, [], {
       yourDropPlayerId: "you-2",
       skipEmptyIlSlots: true,
     })
+    const entries = result.state.teams[0].entries
 
     expect(result.yourDroppedPlayerId).toBeUndefined()
-    expect(playerIdsOf(result.state, 0)).toContain("you-2")
+    expect(result.droppedPlayerId).toBeUndefined()
+    expect(entries.find((entry) => entry.slot === "IL")?.playerId).toBeNull()
+    expect(entries.find((entry) => entry.slot === "BE")?.playerId).toBe("them-1")
     expect(playerIdsOf(result.state, 0)).toEqual(
-      expect.arrayContaining(["them-0", "them-1"]),
+      expect.arrayContaining(["you-1", "you-2", "them-0", "them-1"]),
     )
+    expect(playerIdsOf(result.state, 0)).not.toContain("you-0")
   })
 
   it("does not use an empty IL slot when simulation skips IL", () => {
@@ -320,5 +325,96 @@ describe("applyTradePackage excluded drops", () => {
     expect(result.yourDroppedPlayerId).toBe("you-1")
     expect(result.state.teams[0].entries.some((entry) =>
       entry.slot === "IL" && entry.playerId === null)).toBe(true)
+  })
+
+  it("rejects a named drop that is missing from the roster", () => {
+    const league = twoTeamState([18, 1, 12])
+    const result = applyTradePackage(league, incoming, undefined, [], {
+      yourDropPlayerId: "missing",
+    })
+
+    expect(result.rejected).toBe(true)
+    expect(result.yourDroppedPlayerId).toBeUndefined()
+    expect(result.state).toBe(league)
+    expect(playerIdsOf(result.state, 0)).toEqual(["you-0", "you-1", "you-2"])
+    expect(playerIdsOf(result.state, 1)).toEqual(["them-0", "them-1"])
+  })
+
+  it("rejects a named drop that is on IL", () => {
+    const league = twoTeamState([18, 1, 12])
+    league.players.push(rosterPlayer("you-il", 1))
+    league.teams[0].entries.push({ slot: "IL", playerId: "you-il" })
+    const result = applyTradePackage(league, incoming, undefined, [], {
+      yourDropPlayerId: "you-il",
+    })
+
+    expect(result.rejected).toBe(true)
+    expect(result.yourDroppedPlayerId).toBeUndefined()
+    expect(result.state).toBe(league)
+    expect(playerIdsOf(result.state, 0)).toEqual([
+      "you-0",
+      "you-1",
+      "you-2",
+      "you-il",
+    ])
+    expect(playerIdsOf(result.state, 1)).toEqual(["them-0", "them-1"])
+  })
+
+  it("rejects a named drop that is one of the players being sent", () => {
+    const league = twoTeamState([18, 1, 12])
+    const result = applyTradePackage(league, incoming, undefined, [], {
+      yourDropPlayerId: "you-0",
+    })
+
+    expect(result.rejected).toBe(true)
+    expect(result.yourDroppedPlayerId).toBeUndefined()
+    expect(result.state).toBe(league)
+    expect(playerIdsOf(result.state, 0)).toEqual(["you-0", "you-1", "you-2"])
+    expect(playerIdsOf(result.state, 1)).toEqual(["them-0", "them-1"])
+  })
+
+  it("skips the other team's empty IL slot and records their drop", () => {
+    const league = twoTeamState([18, 12])
+    const theirPlayers = [
+      rosterPlayer("them-sent", 30),
+      rosterPlayer("them-low", 1),
+      rosterPlayer("them-mid", 15),
+    ]
+    league.players = [
+      ...league.players.filter((player) => player.id.startsWith("you-")),
+      ...theirPlayers,
+    ]
+    league.teams[1].entries = [
+      { slot: "IL", playerId: null },
+      { slot: "UTIL", playerId: "them-sent" },
+      { slot: "UTIL", playerId: "them-low" },
+      { slot: "UTIL", playerId: "them-mid" },
+    ]
+    const outgoing: TradePackage = {
+      shape: "2:1",
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-0", "you-1"],
+      themPlayerIds: ["them-sent"],
+    }
+    const values = buildPlayerValueMap(league)
+    const expectedDropId = ["them-low", "them-mid"].sort(
+      (left, right) => values.get(left)! - values.get(right)!,
+    )[0]
+    const keptId = ["them-low", "them-mid"].find((id) => id !== expectedDropId)
+    const result = applyTradePackage(league, outgoing, undefined, [], {
+      skipEmptyIlSlots: true,
+    })
+
+    expect(result.rejected).toBeUndefined()
+    expect(result.theirDroppedPlayerId).toBe(expectedDropId)
+    expect(result.state.teams[1].entries[0]).toEqual({
+      slot: "IL",
+      playerId: null,
+    })
+    expect(playerIdsOf(result.state, 1)).toEqual(
+      expect.arrayContaining(["you-0", "you-1", keptId!]),
+    )
+    expect(playerIdsOf(result.state, 1)).not.toContain(expectedDropId)
+    expect(playerIdsOf(result.state, 1)).not.toContain("them-sent")
   })
 })
