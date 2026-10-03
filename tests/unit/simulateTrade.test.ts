@@ -209,6 +209,89 @@ describe("simulateTrade", () => {
     expect(result.ruleSentence).toBe("Your package is more than 10% larger.")
   })
 
+  it("names the missing match when the value band passes but no categories complement", () => {
+    const state = leagueOf(
+      [createPlayer("you-send", { PTS: 18 }), createPlayer("you-star", { PTS: 30 })],
+      [createPlayer("them-recv", { PTS: 18 }), createPlayer("them-scrub", { PTS: 10 })],
+    )
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-send"],
+      themPlayerIds: ["them-recv"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.you.overallBefore).toBeGreaterThan(0)
+    expect(result.ruleSentence).toBe("These teams do not have complementary categories.")
+  })
+
+  it("names the overpay ratio when the two-player side is below 1.2x", () => {
+    const state = leagueOf(
+      [createPlayer("you-a", { PTS: 1 }), createPlayer("you-b", { PTS: 1 })],
+      [
+        createPlayer("them-send", { PTS: 18 }),
+        createPlayer("them-scrub", { PTS: 1 }),
+        createPlayer("them-keep", { PTS: 30 }),
+      ],
+    )
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-a", "you-b"],
+      themPlayerIds: ["them-send"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.you.overallBefore).toBeGreaterThan(0)
+    expect(result.ruleSentence).toBe("The two-player side is below 1.2× the one-player side.")
+  })
+
+  it("names your matched weak category when it does not improve", () => {
+    const state = leagueOf(
+      [
+        createPlayer("you-send", { REB: 6, AST: 4 }),
+        createPlayer("you-keep", { REB: 10, AST: 2 }),
+      ],
+      [
+        createPlayer("them-recv", { REB: 6, AST: 3.8 }),
+        createPlayer("them-keep", { REB: 2, AST: 10 }),
+      ],
+    )
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-send"],
+      themPlayerIds: ["them-recv"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.ruleSentence).toBe("None of your matched weak categories improve.")
+  })
+
+  it("names their strength when it ends on the bad side of the league mean", () => {
+    const state = leagueOf(
+      [
+        createPlayer("you-send", { REB: 6, AST: 3.4 }),
+        createPlayer("you-keep", { REB: 16, AST: 4 }),
+      ],
+      [
+        createPlayer("them-recv", { REB: 2, AST: 3.6 }),
+        createPlayer("them-keep", { REB: 2, AST: 4 }),
+      ],
+    )
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-send"],
+      themPlayerIds: ["them-recv"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.ruleSentence)
+      .toBe("One of their strengths finishes on the bad side of the league mean.")
+  })
+
   it("returns no rule sentence for a mirrored complementary swap", () => {
     const state = leagueOf(
       [
