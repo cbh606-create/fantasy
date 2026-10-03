@@ -133,7 +133,11 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             />
           </section>
           {selectedSuggestion ? (
-            <DealDetail state={state} suggestion={selectedSuggestion} />
+            <DealDetail
+              requestedCategoryIds={[]}
+              state={state}
+              suggestion={selectedSuggestion}
+            />
           ) : (
             <p className="text-sm text-[var(--color-mute)]">
               {NO_SUGGESTIONS_COPY}

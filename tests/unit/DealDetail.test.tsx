@@ -90,7 +90,13 @@ describe("DealDetail", () => {
   afterEach(cleanup)
 
   it("explains what the counterparty gets and what it costs them", () => {
-    render(<DealDetail state={state} suggestion={suggestion} />)
+    render(
+      <DealDetail
+        requestedCategoryIds={[]}
+        state={state}
+        suggestion={suggestion}
+      />,
+    )
 
     expect(screen.getByRole("heading", { name: "What they get" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "What you get" })).toBeInTheDocument()
@@ -104,11 +110,33 @@ describe("DealDetail", () => {
   it("omits the worsened block when neither side worsens", () => {
     render(
       <DealDetail
+        requestedCategoryIds={[]}
         state={state}
         suggestion={{ ...suggestion, themWorsened: [], youWorsened: [] }}
       />,
     )
 
     expect(screen.queryByText(/was already below average/)).toBeNull()
+  })
+
+  it("shows extra youImproved rows for requested categories with short labels", () => {
+    render(
+      <DealDetail
+        requestedCategoryIds={["TPM"]}
+        state={state}
+        suggestion={{
+          ...suggestion,
+          youGains: [{ categoryId: "AST", before: 10, after: 12 }],
+          youImproved: [
+            { categoryId: "AST", before: 10, after: 12 },
+            { categoryId: "TPM", before: 1, after: 2 },
+          ],
+        }}
+      />,
+    )
+
+    expect(screen.getByText("3PM")).toBeInTheDocument()
+    expect(screen.queryByText("TPM")).toBeNull()
+    expect(screen.getByText("1.0 → 2.0")).toBeInTheDocument()
   })
 })

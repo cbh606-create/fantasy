@@ -1,4 +1,5 @@
 import type { CategoryId } from "@/lib/domain/types"
+import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 
 type WeakCategoriesPanelProps = {
   weak: CategoryId[]
@@ -19,7 +20,7 @@ const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
           className="rounded-full border border-[var(--color-hairline)] bg-white px-2.5 py-1 font-medium"
           key={categoryId}
         >
-          {categoryId}
+          {CATEGORY_SHORT_LABELS[categoryId]}
         </span>
       ))}
     </span>
