@@ -1,5 +1,5 @@
 import type { SeasonLeagueState, SeasonTeamRoster } from "@/lib/season/types"
-import { seasonTeamTotals } from "@/lib/season/analysis"
+import { seasonTeamTotals, type TeamCategoryTotals } from "@/lib/season/analysis"
 import { classifyTeam, teamsMatch } from "./classify"
 import type { TradePackage, TradeShape } from "./types"
 
@@ -17,6 +17,7 @@ const combinations = (playerIds: string[]): string[][] => [
 
 export const enumeratePackages = (
   state: SeasonLeagueState,
+  totalsByTeam: TeamCategoryTotals[] = seasonTeamTotals(state),
 ): TradePackage[] => {
   const yourTeam = state.teams.find(
     ({ teamIndex }) => teamIndex === state.perspectiveTeamIndex,
@@ -26,7 +27,6 @@ export const enumeratePackages = (
     return []
   }
 
-  const totalsByTeam = seasonTeamTotals(state)
   const yourSides = classifyTeam(totalsByTeam, state.perspectiveTeamIndex)
   const yourCombinations = combinations(tradablePlayerIds(yourTeam))
 
@@ -39,8 +39,10 @@ export const enumeratePackages = (
       return []
     }
 
+    const theirCombinations = combinations(tradablePlayerIds(team))
+
     return yourCombinations.flatMap((youPlayerIds) =>
-      combinations(tradablePlayerIds(team)).map((themPlayerIds) => ({
+      theirCombinations.map((themPlayerIds) => ({
         shape: `${youPlayerIds.length}:${themPlayerIds.length}` as TradeShape,
         counterpartyTeamIndex: team.teamIndex,
         youPlayerIds,

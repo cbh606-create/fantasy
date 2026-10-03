@@ -3,6 +3,8 @@ import type { CategoryId } from "@/lib/domain/types"
 type WeakCategoriesPanelProps = {
   weak: CategoryId[]
   strong: CategoryId[]
+  weakLabel?: string
+  strongLabel?: string
 }
 
 const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
@@ -27,19 +29,21 @@ const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
 export const WeakCategoriesPanel = ({
   weak,
   strong,
+  weakLabel = "Below average",
+  strongLabel = "Above average",
 }: WeakCategoriesPanelProps) => (
   <section className="rounded-3xl bg-[var(--color-soft-cloud)] p-5">
     <h2 className="text-lg font-semibold">Weak categories</h2>
     <div className="mt-4 grid gap-4 text-[0.8125rem] sm:grid-cols-2">
       <div>
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
-          Below average
+          {weakLabel}
         </p>
         <CategoryPills categories={weak} />
       </div>
       <div>
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
-          Above average
+          {strongLabel}
         </p>
         <CategoryPills categories={strong} />
       </div>

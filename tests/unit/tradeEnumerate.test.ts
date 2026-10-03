@@ -38,7 +38,7 @@ const player = (
 const state = (): SeasonLeagueState => {
   const specialist = { REB: 20, AST: 1 }
   const you = [
-    player("scrub", specialist),
+    player("scrub", { ...specialist, PTS: 4, TPM: 0, STL: 0 }),
     ...Array.from({ length: 5 }, (_, index) =>
       player(`you-${index}`, specialist)),
   ]

@@ -86,7 +86,10 @@ export const suggestTrades = (
 
   // Shape rules run before the simulation because they are pure arithmetic on
   // player values, while every simulated package re-totals the two teams.
-  const suggestions = enumeratePackages(state).flatMap(
+  const suggestions = enumeratePackages(
+    state,
+    context.totalsByTeam,
+  ).flatMap(
     (tradePackage): TradeSuggestion[] => {
       const { ok, overpayRatio } = passesShapeRules(tradePackage, values)
 

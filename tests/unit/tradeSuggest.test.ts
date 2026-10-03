@@ -117,6 +117,29 @@ const mirrorState = buildLeague(
   6,
 )
 
+// Same mirror, but both teams are also weak in STL and YOU's star steals a hair
+// more than the rest, so the AST/REB swap still costs YOU a weak STL total.
+const stealStarStats = { REB: 16, AST: 2, STL: 1.1 }
+const stealRoleStats = { REB: 16, AST: 2, STL: 1 }
+const worsenedState = buildLeague(
+  [
+    createPlayer("you-star", stealStarStats),
+    createPlayer("you-b", stealRoleStats),
+    createPlayer("you-c", stealRoleStats),
+    createPlayer("you-d", stealRoleStats),
+    createPlayer("you-e", stealRoleStats),
+  ],
+  [
+    createPlayer("them-star", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-b", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-c", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-d", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-e", { REB: 2, AST: 16, STL: 1 }),
+  ],
+  [],
+  6,
+)
+
 // YOU own two replacement-level rebounders, TARGET owns one dominant passer.
 // Trading both rebounders for the ace helps both teams but is not an overpay.
 const starState = buildLeague(
@@ -213,6 +236,39 @@ describe("suggestTrades", () => {
     expect(suggestion).not.toHaveProperty("you")
     expect(suggestion).not.toHaveProperty("them")
     expect(suggestions.length).toBeGreaterThan(20)
+  })
+
+  it("orders suggestions by mutualScore descending, then id ascending", () => {
+    const { suggestions } = suggestTrades(mirrorState)
+    const ids = suggestions.map(({ id }) => id)
+    const tiedPairs = suggestions.slice(1).filter(
+      ({ mutualScore }, index) => mutualScore === suggestions[index].mutualScore,
+    )
+
+    expect(suggestions.length).toBeGreaterThan(1)
+    expect(tiedPairs.length).toBeGreaterThan(0)
+    suggestions.slice(1).forEach((suggestion, index) => {
+      const previous = suggestions[index]
+
+      expect(previous.mutualScore).toBeGreaterThanOrEqual(suggestion.mutualScore)
+
+      if (previous.mutualScore !== suggestion.mutualScore) {
+        return
+      }
+
+      expect(previous.id < suggestion.id).toBe(true)
+    })
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it("keeps a package that worsens a weak category and reports it", () => {
+    const { suggestions, youWeak } = suggestTrades(worsenedState)
+    const suggestion = findSuggestion(suggestions, ["you-star"], ["them-star"])
+
+    expect(youWeak).toContain("STL")
+    expect(suggestion).toBeDefined()
+    expect(suggestion!.youGains.map(({ categoryId }) => categoryId)).toContain("AST")
+    expect(suggestion!.youWorsened.map(({ categoryId }) => categoryId)).toContain("STL")
   })
 
   it("ranks a positive harmonic mean ahead of a residual sum", () => {
