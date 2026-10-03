@@ -32,10 +32,13 @@ const findPlayerIndexes = (
 const findOpenIndex = (
   entries: SeasonRosterEntry[],
   excludedIndexes: number[],
+  skipEmptyIlSlots = false,
 ): number =>
   entries.findIndex(
     (entry, index) =>
-      !excludedIndexes.includes(index) && entry.playerId === null,
+      !excludedIndexes.includes(index)
+      && entry.playerId === null
+      && (!skipEmptyIlSlots || entry.slot !== "IL"),
   )
 
 /**
@@ -92,6 +95,8 @@ const assignAsymmetricPlayers = (
   incomingPlayerIds: string[],
   values: Map<string, number>,
   protectedPlayerIds: readonly string[] = [],
+  forcedDropPlayerId?: string,
+  skipEmptyIlSlots = false,
 ): { droppedPlayerId?: string, unplaceable: boolean } => {
   receivingEntries[receivingIndexes[0]].playerId = incomingPlayerIds[0]
 
@@ -99,11 +104,32 @@ const assignAsymmetricPlayers = (
     return { unplaceable: false }
   }
 
-  const openIndex = findOpenIndex(receivingEntries, receivingIndexes)
+  const openIndex = findOpenIndex(
+    receivingEntries,
+    receivingIndexes,
+    skipEmptyIlSlots,
+  )
 
   if (openIndex >= 0) {
     receivingEntries[openIndex].playerId = incomingPlayerIds[1]
     return { unplaceable: false }
+  }
+
+  if (forcedDropPlayerId) {
+    const forcedIndex = receivingEntries.findIndex(
+      (entry, index) =>
+        !receivingIndexes.includes(index)
+        && entry.playerId === forcedDropPlayerId
+        && entry.slot !== "IL",
+    )
+
+    if (forcedIndex < 0) {
+      return { unplaceable: true }
+    }
+
+    receivingEntries[forcedIndex].playerId = incomingPlayerIds[1]
+
+    return { droppedPlayerId: forcedDropPlayerId, unplaceable: false }
   }
 
   const { index: dropIndex, blockedByProtection } = findLowestValueIndex(
@@ -133,6 +159,8 @@ const assignAsymmetricPlayers = (
 export type TradeApplication = {
   state: SeasonLeagueState
   droppedPlayerId?: string
+  yourDroppedPlayerId?: string
+  theirDroppedPlayerId?: string
   rejected?: boolean
 }
 
@@ -141,6 +169,7 @@ export const applyTradePackage = (
   tradePackage: TradePackage,
   precomputedValues?: Map<string, number>,
   excludedPlayerIds: readonly string[] = [],
+  options?: { yourDropPlayerId?: string, skipEmptyIlSlots?: boolean },
 ): TradeApplication => {
   const teams = state.teams.map((team) => ({
     ...team,
@@ -185,6 +214,7 @@ export const applyTradePackage = (
   })
 
   const values = precomputedValues ?? buildPlayerValueMap(state)
+  const skipEmptyIlSlots = options?.skipEmptyIlSlots ?? false
   const yourProtectedPlayerIds = excludedPlayerIds.filter((playerId) =>
     yourTeam.entries.some(
       (entry) => entry.slot !== "IL" && entry.playerId === playerId,
@@ -196,22 +226,44 @@ export const applyTradePackage = (
     tradePackage.themPlayerIds,
     values,
     yourProtectedPlayerIds,
+    options?.yourDropPlayerId,
+    skipEmptyIlSlots,
   )
   const theirDrop = assignAsymmetricPlayers(
     theirTeam.entries,
     theirIndexes,
     tradePackage.youPlayerIds,
     values,
+    [],
+    undefined,
+    skipEmptyIlSlots,
   )
 
   if (yourDrop.unplaceable) {
     return { state, rejected: true }
   }
 
+  const teammateDrop = (
+    droppedPlayerId: string | undefined,
+    incomingPlayerIds: readonly string[],
+  ) =>
+    droppedPlayerId && !incomingPlayerIds.includes(droppedPlayerId)
+      ? droppedPlayerId
+      : undefined
+  const yourDroppedPlayerId = teammateDrop(
+    yourDrop.droppedPlayerId,
+    tradePackage.themPlayerIds,
+  )
+  const theirDroppedPlayerId = teammateDrop(
+    theirDrop.droppedPlayerId,
+    tradePackage.youPlayerIds,
+  )
   const droppedPlayerId = yourDrop.droppedPlayerId ?? theirDrop.droppedPlayerId
 
   return {
     state: { ...state, teams },
+    ...(yourDroppedPlayerId ? { yourDroppedPlayerId } : {}),
+    ...(theirDroppedPlayerId ? { theirDroppedPlayerId } : {}),
     ...(droppedPlayerId ? { droppedPlayerId } : {}),
   }
 }

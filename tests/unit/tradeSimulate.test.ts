@@ -280,4 +280,45 @@ describe("applyTradePackage excluded drops", () => {
     expect(rejected).toBeUndefined()
     expect(droppedPlayerId).toBe("them-1")
   })
+
+  it("drops the named player instead of the lowest-value teammate", () => {
+    const league = twoTeamState([18, 1, 12])
+    const result = applyTradePackage(league, incoming, undefined, [], {
+      yourDropPlayerId: "you-2",
+    })
+
+    expect(result.rejected).toBeUndefined()
+    expect(result.yourDroppedPlayerId).toBe("you-2")
+    expect(result.droppedPlayerId).toBe("you-2")
+    expect(playerIdsOf(result.state, 0)).toContain("you-1")
+    expect(playerIdsOf(result.state, 0)).not.toContain("you-2")
+  })
+
+  it("uses an open non-IL slot before the named drop", () => {
+    const league = twoTeamState([18, 1, 12])
+    league.teams[0].entries.push({ slot: "BE", playerId: null })
+    const result = applyTradePackage(league, incoming, undefined, [], {
+      yourDropPlayerId: "you-2",
+      skipEmptyIlSlots: true,
+    })
+
+    expect(result.yourDroppedPlayerId).toBeUndefined()
+    expect(playerIdsOf(result.state, 0)).toContain("you-2")
+    expect(playerIdsOf(result.state, 0)).toEqual(
+      expect.arrayContaining(["them-0", "them-1"]),
+    )
+  })
+
+  it("does not use an empty IL slot when simulation skips IL", () => {
+    const league = twoTeamState([18, 12])
+    league.teams[0].entries.push({ slot: "IL", playerId: null })
+    const result = applyTradePackage(league, incoming, undefined, [], {
+      yourDropPlayerId: "you-1",
+      skipEmptyIlSlots: true,
+    })
+
+    expect(result.yourDroppedPlayerId).toBe("you-1")
+    expect(result.state.teams[0].entries.some((entry) =>
+      entry.slot === "IL" && entry.playerId === null)).toBe(true)
+  })
 })
