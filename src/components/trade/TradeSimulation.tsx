@@ -189,7 +189,7 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
           <p>{`Drops ${playerName(result.yourDroppedPlayerId)} to open a roster spot`}</p>
         ) : null}
         {result.theirDroppedPlayerId ? (
-          <p>{`${counterparty?.name ?? "They"} drops ${playerName(result.theirDroppedPlayerId)} to open a roster spot`}</p>
+          <p>{`They drop ${playerName(result.theirDroppedPlayerId)} to open a roster spot`}</p>
         ) : null}
         {result.ruleSentence ? <p>{result.ruleSentence}</p> : null}
       </div>
