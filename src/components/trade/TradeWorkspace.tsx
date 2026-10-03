@@ -6,11 +6,12 @@ import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import { CategoryTargetToggles } from "@/components/trade/CategoryTargetToggles"
 import { DealDetail } from "@/components/trade/DealDetail"
-import { RosterIncludeGroups } from "@/components/trade/RosterIncludeGroups"
 import {
-  NO_SUGGESTIONS_COPY,
-  SuggestionList,
-} from "@/components/trade/SuggestionList"
+  RosterIncludeGroups,
+  tradableRosterPlayerIds,
+} from "@/components/trade/RosterIncludeGroups"
+import { SuggestionList } from "@/components/trade/SuggestionList"
+import { TradeSimulation } from "@/components/trade/TradeSimulation"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
@@ -41,6 +42,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   const [requestedCategoryIds, setRequestedCategoryIds] = useState<CategoryId[]>([])
   const [hasGenerated, setHasGenerated] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [tab, setTab] = useState<"suggestions" | "simulation">("suggestions")
 
   useEffect(() => {
     const controller = new AbortController()
@@ -63,6 +65,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
         const suggestions =
           (await suggestionsResponse.json()) as TradeSuggestionsResponse
         setTradeData(suggestions)
+        setExcludedIds(tradableRosterPlayerIds(suggestions.state))
       } catch (requestError) {
         if (requestError instanceof DOMException && requestError.name === "AbortError") return
 
@@ -169,30 +172,62 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             {state.name}
           </h1>
         </header>
-        <WeakCategoriesPanel
-          weak={tradeData.youWeak}
-          strong={tradeData.youStrong}
-        />
-        <CategoryTargetToggles
-          onToggle={handleToggleCategory}
-          selectedIds={selectedIds}
-        />
-        <RosterIncludeGroups
-          excludedIds={excludedIds}
-          onExclude={handleExclude}
-          onInclude={handleInclude}
-          state={state}
-        />
-        <button
-          className="mt-6 rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
-          disabled={selectedIds.length === 0 || isGenerating}
-          onClick={handleGenerate}
-          type="button"
+        <div
+          aria-label="Trade workspace view"
+          className="mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"
+          role="tablist"
         >
-          {isGenerating ? "Generating trade suggestions…" : "Generate trade suggestions"}
-        </button>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[22rem_1fr]">
-          <section>
+          {([
+            ["suggestions", "Suggestions"],
+            ["simulation", "Simulation"],
+          ] as const).map(([id, label]) => (
+            <button
+              aria-controls={`${id}-panel`}
+              aria-selected={tab === id}
+              className={
+                tab === id
+                  ? "rounded-full bg-[var(--color-ink)] px-6 py-2.5 font-medium text-white"
+                  : "rounded-full px-6 py-2.5 font-medium text-[var(--color-mute)]"
+              }
+              id={`${id}-tab`}
+              key={id}
+              onClick={() => setTab(id)}
+              role="tab"
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div
+          aria-labelledby="suggestions-tab"
+          hidden={tab !== "suggestions"}
+          id="suggestions-panel"
+          role="tabpanel"
+        >
+          <WeakCategoriesPanel
+            weak={tradeData.youWeak}
+            strong={tradeData.youStrong}
+          />
+          <CategoryTargetToggles
+            onToggle={handleToggleCategory}
+            selectedIds={selectedIds}
+          />
+          <RosterIncludeGroups
+            excludedIds={excludedIds}
+            onExclude={handleExclude}
+            onInclude={handleInclude}
+            state={state}
+          />
+          <button
+            className="mt-6 rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
+            disabled={selectedIds.length === 0 || isGenerating}
+            onClick={handleGenerate}
+            type="button"
+          >
+            {isGenerating ? "Generating trade suggestions…" : "Generate trade suggestions"}
+          </button>
+          <section className="mt-8">
             <h2 className="mb-3 text-lg font-semibold">Suggested deals</h2>
             {error ? (
               <p className="mb-3 text-sm text-[var(--color-info)]" role="alert">
@@ -202,6 +237,13 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             {hasGenerated ? (
               <SuggestionList
                 onSelect={setSelectedId}
+                selectedDetail={selectedSuggestion ? (
+                  <DealDetail
+                    requestedCategoryIds={requestedCategoryIds}
+                    state={state}
+                    suggestion={selectedSuggestion}
+                  />
+                ) : null}
                 selectedId={selectedId}
                 state={state}
                 suggestions={generatedSuggestions}
@@ -212,17 +254,14 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
               </p>
             )}
           </section>
-          {selectedSuggestion ? (
-            <DealDetail
-              requestedCategoryIds={requestedCategoryIds}
-              state={state}
-              suggestion={selectedSuggestion}
-            />
-          ) : hasGenerated ? (
-            <p className="text-sm text-[var(--color-mute)]">
-              {NO_SUGGESTIONS_COPY}
-            </p>
-          ) : null}
+        </div>
+        <div
+          aria-labelledby="simulation-tab"
+          hidden={tab !== "simulation"}
+          id="simulation-panel"
+          role="tabpanel"
+        >
+          <TradeSimulation state={state} />
         </div>
       </div>
     </main>

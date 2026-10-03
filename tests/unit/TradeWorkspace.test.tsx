@@ -153,6 +153,10 @@ describe("TradeWorkspace", () => {
     const generate = screen.getByRole("button", { name: "Generate trade suggestions" })
     expect(generate).toBeDisabled()
 
+    expect(screen.getByRole("button", { name: /your guard/i })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    )
     fireEvent.click(screen.getByRole("button", { name: "3PM" }))
     expect(generate).toBeEnabled()
     fireEvent.click(generate)
@@ -163,30 +167,47 @@ describe("TradeWorkspace", () => {
     expect(screen.getByText("Gains 3PM")).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Their Center" })).toBeInTheDocument()
     expect(screen.getByText("5.0 → 8.0")).toBeInTheDocument()
-    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(generateUrl)
+    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(excludedUrl)
+
+    const centerSuggestion = screen.getByRole("button", {
+      name: /trade your guard for their center/i,
+    })
+    expect(within(centerSuggestion.closest("li")!).getByRole("heading", {
+      name: "Their Center",
+    })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", {
       name: /trade your guard for their wing/i,
     }))
-    expect(screen.getByRole("heading", { name: "Their Wing" })).toBeInTheDocument()
+    const wingSuggestion = screen.getByRole("button", {
+      name: /trade your guard for their wing/i,
+    })
+    expect(within(wingSuggestion.closest("li")!).getByRole("heading", {
+      name: "Their Wing",
+    })).toBeInTheDocument()
+    expect(within(centerSuggestion.closest("li")!).queryByRole("heading", {
+      name: "Their Center",
+    })).toBeNull()
 
     const callsBefore = vi.mocked(fetch).mock.calls.length
     fireEvent.click(screen.getByRole("button", { name: "AST" }))
     expect(vi.mocked(fetch).mock.calls.length).toBe(callsBefore)
   })
 
-  it("sends Do Not Include ids on the next generate", async () => {
+  it("omits a player switched to Include", async () => {
     render(<TradeWorkspace leagueId="season-1" />)
     await screen.findByText("Select a category, then generate trade suggestions.")
 
     fireEvent.click(screen.getByRole("button", { name: "3PM" }))
-    fireEvent.click(screen.getByRole("button", { name: "Do Not Include" }))
+    fireEvent.click(screen.getByRole("button", { name: /your guard/i }))
+    expect(screen.getByRole("button", { name: /your guard/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
     fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
 
     await screen.findByRole("heading", { name: "Their Center" })
-    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(
-      "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1",
-    )
+    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(generateUrl)
   })
 
   it("keeps the current list when generate fails", async () => {
@@ -201,5 +222,26 @@ describe("TradeWorkspace", () => {
 
     expect(await screen.findByText("Unable to load trade suggestions")).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Their Center" })).toBeInTheDocument()
+  })
+
+  it("keeps simulation picks after visiting suggestions", async () => {
+    render(<TradeWorkspace leagueId="season-1" />)
+    await screen.findByText("Select a category, then generate trade suggestions.")
+
+    fireEvent.click(screen.getByRole("tab", { name: "Simulation" }))
+    fireEvent.click(screen.getByRole("button", { name: "Rivals" }))
+    expect(screen.getByRole("button", { name: "Rivals" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+
+    fireEvent.click(screen.getByRole("tab", { name: "Suggestions" }))
+    expect(screen.getByRole("button", { name: "Generate trade suggestions" })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("tab", { name: "Simulation" }))
+    expect(screen.getByRole("button", { name: "Rivals" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
   })
 })
