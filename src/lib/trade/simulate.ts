@@ -228,33 +228,38 @@ export const createTradeAnalysisContext = (
   }
 }
 
-const analyzeAfterTrade = (
+export const totalsAfterTrade = (
   afterState: SeasonLeagueState,
   tradePackage: TradePackage,
   context: TradeAnalysisContext,
-): SeasonAnalysis => {
+): TeamCategoryTotals[] => {
   const tradedTeamIndexes = [
     afterState.perspectiveTeamIndex,
     tradePackage.counterpartyTeamIndex,
   ]
 
-  return analyzeTeamTotals(
-    context.totalsByTeam.map((entry) => {
-      if (!tradedTeamIndexes.includes(entry.teamIndex)) {
-        return entry
-      }
+  return context.totalsByTeam.map((entry) => {
+    if (!tradedTeamIndexes.includes(entry.teamIndex)) {
+      return entry
+    }
 
-      const team = afterState.teams.find(
-        ({ teamIndex }) => teamIndex === entry.teamIndex,
-      )!
+    const team = afterState.teams.find(
+      ({ teamIndex }) => teamIndex === entry.teamIndex,
+    )!
 
-      return {
-        teamIndex: entry.teamIndex,
-        totals: teamTotals(rosterPlayers(team, context.playersById)),
-      }
-    }),
-  )
+    return {
+      teamIndex: entry.teamIndex,
+      totals: teamTotals(rosterPlayers(team, context.playersById)),
+    }
+  })
 }
+
+const analyzeAfterTrade = (
+  afterState: SeasonLeagueState,
+  tradePackage: TradePackage,
+  context: TradeAnalysisContext,
+): SeasonAnalysis =>
+  analyzeTeamTotals(totalsAfterTrade(afterState, tradePackage, context))
 
 export type TradeEvaluation = {
   you: TradeSideImpact
