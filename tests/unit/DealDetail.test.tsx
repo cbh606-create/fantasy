@@ -78,6 +78,7 @@ const suggestion: TradeSuggestion = {
   mutualScore: 2,
   valueGap: 0.08,
   youGains: [{ categoryId: "AST", before: 10, after: 7 }],
+  youImproved: [],
   themGains: [{ categoryId: "REB", before: 40, after: 55 }],
   youWorsened: [],
   themWorsened: [{ categoryId: "STL", before: 8, after: 6 }],

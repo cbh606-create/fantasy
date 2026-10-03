@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 import type { CategoryId } from "@/lib/domain/types"
-import { assessSide, type CategoryTotalMap } from "@/lib/trade/accept"
+import {
+  assessSide,
+  categoriesMovedGood,
+  type CategoryTotalMap,
+} from "@/lib/trade/accept"
 
 const line = (overrides: Partial<CategoryTotalMap> = {}): CategoryTotalMap => ({
   FG_PCT: 0.45,
@@ -74,5 +78,25 @@ describe("assessSide", () => {
     expect(shooting.gains[0]?.categoryId).toBe("FG_PCT")
     expect(assess({ TO: 18 }, { TO: 19 }, ["TO"]).improved).toBe(false)
     expect(assess({ FG_PCT: 0.4 }, { FG_PCT: 0.39 }, ["FG_PCT"]).improved).toBe(false)
+  })
+})
+
+describe("categoriesMovedGood", () => {
+  it("counts a risen total and a fallen turnover", () => {
+    const before = {
+      FG_PCT: 0.45,
+      FT_PCT: 0.8,
+      TPM: 2,
+      REB: 8,
+      AST: 4,
+      STL: 1,
+      BLK: 1,
+      TO: 4,
+      PTS: 18,
+    }
+    const after = { ...before, AST: 6, TO: 3, PTS: 16, TPM: 2 }
+
+    expect(categoriesMovedGood(before, after).map((move) => move.categoryId))
+      .toEqual(["AST", "TO"])
   })
 })

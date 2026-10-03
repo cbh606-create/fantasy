@@ -27,11 +27,17 @@ export type TradeSuggestion = {
   valueGap?: number
   droppedPlayerId?: string
   youGains: CategoryTotalMove[]
+  youImproved: CategoryTotalMove[]
   themGains: CategoryTotalMove[]
   youWorsened: CategoryTotalMove[]
   themWorsened: CategoryTotalMove[]
   youStrengthsHeld: CategoryId[]
   themStrengthsHeld: CategoryId[]
+}
+
+export type SuggestTradesOptions = {
+  targetCategoryIds?: readonly CategoryId[]
+  excludedPlayerIds?: readonly string[]
 }
 
 export type TradePackage = {

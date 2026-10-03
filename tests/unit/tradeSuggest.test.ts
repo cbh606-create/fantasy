@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
+import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
@@ -312,7 +313,9 @@ describe("suggestTrades", () => {
     expect(suggestion!.valueGap).toBeUndefined()
     expect(suggestion!.youGains.length).toBeGreaterThan(0)
     expect(suggestion!.themGains.length).toBeGreaterThan(0)
-    expect(suggestion!.reasons[0]).toContain(suggestion!.themGains[0].categoryId)
+    expect(suggestion!.reasons[0]).toContain(
+      CATEGORY_SHORT_LABELS[suggestion!.themGains[0].categoryId],
+    )
     expect(suggestion!.reasons.join(" ")).toContain("2:1 overpay")
   })
 
@@ -335,6 +338,57 @@ describe("suggestTrades", () => {
         tradePackage.themPlayerIds,
       ),
     ).toBeUndefined()
+  })
+
+  it("returns a package when the requested category rises outside the matched weaks", () => {
+    const league = buildLeague(
+      [
+        createPlayer("you-star", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-b", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-c", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-d", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-e", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+      ],
+      [
+        createPlayer("them-star", { REB: 2, AST: 16, PTS: 30, TPM: 0 }),
+        createPlayer("them-b", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+        createPlayer("them-c", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+        createPlayer("them-d", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+        createPlayer("them-e", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+      ],
+      [],
+      6,
+    )
+    const { suggestions } = suggestTrades(league, { targetCategoryIds: ["PTS"] })
+    const suggestion = findSuggestion(suggestions, ["you-star"], ["them-star"])
+
+    expect(suggestion).toBeDefined()
+    expect(suggestion!.youGains.map((gain) => gain.categoryId)).not.toContain("PTS")
+    expect(suggestion!.youImproved.map((move) => move.categoryId)).toContain("PTS")
+    expect(suggestion!.reasons[0]).toContain("3PM")
+    expect(suggestion!.reasons[0]).not.toContain("TPM")
+  })
+
+  it("omits a package that raises none of the requested categories", () => {
+    const { suggestions } = suggestTrades(mirrorState, {
+      targetCategoryIds: ["TPM"],
+    })
+
+    expect(
+      findSuggestion(suggestions, ["you-star"], ["them-star"]),
+    ).toBeUndefined()
+  })
+
+  it("omits a package that would send an excluded player", () => {
+    const { suggestions } = suggestTrades(mirrorState, {
+      targetCategoryIds: ["AST"],
+      excludedPlayerIds: ["you-star"],
+    })
+
+    expect(
+      suggestions.some((suggestion) =>
+        suggestion.givePlayerIds.includes("you-star")),
+    ).toBe(false)
   })
 
   it("never offers IL players", () => {

@@ -1,3 +1,4 @@
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { CategoryTotalMap } from "./classify"
 
@@ -17,8 +18,23 @@ export type SideAssessment = {
   strengthsIntact: boolean
 }
 
-const movedGood = (categoryId: CategoryId, before: number, after: number) =>
-  categoryId === "TO" ? after < before : after > before
+export const categoryMovedGood = (
+  categoryId: CategoryId,
+  before: number,
+  after: number,
+) => (categoryId === "TO" ? after < before : after > before)
+
+export const categoriesMovedGood = (
+  before: CategoryTotalMap,
+  after: CategoryTotalMap,
+): CategoryTotalMove[] =>
+  ALL_CATEGORY_IDS.filter((categoryId) =>
+    categoryMovedGood(categoryId, before[categoryId], after[categoryId]),
+  ).map((categoryId) => ({
+    categoryId,
+    before: before[categoryId],
+    after: after[categoryId],
+  }))
 
 const onGoodSide = (categoryId: CategoryId, total: number, mean: number) =>
   categoryId === "TO" ? total < mean : total > mean
@@ -45,7 +61,7 @@ export const assessSide = ({
 }): SideAssessment => {
   const gains = matchedWeak
     .filter((categoryId) =>
-      movedGood(categoryId, before[categoryId], after[categoryId]))
+      categoryMovedGood(categoryId, before[categoryId], after[categoryId]))
     .map((categoryId) => ({
       categoryId,
       before: before[categoryId],
@@ -53,7 +69,7 @@ export const assessSide = ({
     }))
   const worsened = weak
     .filter((categoryId) =>
-      !movedGood(categoryId, before[categoryId], after[categoryId])
+      !categoryMovedGood(categoryId, before[categoryId], after[categoryId])
       && before[categoryId] !== after[categoryId])
     .map((categoryId) => ({
       categoryId,

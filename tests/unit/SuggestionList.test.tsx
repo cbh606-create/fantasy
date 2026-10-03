@@ -67,6 +67,7 @@ const buildSuggestions = (count: number): TradeSuggestion[] =>
     reasons: ["Gains REB"],
     mutualScore: 1,
     youGains: [],
+    youImproved: [],
     themGains: [],
     youWorsened: [],
     themWorsened: [],
