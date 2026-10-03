@@ -1,8 +1,8 @@
 import type { CategoryId } from "@/lib/domain/types"
 
 type WeakCategoriesPanelProps = {
-  needs: CategoryId[]
-  surplus: CategoryId[]
+  weak: CategoryId[]
+  strong: CategoryId[]
 }
 
 const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
@@ -25,8 +25,8 @@ const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
 }
 
 export const WeakCategoriesPanel = ({
-  needs,
-  surplus,
+  weak,
+  strong,
 }: WeakCategoriesPanelProps) => (
   <section className="rounded-3xl bg-[var(--color-soft-cloud)] p-5">
     <h2 className="text-lg font-semibold">Weak categories</h2>
@@ -35,13 +35,13 @@ export const WeakCategoriesPanel = ({
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
           Improve
         </p>
-        <CategoryPills categories={needs} />
+        <CategoryPills categories={weak} />
       </div>
       <div>
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
           Can trade
         </p>
-        <CategoryPills categories={surplus} />
+        <CategoryPills categories={strong} />
       </div>
     </div>
   </section>

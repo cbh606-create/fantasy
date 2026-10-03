@@ -378,7 +378,7 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
           </Banner>
         ) : null}
 
-        <WeakCategoriesPanel needs={poolData.youNeeds} surplus={[]} />
+        <WeakCategoriesPanel weak={poolData.youNeeds} strong={[]} />
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[22rem_1fr]">
           <div className="space-y-8">

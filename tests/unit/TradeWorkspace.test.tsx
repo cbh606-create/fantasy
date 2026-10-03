@@ -76,18 +76,14 @@ const suggestions = [
     counterpartyTeamIndex: 1,
     givePlayerIds: ["give-1"],
     getPlayerIds: ["get-1"],
-    reasons: ["Targets your need: AST"],
+    reasons: ["Gains REB"],
     mutualScore: 2.4,
-    you: {
-      needsScoreBefore: 1,
-      needsScoreAfter: 3,
-      categoryDeltas: [{ categoryId: "AST" as const, rankBefore: 10, rankAfter: 7 }],
-    },
-    them: {
-      needsScoreBefore: 2,
-      needsScoreAfter: 2.4,
-      categoryDeltas: [{ categoryId: "REB" as const, rankBefore: 8, rankAfter: 6 }],
-    },
+    youGains: [{ categoryId: "AST" as const, before: 10, after: 7 }],
+    themGains: [{ categoryId: "REB" as const, before: 8, after: 6 }],
+    youWorsened: [],
+    themWorsened: [],
+    youStrengthsHeld: ["PTS" as const],
+    themStrengthsHeld: [],
   },
   {
     id: "1:1|1|give-1|get-2",
@@ -95,18 +91,14 @@ const suggestions = [
     counterpartyTeamIndex: 1,
     givePlayerIds: ["give-1"],
     getPlayerIds: ["get-2"],
-    reasons: ["Targets your need: STL"],
+    reasons: ["Gains PTS"],
     mutualScore: 1.8,
-    you: {
-      needsScoreBefore: 1,
-      needsScoreAfter: 2,
-      categoryDeltas: [{ categoryId: "STL" as const, rankBefore: 9, rankAfter: 6 }],
-    },
-    them: {
-      needsScoreBefore: 2,
-      needsScoreAfter: 2.2,
-      categoryDeltas: [{ categoryId: "PTS" as const, rankBefore: 7, rankAfter: 5 }],
-    },
+    youGains: [{ categoryId: "STL" as const, before: 9, after: 6 }],
+    themGains: [{ categoryId: "PTS" as const, before: 7, after: 5 }],
+    youWorsened: [],
+    themWorsened: [],
+    youStrengthsHeld: ["PTS" as const],
+    themStrengthsHeld: [],
   },
 ]
 
@@ -118,8 +110,8 @@ describe("TradeWorkspace", () => {
       if (url === "/api/trade/suggestions?seasonLeagueId=season-1") {
         return new Response(JSON.stringify({
           suggestions,
-          youNeeds: ["AST", "STL"],
-          youSurplus: ["PTS"],
+          youWeak: ["AST", "STL"],
+          youStrong: ["PTS"],
           analysisPerspectiveTeamIndex: 0,
           state,
         }), { status: 200 })

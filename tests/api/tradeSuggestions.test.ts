@@ -83,8 +83,8 @@ describe("GET /api/trade/suggestions", () => {
     expect(response.status).toBe(200)
     expect(payload).toMatchObject({
       suggestions: expect.any(Array),
-      youNeeds: expect.any(Array),
-      youSurplus: expect.any(Array),
+      youWeak: expect.any(Array),
+      youStrong: expect.any(Array),
       analysisPerspectiveTeamIndex: league.perspectiveTeamIndex,
       state: expect.objectContaining({
         name: expect.any(String),

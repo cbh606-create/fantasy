@@ -46,14 +46,24 @@ export const passesShapeRules = (
   return { ok: overpayRatio >= OVERPAY_RATIO, overpayRatio }
 }
 
-export const mutualScore = (
-  youDeltaNeeds: number,
-  themDeltaNeeds: number,
+/** Relative spread between the two sides of an equal-size package. */
+export const evenValueGap = (
+  tradePackage: TradePackage,
+  values: Map<string, number>,
 ): number => {
-  if (youDeltaNeeds <= 0 || themDeltaNeeds <= 0) {
-    return 0
+  const giveValue = totalValue(tradePackage.youPlayerIds, values)
+  const getValue = totalValue(tradePackage.themPlayerIds, values)
+
+  return Math.abs(giveValue - getValue)
+    / Math.max(giveValue, getValue, EPSILON)
+}
+
+export const RESIDUAL_SCORE_OFFSET = 1_000_000
+
+export const offerSortScore = (youSum: number, themSum: number) => {
+  if (youSum > 0 && themSum > 0) {
+    return (2 * youSum * themSum) / (youSum + themSum)
   }
 
-  return (2 * youDeltaNeeds * themDeltaNeeds)
-    / (youDeltaNeeds + themDeltaNeeds)
+  return youSum + themSum - RESIDUAL_SCORE_OFFSET
 }

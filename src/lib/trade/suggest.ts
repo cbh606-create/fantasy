@@ -1,14 +1,26 @@
 import type { CategoryId } from "@/lib/domain/types"
+import {
+  analyzeTeamTotals,
+  type SeasonAnalysis,
+  type TeamCategoryTotals,
+} from "@/lib/season/analysis"
 import type { SeasonLeagueState } from "@/lib/season/types"
-import { MAX_SUGGESTIONS } from "./constants"
+import { assessSide, type CategoryTotalMove } from "./accept"
+import { classifyTeam, leagueMeans, matchedWeaks } from "./classify"
 import { enumeratePackages } from "./enumerate"
-import { teamNeedsAndSurplus } from "./needs"
-import { mutualScore, passesShapeRules, replacementScaledValues } from "./score"
-import { createTradeAnalysisContext, evaluateTrade } from "./simulate"
+import {
+  evenValueGap,
+  offerSortScore,
+  passesShapeRules,
+  replacementScaledValues,
+} from "./score"
+import {
+  applyTradePackage,
+  createTradeAnalysisContext,
+  totalsAfterTrade,
+} from "./simulate"
 import type { TradePackage, TradeSuggestion } from "./types"
 import { buildPlayerValueMap } from "./value"
-
-type TeamProfile = { need: CategoryId[]; surplus: CategoryId[] }
 
 const packageId = (tradePackage: TradePackage) =>
   [
@@ -18,56 +30,62 @@ const packageId = (tradePackage: TradePackage) =>
     [...tradePackage.themPlayerIds].sort().join("+"),
   ].join("|")
 
-const buildReasons = (
-  tradePackage: TradePackage,
-  yourProfile: TeamProfile,
-  theirProfile: TeamProfile,
-  overpayRatio: number | undefined,
-): string[] => {
-  const youGain = yourProfile.need.filter((categoryId) =>
-    theirProfile.surplus.includes(categoryId))
-  const themGain = theirProfile.need.filter((categoryId) =>
-    yourProfile.surplus.includes(categoryId))
-  const shapeNote = overpayRatio === undefined
-    ? `balanced ${tradePackage.shape}`
-    : `${tradePackage.shape} overpay`
+const totalsFor = (totalsByTeam: TeamCategoryTotals[], teamIndex: number) =>
+  totalsByTeam.find((team) => team.teamIndex === teamIndex)!.totals
 
-  return [
-    ...(youGain.length > 0 ? [`Targets your need: ${youGain.join(", ")}`] : []),
-    ...(themGain.length > 0
-      ? [`Sends their need: ${themGain.join(", ")}`]
-      : []),
-    shapeNote,
-  ]
-}
+const categoryZ = (
+  analysis: SeasonAnalysis,
+  teamIndex: number,
+  categoryId: CategoryId,
+) =>
+  analysis.byTeam
+    .find((team) => team.teamIndex === teamIndex)
+    ?.levels.find((level) => level.categoryId === categoryId)?.z ?? 0
+
+const gainedZ = (
+  gains: CategoryTotalMove[],
+  before: SeasonAnalysis,
+  after: SeasonAnalysis,
+  teamIndex: number,
+) =>
+  gains.reduce(
+    (sum, { categoryId }) =>
+      sum
+      + categoryZ(after, teamIndex, categoryId)
+      - categoryZ(before, teamIndex, categoryId),
+    0,
+  )
 
 export const suggestTrades = (
   state: SeasonLeagueState,
 ): {
   suggestions: TradeSuggestion[]
-  youNeeds: CategoryId[]
-  youSurplus: CategoryId[]
+  youWeak: CategoryId[]
+  youStrong: CategoryId[]
 } => {
   const context = createTradeAnalysisContext(state)
-  const analysis = context.before
-  const yourProfile = teamNeedsAndSurplus(analysis, state.perspectiveTeamIndex)
+  const beforeMean = leagueMeans(context.totalsByTeam)
+  const yourSides = classifyTeam(
+    context.totalsByTeam,
+    state.perspectiveTeamIndex,
+  )
   const values = replacementScaledValues(buildPlayerValueMap(state))
-  const profileByTeamIndex = new Map<number, TeamProfile>()
-  const profileFor = (teamIndex: number) => {
-    const cached = profileByTeamIndex.get(teamIndex)
+  const theirSidesByTeamIndex = new Map<number, typeof yourSides>()
+  const theirSidesFor = (teamIndex: number) => {
+    const cached = theirSidesByTeamIndex.get(teamIndex)
 
     if (cached) {
       return cached
     }
 
-    const profile = teamNeedsAndSurplus(analysis, teamIndex)
-    profileByTeamIndex.set(teamIndex, profile)
+    const sides = classifyTeam(context.totalsByTeam, teamIndex)
+    theirSidesByTeamIndex.set(teamIndex, sides)
 
-    return profile
+    return sides
   }
 
   // Shape rules run before the simulation because they are pure arithmetic on
-  // player values, while every evaluateTrade call re-analyzes the league.
+  // player values, while every simulated package re-totals the two teams.
   const suggestions = enumeratePackages(state).flatMap(
     (tradePackage): TradeSuggestion[] => {
       const { ok, overpayRatio } = passesShapeRules(tradePackage, values)
@@ -76,49 +94,95 @@ export const suggestTrades = (
         return []
       }
 
-      const impact = evaluateTrade(state, tradePackage, context)
-
-      if (!impact) {
-        return []
-      }
-
-      const score = mutualScore(
-        impact.you.needsScoreAfter - impact.you.needsScoreBefore,
-        impact.them.needsScoreAfter - impact.them.needsScoreBefore,
+      const theirTeamIndex = tradePackage.counterpartyTeamIndex
+      const theirSides = theirSidesFor(theirTeamIndex)
+      const application = applyTradePackage(state, tradePackage, context.values)
+      const afterTotals = totalsAfterTrade(
+        application.state,
+        tradePackage,
+        context,
       )
+      const afterMean = leagueMeans(afterTotals)
+      const afterAnalysis = analyzeTeamTotals(afterTotals)
+      const youAssessment = assessSide({
+        before: totalsFor(context.totalsByTeam, state.perspectiveTeamIndex),
+        after: totalsFor(afterTotals, state.perspectiveTeamIndex),
+        beforeMean,
+        afterMean,
+        weak: yourSides.weak,
+        strong: yourSides.strong,
+        matchedWeak: matchedWeaks(yourSides, theirSides),
+      })
+      const themAssessment = assessSide({
+        before: totalsFor(context.totalsByTeam, theirTeamIndex),
+        after: totalsFor(afterTotals, theirTeamIndex),
+        beforeMean,
+        afterMean,
+        weak: theirSides.weak,
+        strong: theirSides.strong,
+        matchedWeak: matchedWeaks(theirSides, yourSides),
+      })
 
-      if (score <= 0) {
+      if (
+        !youAssessment.improved
+        || !youAssessment.strengthsIntact
+        || !themAssessment.improved
+        || !themAssessment.strengthsIntact
+      ) {
         return []
       }
 
       return [{
         id: packageId(tradePackage),
         shape: tradePackage.shape,
-        counterpartyTeamIndex: tradePackage.counterpartyTeamIndex,
+        counterpartyTeamIndex: theirTeamIndex,
         givePlayerIds: tradePackage.youPlayerIds,
         getPlayerIds: tradePackage.themPlayerIds,
-        reasons: buildReasons(
-          tradePackage,
-          yourProfile,
-          profileFor(tradePackage.counterpartyTeamIndex),
-          overpayRatio,
+        reasons: [
+          `Gains ${themAssessment.gains
+            .map(({ categoryId }) => categoryId)
+            .join(", ")}`,
+          overpayRatio === undefined
+            ? `balanced ${tradePackage.shape}`
+            : `${tradePackage.shape} overpay`,
+        ],
+        mutualScore: offerSortScore(
+          gainedZ(
+            youAssessment.gains,
+            context.before,
+            afterAnalysis,
+            state.perspectiveTeamIndex,
+          ),
+          gainedZ(
+            themAssessment.gains,
+            context.before,
+            afterAnalysis,
+            theirTeamIndex,
+          ),
         ),
-        mutualScore: score,
-        ...(overpayRatio === undefined ? {} : { overpayRatio }),
-        ...(impact.droppedPlayerId
-          ? { droppedPlayerId: impact.droppedPlayerId }
+        ...(overpayRatio === undefined
+          ? { valueGap: evenValueGap(tradePackage, values) }
+          : { overpayRatio }),
+        ...(application.droppedPlayerId
+          ? { droppedPlayerId: application.droppedPlayerId }
           : {}),
-        you: impact.you,
-        them: impact.them,
+        youGains: youAssessment.gains,
+        themGains: themAssessment.gains,
+        youWorsened: youAssessment.worsened,
+        themWorsened: themAssessment.worsened,
+        youStrengthsHeld: youAssessment.strengthsHeld,
+        themStrengthsHeld: themAssessment.strengthsHeld,
       }]
     },
   )
 
   return {
-    suggestions: suggestions
-      .sort((left, right) => right.mutualScore - left.mutualScore)
-      .slice(0, MAX_SUGGESTIONS),
-    youNeeds: yourProfile.need,
-    youSurplus: yourProfile.surplus,
+    suggestions: suggestions.sort(
+      (left, right) =>
+        right.mutualScore - left.mutualScore
+        || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
+    ),
+    youWeak: yourSides.weak,
+    youStrong: yourSides.strong,
   }
 }

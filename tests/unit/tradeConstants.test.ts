@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 import {
   FAIRNESS_BAND,
-  MAX_SUGGESTIONS,
   NEED_RANK_FLOOR,
   OVERPAY_RATIO,
   SURPLUS_RANK_CEILING,
+  TRADE_PAGE_SIZE,
 } from "@/lib/trade/constants"
 
 describe("trade constants", () => {
@@ -13,6 +13,6 @@ describe("trade constants", () => {
     expect(SURPLUS_RANK_CEILING).toBe(4)
     expect(FAIRNESS_BAND).toBe(0.25)
     expect(OVERPAY_RATIO).toBe(1.2)
-    expect(MAX_SUGGESTIONS).toBe(20)
+    expect(TRADE_PAGE_SIZE).toBe(20)
   })
 })

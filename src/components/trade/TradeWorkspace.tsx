@@ -20,8 +20,8 @@ type TradeWorkspaceProps = {
 
 type TradeSuggestionsResponse = {
   suggestions: TradeSuggestion[]
-  youNeeds: CategoryId[]
-  youSurplus: CategoryId[]
+  youWeak: CategoryId[]
+  youStrong: CategoryId[]
   state: SeasonLeagueState
 }
 
@@ -119,8 +119,8 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
           </h1>
         </header>
         <WeakCategoriesPanel
-          needs={tradeData.youNeeds}
-          surplus={tradeData.youSurplus}
+          weak={tradeData.youWeak}
+          strong={tradeData.youStrong}
         />
         <div className="mt-8 grid gap-8 lg:grid-cols-[22rem_1fr]">
           <section>

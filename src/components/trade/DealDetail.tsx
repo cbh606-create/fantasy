@@ -1,5 +1,6 @@
 import type { SeasonLeagueState } from "@/lib/season/types"
-import type { TradeSideImpact, TradeSuggestion } from "@/lib/trade/types"
+import type { CategoryTotalMove } from "@/lib/trade/accept"
+import type { TradeSuggestion } from "@/lib/trade/types"
 
 type DealDetailProps = {
   suggestion: TradeSuggestion
@@ -11,30 +12,23 @@ const playerNames = (playerIds: string[], state: SeasonLeagueState) =>
     state.players.find((player) => player.id === playerId)?.name ?? "Unknown player",
   ).join(" + ")
 
-const ImpactColumn = ({
-  impact,
-  title,
-}: {
-  impact: TradeSideImpact
-  title: string
-}) => (
-  <div>
-    <h3 className="text-sm font-semibold">{title}</h3>
-    <div className="mt-2 divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)] text-[0.8125rem]">
-      {impact.categoryDeltas.map((delta) => (
-        <div
-          className="flex items-center justify-between gap-4 py-2"
-          key={delta.categoryId}
-        >
-          <span className="font-medium">{delta.categoryId}</span>
-          <span className="tabular-nums text-[var(--color-mute)]">
-            {delta.rankBefore} → {delta.rankAfter}
-          </span>
-        </div>
-      ))}
+const GainRow = ({ gain }: { gain: CategoryTotalMove | undefined }) => {
+  if (!gain) {
+    return null
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold">Your gain</h3>
+      <div className="mt-2 flex items-center justify-between gap-4 border-y border-[var(--color-hairline)] py-2 text-[0.8125rem]">
+        <span className="font-medium">{gain.categoryId}</span>
+        <span className="tabular-nums text-[var(--color-mute)]">
+          {gain.before} → {gain.after}
+        </span>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 export const DealDetail = ({ suggestion, state }: DealDetailProps) => {
   const giveNames = playerNames(suggestion.givePlayerIds, state)
@@ -58,9 +52,8 @@ export const DealDetail = ({ suggestion, state }: DealDetailProps) => {
           roster spot
         </p>
       ) : null}
-      <div className="mt-6 grid gap-6 sm:grid-cols-2">
-        <ImpactColumn impact={suggestion.you} title="Your rank changes" />
-        <ImpactColumn impact={suggestion.them} title={`${counterparty} rank changes`} />
+      <div className="mt-6">
+        <GainRow gain={suggestion.youGains[0]} />
       </div>
       <ul className="mt-6 space-y-1 text-[0.8125rem] text-[var(--color-mute)]">
         {suggestion.reasons.map((reason) => (
