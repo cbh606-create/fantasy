@@ -76,10 +76,10 @@ const suggestions = [
     counterpartyTeamIndex: 1,
     givePlayerIds: ["give-1"],
     getPlayerIds: ["get-1"],
-    reasons: ["Gains REB"],
+    reasons: ["Gains 3PM"],
     mutualScore: 2.4,
     youGains: [{ categoryId: "AST" as const, before: 10, after: 7 }],
-    youImproved: [],
+    youImproved: [{ categoryId: "TPM" as const, before: 8, after: 5 }],
     themGains: [{ categoryId: "REB" as const, before: 8, after: 6 }],
     youWorsened: [],
     themWorsened: [],
@@ -104,19 +104,31 @@ const suggestions = [
   },
 ]
 
+const previewUrl = "/api/trade/suggestions?seasonLeagueId=season-1"
+const generateUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds="
+const excludedUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1"
+const generatedBody = {
+  suggestions,
+  youWeak: ["AST", "TPM"],
+  youStrong: ["PTS"],
+  analysisPerspectiveTeamIndex: 0,
+  state,
+}
+
 describe("TradeWorkspace", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn(async (input) => {
       const url = String(input)
 
-      if (url === "/api/trade/suggestions?seasonLeagueId=season-1") {
+      if (url === previewUrl) {
         return new Response(JSON.stringify({
-          suggestions,
-          youWeak: ["AST", "STL"],
-          youStrong: ["PTS"],
-          analysisPerspectiveTeamIndex: 0,
-          state,
+          ...generatedBody,
+          suggestions: [],
         }), { status: 200 })
+      }
+
+      if (url === generateUrl || url === excludedUrl) {
+        return new Response(JSON.stringify(generatedBody), { status: 200 })
       }
 
       return new Response("missing", { status: 404 })
@@ -128,26 +140,60 @@ describe("TradeWorkspace", () => {
     vi.unstubAllGlobals()
   })
 
-  it("shows weak categories and updates deal detail when a suggestion is selected", async () => {
+  it("generates after a category is selected and keeps the list until the next click", async () => {
     render(<TradeWorkspace leagueId="season-1" />)
 
-    const weakCategoriesHeading = await screen.findByRole("heading", {
-      name: "Weak categories",
-    })
-    expect(weakCategoriesHeading).toBeInTheDocument()
-    const weakSection = weakCategoriesHeading.closest("section")!
-    expect(within(weakSection).getByText("AST")).toBeInTheDocument()
-    expect(within(weakSection).getByText("Below average")).toBeInTheDocument()
-    expect(within(weakSection).getByText("Above average")).toBeInTheDocument()
+    expect(await screen.findByText(
+      "Select a category, then generate trade suggestions.",
+    )).toBeInTheDocument()
+    const weakSection = screen.getByRole("heading", { name: "Weak categories" }).closest("section")!
+    expect(within(weakSection).getByText("3PM")).toBeInTheDocument()
+    expect(within(weakSection).queryByText("TPM")).toBeNull()
 
-    const secondSuggestion = screen.getByRole("button", {
-      name: /trade your guard for their wing/i,
-    })
-    fireEvent.click(secondSuggestion)
+    const generate = screen.getByRole("button", { name: "Generate trade suggestions" })
+    expect(generate).toBeDisabled()
 
-    expect(screen.getByRole("heading", { name: "Their Wing" })).toBeInTheDocument()
-    expect(screen.getByText("Packages are even")).toBeInTheDocument()
-    expect(screen.queryByText("9 → 6")).toBeNull()
-    expect(secondSuggestion).toHaveAttribute("aria-pressed", "true")
+    fireEvent.click(screen.getByRole("button", { name: "3PM" }))
+    expect(generate).toBeEnabled()
+    fireEvent.click(generate)
+
+    expect(await screen.findByRole("button", {
+      name: /trade your guard for their center/i,
+    })).toBeInTheDocument()
+    expect(screen.getByText("Gains 3PM")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Their Center" })).toBeInTheDocument()
+    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(generateUrl)
+
+    const callsBefore = vi.mocked(fetch).mock.calls.length
+    fireEvent.click(screen.getByRole("button", { name: "AST" }))
+    expect(vi.mocked(fetch).mock.calls.length).toBe(callsBefore)
+  })
+
+  it("sends Do Not Include ids on the next generate", async () => {
+    render(<TradeWorkspace leagueId="season-1" />)
+    await screen.findByText("Select a category, then generate trade suggestions.")
+
+    fireEvent.click(screen.getByRole("button", { name: "3PM" }))
+    fireEvent.click(screen.getByRole("button", { name: "Do Not Include" }))
+    fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
+
+    await screen.findByRole("heading", { name: "Their Center" })
+    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(
+      "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1",
+    )
+  })
+
+  it("keeps the current list when generate fails", async () => {
+    render(<TradeWorkspace leagueId="season-1" />)
+    await screen.findByText("Select a category, then generate trade suggestions.")
+    fireEvent.click(screen.getByRole("button", { name: "3PM" }))
+    fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
+    expect(await screen.findByRole("heading", { name: "Their Center" })).toBeInTheDocument()
+
+    vi.mocked(fetch).mockResolvedValueOnce(new Response("nope", { status: 500 }))
+    fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
+
+    expect(await screen.findByText("Unable to load trade suggestions")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Their Center" })).toBeInTheDocument()
   })
 })
