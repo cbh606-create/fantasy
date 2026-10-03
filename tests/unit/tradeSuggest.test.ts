@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
@@ -277,10 +276,7 @@ describe("suggestTrades", () => {
   })
 
   it("never offers IL players", () => {
-    const packages = enumeratePackages(
-      mirrorState,
-      analyzeSeasonLeague(mirrorState),
-    )
+    const packages = enumeratePackages(mirrorState)
     const { suggestions } = suggestTrades(mirrorState)
 
     expect(packages.length).toBeGreaterThan(0)
