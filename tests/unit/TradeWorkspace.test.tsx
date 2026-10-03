@@ -79,7 +79,7 @@ const suggestions = [
     reasons: ["Gains 3PM"],
     mutualScore: 2.4,
     youGains: [{ categoryId: "AST" as const, before: 10, after: 7 }],
-    youImproved: [{ categoryId: "TPM" as const, before: 8, after: 5 }],
+    youImproved: [{ categoryId: "TPM" as const, before: 5, after: 8 }],
     themGains: [{ categoryId: "REB" as const, before: 8, after: 6 }],
     youWorsened: [],
     themWorsened: [],
@@ -162,7 +162,13 @@ describe("TradeWorkspace", () => {
     })).toBeInTheDocument()
     expect(screen.getByText("Gains 3PM")).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Their Center" })).toBeInTheDocument()
+    expect(screen.getByText("5.0 → 8.0")).toBeInTheDocument()
     expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(generateUrl)
+
+    fireEvent.click(screen.getByRole("button", {
+      name: /trade your guard for their wing/i,
+    }))
+    expect(screen.getByRole("heading", { name: "Their Wing" })).toBeInTheDocument()
 
     const callsBefore = vi.mocked(fetch).mock.calls.length
     fireEvent.click(screen.getByRole("button", { name: "AST" }))

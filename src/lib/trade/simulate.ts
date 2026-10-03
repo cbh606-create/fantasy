@@ -40,24 +40,35 @@ const findOpenIndex = (
 
 /**
  * Every rostered slot counts toward category totals, so any player the trade
- * does not touch is a legal cut. The lowest projected value is the one a
+ * does not touch is a legal cut, except IL players, who are in neither the
+ * Include nor Do Not Include list. The lowest projected value is the one a
  * manager would realistically drop to open the extra spot.
+ *
+ * blockedByProtection is true only when at least one non-IL candidate existed
+ * and every one of them was protected.
  */
 const findLowestValueIndex = (
   entries: SeasonRosterEntry[],
   excludedIndexes: number[],
   values: Map<string, number>,
   protectedPlayerIds: ReadonlySet<string>,
-): number => {
+): { index: number, blockedByProtection: boolean } => {
   let lowestIndex = -1
   let lowestValue = Number.POSITIVE_INFINITY
+  let sawCandidate = false
 
   entries.forEach((entry, index) => {
     if (
       excludedIndexes.includes(index)
       || !entry.playerId
-      || protectedPlayerIds.has(entry.playerId)
+      || entry.slot === "IL"
     ) {
+      return
+    }
+
+    sawCandidate = true
+
+    if (protectedPlayerIds.has(entry.playerId)) {
       return
     }
 
@@ -69,7 +80,10 @@ const findLowestValueIndex = (
     }
   })
 
-  return lowestIndex
+  return {
+    index: lowestIndex,
+    blockedByProtection: sawCandidate && lowestIndex < 0,
+  }
 }
 
 const assignAsymmetricPlayers = (
@@ -92,17 +106,18 @@ const assignAsymmetricPlayers = (
     return { unplaceable: false }
   }
 
-  const dropIndex = findLowestValueIndex(
+  const { index: dropIndex, blockedByProtection } = findLowestValueIndex(
     receivingEntries,
     receivingIndexes,
     values,
     new Set(protectedPlayerIds),
   )
 
-  // Nothing left to cut only happens on a roster whose sole entries are the
-  // traded slots, so the extra incoming player is the one that cannot fit.
+  // A miss means no legal cut: either the roster is only the traded slots and
+  // IL players (the extra incoming player cannot fit), or every other
+  // non-IL player is protected (the package is rejected).
   if (dropIndex < 0) {
-    if (protectedPlayerIds.length > 0) {
+    if (blockedByProtection) {
       return { unplaceable: true }
     }
 

@@ -215,6 +215,43 @@ describe("applyTradePackage excluded drops", () => {
     expect(droppedPlayerId).toBe("you-2")
   })
 
+  it("keeps the excluded player and puts the extra incoming player in the dropped slot", () => {
+    const league = twoTeamState([18, 1, 12])
+    const result = applyTradePackage(league, incoming, undefined, ["you-1"])
+
+    expect(playerIdsOf(result.state, 0)).toContain("you-1")
+    expect(playerIdsOf(result.state, 0)).not.toContain("you-2")
+    expect(playerIdsOf(result.state, 0)).toEqual(
+      expect.arrayContaining(["them-0", "them-1"]),
+    )
+  })
+
+  it("never drops an IL player to make room", () => {
+    const base = twoTeamState([18])
+    const league: SeasonLeagueState = {
+      ...base,
+      players: [...base.players, rosterPlayer("you-il", 1)],
+      teams: base.teams.map((team) =>
+        team.teamIndex === 0
+          ? {
+            ...team,
+            entries: [...team.entries, { slot: "IL" as const, playerId: "you-il" }],
+          }
+          : team),
+    }
+    const { droppedPlayerId, rejected, state: after } = applyTradePackage(
+      league,
+      incoming,
+      undefined,
+      [],
+    )
+
+    expect(droppedPlayerId).not.toBe("you-il")
+    expect(rejected).toBeUndefined()
+    expect(droppedPlayerId).toBe("them-1")
+    expect(playerIdsOf(after, 0)).toContain("you-il")
+  })
+
   it("rejects the package when every remaining player is excluded", () => {
     const league = twoTeamState([18, 1])
     const result = applyTradePackage(
