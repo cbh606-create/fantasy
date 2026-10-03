@@ -79,7 +79,7 @@ Before and after are ranked separately, each from the full league totals at that
 
 ### Category table
 
-Superseded by [Simulation roster layout](./2026-10-04-simulation-roster-layout-design.md). The simulation screen does not show this table. Rank changes stay on the nonagon vertices.
+The on-screen rows and the ranks behind them are specified in [Simulation roster layout](./2026-10-04-simulation-roster-layout-design.md). Each row shows the sum of the roster's projected per-game lines, not the season total. Suggestion rules in this spec still use season totals.
 
 ### Package notes
 
@@ -115,7 +115,7 @@ The user's case happens when every remaining non-IL player is already being sent
 
 Roster application stays in `applyTradePackage`. Suggestions keep today's automatic drop by passing no explicit drop, including today's search for an open slot. Simulation passes `yourDropPlayerId` only when the user's side needs a spot. That id is used only when it is one of the user's current non-IL players and it is not being sent. For a simulation package, an open non-IL slot is used before any drop, on either side, and an empty IL slot is not used. The other team's drop stays the lowest-value legal non-IL player.
 
-Ranks come from season team totals before the trade and after the applied roster, using the same category ordering as `analyzeTeamTotals`. Overall place is computed from those ranks for the simulation. This spec does not change the rank matrix.
+Simulation ranks come from the per-game team lines in [Simulation roster layout](./2026-10-04-simulation-roster-layout-design.md), before the trade and after the applied roster, using the same category ordering as `analyzeTeamTotals`. Overall place is computed from those ranks. This spec does not change the rank matrix or suggestion totals.
 
 ## Tests
 
