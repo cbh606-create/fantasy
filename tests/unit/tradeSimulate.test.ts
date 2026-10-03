@@ -4,8 +4,12 @@ import {
   manualToSeasonLeagueState,
   type ManualSeasonLeagueInput,
 } from "@/lib/adapters/manualSeason"
-import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
-import type { SeasonLeagueState } from "@/lib/season/types"
+import {
+  ALL_CATEGORY_IDS,
+  defaultCategorySettings,
+} from "@/lib/domain/categories"
+import type { CategoryId } from "@/lib/domain/types"
+import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { evaluateTrade, applyTradePackage } from "@/lib/trade/simulate"
 import type { TradePackage } from "@/lib/trade/types"
 import { buildPlayerValueMap } from "@/lib/trade/value"
@@ -136,5 +140,91 @@ describe("trade simulation", () => {
         themPlayerIds: ["t1p9"],
       }),
     ).toBeNull()
+  })
+})
+
+const projectionBase: Record<CategoryId, number> = {
+  FG_PCT: 0.5,
+  FT_PCT: 0.75,
+  TPM: 2,
+  REB: 8,
+  AST: 8,
+  STL: 2,
+  BLK: 1,
+  TO: 4,
+  PTS: 18,
+}
+
+const rosterPlayer = (
+  id: string,
+  points: number,
+): SeasonPlayer => ({
+  id,
+  name: id,
+  projections: { ...projectionBase, PTS: points },
+  shooting: { FGM: 5, FGA: 10, FTM: 8, FTA: 10 },
+})
+
+const twoTeamState = (yourPoints: number[]): SeasonLeagueState => {
+  const yourPlayers = yourPoints.map((points, index) =>
+    rosterPlayer(`you-${index}`, points))
+  const theirPlayers = [
+    rosterPlayer("them-0", 20),
+    rosterPlayer("them-1", 20),
+  ]
+  const rosters = [yourPlayers, theirPlayers]
+
+  return {
+    name: "Drop exclusion",
+    season: 2026,
+    categories: defaultCategorySettings(),
+    perspectiveTeamIndex: 0,
+    teams: rosters.map((teamPlayers, teamIndex) => ({
+      teamIndex,
+      name: `Team ${teamIndex}`,
+      entries: teamPlayers.map((player) => ({
+        slot: "UTIL" as const,
+        playerId: player.id,
+      })),
+    })),
+    players: rosters.flat(),
+    availablePlayerIds: [],
+    waiverOrder: [0, 1],
+    source: "manual",
+  }
+}
+
+describe("applyTradePackage excluded drops", () => {
+  const incoming: TradePackage = {
+    shape: "1:2",
+    counterpartyTeamIndex: 1,
+    youPlayerIds: ["you-0"],
+    themPlayerIds: ["them-0", "them-1"],
+  }
+
+  it("drops the next included player when the lowest is excluded", () => {
+    const league = twoTeamState([18, 1, 12])
+    const { droppedPlayerId, rejected } = applyTradePackage(
+      league,
+      incoming,
+      undefined,
+      ["you-1"],
+    )
+
+    expect(rejected).toBeUndefined()
+    expect(droppedPlayerId).toBe("you-2")
+  })
+
+  it("rejects the package when every remaining player is excluded", () => {
+    const league = twoTeamState([18, 1])
+    const { rejected, droppedPlayerId } = applyTradePackage(
+      league,
+      incoming,
+      undefined,
+      ["you-1"],
+    )
+
+    expect(rejected).toBe(true)
+    expect(droppedPlayerId).toBeUndefined()
   })
 })
