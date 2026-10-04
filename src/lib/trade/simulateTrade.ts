@@ -15,6 +15,7 @@ import {
   passesShapeRules,
   replacementScaledValues,
 } from "./score"
+import { perGameTeamLines } from "./perGameLine"
 import {
   applyTradePackage,
   createTradeAnalysisContext,
@@ -211,21 +212,23 @@ export const simulateTrade = (
   const context = createTradeAnalysisContext(state)
   const beforeTotals = context.totalsByTeam
   const afterTotals = totalsAfterTrade(application.state, tradePackage, context)
-  const before = analyzeTeamTotals(beforeTotals)
-  const after = analyzeTeamTotals(afterTotals)
-  const beforePlaces = overallPlaces(beforeTotals.map((team) => ({
+  const beforeLines = perGameTeamLines(state)
+  const afterLines = perGameTeamLines(application.state)
+  const before = analyzeTeamTotals(beforeLines)
+  const after = analyzeTeamTotals(afterLines)
+  const beforePlaces = overallPlaces(beforeLines.map((team) => ({
     teamIndex: team.teamIndex,
     ranks: ranksFor(before, team.teamIndex),
   })))
-  const afterPlaces = overallPlaces(afterTotals.map((team) => ({
+  const afterPlaces = overallPlaces(afterLines.map((team) => ({
     teamIndex: team.teamIndex,
     ranks: ranksFor(after, team.teamIndex),
   })))
   const side = (teamIndex: number): SideRankReport => {
     const beforePlace = beforePlaces.find((place) => place.teamIndex === teamIndex)!
     const afterPlace = afterPlaces.find((place) => place.teamIndex === teamIndex)!
-    const beforeTeam = beforeTotals.find((team) => team.teamIndex === teamIndex)!.totals
-    const afterTeam = afterTotals.find((team) => team.teamIndex === teamIndex)!.totals
+    const beforeTeam = beforeLines.find((team) => team.teamIndex === teamIndex)!.totals
+    const afterTeam = afterLines.find((team) => team.teamIndex === teamIndex)!.totals
 
     return {
       overallBefore: beforePlace.rank,

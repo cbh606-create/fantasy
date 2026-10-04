@@ -23,12 +23,14 @@ const baseProjections: Record<CategoryId, number> = {
 const createPlayer = (
   id: string,
   overrides: Partial<Record<CategoryId, number>> = {},
+  projectedGames?: number,
 ): SeasonPlayer => {
   const projections = { ...baseProjections, ...overrides }
 
   return {
     id,
     name: id,
+    ...(typeof projectedGames === "number" ? { projectedGames } : {}),
     projections,
     shooting: {
       FGM: projections.FG_PCT * 10,
@@ -67,6 +69,25 @@ const leagueOf = (
 }
 
 describe("simulateTrade", () => {
+  it("ranks and reports the per-game sum instead of the season total", () => {
+    const state = leagueOf(
+      [createPlayer("you-scorer", { PTS: 820 }, 41)],
+      [createPlayer("them-scorer", { PTS: 820 }, 82)],
+    )
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-scorer"],
+      themPlayerIds: ["them-scorer"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    const points = result.you.categories.find((category) => category.categoryId === "PTS")
+
+    expect(points!.beforeTotal).toBeCloseTo(20)
+    expect(points!.rankBefore).toBe(1)
+  })
+
   it("improves the category rank when the received total is higher", () => {
     const state = leagueOf(
       [
