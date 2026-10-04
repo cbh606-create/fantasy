@@ -55,6 +55,25 @@ describe("fetchEspnSeasonLeague free agents", () => {
     })
   })
 
+  it("sends espn_s2 with + / = unencoded like a browser cookie", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(rosterSample))
+      .mockResolvedValueOnce(jsonResponse(rosterSample))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await fetchEspnSeasonLeague({
+      ...params,
+      cookies: { espnS2: "AE/a+b=", swid: "{TEST-SWID}" },
+    })
+
+    const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
+    const headers = init.headers as Record<string, string>
+    expect(headers.Cookie).toBe("espn_s2=AE/a+b=; SWID={TEST-SWID}")
+    expect(headers.Cookie).not.toContain("%2F")
+    expect(headers.Cookie).not.toContain("%2B")
+  })
+
   it("derives available players from ownership when FA fetch fails", async () => {
     const rosterState = mapEspnLeagueToSeasonState(rosterSample, params)
     rosterState.players.push({

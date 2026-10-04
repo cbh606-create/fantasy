@@ -42,6 +42,61 @@ describe("mapEspnFreeAgentPlayers", () => {
       availability: "waiver",
     })
   })
+
+  it("stores the actual per-game line on seasonRates", () => {
+    const players = mapEspnFreeAgentPlayers(
+      {
+        players: [{
+          status: "FREEAGENT",
+          player: {
+            id: 501,
+            fullName: "Actual Wing",
+            proTeamId: 1,
+            defaultPositionId: 2,
+            stats: [{
+              seasonId: 2027,
+              statSourceId: 0,
+              statSplitTypeId: 0,
+              stats: { "42": 24 },
+              averageStats: {
+                "0": 12,
+                "1": 0.4,
+                "2": 1,
+                "3": 3,
+                "6": 4,
+                "11": 1.5,
+                "13": 5,
+                "14": 10,
+                "15": 2,
+                "16": 2,
+                "17": 2,
+                "19": 0.5,
+                "20": 1,
+              },
+            }],
+          },
+        }],
+      },
+      2027,
+    )
+
+    expect(players[0].seasonRates).toEqual({
+      gamesPlayed: 24,
+      projections: {
+        FG_PCT: 0.5,
+        FT_PCT: 1,
+        TPM: 2,
+        REB: 4,
+        AST: 3,
+        STL: 1,
+        BLK: 0.4,
+        TO: 1.5,
+        PTS: 12,
+      },
+      shooting: { FGM: 5, FGA: 10, FTM: 2, FTA: 2 },
+    })
+    expect(players[0].projections.PTS).toBeCloseTo(12 * 82)
+  })
 })
 
 describe("mapEspnLeagueToSeasonState", () => {
@@ -81,6 +136,20 @@ describe("mapEspnLeagueToSeasonState", () => {
         TPM: 2.4 * 82,
       }),
     })
+  })
+
+  it("attaches per-game last-7 rates and skips empty splits", () => {
+    const state = mapEspnLeagueToSeasonState(
+      sample as EspnLeaguePayload,
+      { leagueId: "120853513", season: 2026, teamId: 9 },
+    )
+    const star = state.players.find((player) => player.id === "201")
+    const rim = state.players.find((player) => player.id === "202")
+    expect(star?.recentRates?.l7?.projections.PTS).toBe(30)
+    expect(star?.recentRates?.l15?.projections.PTS).toBe(28)
+    expect(star?.recentRates?.l30?.projections.PTS).toBe(26)
+    expect(star?.projections.PTS).toBeCloseTo(24.1 * 82)
+    expect(rim?.recentRates?.l7).toBeUndefined()
   })
 
   it("packs team entries using custom ESPN roster slot counts", () => {

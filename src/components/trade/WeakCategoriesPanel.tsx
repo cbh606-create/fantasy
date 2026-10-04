@@ -1,8 +1,11 @@
 import type { CategoryId } from "@/lib/domain/types"
+import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 
 type WeakCategoriesPanelProps = {
-  needs: CategoryId[]
-  surplus: CategoryId[]
+  weak: CategoryId[]
+  strong: CategoryId[]
+  weakLabel?: string
+  strongLabel?: string
 }
 
 const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
@@ -17,7 +20,7 @@ const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
           className="rounded-full border border-[var(--color-hairline)] bg-white px-2.5 py-1 font-medium"
           key={categoryId}
         >
-          {categoryId}
+          {CATEGORY_SHORT_LABELS[categoryId]}
         </span>
       ))}
     </span>
@@ -25,23 +28,25 @@ const CategoryPills = ({ categories }: { categories: CategoryId[] }) => {
 }
 
 export const WeakCategoriesPanel = ({
-  needs,
-  surplus,
+  weak,
+  strong,
+  weakLabel = "Below average",
+  strongLabel = "Above average",
 }: WeakCategoriesPanelProps) => (
   <section className="rounded-3xl bg-[var(--color-soft-cloud)] p-5">
     <h2 className="text-lg font-semibold">Weak categories</h2>
     <div className="mt-4 grid gap-4 text-[0.8125rem] sm:grid-cols-2">
       <div>
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
-          Improve
+          {weakLabel}
         </p>
-        <CategoryPills categories={needs} />
+        <CategoryPills categories={weak} />
       </div>
       <div>
         <p className="mb-2 text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
-          Can trade
+          {strongLabel}
         </p>
-        <CategoryPills categories={surplus} />
+        <CategoryPills categories={strong} />
       </div>
     </div>
   </section>

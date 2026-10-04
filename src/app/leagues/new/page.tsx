@@ -1,6 +1,19 @@
 import { LeagueSetupForm } from "@/components/league/LeagueSetupForm"
+import { StartMockDraft } from "@/components/league/StartMockDraft"
 
-export default function NewLeaguePage() {
+type NewLeaguePageProps = {
+  searchParams: Promise<{ setup?: string }>
+}
+
+export default async function NewLeaguePage({
+  searchParams,
+}: NewLeaguePageProps) {
+  const { setup } = await searchParams
+
+  if (setup !== "1") {
+    return <StartMockDraft />
+  }
+
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-12 sm:px-12 sm:py-16 lg:px-20">
       <div className="mx-auto max-w-6xl">

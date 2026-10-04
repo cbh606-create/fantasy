@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
@@ -9,8 +9,11 @@ import type {
 } from "@/lib/season/types"
 import { OVERPAY_RATIO } from "@/lib/trade/constants"
 import { enumeratePackages } from "@/lib/trade/enumerate"
-import { passesShapeRules, replacementScaledValues } from "@/lib/trade/score"
-import { evaluateTrade } from "@/lib/trade/simulate"
+import {
+  offerSortScore,
+  passesShapeRules,
+  replacementScaledValues,
+} from "@/lib/trade/score"
 import { suggestTrades } from "@/lib/trade/suggest"
 import type { TradePackage, TradeSuggestion } from "@/lib/trade/types"
 import { buildPlayerValueMap } from "@/lib/trade/value"
@@ -57,12 +60,13 @@ const buildLeague = (
   yourPlayers: SeasonPlayer[],
   theirPlayers: SeasonPlayer[],
   ilPlayerIds: string[] = [],
+  fillerSize = 4,
 ): SeasonLeagueState => {
   const rosters = [
     yourPlayers,
     theirPlayers,
     ...Array.from({ length: 10 }, (_, index) =>
-      baselinePlayers(`filler${index}-base`, 4)),
+      baselinePlayers(`filler${index}-base`, fillerSize)),
   ]
   const teams: SeasonTeamRoster[] = rosters.map((teamPlayers, teamIndex) => ({
     teamIndex,
@@ -91,16 +95,50 @@ const buildLeague = (
 
 // YOU are elite in REB and last in AST; TARGET is the exact mirror, and the two
 // swap pieces are mirrored too so their values match to the decimal.
+const youStarStats = { REB: 16, AST: 2 }
+const themStarStats = { REB: 2, AST: 16 }
 const mirrorState = buildLeague(
   [
-    createPlayer("you-star", { REB: 16, AST: 2 }),
-    ...baselinePlayers("you-base", 3),
+    createPlayer("you-star", youStarStats),
+    createPlayer("you-b", youStarStats),
+    createPlayer("you-c", youStarStats),
+    createPlayer("you-d", youStarStats),
+    createPlayer("you-e", youStarStats),
+    createPlayer("you-il"),
   ],
   [
-    createPlayer("them-star", { REB: 2, AST: 16 }),
-    ...baselinePlayers("them-base", 3),
+    createPlayer("them-star", themStarStats),
+    createPlayer("them-b", themStarStats),
+    createPlayer("them-c", themStarStats),
+    createPlayer("them-d", themStarStats),
+    createPlayer("them-e", themStarStats),
+    createPlayer("them-il"),
   ],
-  ["you-base-3"],
+  ["you-il", "them-il"],
+  6,
+)
+
+// Same mirror, but both teams are also weak in STL and YOU's star steals a hair
+// more than the rest, so the AST/REB swap still costs YOU a weak STL total.
+const stealStarStats = { REB: 16, AST: 2, STL: 1.02 }
+const stealRoleStats = { REB: 16, AST: 2, STL: 1 }
+const worsenedState = buildLeague(
+  [
+    createPlayer("you-star", stealStarStats),
+    createPlayer("you-b", stealRoleStats),
+    createPlayer("you-c", stealRoleStats),
+    createPlayer("you-d", stealRoleStats),
+    createPlayer("you-e", stealRoleStats),
+  ],
+  [
+    createPlayer("them-star", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-b", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-c", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-d", { REB: 2, AST: 16, STL: 1 }),
+    createPlayer("them-e", { REB: 2, AST: 16, STL: 1 }),
+  ],
+  [],
+  6,
 )
 
 // YOU own two replacement-level rebounders, TARGET owns one dominant passer.
@@ -180,23 +218,64 @@ describe("replacementScaledValues", () => {
 })
 
 describe("suggestTrades", () => {
-  it("returns a 1:1 win-win when needs complement", () => {
-    const { suggestions, youNeeds, youSurplus } = suggestTrades(mirrorState)
+  it("returns the mirrored 1:1 and does not slice at 20", () => {
+    const { suggestions, youWeak, youStrong } = suggestTrades(mirrorState)
     const suggestion = findSuggestion(suggestions, ["you-star"], ["them-star"])
 
-    expect(youNeeds).toContain("AST")
-    expect(youSurplus).toContain("REB")
+    expect(youWeak).toContain("AST")
+    expect(youStrong).toContain("REB")
     expect(suggestion).toBeDefined()
     expect(suggestion!.shape).toBe("1:1")
     expect(suggestion!.counterpartyTeamIndex).toBe(1)
+    expect(suggestion!.youGains.map((gain) => gain.categoryId)).toContain("AST")
+    expect(suggestion!.themGains.map((gain) => gain.categoryId)).toContain("REB")
+    expect(suggestion!.youWorsened).toEqual([])
+    expect(suggestion!.valueGap).toBeLessThanOrEqual(0.1)
     expect(suggestion!.overpayRatio).toBeUndefined()
-    expect(suggestion!.you.needsScoreAfter).toBeGreaterThan(
-      suggestion!.you.needsScoreBefore,
-    )
-    expect(suggestion!.them.needsScoreAfter).toBeGreaterThan(
-      suggestion!.them.needsScoreBefore,
-    )
+    expect(suggestion!.reasons[0]).toContain("REB")
     expect(suggestion!.reasons.join(" ")).toContain("balanced 1:1")
+    expect(suggestion).not.toHaveProperty("you")
+    expect(suggestion).not.toHaveProperty("them")
+    expect(suggestions.length).toBeGreaterThan(20)
+  })
+
+  it("orders suggestions by mutualScore descending, then id ascending", () => {
+    const { suggestions } = suggestTrades(mirrorState)
+    const ids = suggestions.map(({ id }) => id)
+    const tiedPairs = suggestions.slice(1).filter(
+      ({ mutualScore }, index) => mutualScore === suggestions[index].mutualScore,
+    )
+
+    expect(suggestions.length).toBeGreaterThan(1)
+    expect(tiedPairs.length).toBeGreaterThan(0)
+    suggestions.slice(1).forEach((suggestion, index) => {
+      const previous = suggestions[index]
+
+      expect(previous.mutualScore).toBeGreaterThanOrEqual(suggestion.mutualScore)
+
+      if (previous.mutualScore !== suggestion.mutualScore) {
+        return
+      }
+
+      expect(previous.id < suggestion.id).toBe(true)
+    })
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it("keeps a package that worsens a weak category and reports it", () => {
+    const { suggestions, youWeak } = suggestTrades(worsenedState)
+    const suggestion = findSuggestion(suggestions, ["you-star"], ["them-star"])
+
+    expect(youWeak).toContain("STL")
+    expect(suggestion).toBeDefined()
+    expect(suggestion!.youGains.map(({ categoryId }) => categoryId)).toContain("AST")
+    expect(suggestion!.youWorsened.map(({ categoryId }) => categoryId)).toContain("STL")
+  })
+
+  it("ranks a positive harmonic mean ahead of a residual sum", () => {
+    expect(offerSortScore(2, 2)).toBe(2)
+    expect(offerSortScore(4, -1)).toBeLessThan(0)
+    expect(offerSortScore(2, 2)).toBeGreaterThan(offerSortScore(4, -1))
   })
 
   it("rejects a 2:1 without overpay", () => {
@@ -206,17 +285,9 @@ describe("suggestTrades", () => {
       youPlayerIds: ["you-rebounder-1", "you-rebounder-2"],
       themPlayerIds: ["them-ace"],
     }
-    const impact = evaluateTrade(starState, tradePackage)
     const shapeCheck = shapeCheckFor(starState, tradePackage)
     const { suggestions } = suggestTrades(starState)
 
-    // The deal is a genuine win-win, so only the overpay rule can reject it.
-    expect(impact!.you.needsScoreAfter).toBeGreaterThan(
-      impact!.you.needsScoreBefore,
-    )
-    expect(impact!.them.needsScoreAfter).toBeGreaterThan(
-      impact!.them.needsScoreBefore,
-    )
     expect(shapeCheck.ok).toBe(false)
     expect(shapeCheck.overpayRatio).toBeLessThan(OVERPAY_RATIO)
     expect(
@@ -228,22 +299,22 @@ describe("suggestTrades", () => {
     ).toBeUndefined()
   })
 
-  it("accepts a 2:1 with overpay and mutual needs improvement", () => {
+  it("accepts a 2:1 with overpay and mutual category gains", () => {
     const { suggestions } = suggestTrades(mirrorState)
     const suggestion = findSuggestion(
       suggestions,
-      ["you-star", "you-base-1"],
+      ["you-star", "you-b"],
       ["them-star"],
     )
 
     expect(suggestion).toBeDefined()
     expect(suggestion!.shape).toBe("2:1")
     expect(suggestion!.overpayRatio).toBeGreaterThanOrEqual(OVERPAY_RATIO)
-    expect(suggestion!.you.needsScoreAfter).toBeGreaterThan(
-      suggestion!.you.needsScoreBefore,
-    )
-    expect(suggestion!.them.needsScoreAfter).toBeGreaterThan(
-      suggestion!.them.needsScoreBefore,
+    expect(suggestion!.valueGap).toBeUndefined()
+    expect(suggestion!.youGains.length).toBeGreaterThan(0)
+    expect(suggestion!.themGains.length).toBeGreaterThan(0)
+    expect(suggestion!.reasons[0]).toContain(
+      CATEGORY_SHORT_LABELS[suggestion!.themGains[0].categoryId],
     )
     expect(suggestion!.reasons.join(" ")).toContain("2:1 overpay")
   })
@@ -255,16 +326,9 @@ describe("suggestTrades", () => {
       youPlayerIds: ["you-rebounder-1", "you-rebounder-2"],
       themPlayerIds: ["them-ace", "them-base-1"],
     }
-    const impact = evaluateTrade(starState, tradePackage)
     const shapeCheck = shapeCheckFor(starState, tradePackage)
     const { suggestions } = suggestTrades(starState)
 
-    expect(impact!.you.needsScoreAfter).toBeGreaterThan(
-      impact!.you.needsScoreBefore,
-    )
-    expect(impact!.them.needsScoreAfter).toBeGreaterThan(
-      impact!.them.needsScoreBefore,
-    )
     expect(shapeCheck.ok).toBe(false)
     expect(shapeCheck.overpayRatio).toBeUndefined()
     expect(
@@ -276,20 +340,68 @@ describe("suggestTrades", () => {
     ).toBeUndefined()
   })
 
-  it("never offers IL players", () => {
-    const packages = enumeratePackages(
-      mirrorState,
-      analyzeSeasonLeague(mirrorState),
+  it("returns a package when the requested category rises outside the matched weaks", () => {
+    const league = buildLeague(
+      [
+        createPlayer("you-star", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-b", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-c", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-d", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+        createPlayer("you-e", { REB: 16, AST: 2, PTS: 20, TPM: 6 }),
+      ],
+      [
+        createPlayer("them-star", { REB: 2, AST: 16, PTS: 32, TPM: 0 }),
+        createPlayer("them-b", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+        createPlayer("them-c", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+        createPlayer("them-d", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+        createPlayer("them-e", { REB: 2, AST: 16, PTS: 10, TPM: 0 }),
+      ],
+      [],
+      6,
     )
+    const { suggestions } = suggestTrades(league, { targetCategoryIds: ["PTS"] })
+    const suggestion = findSuggestion(suggestions, ["you-star"], ["them-star"])
+
+    expect(suggestion).toBeDefined()
+    expect(suggestion!.youGains.map((gain) => gain.categoryId)).not.toContain("PTS")
+    expect(suggestion!.youImproved.map((move) => move.categoryId)).toContain("PTS")
+    expect(suggestion!.reasons[0]).toContain("3PM")
+    expect(suggestion!.reasons[0]).not.toContain("TPM")
+  })
+
+  it("omits a package that raises none of the requested categories", () => {
+    const { suggestions } = suggestTrades(mirrorState, {
+      targetCategoryIds: ["TPM"],
+    })
+
+    expect(
+      findSuggestion(suggestions, ["you-star"], ["them-star"]),
+    ).toBeUndefined()
+  })
+
+  it("omits a package that would send an excluded player", () => {
+    const { suggestions } = suggestTrades(mirrorState, {
+      targetCategoryIds: ["AST"],
+      excludedPlayerIds: ["you-star"],
+    })
+
+    expect(
+      suggestions.some((suggestion) =>
+        suggestion.givePlayerIds.includes("you-star")),
+    ).toBe(false)
+  })
+
+  it("never offers IL players", () => {
+    const packages = enumeratePackages(mirrorState)
     const { suggestions } = suggestTrades(mirrorState)
 
     expect(packages.length).toBeGreaterThan(0)
     expect(
-      packages.every(({ youPlayerIds }) => !youPlayerIds.includes("you-base-3")),
+      packages.every(({ youPlayerIds }) => !youPlayerIds.includes("you-il")),
     ).toBe(true)
     expect(
       suggestions.every(
-        ({ givePlayerIds }) => !givePlayerIds.includes("you-base-3"),
+        ({ givePlayerIds }) => !givePlayerIds.includes("you-il"),
       ),
     ).toBe(true)
   })

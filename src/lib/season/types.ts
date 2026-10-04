@@ -21,11 +21,28 @@ export type SeasonPlayer = {
   positions?: SeasonPosition[]
   availability?: "fa" | "waiver"
   projections: Record<CategoryId, number>
+  /** ESPN (or overlay) projected games; used for weekly scaling when set. */
+  projectedGames?: number
   shooting: {
     FGM: number
     FGA: number
     FTM: number
     FTA: number
+  }
+  recentRates?: Partial<
+    Record<
+      "l7" | "l15" | "l30",
+      {
+        projections: Record<CategoryId, number>
+        shooting: SeasonPlayer["shooting"]
+      }
+    >
+  >
+  /** Season-to-date per-game actuals. Kept when a projection overlay replaces totals. */
+  seasonRates?: {
+    gamesPlayed: number
+    projections: Record<CategoryId, number>
+    shooting: SeasonPlayer["shooting"]
   }
 }
 
@@ -43,7 +60,7 @@ export type ScheduleMatchup = {
 }
 
 export type ScheduleResponse = {
-  source: "live" | "fixture"
+  source: "live" | "season" | "fixture"
   matchup: ScheduleMatchup
   games: ScheduleGame[]
 }
@@ -56,6 +73,7 @@ export type SeasonRosterEntry = {
 export type SeasonTeamRoster = {
   teamIndex: number
   name: string
+  espnTeamId?: number
   entries: SeasonRosterEntry[]
 }
 
@@ -70,6 +88,8 @@ export type SeasonLeagueState = {
   players: SeasonPlayer[]
   availablePlayerIds: string[]
   waiverOrder: number[]
+  /** Matchup days a dropped player stays on waivers. Unset → planner default (2). */
+  waiverPeriodDays?: number
   rosterSlots?: SeasonSlot[]
   source: "espn" | "manual" | "mixed"
   lastSyncedAt?: string

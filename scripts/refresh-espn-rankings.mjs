@@ -1,13 +1,16 @@
 /**
- * Overlay ESPN published 2026-27 H2H Points rankings onto the player pool.
+ * Overlay ESPN projections-page STANDARD rank onto the player pool.
  *
- * Uses a checked-in fixture (ESPN bot-blocks live fetches). Rebuild fixture
- * via scripts/_build-espn-ranks-fixture.mjs when the article updates.
+ * Live: lm-api-reads kona_player_info draftRanksByRankType.STANDARD.rank
+ * (the Rank column on /basketball/players/projections — not ADP).
+ * Fixture fallback when live fetch fails or --fixture is set.
  *
  * Usage:
  *   node scripts/refresh-espn-rankings.mjs
- *   node scripts/refresh-espn-rankings.mjs --in=data/players/proj_2026_27.json
+ *   node scripts/refresh-espn-rankings.mjs --fixture
+ *   node scripts/refresh-espn-rankings.mjs --write-fixture
  *   node scripts/refresh-espn-rankings.mjs --primary=espn
+ *   node scripts/refresh-espn-rankings.mjs --season=2027
  */
 
 import { readFile, writeFile } from "node:fs/promises"
@@ -17,10 +20,16 @@ import {
   normalizeName,
   projectPrimary,
 } from "./lib/adp-pool.mjs"
+import { espnRankFromPlayer } from "./lib/espn-ranks.mjs"
 
-const RANKINGS_FIXTURE =
-  "data/players/espn_h2h_points_rankings_2026_27.json"
 const SOURCE_ID = "espn_article_h2h_points"
+const FIXTURE_REL = "data/players/espn_adp_2026_27.json"
+const LEGACY_ARTICLE_FIXTURE =
+  "data/players/espn_h2h_points_rankings_2026_27.json"
+const USER_AGENT =
+  "fantasy-draft-tool/0.1 (local ESPN rank refresh; +https://github.com/cbh606-create/fantasy)"
+const PROJECTIONS_URL =
+  "https://fantasy.espn.com/basketball/players/projections"
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((arg) => {
@@ -31,11 +40,16 @@ const args = Object.fromEntries(
 
 const inRel = args.in ?? "data/players/proj_2026_27.json"
 const outRel = args.out ?? inRel
-const ranksRel = args.ranks ?? RANKINGS_FIXTURE
+const fixtureRel = args.ranks ?? FIXTURE_REL
+const forceFixture =
+  args.fixture === "true" ||
+  (typeof args.fixture === "string" && args.fixture !== "true")
+const writeFixture = args["write-fixture"] === "true"
 const primaryEspn = args.primary === "espn"
+const seasonId = Number.parseInt(args.season ?? "2027", 10)
 const inPath = path.resolve(process.cwd(), inRel)
 const outPath = path.resolve(process.cwd(), outRel)
-const ranksPath = path.resolve(process.cwd(), ranksRel)
+const fixturePath = path.resolve(process.cwd(), fixtureRel)
 
 const EMPTY_PROJECTIONS = {
   FG_PCT: 0,
@@ -49,64 +63,177 @@ const EMPTY_PROJECTIONS = {
   PTS: 0,
 }
 
-const main = async () => {
-  const ranksFile = JSON.parse(await readFile(ranksPath, "utf8"))
-  const articleRanks = Array.isArray(ranksFile.rankings)
-    ? ranksFile.rankings
-    : []
-
-  if (articleRanks.length < 100) {
-    throw new Error(
-      `Expected 100+ rankings in ${ranksRel}, got ${articleRanks.length}`,
-    )
+const fetchEspnRankLive = async () => {
+  const fantasyFilter = {
+    players: {
+      filterSlotIds: { value: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+      limit: 2000,
+      offset: 0,
+      sortPercOwned: { sortPriority: 1, sortAsc: false },
+      filterStatsForSourceIds: { value: [0, 1] },
+      useFullProjectionTable: { value: true },
+    },
   }
+  const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${seasonId}/players?scoringPeriodId=0&view=kona_player_info`
+  const response = await fetch(url, {
+    headers: {
+      "user-agent": USER_AGENT,
+      accept: "application/json",
+      "x-fantasy-filter": JSON.stringify(fantasyFilter),
+    },
+  })
+  if (!response.ok) {
+    throw new Error(`ESPN rank fetch failed: HTTP ${response.status}`)
+  }
+
+  const payload = await response.json()
+  const players = Array.isArray(payload) ? payload : payload.players || []
+  const rows = []
+  for (const row of players) {
+    const player = row?.player || row
+    const name = player?.fullName
+    const rank = espnRankFromPlayer(row)
+    if (!name || rank == null) continue
+    rows.push({
+      name,
+      adp: rank,
+      key: normalizeName(name),
+      espnId: player.id != null ? String(player.id) : undefined,
+    })
+  }
+
+  const byKey = new Map()
+  for (const row of rows) {
+    if (!byKey.has(row.key)) byKey.set(row.key, row)
+  }
+  const unique = [...byKey.values()].sort((a, b) => a.adp - b.adp)
+  if (unique.length < 50) {
+    throw new Error(`ESPN returned only ${unique.length} STANDARD rank rows`)
+  }
+  return unique
+}
+
+const loadFixtureFile = async (relPath) => {
+  const filePath = path.resolve(process.cwd(), relPath)
+  const file = JSON.parse(await readFile(filePath, "utf8"))
+  const rankings = Array.isArray(file.rankings) ? file.rankings : []
+  return rankings
+    .map((row) => ({
+      name: row.name,
+      adp: Number(row.adp ?? row.rank),
+      key: normalizeName(row.name),
+      espnId: row.espnId != null ? String(row.espnId) : undefined,
+    }))
+    .filter((row) => row.name && Number.isFinite(row.adp) && row.adp > 0)
+}
+
+const loadFixtureRows = async () => {
+  try {
+    const rows = await loadFixtureFile(fixtureRel)
+    if (rows.length >= 50) return rows
+  } catch {
+    // fall through to legacy article fixture
+  }
+  return loadFixtureFile(LEGACY_ARTICLE_FIXTURE)
+}
+
+const saveFixture = async (rows) => {
+  const payload = {
+    meta: {
+      source: SOURCE_ID,
+      label: "ESPN projections STANDARD rank",
+      seasonId,
+      api: `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${seasonId}/players`,
+      url: PROJECTIONS_URL,
+      fetchedAt: new Date().toISOString(),
+      count: rows.length,
+      note: "draftRanksByRankType.STANDARD.rank from ESPN projections, not ADP",
+    },
+    rankings: rows.map((row) => ({
+      name: row.name,
+      rank: row.adp,
+      ...(row.espnId ? { espnId: row.espnId } : {}),
+    })),
+  }
+  await writeFile(fixturePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8")
+  console.log(`Wrote fixture ${fixturePath} (${rows.length} rank rows)`)
+}
+
+const loadRows = async () => {
+  if (forceFixture) {
+    const rows = await loadFixtureRows()
+    if (rows.length < 50) {
+      throw new Error(`Fixture has only ${rows.length} ESPN rank rows`)
+    }
+    return { rows, source: "fixture" }
+  }
+
+  try {
+    const rows = await fetchEspnRankLive()
+    if (writeFixture) await saveFixture(rows)
+    return { rows, source: "live" }
+  } catch (error) {
+    console.warn(`Live ESPN failed (${error.message}); trying fixture…`)
+    const rows = await loadFixtureRows()
+    if (rows.length < 50) {
+      throw new Error(
+        `Live ESPN failed and fixture has only ${rows.length} rank rows`,
+      )
+    }
+    return { rows, source: "fixture" }
+  }
+}
+
+const main = async () => {
+  const { rows, source } = await loadRows()
 
   const pool = JSON.parse(await readFile(inPath, "utf8"))
   if (!Array.isArray(pool.players)) {
     throw new Error(`Expected players[] in ${inRel}`)
   }
 
-  const rows = articleRanks
-    .map((row) => ({
-      name: row.name,
-      adp: Number(row.rank),
-      positions: row.positions,
-    }))
-    .filter((row) => row.name && Number.isFinite(row.adp) && row.adp > 0)
-
   const { pool: withSource, matched } = applySourceRanks(
     pool,
     SOURCE_ID,
-    rows,
-    { url: ranksFile.meta?.url ?? null },
+    rows.map((row) => ({ name: row.name, adp: row.adp })),
+    {
+      url: PROJECTIONS_URL,
+    },
   )
+
+  const rankedKeys = new Set(rows.map((row) => normalizeName(row.name)))
+  withSource.players = withSource.players.map((player) => {
+    if (rankedKeys.has(normalizeName(player.name))) return player
+    if (player.adpBySource?.[SOURCE_ID] == null) return player
+    const adpBySource = { ...player.adpBySource }
+    delete adpBySource[SOURCE_ID]
+    return { ...player, adpBySource }
+  })
 
   const playersByKey = new Map(
     withSource.players.map((player) => [normalizeName(player.name), player]),
   )
 
   let added = 0
-  const addedNames = []
-
-  for (const row of rows) {
+  for (const row of rows.slice(0, 200)) {
     const key = normalizeName(row.name)
     if (playersByKey.has(key)) continue
 
     const stub = {
-      id: `espn-rank-${row.adp}-${key.replace(/\s+/g, "-")}`,
+      id: row.espnId ? `espn-${row.espnId}` : `espn-rank-${key.replace(/\s+/g, "-")}`,
       name: row.name,
-      positions: row.positions?.length ? row.positions : ["SF"],
+      positions: ["SF"],
       projections: { ...EMPTY_PROJECTIONS },
       adp: row.adp,
       adpBySource: {
         [SOURCE_ID]: row.adp,
       },
       status: "active",
+      ...(row.espnId ? { espnId: row.espnId } : {}),
     }
     withSource.players.push(stub)
     playersByKey.set(key, stub)
     added += 1
-    addedNames.push(row.name)
   }
 
   const primarySource = primaryEspn
@@ -116,43 +243,23 @@ const main = async () => {
   const next = projectPrimary(withSource, primarySource)
   next.meta = {
     ...next.meta,
-    adpArticleParsed: articleRanks.length,
+    adpArticleParsed: rows.length,
     adpArticleMatched: matched,
-    adpArticleAdded: added,
-    count: next.players.length,
+    adpFetchSource: source,
   }
 
   await writeFile(outPath, `${JSON.stringify(next, null, 2)}\n`, "utf8")
 
-  console.log(`ESPN article ranks loaded: ${articleRanks.length}`)
+  console.log(`ESPN rank rows (${source}): ${rows.length}`)
   console.log(`Matched onto pool: ${matched}`)
   console.log(`Added missing ranked players: ${added}`)
   console.log(`Primary source: ${primarySource}`)
-  if (addedNames.length) {
-    console.log(`Added sample: ${addedNames.slice(0, 12).join(", ")}`)
-  }
   console.log(
     `Top 12: ${next.players
       .slice(0, 12)
       .map((player) => `${player.adp}. ${player.name}`)
       .join(" | ")}`,
   )
-  for (const name of [
-    "Cooper Flagg",
-    "Cameron Boozer",
-    "AJ Dybantsa",
-    "Kon Knueppel",
-    "Jeremiah Fears",
-  ]) {
-    const hit = next.players.find((player) => player.name === name)
-    const espnRank = hit?.adpBySource?.[SOURCE_ID]
-    console.log(
-      name,
-      hit
-        ? `adp=${hit.adp}${espnRank != null ? ` espn=${espnRank}` : ""}`
-        : "MISSING",
-    )
-  }
   console.log(`Wrote ${outPath}`)
 }
 

@@ -6,8 +6,8 @@ type DraftPageProps = {
 }
 
 const parseInitialMode = (tab?: string) => {
-  if (tab === "mock" || tab === "live" || tab === "prep") return tab
-  return "prep"
+  if (tab === "mock" || tab === "live") return tab
+  return "mock"
 }
 
 export default async function DraftPage({

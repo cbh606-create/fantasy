@@ -1,0 +1,137 @@
+{
+  "status": {
+    "currentScoringPeriod": 21,
+    "currentMatchupPeriod": 3
+  },
+  "settings": {
+    "scheduleSettings": {
+      "matchupPeriods": {
+        "1": [1, 2, 3, 4, 5, 6, 7],
+        "2": [8, 9, 10, 11, 12, 13, 14],
+        "3": [15, 16, 17, 18, 19, 20, 21]
+      }
+    }
+  },
+  "transactions": [
+    {
+      "id": "winner-week-1",
+      "scoringPeriodId": 3,
+      "status": "EXECUTED",
+      "type": "FREEAGENT",
+      "items": [
+        { "playerId": 501, "type": "ADD", "toTeamId": 1 },
+        { "playerId": 599, "type": "DROP", "fromTeamId": 1 }
+      ]
+    },
+    {
+      "id": "winner-week-2",
+      "scoringPeriodId": 10,
+      "status": "EXECUTED",
+      "type": "WAIVER",
+      "items": [
+        { "playerId": 501, "type": "ADD", "toTeamId": 1 }
+      ]
+    },
+    {
+      "id": "loser-week-1",
+      "scoringPeriodId": 4,
+      "status": "EXECUTED",
+      "type": "FREEAGENT",
+      "items": [
+        { "playerId": 501, "type": "ADD", "toTeamId": 2 }
+      ]
+    },
+    {
+      "id": "current-week",
+      "scoringPeriodId": 16,
+      "status": "EXECUTED",
+      "type": "FREEAGENT",
+      "items": [
+        { "playerId": 501, "type": "ADD", "toTeamId": 1 }
+      ]
+    },
+    {
+      "id": "trade-ignored",
+      "scoringPeriodId": 5,
+      "status": "EXECUTED",
+      "type": "TRADE",
+      "items": [
+        { "playerId": 501, "type": "ADD", "toTeamId": 1 }
+      ]
+    }
+  ],
+  "schedule": [
+    {
+      "matchupPeriodId": 1,
+      "winner": "HOME",
+      "home": {
+        "teamId": 1,
+        "cumulativeScore": {
+          "wins": 6,
+          "losses": 2,
+          "ties": 1,
+          "scoreByStat": {
+            "2": { "result": "LOSS", "score": 4 }
+          }
+        }
+      },
+      "away": {
+        "teamId": 2,
+        "cumulativeScore": {
+          "wins": 2,
+          "losses": 6,
+          "ties": 1,
+          "scoreByStat": {}
+        }
+      }
+    },
+    {
+      "matchupPeriodId": 2,
+      "winner": "HOME",
+      "home": {
+        "teamId": 1,
+        "cumulativeScore": {
+          "wins": 5,
+          "losses": 3,
+          "ties": 1,
+          "scoreByStat": {
+            "2": { "result": "LOSS", "score": 5 }
+          }
+        }
+      },
+      "away": {
+        "teamId": 2,
+        "cumulativeScore": {
+          "wins": 3,
+          "losses": 5,
+          "ties": 1,
+          "scoreByStat": {}
+        }
+      }
+    },
+    {
+      "matchupPeriodId": 3,
+      "winner": "UNDETERMINED",
+      "home": {
+        "teamId": 1,
+        "cumulativeScore": {
+          "wins": 7,
+          "losses": 0,
+          "ties": 0,
+          "scoreByStat": {
+            "2": { "result": "LOSS", "score": 1 }
+          }
+        }
+      },
+      "away": {
+        "teamId": 2,
+        "cumulativeScore": {
+          "wins": 0,
+          "losses": 7,
+          "ties": 0,
+          "scoreByStat": {}
+        }
+      }
+    }
+  ]
+}

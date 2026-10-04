@@ -83,14 +83,62 @@ describe("GET /api/trade/suggestions", () => {
     expect(response.status).toBe(200)
     expect(payload).toMatchObject({
       suggestions: expect.any(Array),
-      youNeeds: expect.any(Array),
-      youSurplus: expect.any(Array),
+      youWeak: expect.any(Array),
+      youStrong: expect.any(Array),
       analysisPerspectiveTeamIndex: league.perspectiveTeamIndex,
       state: expect.objectContaining({
         name: expect.any(String),
         teams: expect.any(Array),
       }),
     })
+    expect(payload.suggestions).toEqual([])
+  })
+
+  it("returns 400 for an unknown category", async () => {
+    const createResponse = await createSeasonLeague(
+      new Request("http://localhost/api/season-leagues", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "Trade suggestions league",
+          manual: true,
+        }),
+      }),
+    )
+    const league = await createResponse.json()
+    const response = await GET(
+      new Request(
+        `http://localhost/api/trade/suggestions?seasonLeagueId=${league.id}&categories=DD`,
+      ),
+    )
+
+    expect(response.status).toBe(400)
+  })
+
+  it("returns suggestions that rise one of the requested categories", async () => {
+    const createResponse = await createSeasonLeague(
+      new Request("http://localhost/api/season-leagues", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "Trade suggestions league",
+          manual: true,
+        }),
+      }),
+    )
+    const league = await createResponse.json()
+    const categories = "FG_PCT,FT_PCT,TPM,REB,AST,STL,BLK,TO,PTS"
+    const response = await GET(
+      new Request(
+        `http://localhost/api/trade/suggestions?seasonLeagueId=${league.id}&categories=${categories}`,
+      ),
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
     expect(payload.suggestions.length).toBeGreaterThan(0)
+    for (const suggestion of payload.suggestions) {
+      expect(suggestion.youImproved.length).toBeGreaterThan(0)
+    }
   })
 })

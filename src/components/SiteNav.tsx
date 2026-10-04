@@ -1,7 +1,8 @@
 "use client"
 
+import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useContext, type ChangeEvent } from "react"
 import {
   ActiveSeasonLeagueContext,
@@ -56,24 +57,35 @@ const EMPTY_ACTIVE_LEAGUE = {
 
 export const SiteNav = () => {
   const pathname = usePathname()
+  const router = useRouter()
+  const { isSignedIn } = useAuth()
   // Optional context: Fast Refresh can remount SiteNav before the provider
   // for one frame; throwing here surfaces as Internal Server Error.
   const leagueContext = useContext(ActiveSeasonLeagueContext) ?? EMPTY_ACTIVE_LEAGUE
   const { activeId, isLoading, leagues, setActiveId } = leagueContext
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setActiveId(event.target.value || null)
+    const nextId = event.target.value || null
+    setActiveId(nextId)
+
+    // Active id alone does not remount /roster/[id] — navigate when already
+    // on a season tool so the workspace loads the selected league.
+    if (!nextId) return
+    const tool = pathname.split("/").filter(Boolean)[0]
+    if (tool && SEASON_TOOL_PATHS.has(`/${tool}`)) {
+      router.push(`/${tool}/${nextId}`)
+    }
   }
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-hairline)] bg-[var(--color-canvas)]">
       <div className="mx-auto flex max-w-[96rem] items-center justify-between gap-4 px-6 py-3 sm:px-10 lg:px-14">
         <Link
-          aria-label="Fantasy home"
-          className="shrink-0 font-[family-name:var(--font-bebas-neue)] text-2xl tracking-[0.12em] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
+          aria-label="The Edge home"
+          className="shrink-0 font-[family-name:var(--font-bebas-neue)] text-xl tracking-[0.1em] text-[var(--color-ink)] whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)] sm:text-2xl"
           href="/"
         >
-          FANTASY
+          THE EDGE
         </Link>
         <label className="sr-only" htmlFor="active-season-roster">
           Active season roster
@@ -117,6 +129,21 @@ export const SiteNav = () => {
               </Link>
             )
           })}
+          {isSignedIn ? (
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "size-8",
+                },
+              }}
+            />
+          ) : (
+            <SignInButton mode="modal">
+              <button className={linkClass(false)} type="button">
+                Sign in
+              </button>
+            </SignInButton>
+          )}
         </nav>
       </div>
     </header>

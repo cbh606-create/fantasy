@@ -4,8 +4,7 @@ import { useState } from "react"
 import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import { Button } from "@/components/ui/Button"
 import { SearchPill } from "@/components/ui/SearchPill"
-import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
-import type { CategoryId, Player } from "@/lib/domain/types"
+import type { Player } from "@/lib/domain/types"
 import {
   DEFAULT_ADP_SOURCE,
   formatAdpReferenceLine,
@@ -16,6 +15,7 @@ type PlayerPoolProps = {
   adpSource?: AdpSourceId
   compact?: boolean
   disabled?: boolean
+  onHoverPlayerId?: (playerId: string | null) => void
   onMarkPicked: (playerId: string) => void
   pickedPlayerIds: string[]
   players: Player[]
@@ -23,26 +23,6 @@ type PlayerPoolProps = {
 
 type SortKey = "name" | "pos" | "adp"
 type SortDirection = "asc" | "desc"
-
-const CATEGORY_LABELS: Record<CategoryId, string> = {
-  FG_PCT: "FG%",
-  FT_PCT: "FT%",
-  TPM: "3PM",
-  REB: "REB",
-  AST: "AST",
-  STL: "STL",
-  BLK: "BLK",
-  TO: "TO",
-  PTS: "PTS",
-}
-
-const formatProjection = (categoryId: CategoryId, value: number) => {
-  if (categoryId === "FG_PCT" || categoryId === "FT_PCT") {
-    return value.toFixed(3)
-  }
-
-  return Number.isInteger(value) ? String(value) : value.toFixed(1)
-}
 
 const formatAdp = (adp: number) =>
   Number.isInteger(adp) ? String(adp) : adp.toFixed(1)
@@ -127,6 +107,7 @@ export const PlayerPool = ({
   adpSource = DEFAULT_ADP_SOURCE,
   compact = false,
   disabled = false,
+  onHoverPlayerId,
   onMarkPicked,
   pickedPlayerIds,
   players,
@@ -134,7 +115,6 @@ export const PlayerPool = ({
   const [query, setQuery] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("adp")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
-  const [hoveredPlayerId, setHoveredPlayerId] = useState<string | null>(null)
   const normalizedQuery = query.trim().toLowerCase()
   const limit = compact ? 48 : 20
   const pickedIdSet = new Set(pickedPlayerIds)
@@ -221,7 +201,7 @@ export const PlayerPool = ({
               <tbody>
                 {availablePlayers.map((player) => (
                   <tr
-                    className="relative border-t border-[var(--color-hairline)]/60"
+                    className="border-t border-[var(--color-hairline)]/60"
                     key={player.id}
                     onBlur={(event) => {
                       if (
@@ -229,18 +209,12 @@ export const PlayerPool = ({
                           event.relatedTarget as Node | null,
                         )
                       ) {
-                        setHoveredPlayerId((current) =>
-                          current === player.id ? null : current,
-                        )
+                        onHoverPlayerId?.(null)
                       }
                     }}
-                    onFocus={() => setHoveredPlayerId(player.id)}
-                    onMouseEnter={() => setHoveredPlayerId(player.id)}
-                    onMouseLeave={() =>
-                      setHoveredPlayerId((current) =>
-                        current === player.id ? null : current,
-                      )
-                    }
+                    onFocus={() => onHoverPlayerId?.(player.id)}
+                    onMouseEnter={() => onHoverPlayerId?.(player.id)}
+                    onMouseLeave={() => onHoverPlayerId?.(null)}
                   >
                     <td className="max-w-[7.5rem] py-1.5 pr-1 align-top">
                       <div className="flex items-start gap-1.5">
@@ -252,37 +226,11 @@ export const PlayerPool = ({
                               {player.teamAbbr ?? "—"}
                             </span>
                           </p>
-                          <p className="mt-0.5 break-words text-[0.55rem] leading-tight text-[var(--color-mute)]">
+                          <p className="mt-0.5 break-words text-[0.65rem] leading-tight text-[var(--color-mute)]">
                             {formatAdpReferenceLine(player, adpSource)}
                           </p>
                         </div>
                       </div>
-                      {hoveredPlayerId === player.id ? (
-                        <div
-                          className="pointer-events-none absolute left-full top-0 z-20 ml-2 w-52 rounded-xl border border-[var(--color-hairline)] bg-white p-3 shadow-lg"
-                          role="tooltip"
-                        >
-                          <p className="text-xs font-semibold">{player.name}</p>
-                          <dl className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1 text-[0.65rem]">
-                            {ALL_CATEGORY_IDS.map((categoryId) => (
-                              <div
-                                className="flex justify-between gap-2"
-                                key={categoryId}
-                              >
-                                <dt className="text-[var(--color-mute)]">
-                                  {CATEGORY_LABELS[categoryId]}
-                                </dt>
-                                <dd className="tabular-nums font-medium">
-                                  {formatProjection(
-                                    categoryId,
-                                    player.projections[categoryId],
-                                  )}
-                                </dd>
-                              </div>
-                            ))}
-                          </dl>
-                        </div>
-                      ) : null}
                     </td>
                     <td className="px-1 py-1.5 align-top text-[0.65rem] text-[var(--color-mute)]">
                       {player.positions.join("/")}

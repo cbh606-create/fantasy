@@ -23,6 +23,7 @@ describe("PlayerSchedulePanel", () => {
             slot: "PG",
             playerId: "p1",
             name: "Home Star",
+            positions: "PG/G",
             teamAbbr: "BOS",
             teamUnknown: false,
             games: 2,
@@ -42,6 +43,8 @@ describe("PlayerSchedulePanel", () => {
     expect(screen.getByText("2")).toBeInTheDocument()
     expect(screen.getByText("vs LAL")).toBeInTheDocument()
     expect(screen.getByText("@NYK")).toBeInTheDocument()
+    expect(screen.getByText("PG/G")).toBeInTheDocument()
+    expect(screen.getByText("BOS")).toBeInTheDocument()
   })
 
   it("renders duplicate roster entries and opponent labels without React key warnings", () => {
@@ -50,6 +53,7 @@ describe("PlayerSchedulePanel", () => {
       slot: "UTIL" as const,
       playerId: "p1",
       name: "Home Star",
+      positions: "PG/G",
       teamAbbr: "BOS",
       teamUnknown: false,
       games: 2,

@@ -121,6 +121,11 @@ const main = async () => {
 
   const out = {
     ...raw,
+    meta: {
+      ...(raw.meta ?? {}),
+      teamRosterUpdatedAt: new Date().toISOString(),
+      teamRosterSource: "espn_fantasy_kona_player_info",
+    },
     players: enriched,
   }
 

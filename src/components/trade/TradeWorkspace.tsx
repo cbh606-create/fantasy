@@ -2,13 +2,18 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
+import { CategoryTargetToggles } from "@/components/trade/CategoryTargetToggles"
 import { DealDetail } from "@/components/trade/DealDetail"
 import {
-  NO_SUGGESTIONS_COPY,
-  SuggestionList,
-} from "@/components/trade/SuggestionList"
+  RosterIncludeGroups,
+  tradableRosterPlayerIds,
+} from "@/components/trade/RosterIncludeGroups"
+import { SuggestionList } from "@/components/trade/SuggestionList"
+import { TradeSimulation } from "@/components/trade/TradeSimulation"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import type { TradeSuggestion } from "@/lib/trade/types"
@@ -19,8 +24,8 @@ type TradeWorkspaceProps = {
 
 type TradeSuggestionsResponse = {
   suggestions: TradeSuggestion[]
-  youNeeds: CategoryId[]
-  youSurplus: CategoryId[]
+  youWeak: CategoryId[]
+  youStrong: CategoryId[]
   state: SeasonLeagueState
 }
 
@@ -31,6 +36,13 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedIds, setSelectedIds] = useState<CategoryId[]>([])
+  const [excludedIds, setExcludedIds] = useState<string[]>([])
+  const [generatedSuggestions, setGeneratedSuggestions] = useState<TradeSuggestion[]>([])
+  const [requestedCategoryIds, setRequestedCategoryIds] = useState<CategoryId[]>([])
+  const [hasGenerated, setHasGenerated] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [tab, setTab] = useState<"suggestions" | "simulation">("suggestions")
 
   useEffect(() => {
     const controller = new AbortController()
@@ -42,6 +54,10 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
           { signal: controller.signal },
         )
 
+        if (suggestionsResponse.status === 401) {
+          throw new Error("unauthorized")
+        }
+
         if (!suggestionsResponse.ok) {
           throw new Error("Unable to load trade suggestions")
         }
@@ -49,7 +65,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
         const suggestions =
           (await suggestionsResponse.json()) as TradeSuggestionsResponse
         setTradeData(suggestions)
-        setSelectedId(suggestions.suggestions[0]?.id ?? null)
+        setExcludedIds(tradableRosterPlayerIds(suggestions.state))
       } catch (requestError) {
         if (requestError instanceof DOMException && requestError.name === "AbortError") return
 
@@ -70,32 +86,76 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-mute)]" role="status">
-          Finding trade matches…
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/trade"
+        backLabel="← All trade leagues"
+        status="Finding trade matches…"
+      />
     )
   }
 
   if (!tradeData) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--color-canvas)] px-6">
-        <p className="text-[var(--color-sale)]" role="alert">
-          {error || "Unable to load trade suggestions"}
-        </p>
-      </main>
+      <SeasonToolShell
+        backHref="/trade"
+        backLabel="← All trade leagues"
+        error={error || "Unable to load trade suggestions"}
+        unauthorizedHint="Sign in to load trade suggestions for your leagues."
+      />
     )
   }
 
   const { state } = tradeData
-  const selectedSuggestion = tradeData.suggestions.find(
+  const selectedSuggestion = generatedSuggestions.find(
     (suggestion) => suggestion.id === selectedId,
   ) ?? null
 
+  const handleToggleCategory = (categoryId: CategoryId) =>
+    setSelectedIds((current) =>
+      current.includes(categoryId)
+        ? current.filter((id) => id !== categoryId)
+        : [...current, categoryId])
+
+  const handleExclude = (playerId: string) =>
+    setExcludedIds((current) => [...current, playerId])
+
+  const handleInclude = (playerId: string) =>
+    setExcludedIds((current) => current.filter((id) => id !== playerId))
+
+  const handleGenerate = async () => {
+    const categories = ALL_CATEGORY_IDS.filter((categoryId) =>
+      selectedIds.includes(categoryId))
+    const params = new URLSearchParams({
+      seasonLeagueId: leagueId,
+      categories: categories.join(","),
+      excludedPlayerIds: excludedIds.join(","),
+    })
+
+    setIsGenerating(true)
+    setError("")
+
+    try {
+      const response = await fetch(`/api/trade/suggestions?${params}`)
+
+      if (!response.ok) {
+        throw new Error("Unable to load trade suggestions")
+      }
+
+      const generated = (await response.json()) as TradeSuggestionsResponse
+      setGeneratedSuggestions(generated.suggestions)
+      setRequestedCategoryIds(categories)
+      setHasGenerated(true)
+      setSelectedId(generated.suggestions[0]?.id ?? null)
+    } catch {
+      setError("Unable to load trade suggestions")
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
-      <div className="mx-auto max-w-7xl">
+    <main className="flex h-dvh flex-col overflow-hidden bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col">
         <div className="mb-6">
           <Link
             className="w-fit font-medium text-sm text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
@@ -112,27 +172,99 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             {state.name}
           </h1>
         </header>
-        <WeakCategoriesPanel
-          needs={tradeData.youNeeds}
-          surplus={tradeData.youSurplus}
-        />
-        <div className="mt-8 grid gap-8 lg:grid-cols-[22rem_1fr]">
-          <section>
+        <div
+          aria-label="Trade workspace view"
+          className="mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"
+          role="tablist"
+        >
+          {([
+            ["suggestions", "Suggestions"],
+            ["simulation", "Simulation"],
+          ] as const).map(([id, label]) => (
+            <button
+              aria-controls={`${id}-panel`}
+              aria-selected={tab === id}
+              className={
+                tab === id
+                  ? "rounded-full bg-[var(--color-ink)] px-6 py-2.5 font-medium text-white"
+                  : "rounded-full px-6 py-2.5 font-medium text-[var(--color-mute)]"
+              }
+              id={`${id}-tab`}
+              key={id}
+              onClick={() => setTab(id)}
+              role="tab"
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div
+          aria-labelledby="suggestions-tab"
+          className="min-h-0 flex-1 overflow-y-auto"
+          hidden={tab !== "suggestions"}
+          id="suggestions-panel"
+          role="tabpanel"
+        >
+          <WeakCategoriesPanel
+            weak={tradeData.youWeak}
+            strong={tradeData.youStrong}
+          />
+          <CategoryTargetToggles
+            onToggle={handleToggleCategory}
+            selectedIds={selectedIds}
+          />
+          <RosterIncludeGroups
+            excludedIds={excludedIds}
+            onExclude={handleExclude}
+            onInclude={handleInclude}
+            state={state}
+          />
+          <button
+            className="mt-6 rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
+            disabled={selectedIds.length === 0 || isGenerating}
+            onClick={handleGenerate}
+            type="button"
+          >
+            {isGenerating ? "Generating trade suggestions…" : "Generate trade suggestions"}
+          </button>
+          <section className="mt-8">
             <h2 className="mb-3 text-lg font-semibold">Suggested deals</h2>
-            <SuggestionList
-              onSelect={setSelectedId}
-              selectedId={selectedId}
-              state={state}
-              suggestions={tradeData.suggestions}
-            />
+            {error ? (
+              <p className="mb-3 text-sm text-[var(--color-info)]" role="alert">
+                {error}
+              </p>
+            ) : null}
+            {hasGenerated ? (
+              <SuggestionList
+                excludedIds={excludedIds}
+                onSelect={setSelectedId}
+                selectedDetail={selectedSuggestion ? (
+                  <DealDetail
+                    requestedCategoryIds={requestedCategoryIds}
+                    state={state}
+                    suggestion={selectedSuggestion}
+                  />
+                ) : null}
+                selectedId={selectedId}
+                state={state}
+                suggestions={generatedSuggestions}
+              />
+            ) : (
+              <p className="border-y border-[var(--color-hairline)] py-6 text-sm text-[var(--color-mute)]">
+                Select a category, then generate trade suggestions.
+              </p>
+            )}
           </section>
-          {selectedSuggestion ? (
-            <DealDetail state={state} suggestion={selectedSuggestion} />
-          ) : (
-            <p className="text-sm text-[var(--color-mute)]">
-              {NO_SUGGESTIONS_COPY}
-            </p>
-          )}
+        </div>
+        <div
+          aria-labelledby="simulation-tab"
+          className="min-h-0 flex-1 overflow-hidden"
+          hidden={tab !== "simulation"}
+          id="simulation-panel"
+          role="tabpanel"
+        >
+          <TradeSimulation state={state} />
         </div>
       </div>
     </main>

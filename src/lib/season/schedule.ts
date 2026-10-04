@@ -1,3 +1,5 @@
+import { normalizeNbaTeamAbbr } from "@/lib/nba/teamAbbr"
+import { formatPlayerPositions } from "@/lib/season/slotLabels"
 import type {
   ScheduleResponse,
   SeasonPlayer,
@@ -11,6 +13,7 @@ export type PlayerScheduleRow = {
   slot: SeasonSlot
   playerId: string | null
   name: string
+  positions: string
   teamAbbr: string | null
   teamUnknown: boolean
   games: number | null
@@ -42,6 +45,7 @@ export const buildPlayerMatchupSchedule = ({
         slot: entry.slot,
         playerId: null,
         name: "Empty",
+        positions: "—",
         teamAbbr: null,
         teamUnknown: false,
         games: null,
@@ -50,17 +54,21 @@ export const buildPlayerMatchupSchedule = ({
     }
 
     const player = playersById.get(entry.playerId)
-    const teamAbbr = player?.teamAbbr?.toUpperCase() ?? null
+    const teamAbbr = player?.teamAbbr
+      ? normalizeNbaTeamAbbr(player.teamAbbr)
+      : null
     const teamUnknown = !teamAbbr
     const cells = emptyCells(days)
 
     if (teamAbbr) {
       for (const game of schedule.games) {
         if (!days.includes(game.date)) continue
-        if (game.homeAbbr.toUpperCase() === teamAbbr) {
-          cells[game.date].push(`vs ${game.awayAbbr.toUpperCase()}`)
-        } else if (game.awayAbbr.toUpperCase() === teamAbbr) {
-          cells[game.date].push(`@${game.homeAbbr.toUpperCase()}`)
+        const home = normalizeNbaTeamAbbr(game.homeAbbr)
+        const away = normalizeNbaTeamAbbr(game.awayAbbr)
+        if (home === teamAbbr) {
+          cells[game.date].push(`vs ${away}`)
+        } else if (away === teamAbbr) {
+          cells[game.date].push(`@${home}`)
         }
       }
     }
@@ -73,6 +81,7 @@ export const buildPlayerMatchupSchedule = ({
       slot: entry.slot,
       playerId: entry.playerId,
       name: player?.name ?? "Unknown",
+      positions: formatPlayerPositions(player),
       teamAbbr,
       teamUnknown,
       games,

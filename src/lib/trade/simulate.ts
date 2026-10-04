@@ -32,27 +32,46 @@ const findPlayerIndexes = (
 const findOpenIndex = (
   entries: SeasonRosterEntry[],
   excludedIndexes: number[],
+  skipEmptyIlSlots = false,
 ): number =>
   entries.findIndex(
     (entry, index) =>
-      !excludedIndexes.includes(index) && entry.playerId === null,
+      !excludedIndexes.includes(index)
+      && entry.playerId === null
+      && (!skipEmptyIlSlots || entry.slot !== "IL"),
   )
 
 /**
  * Every rostered slot counts toward category totals, so any player the trade
- * does not touch is a legal cut. The lowest projected value is the one a
+ * does not touch is a legal cut, except IL players, who are in neither the
+ * Include nor Do Not Include list. The lowest projected value is the one a
  * manager would realistically drop to open the extra spot.
+ *
+ * blockedByProtection is true only when at least one non-IL candidate existed
+ * and every one of them was protected.
  */
 const findLowestValueIndex = (
   entries: SeasonRosterEntry[],
   excludedIndexes: number[],
   values: Map<string, number>,
-): number => {
+  protectedPlayerIds: ReadonlySet<string>,
+): { index: number, blockedByProtection: boolean } => {
   let lowestIndex = -1
   let lowestValue = Number.POSITIVE_INFINITY
+  let sawCandidate = false
 
   entries.forEach((entry, index) => {
-    if (excludedIndexes.includes(index) || !entry.playerId) {
+    if (
+      excludedIndexes.includes(index)
+      || !entry.playerId
+      || entry.slot === "IL"
+    ) {
+      return
+    }
+
+    sawCandidate = true
+
+    if (protectedPlayerIds.has(entry.playerId)) {
       return
     }
 
@@ -64,7 +83,10 @@ const findLowestValueIndex = (
     }
   })
 
-  return lowestIndex
+  return {
+    index: lowestIndex,
+    blockedByProtection: sawCandidate && lowestIndex < 0,
+  }
 }
 
 const assignAsymmetricPlayers = (
@@ -72,47 +94,82 @@ const assignAsymmetricPlayers = (
   receivingIndexes: number[],
   incomingPlayerIds: string[],
   values: Map<string, number>,
-): string | undefined => {
+  protectedPlayerIds: readonly string[] = [],
+  forcedDropPlayerId?: string,
+  skipEmptyIlSlots = false,
+): { droppedPlayerId?: string, unplaceable: boolean } => {
   receivingEntries[receivingIndexes[0]].playerId = incomingPlayerIds[0]
 
   if (incomingPlayerIds.length === 1) {
-    return undefined
+    return { unplaceable: false }
   }
 
-  const openIndex = findOpenIndex(receivingEntries, receivingIndexes)
+  const openIndex = findOpenIndex(
+    receivingEntries,
+    receivingIndexes,
+    skipEmptyIlSlots,
+  )
 
   if (openIndex >= 0) {
     receivingEntries[openIndex].playerId = incomingPlayerIds[1]
-    return undefined
+    return { unplaceable: false }
   }
 
-  const dropIndex = findLowestValueIndex(
+  if (forcedDropPlayerId) {
+    const forcedIndex = receivingEntries.findIndex(
+      (entry, index) =>
+        !receivingIndexes.includes(index)
+        && entry.playerId === forcedDropPlayerId
+        && entry.slot !== "IL",
+    )
+
+    if (forcedIndex < 0) {
+      return { unplaceable: true }
+    }
+
+    receivingEntries[forcedIndex].playerId = incomingPlayerIds[1]
+
+    return { droppedPlayerId: forcedDropPlayerId, unplaceable: false }
+  }
+
+  const { index: dropIndex, blockedByProtection } = findLowestValueIndex(
     receivingEntries,
     receivingIndexes,
     values,
+    new Set(protectedPlayerIds),
   )
 
-  // Nothing left to cut only happens on a roster whose sole entries are the
-  // traded slots, so the extra incoming player is the one that cannot fit.
+  // A miss means no legal cut: either the roster is only the traded slots and
+  // IL players (the extra incoming player cannot fit), or every other
+  // non-IL player is protected (the package is rejected).
   if (dropIndex < 0) {
-    return incomingPlayerIds[1]
+    if (blockedByProtection) {
+      return { unplaceable: true }
+    }
+
+    return { droppedPlayerId: incomingPlayerIds[1], unplaceable: false }
   }
 
   const droppedPlayerId = receivingEntries[dropIndex].playerId ?? undefined
   receivingEntries[dropIndex].playerId = incomingPlayerIds[1]
 
-  return droppedPlayerId
+  return { droppedPlayerId, unplaceable: false }
 }
 
 export type TradeApplication = {
   state: SeasonLeagueState
   droppedPlayerId?: string
+  yourDroppedPlayerId?: string
+  theirDroppedPlayerId?: string
+  rejected?: boolean
 }
 
 export const applyTradePackage = (
   state: SeasonLeagueState,
   tradePackage: TradePackage,
   precomputedValues?: Map<string, number>,
+  excludedPlayerIds: readonly string[] = [],
+  options?: { yourDropPlayerId?: string, skipEmptyIlSlots?: boolean },
 ): TradeApplication => {
   const teams = state.teams.map((team) => ({
     ...team,
@@ -157,22 +214,56 @@ export const applyTradePackage = (
   })
 
   const values = precomputedValues ?? buildPlayerValueMap(state)
+  const skipEmptyIlSlots = options?.skipEmptyIlSlots ?? false
+  const yourProtectedPlayerIds = excludedPlayerIds.filter((playerId) =>
+    yourTeam.entries.some(
+      (entry) => entry.slot !== "IL" && entry.playerId === playerId,
+    ),
+  )
   const yourDrop = assignAsymmetricPlayers(
     yourTeam.entries,
     yourIndexes,
     tradePackage.themPlayerIds,
     values,
+    yourProtectedPlayerIds,
+    options?.yourDropPlayerId,
+    skipEmptyIlSlots,
   )
   const theirDrop = assignAsymmetricPlayers(
     theirTeam.entries,
     theirIndexes,
     tradePackage.youPlayerIds,
     values,
+    [],
+    undefined,
+    skipEmptyIlSlots,
   )
-  const droppedPlayerId = yourDrop ?? theirDrop
+
+  if (yourDrop.unplaceable) {
+    return { state, rejected: true }
+  }
+
+  const teammateDrop = (
+    droppedPlayerId: string | undefined,
+    incomingPlayerIds: readonly string[],
+  ) =>
+    droppedPlayerId && !incomingPlayerIds.includes(droppedPlayerId)
+      ? droppedPlayerId
+      : undefined
+  const yourDroppedPlayerId = teammateDrop(
+    yourDrop.droppedPlayerId,
+    tradePackage.themPlayerIds,
+  )
+  const theirDroppedPlayerId = teammateDrop(
+    theirDrop.droppedPlayerId,
+    tradePackage.youPlayerIds,
+  )
+  const droppedPlayerId = yourDrop.droppedPlayerId ?? theirDrop.droppedPlayerId
 
   return {
     state: { ...state, teams },
+    ...(yourDroppedPlayerId ? { yourDroppedPlayerId } : {}),
+    ...(theirDroppedPlayerId ? { theirDroppedPlayerId } : {}),
     ...(droppedPlayerId ? { droppedPlayerId } : {}),
   }
 }
@@ -228,33 +319,38 @@ export const createTradeAnalysisContext = (
   }
 }
 
-const analyzeAfterTrade = (
+export const totalsAfterTrade = (
   afterState: SeasonLeagueState,
   tradePackage: TradePackage,
   context: TradeAnalysisContext,
-): SeasonAnalysis => {
+): TeamCategoryTotals[] => {
   const tradedTeamIndexes = [
     afterState.perspectiveTeamIndex,
     tradePackage.counterpartyTeamIndex,
   ]
 
-  return analyzeTeamTotals(
-    context.totalsByTeam.map((entry) => {
-      if (!tradedTeamIndexes.includes(entry.teamIndex)) {
-        return entry
-      }
+  return context.totalsByTeam.map((entry) => {
+    if (!tradedTeamIndexes.includes(entry.teamIndex)) {
+      return entry
+    }
 
-      const team = afterState.teams.find(
-        ({ teamIndex }) => teamIndex === entry.teamIndex,
-      )!
+    const team = afterState.teams.find(
+      ({ teamIndex }) => teamIndex === entry.teamIndex,
+    )!
 
-      return {
-        teamIndex: entry.teamIndex,
-        totals: teamTotals(rosterPlayers(team, context.playersById)),
-      }
-    }),
-  )
+    return {
+      teamIndex: entry.teamIndex,
+      totals: teamTotals(rosterPlayers(team, context.playersById)),
+    }
+  })
 }
+
+const analyzeAfterTrade = (
+  afterState: SeasonLeagueState,
+  tradePackage: TradePackage,
+  context: TradeAnalysisContext,
+): SeasonAnalysis =>
+  analyzeTeamTotals(totalsAfterTrade(afterState, tradePackage, context))
 
 export type TradeEvaluation = {
   you: TradeSideImpact

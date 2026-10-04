@@ -23,9 +23,23 @@ describe("eligibility", () => {
     expect(eligibleForSlot(pg, "BE")).toBe(true)
   })
 
-  it("missing positions ??UTIL/BE/IL only", () => {
+  it("treats missing positions as eligible for every active slot", () => {
     expect(eligibleForSlot({}, "UTIL")).toBe(true)
-    expect(eligibleForSlot({}, "PG")).toBe(false)
-    expect(eligibleForSlot(undefined, "SG")).toBe(false)
+    expect(eligibleForSlot({}, "PG")).toBe(true)
+    expect(eligibleForSlot(undefined, "SG")).toBe(true)
+    expect(eligibleForSlot({ positions: [] }, "C")).toBe(true)
+  })
+
+  it("lets G fill PG/SG and F fill SF/PF", () => {
+    const guard = { positions: ["G"] as const }
+    const forward = { positions: ["F"] as const }
+    expect(eligibleForSlot(guard, "PG")).toBe(true)
+    expect(eligibleForSlot(guard, "SG")).toBe(true)
+    expect(eligibleForSlot(guard, "G")).toBe(true)
+    expect(eligibleForSlot(guard, "C")).toBe(false)
+    expect(eligibleForSlot(forward, "SF")).toBe(true)
+    expect(eligibleForSlot(forward, "PF")).toBe(true)
+    expect(eligibleForSlot(forward, "F")).toBe(true)
+    expect(eligibleForSlot(forward, "PG")).toBe(false)
   })
 })

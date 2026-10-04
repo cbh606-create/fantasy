@@ -1,20 +1,14 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { type NextFetchEvent, type NextRequest, NextResponse } from "next/server"
 
-const isPageProtectedRoute = createRouteMatcher(["/leagues(.*)"])
 const isApiProtectedRoute = createRouteMatcher(["/api/(.*)"])
 
 const protectedMiddleware = clerkMiddleware(async (auth, request) => {
-  if (isApiProtectedRoute(request)) {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 })
-    }
-    return
-  }
+  if (!isApiProtectedRoute(request)) return
 
-  if (isPageProtectedRoute(request)) {
-    await auth.protect()
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
 })
 

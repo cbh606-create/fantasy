@@ -30,6 +30,7 @@ model SeasonLeague {
   source               String
   stateJson            String
   localLineupJson      String?
+  morningCheckJson     String?
   lastSyncedAt         DateTime?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

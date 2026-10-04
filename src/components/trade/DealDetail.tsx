@@ -1,9 +1,16 @@
+import type { CategoryId } from "@/lib/domain/types"
+import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type { SeasonLeagueState } from "@/lib/season/types"
-import type { TradeSideImpact, TradeSuggestion } from "@/lib/trade/types"
+import type { CategoryTotalMove } from "@/lib/trade/accept"
+import { formatTotal, formatValueLine } from "@/lib/trade/offerCopy"
+import { replacementScaledValues } from "@/lib/trade/score"
+import type { TradeSuggestion } from "@/lib/trade/types"
+import { buildPlayerValueMap } from "@/lib/trade/value"
 
 type DealDetailProps = {
   suggestion: TradeSuggestion
   state: SeasonLeagueState
+  requestedCategoryIds: CategoryId[]
 }
 
 const playerNames = (playerIds: string[], state: SeasonLeagueState) =>
@@ -11,37 +18,81 @@ const playerNames = (playerIds: string[], state: SeasonLeagueState) =>
     state.players.find((player) => player.id === playerId)?.name ?? "Unknown player",
   ).join(" + ")
 
-const ImpactColumn = ({
-  impact,
+const packageValue = (playerIds: string[], values: Map<string, number>) =>
+  playerIds.reduce((sum, playerId) => sum + (values.get(playerId) ?? 0), 0)
+
+const SideGains = ({
   title,
+  gains,
+  strengthsHeld,
 }: {
-  impact: TradeSideImpact
   title: string
+  gains: CategoryTotalMove[]
+  strengthsHeld: CategoryId[]
 }) => (
   <div>
     <h3 className="text-sm font-semibold">{title}</h3>
-    <div className="mt-2 divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)] text-[0.8125rem]">
-      {impact.categoryDeltas.map((delta) => (
-        <div
-          className="flex items-center justify-between gap-4 py-2"
-          key={delta.categoryId}
-        >
-          <span className="font-medium">{delta.categoryId}</span>
-          <span className="tabular-nums text-[var(--color-mute)]">
-            {delta.rankBefore} → {delta.rankAfter}
-          </span>
-        </div>
-      ))}
-    </div>
+    {gains.map((gain) => (
+      <div
+        className="mt-2 flex items-center justify-between gap-4 border-y border-[var(--color-hairline)] py-2 text-[0.8125rem]"
+        key={gain.categoryId}
+      >
+        <span className="font-medium">{CATEGORY_SHORT_LABELS[gain.categoryId]}</span>
+        <span className="tabular-nums text-[var(--color-mute)]">
+          {formatTotal(gain.categoryId, gain.before)} →{" "}
+          {formatTotal(gain.categoryId, gain.after)}
+        </span>
+      </div>
+    ))}
+    {strengthsHeld.length ? (
+      <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]">
+        Stays strong in{" "}
+        {strengthsHeld.map((id) => CATEGORY_SHORT_LABELS[id]).join(", ")}
+      </p>
+    ) : null}
   </div>
 )
 
-export const DealDetail = ({ suggestion, state }: DealDetailProps) => {
+const WorsenedMoves = ({
+  teamLabel,
+  moves,
+}: {
+  teamLabel: string
+  moves: CategoryTotalMove[]
+}) => (
+  <>
+    {moves.map((move) => (
+      <li key={`${teamLabel}-${move.categoryId}`}>
+        {teamLabel}: {CATEGORY_SHORT_LABELS[move.categoryId]} was already below
+        average and moves from{" "}
+        {formatTotal(move.categoryId, move.before)} to{" "}
+        {formatTotal(move.categoryId, move.after)}
+      </li>
+    ))}
+  </>
+)
+
+export const DealDetail = ({
+  suggestion,
+  state,
+  requestedCategoryIds,
+}: DealDetailProps) => {
   const giveNames = playerNames(suggestion.givePlayerIds, state)
   const getNames = playerNames(suggestion.getPlayerIds, state)
   const counterparty = state.teams.find(
     (team) => team.teamIndex === suggestion.counterpartyTeamIndex,
   )?.name ?? `Team ${suggestion.counterpartyTeamIndex + 1}`
+  const values = replacementScaledValues(buildPlayerValueMap(state))
+  const giveLarger =
+    packageValue(suggestion.givePlayerIds, values)
+    > packageValue(suggestion.getPlayerIds, values)
+  const hasWorsened =
+    suggestion.themWorsened.length > 0 || suggestion.youWorsened.length > 0
+  const extraGains = suggestion.youImproved.filter(
+    (move) =>
+      requestedCategoryIds.includes(move.categoryId)
+      && !suggestion.youGains.some((gain) => gain.categoryId === move.categoryId),
+  )
 
   return (
     <section className="rounded-3xl border border-[var(--color-hairline)] p-5 sm:p-6">
@@ -58,10 +109,31 @@ export const DealDetail = ({ suggestion, state }: DealDetailProps) => {
           roster spot
         </p>
       ) : null}
-      <div className="mt-6 grid gap-6 sm:grid-cols-2">
-        <ImpactColumn impact={suggestion.you} title="Your rank changes" />
-        <ImpactColumn impact={suggestion.them} title={`${counterparty} rank changes`} />
+      <div className="mt-6 space-y-4">
+        <SideGains
+          gains={suggestion.themGains}
+          strengthsHeld={suggestion.themStrengthsHeld}
+          title="What they get"
+        />
+        <SideGains
+          gains={[...suggestion.youGains, ...extraGains]}
+          strengthsHeld={suggestion.youStrengthsHeld}
+          title="What you get"
+        />
       </div>
+      <p className="mt-4 text-[0.8125rem] font-medium">
+        {formatValueLine({
+          giveLarger,
+          valueGap: suggestion.valueGap,
+          overpayRatio: suggestion.overpayRatio,
+        })}
+      </p>
+      {hasWorsened ? (
+        <ul className="mt-4 space-y-1 text-[0.8125rem] text-[var(--color-mute)]">
+          <WorsenedMoves moves={suggestion.themWorsened} teamLabel={counterparty} />
+          <WorsenedMoves moves={suggestion.youWorsened} teamLabel="You" />
+        </ul>
+      ) : null}
       <ul className="mt-6 space-y-1 text-[0.8125rem] text-[var(--color-mute)]">
         {suggestion.reasons.map((reason) => (
           <li key={reason}>• {reason}</li>
