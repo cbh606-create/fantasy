@@ -154,8 +154,8 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
-      <div className="mx-auto max-w-7xl">
+    <main className="flex h-dvh flex-col overflow-hidden bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col">
         <div className="mb-6">
           <Link
             className="w-fit font-medium text-sm text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-ink)]"
@@ -201,6 +201,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
         </div>
         <div
           aria-labelledby="suggestions-tab"
+          className="min-h-0 flex-1 overflow-y-auto"
           hidden={tab !== "suggestions"}
           id="suggestions-panel"
           role="tabpanel"
@@ -258,6 +259,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
         </div>
         <div
           aria-labelledby="simulation-tab"
+          className="min-h-0 flex-1 overflow-hidden"
           hidden={tab !== "simulation"}
           id="simulation-panel"
           role="tabpanel"

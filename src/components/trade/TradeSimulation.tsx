@@ -180,7 +180,7 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
   )
 
   return (
-    <div className="grid h-[calc(100dvh-11rem)] min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-4 overflow-hidden">
+    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-4 overflow-hidden">
       <div className="grid min-h-0 grid-cols-2 gap-3 overflow-hidden">
         {yourRoster}
         {theirRoster}
