@@ -61,7 +61,7 @@ export const SimulationRoster = ({
       <div aria-label={label} className="mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" role="group">
         {players.map((player) => {
           const pressed = pressedIds.includes(player.id)
-          const showDrop = droppableIds.includes(player.id)
+          const showDrop = droppableIds.includes(player.id) && !pressed
 
           return (
             <div className="flex items-center gap-1" key={player.id}>

@@ -63,6 +63,34 @@ describe("SimulationRoster", () => {
     expect(screen.getByRole("button", { name: "Your Guard" })).toHaveAttribute("aria-pressed", "false")
   })
 
+  it("hides Drop on a pressed droppable player but shows it when unpressed", () => {
+    const { rerender } = render(
+      <SimulationRoster
+        droppableIds={["give-1"]}
+        label="My Team"
+        onDrop={vi.fn()}
+        onPress={vi.fn()}
+        players={players}
+        pressedIds={["give-1"]}
+      />,
+    )
+
+    expect(screen.queryByRole("button", { name: "Drop" })).toBeNull()
+
+    rerender(
+      <SimulationRoster
+        droppableIds={["give-1"]}
+        label="My Team"
+        onDrop={vi.fn()}
+        onPress={vi.fn()}
+        players={players}
+        pressedIds={[]}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Drop" })).toBeInTheDocument()
+  })
+
   it("chooses the other team from one select", () => {
     const onTeamChange = vi.fn()
     render(
