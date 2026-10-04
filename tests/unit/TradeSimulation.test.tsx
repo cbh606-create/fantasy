@@ -83,7 +83,8 @@ describe("TradeSimulation", () => {
     render(<TradeSimulation state={state} />)
 
     expect(screen.getByText("Choose another team.")).toBeInTheDocument()
-    fireEvent.click(screen.getByRole("button", { name: "Rivals" }))
+    expect(document.querySelector("svg")).toBeNull()
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
     expect(screen.getByText("Choose who to receive.")).toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "Their Center" }))
     expect(screen.getByText("Choose who to send.")).toBeInTheDocument()
@@ -97,7 +98,7 @@ describe("TradeSimulation", () => {
 
   it("waits for a drop when two players are received", () => {
     render(<TradeSimulation state={fullState} />)
-    fireEvent.click(screen.getByRole("button", { name: "Rivals" }))
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
     fireEvent.click(screen.getByRole("button", { name: "Their Center" }))
     fireEvent.click(screen.getByRole("button", { name: "Their Wing" }))
     fireEvent.click(screen.getByRole("button", { name: "Your Guard" }))
@@ -105,12 +106,61 @@ describe("TradeSimulation", () => {
     expect(screen.getByText("Choose who to drop.")).toBeInTheDocument()
     expect(screen.queryByText(/^Overall #/)).toBeNull()
 
-    fireEvent.click(
-      within(screen.getByRole("group", { name: "Drop" })).getByRole("button", {
-        name: "Your Big",
-      }),
-    )
+    const myRoster = within(screen.getByRole("group", { name: "My Team" }))
+    expect(myRoster.getAllByRole("button", { name: "Drop" })).toHaveLength(2)
+    fireEvent.click(myRoster.getAllByRole("button", { name: "Drop" })[0])
     expect(screen.getAllByText(/^Overall #/).length).toBeGreaterThan(0)
     expect(screen.getByText("Drops Your Big to open a roster spot")).toBeInTheDocument()
+  })
+
+  it("shows per-game sums under the charts after a complete package", () => {
+    const quietBig = { ...yourBig, projections: { ...yourBig.projections, PTS: 0 } }
+    const scored = stateOf([
+      { ...yourGuard, projections: { ...yourGuard.projections, PTS: 820 }, projectedGames: 41 },
+      quietBig,
+    ])
+    render(<TradeSimulation state={scored} />)
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Their Center" }))
+    fireEvent.click(screen.getByRole("button", { name: "Your Guard" }))
+
+    const mine = screen.getByRole("region", { name: "My Team" })
+    expect(within(mine).getByText(/^20\.0 →/)).toBeInTheDocument()
+    expect(screen.queryByText("820.0")).toBeNull()
+    expect(mine.querySelector("svg")).toBeTruthy()
+  })
+
+  it("clears the received player when the other team changes", () => {
+    render(<TradeSimulation state={state} />)
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Their Center" }))
+    expect(screen.getByRole("button", { name: "Their Center" })).toHaveAttribute("aria-pressed", "true")
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "2" } })
+
+    expect(screen.queryByRole("button", { name: "Their Center" })).toBeNull()
+    expect(screen.getByText("Choose who to receive.")).toBeInTheDocument()
+  })
+
+  it("does not add a third player on a full side", () => {
+    render(<TradeSimulation state={fullState} />)
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Your Guard" }))
+    fireEvent.click(screen.getByRole("button", { name: "Your Big" }))
+    fireEvent.click(screen.getByRole("button", { name: "Your Stay" }))
+
+    expect(screen.getByRole("button", { name: "Your Stay" })).toHaveAttribute("aria-pressed", "false")
+  })
+
+  it("shows a cannot-fit sentence and no chart when the extra player has nowhere to go", () => {
+    render(<TradeSimulation state={stateOf([yourGuard])} />)
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Their Center" }))
+    fireEvent.click(screen.getByRole("button", { name: "Their Wing" }))
+    fireEvent.click(screen.getByRole("button", { name: "Your Guard" }))
+
+    expect(screen.getByText("Your roster cannot fit the extra player.")).toBeInTheDocument()
+    expect(document.querySelector("svg")).toBeNull()
   })
 })

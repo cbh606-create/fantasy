@@ -61,7 +61,7 @@ export const RankNonagon = ({ teamCount, categories }: RankNonagonProps) => {
   const labelRadius = OUTER_RADIUS + LABEL_OFFSET
 
   return (
-    <svg viewBox="-12 -12 264 264">
+    <svg className="h-auto w-full" viewBox="-12 -12 264 264">
       <polygon
         fill="none"
         points={beforePoints}

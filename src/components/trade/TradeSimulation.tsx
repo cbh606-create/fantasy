@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { RankNonagon } from "@/components/trade/RankNonagon"
+import { SimulationRoster } from "@/components/trade/SimulationRoster"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import { formatTotal } from "@/lib/trade/offerCopy"
@@ -18,10 +19,6 @@ type PlayerOption = {
 
 const MAX_PACKAGE_SIZE = 2
 
-const SELECTED_CLASS = "bg-[var(--color-ink)] text-white"
-const UNSELECTED_CLASS = "border border-[var(--color-hairline)]"
-const BUTTON_CLASS = "rounded px-3 py-1 text-sm"
-
 const toggleId = (ids: string[], id: string) => {
   if (ids.includes(id)) return ids.filter((existing) => existing !== id)
   if (ids.length >= MAX_PACKAGE_SIZE) return ids
@@ -31,43 +28,6 @@ const toggleId = (ids: string[], id: string) => {
 
 const rankText = (rankBefore: number, rankAfter: number) =>
   `#${rankBefore} → #${rankAfter}`
-
-type ChoiceButtonProps = {
-  label: string
-  selected: boolean
-  onSelect: () => void
-}
-
-const ChoiceButton = ({ label, selected, onSelect }: ChoiceButtonProps) => (
-  <button
-    aria-pressed={selected}
-    className={`${BUTTON_CLASS} ${selected ? SELECTED_CLASS : UNSELECTED_CLASS}`}
-    onClick={onSelect}
-    type="button"
-  >
-    {label}
-  </button>
-)
-
-type ChoiceGroupProps = {
-  label: string
-  options: PlayerOption[]
-  selectedIds: string[]
-  onSelect: (id: string) => void
-}
-
-const ChoiceGroup = ({ label, options, selectedIds, onSelect }: ChoiceGroupProps) => (
-  <div aria-label={label} className="flex flex-wrap gap-2" role="group">
-    {options.map((option) => (
-      <ChoiceButton
-        key={option.id}
-        label={option.name}
-        onSelect={() => onSelect(option.id)}
-        selected={selectedIds.includes(option.id)}
-      />
-    ))}
-  </div>
-)
 
 type SideColumnProps = {
   title: string
@@ -180,7 +140,7 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
 
     return (
       <div className="flex flex-col gap-3">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3">
           <SideColumn report={result.you} teamCount={state.teams.length} title={yourTeam?.name ?? "You"} />
           <SideColumn report={result.them} teamCount={state.teams.length} title={counterparty?.name ?? "Them"} />
         </div>
@@ -196,43 +156,38 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
     )
   }
 
+  const yourRoster = (
+    <SimulationRoster
+      dropId={dropId}
+      droppableIds={dropRequired ? dropOptions.map((player) => player.id) : []}
+      label={yourTeam?.name ?? "You"}
+      onDrop={handleDropSelect}
+      onPress={handleSendSelect}
+      players={yourPlayers}
+      pressedIds={sendIds}
+    />
+  )
+  const theirRoster = (
+    <SimulationRoster
+      label={counterparty?.name ?? "Other team"}
+      onPress={handleReceiveSelect}
+      onTeamChange={handleTeamSelect}
+      players={theirPlayers}
+      pressedIds={receiveIds}
+      teamIndex={teamIndex}
+      teamOptions={otherTeams.map((team) => ({ teamIndex: team.teamIndex, name: team.name }))}
+    />
+  )
+
   return (
-    <div className="flex flex-col gap-4">
-      <div aria-label="Team" className="flex flex-wrap gap-2" role="group">
-        {otherTeams.map((team) => (
-          <ChoiceButton
-            key={team.teamIndex}
-            label={team.name}
-            onSelect={() => handleTeamSelect(team.teamIndex)}
-            selected={team.teamIndex === teamIndex}
-          />
-        ))}
+    <div className="grid h-[calc(100dvh-11rem)] min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-4 overflow-hidden">
+      <div className="grid min-h-0 grid-cols-2 gap-3 overflow-hidden">
+        {yourRoster}
+        {theirRoster}
       </div>
-      {counterparty ? (
-        <ChoiceGroup
-          label="Receive"
-          onSelect={handleReceiveSelect}
-          options={theirPlayers}
-          selectedIds={receiveIds}
-        />
-      ) : null}
-      {counterparty ? (
-        <ChoiceGroup
-          label="Send"
-          onSelect={handleSendSelect}
-          options={yourPlayers}
-          selectedIds={sendIds}
-        />
-      ) : null}
-      {dropRequired && sendIds.length > 0 ? (
-        <ChoiceGroup
-          label="Drop"
-          onSelect={handleDropSelect}
-          options={dropOptions}
-          selectedIds={dropId ? [dropId] : []}
-        />
-      ) : null}
-      {renderResult()}
+      <div className="min-h-0 overflow-y-auto">
+        {renderResult()}
+      </div>
     </div>
   )
 }

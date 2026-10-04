@@ -296,19 +296,13 @@ describe("TradeWorkspace", () => {
     await screen.findByText("Select a category, then generate trade suggestions.")
 
     fireEvent.click(screen.getByRole("tab", { name: "Simulation" }))
-    fireEvent.click(screen.getByRole("button", { name: "Rivals" }))
-    expect(screen.getByRole("button", { name: "Rivals" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
+    expect(screen.getByRole("combobox", { name: "Team" })).toHaveValue("1")
 
     fireEvent.click(screen.getByRole("tab", { name: "Suggestions" }))
     expect(screen.getByRole("button", { name: "Generate trade suggestions" })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("tab", { name: "Simulation" }))
-    expect(screen.getByRole("button", { name: "Rivals" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    )
+    expect(screen.getByRole("combobox", { name: "Team" })).toHaveValue("1")
   })
 })
