@@ -82,7 +82,7 @@ describe("perGameTeamLines", () => {
     expect(perGameTeamLines(state)[0].totals.REB).toBeCloseTo(3)
   })
 
-  it("builds FG% from summed per-game makes and attempts", () => {
+  it("builds FG% from total makes divided by total attempts", () => {
     const state = stateWith(
       [
         { slot: "UTIL", playerId: "one" },
@@ -94,7 +94,22 @@ describe("perGameTeamLines", () => {
       ],
     )
 
-    expect(perGameTeamLines(state)[0].totals.FG_PCT).toBeCloseTo(2 / 3)
+    expect(perGameTeamLines(state)[0].totals.FG_PCT).toBeCloseTo(123 / 205)
+  })
+
+  it("ignores percentage projections when summed attempts are nonzero", () => {
+    const state = stateWith(
+      [
+        { slot: "UTIL", playerId: "shooter" },
+        { slot: "UTIL", playerId: "empty" },
+      ],
+      [
+        player("shooter", {}, 82, { FGM: 82, FGA: 164, FTM: 0, FTA: 0 }),
+        player("empty", { FG_PCT: 0.1 }, 82, { FGM: 0, FGA: 0, FTM: 0, FTA: 0 }),
+      ],
+    )
+
+    expect(perGameTeamLines(state)[0].totals.FG_PCT).toBeCloseTo(0.5)
   })
 
   it("averages percentage projections when the roster has no shooting volume", () => {

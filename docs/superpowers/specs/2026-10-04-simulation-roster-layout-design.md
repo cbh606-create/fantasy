@@ -45,7 +45,7 @@ A player's projected games are `projectedGames` when that number is greater than
 
 For 3PM, REB, AST, STL, BLK, TO, and PTS, the player's per-game value is that season total divided by projected games. The team value is the sum of those per-game values across every player on the roster, including IL. An empty slot adds nothing.
 
-For FG% and FT%, the team value does not add percentages. Each player's makes and attempts are divided by that player's projected games, then the team percentage is summed makes divided by summed attempts. When the roster has no shooting volume, the team percentage is the average of the players' percentage projections, matching today's season-total fallback.
+For FG% and FT%, the team value does not add percentages and does not divide by projected games. Add every roster player's makes, add every roster player's attempts, then divide makes by attempts. When the summed attempts are 0, the team percentage is the average of the players' percentage projections.
 
 Before and after are ranked separately with the existing rank ordering, using these per-game team lines for every team in the league. A higher line is better except TO. An equal line gives the better rank to the lower `teamIndex`. Overall place is still the sum of the nine ranks. The source league state is not mutated.
 
@@ -65,7 +65,7 @@ Before and after are ranked separately with the existing rank ordering, using th
 - `Drop` appears on the user's roster only when a drop is required, and only on a player who is not being sent.
 - Before the package is complete, the right column shows the first missing-piece sentence and no nonagon.
 - A complete package shows two nonagons, two overall lines, and nine per-game sums on each side. Those sums are not season totals. The same season total over fewer projected games contributes more per game than that total spread over 82 games.
-- A lower per-game TO sum ranks better. FG% comes from summed per-game makes and attempts.
+- A lower per-game TO sum ranks better. FG% is the roster's total makes divided by its total attempts.
 - Suggestion ranks and the rank matrix still use season totals.
 - A cannot-fit package shows its sentence and no nonagon.
 - The Suggestions tab still generates without using this roster.

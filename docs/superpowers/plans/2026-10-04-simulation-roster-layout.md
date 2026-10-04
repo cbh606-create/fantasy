@@ -24,7 +24,7 @@
 - A package that cannot fit shows `Your roster cannot fit the extra player.` or `Their roster cannot fit the extra player.` and no charts.
 - A player's projected games are `projectedGames` when that number is greater than zero. Otherwise they are `ASSUMED_SEASON_GAMES` (82).
 - For 3PM, REB, AST, STL, BLK, TO, and PTS, the team value is the sum of season total divided by projected games, across every roster player, including IL. An empty slot adds nothing.
-- FG% and FT% do not add percentages. Sum per-game makes, sum per-game attempts, then divide. When the roster has no shooting volume, average the players' percentage projections.
+- FG% and FT% do not add percentages and do not divide by projected games. Add makes, add attempts, then divide makes by attempts. When the summed attempts are 0, average the players' percentage projections.
 - Simulation ranks use these per-game lines for every team. A higher line is better except TO. An equal line gives the better rank to the lower `teamIndex`. Overall place is the sum of the nine ranks.
 - Suggestion ranks, the rank matrix, and `seasonTeamTotals` stay on season totals. Rule sentences still use season-total suggestion rules.
 - Suggestions is unchanged. No new request when picks change. No chart library. No ESPN write. No expected-wins number.
@@ -140,7 +140,7 @@ describe("perGameTeamLines", () => {
     expect(perGameTeamLines(state)[0].totals.REB).toBeCloseTo(3)
   })
 
-  it("builds FG% from summed per-game makes and attempts", () => {
+  it("builds FG% from total makes divided by total attempts", () => {
     const state = stateWith(
       [
         { slot: "UTIL", playerId: "one" },
@@ -152,7 +152,7 @@ describe("perGameTeamLines", () => {
       ],
     )
 
-    expect(perGameTeamLines(state)[0].totals.FG_PCT).toBeCloseTo(2 / 3)
+    expect(perGameTeamLines(state)[0].totals.FG_PCT).toBeCloseTo(123 / 205)
   })
 
   it("averages percentage projections when the roster has no shooting volume", () => {
@@ -191,37 +191,22 @@ const projectedGamesFor = (player: SeasonPlayer) =>
     ? player.projectedGames
     : ASSUMED_SEASON_GAMES
 
-const hasShootingVolume = (
-  players: SeasonPlayer[],
-  categoryId: "FG_PCT" | "FT_PCT",
-) =>
-  players.length > 0 &&
-  players.every((player) => {
-    const attempts = categoryId === "FG_PCT" ? player.shooting?.FGA : player.shooting?.FTA
-    return typeof attempts === "number" && attempts > 0
-  })
-
 const percentageLine = (
   players: SeasonPlayer[],
   categoryId: "FG_PCT" | "FT_PCT",
 ) => {
   if (players.length === 0) return 0
-  if (!hasShootingVolume(players, categoryId)) {
-    return players.reduce((sum, player) => sum + player.projections[categoryId], 0) / players.length
-  }
 
   const makesKey = categoryId === "FG_PCT" ? "FGM" : "FTM"
   const attemptsKey = categoryId === "FG_PCT" ? "FGA" : "FTA"
-  const makes = players.reduce(
-    (sum, player) => sum + player.shooting[makesKey] / projectedGamesFor(player),
-    0,
-  )
-  const attempts = players.reduce(
-    (sum, player) => sum + player.shooting[attemptsKey] / projectedGamesFor(player),
-    0,
-  )
+  const makes = players.reduce((sum, player) => sum + (player.shooting?.[makesKey] ?? 0), 0)
+  const attempts = players.reduce((sum, player) => sum + (player.shooting?.[attemptsKey] ?? 0), 0)
 
-  return attempts === 0 ? 0 : makes / attempts
+  if (attempts === 0) {
+    return players.reduce((sum, player) => sum + player.projections[categoryId], 0) / players.length
+  }
+
+  return makes / attempts
 }
 
 export const perGameTotals = (players: SeasonPlayer[]): Record<CategoryId, number> => {
