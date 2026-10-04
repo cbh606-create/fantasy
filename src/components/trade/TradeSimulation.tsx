@@ -159,7 +159,7 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
   const yourRoster = (
     <SimulationRoster
       dropId={dropId}
-      droppableIds={dropRequired ? dropOptions.map((player) => player.id) : []}
+      droppableIds={dropRequired && sendIds.length > 0 ? dropOptions.map((player) => player.id) : []}
       label={yourTeam?.name ?? "You"}
       onDrop={handleDropSelect}
       onPress={handleSendSelect}

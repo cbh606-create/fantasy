@@ -96,6 +96,16 @@ describe("TradeSimulation", () => {
     expect(screen.getAllByText(/#\d+ → #\d+/).length).toBeGreaterThan(0)
   })
 
+  it("does not show drop buttons until a sender is chosen", () => {
+    render(<TradeSimulation state={fullState} />)
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Their Center" }))
+    fireEvent.click(screen.getByRole("button", { name: "Their Wing" }))
+
+    expect(screen.getByText("Choose who to send.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Drop" })).toBeNull()
+  })
+
   it("waits for a drop when two players are received", () => {
     render(<TradeSimulation state={fullState} />)
     fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "1" } })
