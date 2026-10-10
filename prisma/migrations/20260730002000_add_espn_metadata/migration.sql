@@ -1,0 +1,2 @@
+ALTER TABLE "League" ADD COLUMN "espnLeagueId" TEXT;
+ALTER TABLE "League" ADD COLUMN "season" INTEGER;

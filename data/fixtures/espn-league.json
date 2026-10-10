@@ -1,0 +1,68 @@
+{
+  "leagueId": "fixture-league",
+  "season": 2026,
+  "teams": 12,
+  "userPickSlot": 3,
+  "rounds": 13,
+  "players": [
+    {
+      "id": "p01",
+      "espnId": "1001",
+      "name": "Avery Cole",
+      "positions": ["PG"],
+      "projections": {
+        "FG_PCT": 0.48,
+        "FT_PCT": 0.88,
+        "TPM": 3.4,
+        "REB": 4.1,
+        "AST": 9.2,
+        "STL": 1.8,
+        "BLK": 0.3,
+        "TO": 3.5,
+        "PTS": 27.1
+      },
+      "adp": 1
+    },
+    {
+      "id": "p02",
+      "espnId": "1002",
+      "name": "Blake Reed",
+      "positions": ["SG"],
+      "projections": {
+        "FG_PCT": 0.47,
+        "FT_PCT": 0.86,
+        "TPM": 3.8,
+        "REB": 5.2,
+        "AST": 5.6,
+        "STL": 1.5,
+        "BLK": 0.4,
+        "TO": 2.8,
+        "PTS": 28.4
+      },
+      "adp": 2
+    },
+    {
+      "id": "p03",
+      "espnId": "1003",
+      "name": "Casey Stone",
+      "positions": ["SF"],
+      "projections": {
+        "FG_PCT": 0.51,
+        "FT_PCT": 0.82,
+        "TPM": 2.5,
+        "REB": 7.4,
+        "AST": 4.8,
+        "STL": 1.4,
+        "BLK": 0.8,
+        "TO": 2.6,
+        "PTS": 26.3
+      },
+      "adp": 3
+    }
+  ],
+  "picks": [
+    { "overall": 1, "playerId": "p01" },
+    { "overall": 2, "playerId": "p02" },
+    { "overall": 3, "playerId": null }
+  ]
+}

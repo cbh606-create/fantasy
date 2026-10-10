@@ -1,0 +1,2069 @@
+{
+  "meta": {
+    "source": "espn_article_h2h_points",
+    "label": "ESPN projections STANDARD rank",
+    "seasonId": 2027,
+    "api": "https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/2027/players",
+    "url": "https://fantasy.espn.com/basketball/players/projections",
+    "fetchedAt": "2026-09-25T14:26:15.114Z",
+    "count": 411,
+    "note": "draftRanksByRankType.STANDARD.rank from ESPN projections, not ADP"
+  },
+  "rankings": [
+    {
+      "name": "Nikola Jokic",
+      "rank": 1,
+      "espnId": "3112335"
+    },
+    {
+      "name": "Shai Gilgeous-Alexander",
+      "rank": 2,
+      "espnId": "4278073"
+    },
+    {
+      "name": "Luka Doncic",
+      "rank": 3,
+      "espnId": "3945274"
+    },
+    {
+      "name": "Victor Wembanyama",
+      "rank": 4,
+      "espnId": "5104157"
+    },
+    {
+      "name": "Giannis Antetokounmpo",
+      "rank": 5,
+      "espnId": "3032977"
+    },
+    {
+      "name": "Jalen Johnson",
+      "rank": 6,
+      "espnId": "4701230"
+    },
+    {
+      "name": "Cade Cunningham",
+      "rank": 7,
+      "espnId": "4432166"
+    },
+    {
+      "name": "Anthony Edwards",
+      "rank": 8,
+      "espnId": "4594268"
+    },
+    {
+      "name": "Jayson Tatum",
+      "rank": 9,
+      "espnId": "4065648"
+    },
+    {
+      "name": "Donovan Mitchell",
+      "rank": 10,
+      "espnId": "3908809"
+    },
+    {
+      "name": "Domantas Sabonis",
+      "rank": 11,
+      "espnId": "3155942"
+    },
+    {
+      "name": "Tyrese Maxey",
+      "rank": 12,
+      "espnId": "4431678"
+    },
+    {
+      "name": "Jalen Brunson",
+      "rank": 13,
+      "espnId": "3934672"
+    },
+    {
+      "name": "Trae Young",
+      "rank": 14,
+      "espnId": "4277905"
+    },
+    {
+      "name": "Scottie Barnes",
+      "rank": 15,
+      "espnId": "4433134"
+    },
+    {
+      "name": "Josh Giddey",
+      "rank": 16,
+      "espnId": "4871145"
+    },
+    {
+      "name": "Amen Thompson",
+      "rank": 17,
+      "espnId": "4684740"
+    },
+    {
+      "name": "Devin Booker",
+      "rank": 18,
+      "espnId": "3136193"
+    },
+    {
+      "name": "Tyrese Haliburton",
+      "rank": 19,
+      "espnId": "4396993"
+    },
+    {
+      "name": "Alperen Sengun",
+      "rank": 20,
+      "espnId": "4871144"
+    },
+    {
+      "name": "Kevin Durant",
+      "rank": 21,
+      "espnId": "3202"
+    },
+    {
+      "name": "Karl-Anthony Towns",
+      "rank": 22,
+      "espnId": "3136195"
+    },
+    {
+      "name": "James Harden",
+      "rank": 23,
+      "espnId": "3992"
+    },
+    {
+      "name": "Cooper Flagg",
+      "rank": 24,
+      "espnId": "5041939"
+    },
+    {
+      "name": "Pascal Siakam",
+      "rank": 25,
+      "espnId": "3149673"
+    },
+    {
+      "name": "Jalen Duren",
+      "rank": 26,
+      "espnId": "4433621"
+    },
+    {
+      "name": "LaMelo Ball",
+      "rank": 27,
+      "espnId": "4432816"
+    },
+    {
+      "name": "Jamal Murray",
+      "rank": 28,
+      "espnId": "3936299"
+    },
+    {
+      "name": "Anthony Davis",
+      "rank": 29,
+      "espnId": "6583"
+    },
+    {
+      "name": "Deni Avdija",
+      "rank": 30,
+      "espnId": "4683021"
+    },
+    {
+      "name": "Bam Adebayo",
+      "rank": 31,
+      "espnId": "4066261"
+    },
+    {
+      "name": "Kawhi Leonard",
+      "rank": 32,
+      "espnId": "6450"
+    },
+    {
+      "name": "Jalen Williams",
+      "rank": 33,
+      "espnId": "4593803"
+    },
+    {
+      "name": "Evan Mobley",
+      "rank": 34,
+      "espnId": "4432158"
+    },
+    {
+      "name": "Derrick White",
+      "rank": 35,
+      "espnId": "3078576"
+    },
+    {
+      "name": "Stephen Curry",
+      "rank": 36,
+      "espnId": "3975"
+    },
+    {
+      "name": "Darius Garland",
+      "rank": 37,
+      "espnId": "4396907"
+    },
+    {
+      "name": "Kon Knueppel",
+      "rank": 38,
+      "espnId": "5061575"
+    },
+    {
+      "name": "Austin Reaves",
+      "rank": 39,
+      "espnId": "4066457"
+    },
+    {
+      "name": "Desmond Bane",
+      "rank": 40,
+      "espnId": "4066320"
+    },
+    {
+      "name": "Jaylen Brown",
+      "rank": 41,
+      "espnId": "3917376"
+    },
+    {
+      "name": "LeBron James",
+      "rank": 42,
+      "espnId": "1966"
+    },
+    {
+      "name": "De'Aaron Fox",
+      "rank": 43,
+      "espnId": "4066259"
+    },
+    {
+      "name": "Mikal Bridges",
+      "rank": 44,
+      "espnId": "3147657"
+    },
+    {
+      "name": "Paolo Banchero",
+      "rank": 45,
+      "espnId": "4432573"
+    },
+    {
+      "name": "Nickeil Alexander-Walker",
+      "rank": 46,
+      "espnId": "4278039"
+    },
+    {
+      "name": "Michael Porter Jr.",
+      "rank": 47,
+      "espnId": "4278104"
+    },
+    {
+      "name": "Dyson Daniels",
+      "rank": 48,
+      "espnId": "4869342"
+    },
+    {
+      "name": "Julius Randle",
+      "rank": 49,
+      "espnId": "3064514"
+    },
+    {
+      "name": "Lauri Markkanen",
+      "rank": 50,
+      "espnId": "4066336"
+    },
+    {
+      "name": "Dejounte Murray",
+      "rank": 51,
+      "espnId": "3907497"
+    },
+    {
+      "name": "Stephon Castle",
+      "rank": 52,
+      "espnId": "4845367"
+    },
+    {
+      "name": "Jarrett Allen",
+      "rank": 53,
+      "espnId": "4066328"
+    },
+    {
+      "name": "Kyrie Irving",
+      "rank": 54,
+      "espnId": "6442"
+    },
+    {
+      "name": "Tyler Herro",
+      "rank": 55,
+      "espnId": "4395725"
+    },
+    {
+      "name": "Naz Reid",
+      "rank": 56,
+      "espnId": "4396971"
+    },
+    {
+      "name": "Brandon Ingram",
+      "rank": 57,
+      "espnId": "3913176"
+    },
+    {
+      "name": "Zion Williamson",
+      "rank": 58,
+      "espnId": "4395628"
+    },
+    {
+      "name": "Franz Wagner",
+      "rank": 59,
+      "espnId": "4566434"
+    },
+    {
+      "name": "Brandon Miller",
+      "rank": 60,
+      "espnId": "4433287"
+    },
+    {
+      "name": "Damian Lillard",
+      "rank": 61,
+      "espnId": "6606"
+    },
+    {
+      "name": "Onyeka Okongwu",
+      "rank": 62,
+      "espnId": "4431680"
+    },
+    {
+      "name": "Keyonte George",
+      "rank": 63,
+      "espnId": "4433627"
+    },
+    {
+      "name": "Trey Murphy III",
+      "rank": 64,
+      "espnId": "4397688"
+    },
+    {
+      "name": "Norman Powell",
+      "rank": 65,
+      "espnId": "2595516"
+    },
+    {
+      "name": "Caleb Wilson",
+      "rank": 66,
+      "espnId": "5095151"
+    },
+    {
+      "name": "Cameron Boozer",
+      "rank": 67,
+      "espnId": "5041935"
+    },
+    {
+      "name": "Donovan Clingan",
+      "rank": 68,
+      "espnId": "5105565"
+    },
+    {
+      "name": "Walker Kessler",
+      "rank": 69,
+      "espnId": "4433136"
+    },
+    {
+      "name": "Rudy Gobert",
+      "rank": 70,
+      "espnId": "3032976"
+    },
+    {
+      "name": "Chet Holmgren",
+      "rank": 71,
+      "espnId": "4433255"
+    },
+    {
+      "name": "Ty Jerome",
+      "rank": 72,
+      "espnId": "4065733"
+    },
+    {
+      "name": "Joel Embiid",
+      "rank": 73,
+      "espnId": "3059318"
+    },
+    {
+      "name": "Brandin Podziemski",
+      "rank": 74,
+      "espnId": "4709138"
+    },
+    {
+      "name": "Alex Sarr",
+      "rank": 75,
+      "espnId": "5160992"
+    },
+    {
+      "name": "Matas Buzelis",
+      "rank": 76,
+      "espnId": "4711294"
+    },
+    {
+      "name": "Miles Bridges",
+      "rank": 77,
+      "espnId": "4066383"
+    },
+    {
+      "name": "Ivica Zubac",
+      "rank": 78,
+      "espnId": "4017837"
+    },
+    {
+      "name": "AJ Dybantsa",
+      "rank": 79,
+      "espnId": "5142718"
+    },
+    {
+      "name": "CJ McCollum",
+      "rank": 80,
+      "espnId": "2490149"
+    },
+    {
+      "name": "Coby White",
+      "rank": 81,
+      "espnId": "4395651"
+    },
+    {
+      "name": "Jaren Jackson Jr.",
+      "rank": 82,
+      "espnId": "4277961"
+    },
+    {
+      "name": "Ja Morant",
+      "rank": 83,
+      "espnId": "4279888"
+    },
+    {
+      "name": "VJ Edgecombe",
+      "rank": 84,
+      "espnId": "5124612"
+    },
+    {
+      "name": "Dylan Harper",
+      "rank": 85,
+      "espnId": "5037871"
+    },
+    {
+      "name": "DeMar DeRozan",
+      "rank": 86,
+      "espnId": "3978"
+    },
+    {
+      "name": "Derik Queen",
+      "rank": 87,
+      "espnId": "4869780"
+    },
+    {
+      "name": "Reed Sheppard",
+      "rank": 88,
+      "espnId": "4711272"
+    },
+    {
+      "name": "Fred VanVleet",
+      "rank": 89,
+      "espnId": "2991230"
+    },
+    {
+      "name": "Payton Pritchard",
+      "rank": 90,
+      "espnId": "4066354"
+    },
+    {
+      "name": "Immanuel Quickley",
+      "rank": 91,
+      "espnId": "4395724"
+    },
+    {
+      "name": "OG Anunoby",
+      "rank": 92,
+      "espnId": "3934719"
+    },
+    {
+      "name": "Josh Hart",
+      "rank": 93,
+      "espnId": "3062679"
+    },
+    {
+      "name": "Darius Acuff Jr.",
+      "rank": 94,
+      "espnId": "5142620"
+    },
+    {
+      "name": "Kel'el Ware",
+      "rank": 95,
+      "espnId": "5105623"
+    },
+    {
+      "name": "Jaden McDaniels",
+      "rank": 96,
+      "espnId": "4431671"
+    },
+    {
+      "name": "Ryan Rollins",
+      "rank": 97,
+      "espnId": "4591725"
+    },
+    {
+      "name": "Ayo Dosunmu",
+      "rank": 98,
+      "espnId": "4397002"
+    },
+    {
+      "name": "Kristaps Porzingis",
+      "rank": 99,
+      "espnId": "3102531"
+    },
+    {
+      "name": "Kevin Porter Jr.",
+      "rank": 100,
+      "espnId": "4397140"
+    },
+    {
+      "name": "Nikola Vucevic",
+      "rank": 101,
+      "espnId": "6478"
+    },
+    {
+      "name": "John Collins",
+      "rank": 102,
+      "espnId": "3908845"
+    },
+    {
+      "name": "Ausar Thompson",
+      "rank": 103,
+      "espnId": "4684742"
+    },
+    {
+      "name": "RJ Barrett",
+      "rank": 104,
+      "espnId": "4395625"
+    },
+    {
+      "name": "Andrew Wiggins",
+      "rank": 105,
+      "espnId": "3059319"
+    },
+    {
+      "name": "Tobias Harris",
+      "rank": 106,
+      "espnId": "6440"
+    },
+    {
+      "name": "Darryn Peterson",
+      "rank": 107,
+      "espnId": "5041955"
+    },
+    {
+      "name": "Paul George",
+      "rank": 108,
+      "espnId": "4251"
+    },
+    {
+      "name": "Nic Claxton",
+      "rank": 109,
+      "espnId": "4278067"
+    },
+    {
+      "name": "Jakob Poeltl",
+      "rank": 110,
+      "espnId": "3134908"
+    },
+    {
+      "name": "Jaime Jaquez Jr.",
+      "rank": 111,
+      "espnId": "4432848"
+    },
+    {
+      "name": "Collin Gillespie",
+      "rank": 112,
+      "espnId": "4278585"
+    },
+    {
+      "name": "Keegan Murray",
+      "rank": 113,
+      "espnId": "4594327"
+    },
+    {
+      "name": "Peyton Watson",
+      "rank": 114,
+      "espnId": "4576087"
+    },
+    {
+      "name": "Jalen Green",
+      "rank": 115,
+      "espnId": "4437244"
+    },
+    {
+      "name": "Zach Edey",
+      "rank": 116,
+      "espnId": "4600663"
+    },
+    {
+      "name": "Quentin Grimes",
+      "rank": 117,
+      "espnId": "4397014"
+    },
+    {
+      "name": "Cedric Coward",
+      "rank": 118,
+      "espnId": "4903027"
+    },
+    {
+      "name": "Jeremiah Fears",
+      "rank": 119,
+      "espnId": "5144091"
+    },
+    {
+      "name": "Jabari Smith Jr.",
+      "rank": 120,
+      "espnId": "4432639"
+    },
+    {
+      "name": "Myles Turner",
+      "rank": 121,
+      "espnId": "3133628"
+    },
+    {
+      "name": "Collin Sexton",
+      "rank": 122,
+      "espnId": "4277811"
+    },
+    {
+      "name": "Andrew Nembhard",
+      "rank": 123,
+      "espnId": "4395712"
+    },
+    {
+      "name": "Oso Ighodaro",
+      "rank": 124,
+      "espnId": "4601023"
+    },
+    {
+      "name": "Daniel Gafford",
+      "rank": 125,
+      "espnId": "4278049"
+    },
+    {
+      "name": "Kyshawn George",
+      "rank": 126,
+      "espnId": "5174563"
+    },
+    {
+      "name": "Egor Demin",
+      "rank": 127,
+      "espnId": "5175643"
+    },
+    {
+      "name": "Jrue Holiday",
+      "rank": 128,
+      "espnId": "3995"
+    },
+    {
+      "name": "Neemias Queta",
+      "rank": 129,
+      "espnId": "4397424"
+    },
+    {
+      "name": "Isaiah Hartenstein",
+      "rank": 130,
+      "espnId": "4222252"
+    },
+    {
+      "name": "Zach LaVine",
+      "rank": 131,
+      "espnId": "3064440"
+    },
+    {
+      "name": "Anthony Black",
+      "rank": 132,
+      "espnId": "4712849"
+    },
+    {
+      "name": "Julian Champagnie",
+      "rank": 133,
+      "espnId": "4592479"
+    },
+    {
+      "name": "Aaron Gordon",
+      "rank": 134,
+      "espnId": "3064290"
+    },
+    {
+      "name": "Brook Lopez",
+      "rank": 135,
+      "espnId": "3448"
+    },
+    {
+      "name": "Malik Monk",
+      "rank": 136,
+      "espnId": "4066262"
+    },
+    {
+      "name": "Day'Ron Sharpe",
+      "rank": 137,
+      "espnId": "4432194"
+    },
+    {
+      "name": "Ace Bailey",
+      "rank": 138,
+      "espnId": "4873138"
+    },
+    {
+      "name": "Dillon Brooks",
+      "rank": 139,
+      "espnId": "3155526"
+    },
+    {
+      "name": "Devin Vassell",
+      "rank": 140,
+      "espnId": "4395630"
+    },
+    {
+      "name": "Mitchell Robinson",
+      "rank": 141,
+      "espnId": "4351852"
+    },
+    {
+      "name": "Keldon Johnson",
+      "rank": 142,
+      "espnId": "4395723"
+    },
+    {
+      "name": "Scotty Pippen Jr.",
+      "rank": 143,
+      "espnId": "4431785"
+    },
+    {
+      "name": "Saddiq Bey",
+      "rank": 144,
+      "espnId": "4397136"
+    },
+    {
+      "name": "Jerami Grant",
+      "rank": 145,
+      "espnId": "2991070"
+    },
+    {
+      "name": "Cason Wallace",
+      "rank": 146,
+      "espnId": "4683692"
+    },
+    {
+      "name": "Jake LaRavia",
+      "rank": 147,
+      "espnId": "4592691"
+    },
+    {
+      "name": "Draymond Green",
+      "rank": 148,
+      "espnId": "6589"
+    },
+    {
+      "name": "Kyle Filipowski",
+      "rank": 149,
+      "espnId": "4684793"
+    },
+    {
+      "name": "Davion Mitchell",
+      "rank": 150,
+      "espnId": "4278053"
+    },
+    {
+      "name": "Jalen Suggs",
+      "rank": 151,
+      "espnId": "4432165"
+    },
+    {
+      "name": "Toumani Camara",
+      "rank": 152,
+      "espnId": "4431736"
+    },
+    {
+      "name": "Dereck Lively II",
+      "rank": 153,
+      "espnId": "4683688"
+    },
+    {
+      "name": "Cameron Johnson",
+      "rank": 154,
+      "espnId": "3138196"
+    },
+    {
+      "name": "Jusuf Nurkic",
+      "rank": 155,
+      "espnId": "3102530"
+    },
+    {
+      "name": "Jonathan Kuminga",
+      "rank": 156,
+      "espnId": "4433247"
+    },
+    {
+      "name": "Tre Jones",
+      "rank": 157,
+      "espnId": "4395626"
+    },
+    {
+      "name": "Isaiah Stewart",
+      "rank": 158,
+      "espnId": "4432810"
+    },
+    {
+      "name": "P.J. Washington",
+      "rank": 159,
+      "espnId": "4278078"
+    },
+    {
+      "name": "Precious Achiuwa",
+      "rank": 160,
+      "espnId": "4431679"
+    },
+    {
+      "name": "Mikel Brown Jr.",
+      "rank": 161,
+      "espnId": "5101761"
+    },
+    {
+      "name": "T.J. McConnell",
+      "rank": 162,
+      "espnId": "2530530"
+    },
+    {
+      "name": "Keaton Wagler",
+      "rank": 163,
+      "espnId": "5254165"
+    },
+    {
+      "name": "Bennedict Mathurin",
+      "rank": 164,
+      "espnId": "4683634"
+    },
+    {
+      "name": "Bobby Portis",
+      "rank": 165,
+      "espnId": "3064482"
+    },
+    {
+      "name": "Moussa Diabate",
+      "rank": 166,
+      "espnId": "4433249"
+    },
+    {
+      "name": "Jamal Shead",
+      "rank": 167,
+      "espnId": "4432241"
+    },
+    {
+      "name": "Grayson Allen",
+      "rank": 168,
+      "espnId": "3135045"
+    },
+    {
+      "name": "Tim Hardaway Jr.",
+      "rank": 169,
+      "espnId": "2528210"
+    },
+    {
+      "name": "Scoot Henderson",
+      "rank": 170,
+      "espnId": "4683678"
+    },
+    {
+      "name": "Yaxel Lendeborg",
+      "rank": 171,
+      "espnId": "5175737"
+    },
+    {
+      "name": "Morez Johnson Jr.",
+      "rank": 172,
+      "espnId": "4873153"
+    },
+    {
+      "name": "Alex Caruso",
+      "rank": 173,
+      "espnId": "2991350"
+    },
+    {
+      "name": "Wendell Carter Jr.",
+      "rank": 174,
+      "espnId": "4277847"
+    },
+    {
+      "name": "Dennis Schroder",
+      "rank": 175,
+      "espnId": "3032979"
+    },
+    {
+      "name": "Yves Missi",
+      "rank": 176,
+      "espnId": "5061589"
+    },
+    {
+      "name": "Ryan Kalkbrenner",
+      "rank": 177,
+      "espnId": "4576060"
+    },
+    {
+      "name": "Santi Aldama",
+      "rank": 178,
+      "espnId": "4593125"
+    },
+    {
+      "name": "Bub Carrington",
+      "rank": 179,
+      "espnId": "4845374"
+    },
+    {
+      "name": "Isaiah Collier",
+      "rank": 180,
+      "espnId": "4683766"
+    },
+    {
+      "name": "Duncan Robinson",
+      "rank": 181,
+      "espnId": "3157465"
+    },
+    {
+      "name": "Deandre Ayton",
+      "rank": 182,
+      "espnId": "4278129"
+    },
+    {
+      "name": "Royce O'Neale",
+      "rank": 183,
+      "espnId": "2583632"
+    },
+    {
+      "name": "Max Christie",
+      "rank": 184,
+      "espnId": "4432582"
+    },
+    {
+      "name": "GG Jackson",
+      "rank": 185,
+      "espnId": "5105550"
+    },
+    {
+      "name": "Collin Murray-Boyles",
+      "rank": 186,
+      "espnId": "5093267"
+    },
+    {
+      "name": "Bradley Beal",
+      "rank": 187,
+      "espnId": "6580"
+    },
+    {
+      "name": "Robert Williams III",
+      "rank": 188,
+      "espnId": "4066211"
+    },
+    {
+      "name": "Jaylon Tyson",
+      "rank": 189,
+      "espnId": "4683747"
+    },
+    {
+      "name": "Kyle Kuzma",
+      "rank": 190,
+      "espnId": "3134907"
+    },
+    {
+      "name": "Kingston Flemings",
+      "rank": 191,
+      "espnId": "5149077"
+    },
+    {
+      "name": "Brayden Burries",
+      "rank": 192,
+      "espnId": "5082206"
+    },
+    {
+      "name": "Danny Wolf",
+      "rank": 193,
+      "espnId": "5107173"
+    },
+    {
+      "name": "Kevin Huerter",
+      "rank": 194,
+      "espnId": "4066372"
+    },
+    {
+      "name": "Aaron Nesmith",
+      "rank": 195,
+      "espnId": "4396909"
+    },
+    {
+      "name": "Naji Marshall",
+      "rank": 196,
+      "espnId": "4278594"
+    },
+    {
+      "name": "Bilal Coulibaly",
+      "rank": 197,
+      "espnId": "5104155"
+    },
+    {
+      "name": "De'Anthony Melton",
+      "rank": 198,
+      "espnId": "4066436"
+    },
+    {
+      "name": "Kelly Oubre Jr.",
+      "rank": 199,
+      "espnId": "3133603"
+    },
+    {
+      "name": "De'Andre Hunter",
+      "rank": 200,
+      "espnId": "4065732"
+    },
+    {
+      "name": "Sam Hauser",
+      "rank": 201,
+      "espnId": "4065804"
+    },
+    {
+      "name": "Anfernee Simons",
+      "rank": 202,
+      "espnId": "4351851"
+    },
+    {
+      "name": "Tari Eason",
+      "rank": 203,
+      "espnId": "4433192"
+    },
+    {
+      "name": "Walter Clayton Jr.",
+      "rank": 204,
+      "espnId": "4896372"
+    },
+    {
+      "name": "Luguentz Dort",
+      "rank": 205,
+      "espnId": "4397020"
+    },
+    {
+      "name": "Rui Hachimura",
+      "rank": 206,
+      "espnId": "4066648"
+    },
+    {
+      "name": "Jimmy Butler III",
+      "rank": 207,
+      "espnId": "6430"
+    },
+    {
+      "name": "Christian Braun",
+      "rank": 208,
+      "espnId": "4431767"
+    },
+    {
+      "name": "Max Strus",
+      "rank": 209,
+      "espnId": "4065778"
+    },
+    {
+      "name": "Kris Dunn",
+      "rank": 210,
+      "espnId": "2991139"
+    },
+    {
+      "name": "Vit Krejci",
+      "rank": 211,
+      "espnId": "4578893"
+    },
+    {
+      "name": "Brice Sensabaugh",
+      "rank": 212,
+      "espnId": "5105839"
+    },
+    {
+      "name": "Jalen Smith",
+      "rank": 213,
+      "espnId": "4397189"
+    },
+    {
+      "name": "Jordan Poole",
+      "rank": 214,
+      "espnId": "4277956"
+    },
+    {
+      "name": "Isaiah Joe",
+      "rank": 215,
+      "espnId": "4395702"
+    },
+    {
+      "name": "Khaman Maluach",
+      "rank": 216,
+      "espnId": "5203685"
+    },
+    {
+      "name": "Derrick Jones Jr.",
+      "rank": 217,
+      "espnId": "3936099"
+    },
+    {
+      "name": "Nique Clifford",
+      "rank": 218,
+      "espnId": "4702384"
+    },
+    {
+      "name": "Luke Kennard",
+      "rank": 219,
+      "espnId": "3913174"
+    },
+    {
+      "name": "Al Horford",
+      "rank": 220,
+      "espnId": "3213"
+    },
+    {
+      "name": "Gradey Dick",
+      "rank": 221,
+      "espnId": "5106258"
+    },
+    {
+      "name": "Jared McCain",
+      "rank": 222,
+      "espnId": "4683778"
+    },
+    {
+      "name": "Herbert Jones",
+      "rank": 223,
+      "espnId": "4277813"
+    },
+    {
+      "name": "Nolan Traore",
+      "rank": 224,
+      "espnId": "5279130"
+    },
+    {
+      "name": "Tre Johnson",
+      "rank": 225,
+      "espnId": "5238230"
+    },
+    {
+      "name": "Aaron Wiggins",
+      "rank": 226,
+      "espnId": "4397183"
+    },
+    {
+      "name": "Ajay Mitchell",
+      "rank": 227,
+      "espnId": "4900671"
+    },
+    {
+      "name": "Baylor Scheierman",
+      "rank": 228,
+      "espnId": "4593841"
+    },
+    {
+      "name": "Isaiah Jackson",
+      "rank": 229,
+      "espnId": "4432170"
+    },
+    {
+      "name": "Zaccharie Risacher",
+      "rank": 230,
+      "espnId": "5211175"
+    },
+    {
+      "name": "Obi Toppin",
+      "rank": 231,
+      "espnId": "4278355"
+    },
+    {
+      "name": "Jaylen Wells",
+      "rank": 232,
+      "espnId": "5112087"
+    },
+    {
+      "name": "Klay Thompson",
+      "rank": 233,
+      "espnId": "6475"
+    },
+    {
+      "name": "Ryan Dunn",
+      "rank": 234,
+      "espnId": "4888725"
+    },
+    {
+      "name": "Nikola Jovic",
+      "rank": 235,
+      "espnId": "4997528"
+    },
+    {
+      "name": "Kasparas Jakucionis",
+      "rank": 236,
+      "espnId": "5214640"
+    },
+    {
+      "name": "Jaylin Williams",
+      "rank": 237,
+      "espnId": "4432823"
+    },
+    {
+      "name": "Marvin Bagley III",
+      "rank": 238,
+      "espnId": "4277848"
+    },
+    {
+      "name": "Jordan Walsh",
+      "rank": 239,
+      "espnId": "4683689"
+    },
+    {
+      "name": "Tristan da Silva",
+      "rank": 240,
+      "espnId": "4702382"
+    },
+    {
+      "name": "Keon Ellis",
+      "rank": 241,
+      "espnId": "4702177"
+    },
+    {
+      "name": "Gui Santos",
+      "rank": 242,
+      "espnId": "4997536"
+    },
+    {
+      "name": "AJ Green",
+      "rank": 243,
+      "espnId": "4397475"
+    },
+    {
+      "name": "Paul Reed",
+      "rank": 244,
+      "espnId": "4278562"
+    },
+    {
+      "name": "Jose Alvarado",
+      "rank": 245,
+      "espnId": "4277869"
+    },
+    {
+      "name": "Jeremy Sochan",
+      "rank": 246,
+      "espnId": "4610139"
+    },
+    {
+      "name": "Miles McBride",
+      "rank": 247,
+      "espnId": "4431823"
+    },
+    {
+      "name": "Ziaire Williams",
+      "rank": 248,
+      "espnId": "4433137"
+    },
+    {
+      "name": "Ronald Holland II",
+      "rank": 249,
+      "espnId": "4683771"
+    },
+    {
+      "name": "Marcus Smart",
+      "rank": 250,
+      "espnId": "2990992"
+    },
+    {
+      "name": "Harrison Barnes",
+      "rank": 251,
+      "espnId": "6578"
+    },
+    {
+      "name": "Terance Mann",
+      "rank": 252,
+      "espnId": "3907823"
+    },
+    {
+      "name": "Andre Drummond",
+      "rank": 253,
+      "espnId": "6585"
+    },
+    {
+      "name": "Hannes Steinbach",
+      "rank": 254,
+      "espnId": "5281370"
+    },
+    {
+      "name": "Sam Merrill",
+      "rank": 255,
+      "espnId": "4066757"
+    },
+    {
+      "name": "Ja'Kobe Walter",
+      "rank": 256,
+      "espnId": "4684272"
+    },
+    {
+      "name": "Luke Kornet",
+      "rank": 257,
+      "espnId": "3064560"
+    },
+    {
+      "name": "Clint Capela",
+      "rank": 258,
+      "espnId": "3102529"
+    },
+    {
+      "name": "Kentavious Caldwell-Pope",
+      "rank": 259,
+      "espnId": "2581018"
+    },
+    {
+      "name": "Trayce Jackson-Davis",
+      "rank": 260,
+      "espnId": "4431684"
+    },
+    {
+      "name": "Caris LeVert",
+      "rank": 261,
+      "espnId": "2991043"
+    },
+    {
+      "name": "Hugo Gonzalez",
+      "rank": 262,
+      "espnId": "5175647"
+    },
+    {
+      "name": "Matisse Thybulle",
+      "rank": 263,
+      "espnId": "3907498"
+    },
+    {
+      "name": "Rob Dillingham",
+      "rank": 264,
+      "espnId": "4684275"
+    },
+    {
+      "name": "Goga Bitadze",
+      "rank": 265,
+      "espnId": "4348700"
+    },
+    {
+      "name": "Kyle Anderson",
+      "rank": 266,
+      "espnId": "2993874"
+    },
+    {
+      "name": "Khris Middleton",
+      "rank": 267,
+      "espnId": "6609"
+    },
+    {
+      "name": "Simone Fontecchio",
+      "rank": 268,
+      "espnId": "3899664"
+    },
+    {
+      "name": "Corey Kispert",
+      "rank": 269,
+      "espnId": "4280151"
+    },
+    {
+      "name": "Olivier-Maxence Prosper",
+      "rank": 270,
+      "espnId": "4595400"
+    },
+    {
+      "name": "Jamal Cain",
+      "rank": 271,
+      "espnId": "4278572"
+    },
+    {
+      "name": "Noah Clowney",
+      "rank": 272,
+      "espnId": "4712896"
+    },
+    {
+      "name": "Bogdan Bogdanovic",
+      "rank": 273,
+      "espnId": "3037789"
+    },
+    {
+      "name": "Bones Hyland",
+      "rank": 274,
+      "espnId": "4592492"
+    },
+    {
+      "name": "Adem Bona",
+      "rank": 275,
+      "espnId": "5105637"
+    },
+    {
+      "name": "Jaxson Hayes",
+      "rank": 276,
+      "espnId": "4397077"
+    },
+    {
+      "name": "Larry Nance Jr.",
+      "rank": 277,
+      "espnId": "2580365"
+    },
+    {
+      "name": "Buddy Hield",
+      "rank": 278,
+      "espnId": "2990984"
+    },
+    {
+      "name": "Jarace Walker",
+      "rank": 279,
+      "espnId": "5106060"
+    },
+    {
+      "name": "Isaac Okoro",
+      "rank": 280,
+      "espnId": "4432822"
+    },
+    {
+      "name": "Cody Williams",
+      "rank": 281,
+      "espnId": "4895758"
+    },
+    {
+      "name": "Patrick Williams",
+      "rank": 282,
+      "espnId": "4431687"
+    },
+    {
+      "name": "Terrence Shannon Jr.",
+      "rank": 283,
+      "espnId": "4432847"
+    },
+    {
+      "name": "Tristan Vukcevic",
+      "rank": 284,
+      "espnId": "4997537"
+    },
+    {
+      "name": "Grant Williams",
+      "rank": 285,
+      "espnId": "4066218"
+    },
+    {
+      "name": "Trey Lyles",
+      "rank": 286,
+      "espnId": "3136196"
+    },
+    {
+      "name": "Kevon Looney",
+      "rank": 287,
+      "espnId": "3155535"
+    },
+    {
+      "name": "Landry Shamet",
+      "rank": 288,
+      "espnId": "3914044"
+    },
+    {
+      "name": "Mouhamed Gueye",
+      "rank": 289,
+      "espnId": "4712863"
+    },
+    {
+      "name": "Jordan Clarkson",
+      "rank": 290,
+      "espnId": "2528426"
+    },
+    {
+      "name": "Kris Murray",
+      "rank": 291,
+      "espnId": "4594326"
+    },
+    {
+      "name": "Gary Trent Jr.",
+      "rank": 292,
+      "espnId": "4277843"
+    },
+    {
+      "name": "Tyus Jones",
+      "rank": 293,
+      "espnId": "3135046"
+    },
+    {
+      "name": "Dean Wade",
+      "rank": 294,
+      "espnId": "3912848"
+    },
+    {
+      "name": "Nate Ament",
+      "rank": 295,
+      "espnId": "5164559"
+    },
+    {
+      "name": "Thomas Bryant",
+      "rank": 296,
+      "espnId": "3934723"
+    },
+    {
+      "name": "Jarred Vanderbilt",
+      "rank": 297,
+      "espnId": "4278077"
+    },
+    {
+      "name": "Kenrich Williams",
+      "rank": 298,
+      "espnId": "3133626"
+    },
+    {
+      "name": "Liam McNeeley",
+      "rank": 299,
+      "espnId": "5239590"
+    },
+    {
+      "name": "Jericho Sims",
+      "rank": 300,
+      "espnId": "4277922"
+    },
+    {
+      "name": "Zach Collins",
+      "rank": 301,
+      "espnId": "4066650"
+    },
+    {
+      "name": "Moritz Wagner",
+      "rank": 302,
+      "espnId": "3150844"
+    },
+    {
+      "name": "Tre Mann",
+      "rank": 303,
+      "espnId": "4432819"
+    },
+    {
+      "name": "Asa Newell",
+      "rank": 304,
+      "espnId": "4873201"
+    },
+    {
+      "name": "Julian Strawther",
+      "rank": 305,
+      "espnId": "4432181"
+    },
+    {
+      "name": "Leonard Miller",
+      "rank": 306,
+      "espnId": "5044385"
+    },
+    {
+      "name": "D'Angelo Russell",
+      "rank": 307,
+      "espnId": "3136776"
+    },
+    {
+      "name": "Caleb Martin",
+      "rank": 308,
+      "espnId": "3138160"
+    },
+    {
+      "name": "Mike Conley",
+      "rank": 309,
+      "espnId": "3195"
+    },
+    {
+      "name": "Ben Sheppard",
+      "rank": 310,
+      "espnId": "4433076"
+    },
+    {
+      "name": "Ben Simmons",
+      "rank": 311,
+      "espnId": "3907387"
+    },
+    {
+      "name": "Taurean Prince",
+      "rank": 312,
+      "espnId": "2990962"
+    },
+    {
+      "name": "Jonathan Mogbo",
+      "rank": 313,
+      "espnId": "5107897"
+    },
+    {
+      "name": "Mark Williams",
+      "rank": 314,
+      "espnId": "4701232"
+    },
+    {
+      "name": "Marcus Sasser",
+      "rank": 315,
+      "espnId": "4432107"
+    },
+    {
+      "name": "Jaden Hardy",
+      "rank": 316,
+      "espnId": "4868423"
+    },
+    {
+      "name": "Johnny Furphy",
+      "rank": 317,
+      "espnId": "5157066"
+    },
+    {
+      "name": "Jalen Wilson",
+      "rank": 318,
+      "espnId": "4431714"
+    },
+    {
+      "name": "Jevon Carter",
+      "rank": 319,
+      "espnId": "3133635"
+    },
+    {
+      "name": "Dorian Finney-Smith",
+      "rank": 320,
+      "espnId": "2578185"
+    },
+    {
+      "name": "Rayan Rupert",
+      "rank": 321,
+      "espnId": "5099752"
+    },
+    {
+      "name": "Josh Green",
+      "rank": 322,
+      "espnId": "4432811"
+    },
+    {
+      "name": "Shaedon Sharpe",
+      "rank": 323,
+      "espnId": "4914336"
+    },
+    {
+      "name": "Steven Adams",
+      "rank": 324,
+      "espnId": "2991235"
+    },
+    {
+      "name": "Sidy Cissoko",
+      "rank": 325,
+      "espnId": "5081727"
+    },
+    {
+      "name": "Jordan Hawkins",
+      "rank": 326,
+      "espnId": "4683750"
+    },
+    {
+      "name": "Jaylen Clark",
+      "rank": 327,
+      "espnId": "4432247"
+    },
+    {
+      "name": "Jett Howard",
+      "rank": 328,
+      "espnId": "5105806"
+    },
+    {
+      "name": "Jordan McLaughlin",
+      "rank": 329,
+      "espnId": "3134916"
+    },
+    {
+      "name": "Jonathan Isaac",
+      "rank": 330,
+      "espnId": "4065654"
+    },
+    {
+      "name": "Dalton Knecht",
+      "rank": 331,
+      "espnId": "4897943"
+    },
+    {
+      "name": "Bronny James",
+      "rank": 332,
+      "espnId": "4683774"
+    },
+    {
+      "name": "Koby Brea",
+      "rank": 333,
+      "espnId": "4591259"
+    },
+    {
+      "name": "Pat Connaughton",
+      "rank": 334,
+      "espnId": "2578239"
+    },
+    {
+      "name": "Kobe Brown",
+      "rank": 335,
+      "espnId": "4431752"
+    },
+    {
+      "name": "Mohamed Diawara",
+      "rank": 336,
+      "espnId": "5289900"
+    },
+    {
+      "name": "Jae'Sean Tate",
+      "rank": 337,
+      "espnId": "3136777"
+    },
+    {
+      "name": "Jase Richardson",
+      "rank": 338,
+      "espnId": "5239561"
+    },
+    {
+      "name": "Gary Harris",
+      "rank": 339,
+      "espnId": "2999547"
+    },
+    {
+      "name": "Jalen Pickett",
+      "rank": 340,
+      "espnId": "4398390"
+    },
+    {
+      "name": "Yang Hansen",
+      "rank": 341,
+      "espnId": "5217746"
+    },
+    {
+      "name": "Julian Phillips",
+      "rank": 342,
+      "espnId": "5105553"
+    },
+    {
+      "name": "Pacome Dadiet",
+      "rank": 343,
+      "espnId": "5211983"
+    },
+    {
+      "name": "Moses Moody",
+      "rank": 344,
+      "espnId": "4432171"
+    },
+    {
+      "name": "Charles Bassey",
+      "rank": 345,
+      "espnId": "4397886"
+    },
+    {
+      "name": "Johni Broome",
+      "rank": 346,
+      "espnId": "4433569"
+    },
+    {
+      "name": "Donte DiVincenzo",
+      "rank": 347,
+      "espnId": "3934673"
+    },
+    {
+      "name": "Noa Essengue",
+      "rank": 348,
+      "espnId": "5242496"
+    },
+    {
+      "name": "Chris Boucher",
+      "rank": 349,
+      "espnId": "3948153"
+    },
+    {
+      "name": "Jordan Miller",
+      "rank": 349,
+      "espnId": "4396818"
+    },
+    {
+      "name": "Gabe Vincent",
+      "rank": 350,
+      "espnId": "3137259"
+    },
+    {
+      "name": "KJ Martin",
+      "rank": 351,
+      "espnId": "4431828"
+    },
+    {
+      "name": "Dwight Powell",
+      "rank": 352,
+      "espnId": "2531367"
+    },
+    {
+      "name": "Spencer Dinwiddie",
+      "rank": 353,
+      "espnId": "2580782"
+    },
+    {
+      "name": "Cam Thomas",
+      "rank": 354,
+      "espnId": "4432174"
+    },
+    {
+      "name": "Andre Jackson Jr.",
+      "rank": 355,
+      "espnId": "4432190"
+    },
+    {
+      "name": "Cameron Payne",
+      "rank": 356,
+      "espnId": "3064230"
+    },
+    {
+      "name": "Delon Wright",
+      "rank": 357,
+      "espnId": "3064447"
+    },
+    {
+      "name": "Dariq Whitehead",
+      "rank": 358,
+      "espnId": "4432735"
+    },
+    {
+      "name": "Georges Niang",
+      "rank": 359,
+      "espnId": "2990969"
+    },
+    {
+      "name": "Cole Anthony",
+      "rank": 360,
+      "espnId": "4432809"
+    },
+    {
+      "name": "Jeremiah Robinson-Earl",
+      "rank": 361,
+      "espnId": "4432813"
+    },
+    {
+      "name": "Dalen Terry",
+      "rank": 362,
+      "espnId": "4433159"
+    },
+    {
+      "name": "Cam Spencer",
+      "rank": 363,
+      "espnId": "4433083"
+    },
+    {
+      "name": "Jaden Ivey",
+      "rank": 364,
+      "espnId": "4433218"
+    },
+    {
+      "name": "Xavier Tillman",
+      "rank": 365,
+      "espnId": "4277964"
+    },
+    {
+      "name": "Caleb Houstan",
+      "rank": 366,
+      "espnId": "4433623"
+    },
+    {
+      "name": "Nick Richards",
+      "rank": 367,
+      "espnId": "4278076"
+    },
+    {
+      "name": "Dario Saric",
+      "rank": 368,
+      "espnId": "3032978"
+    },
+    {
+      "name": "Cam Whitmore",
+      "rank": 369,
+      "espnId": "5105592"
+    },
+    {
+      "name": "Malaki Branham",
+      "rank": 370,
+      "espnId": "4565201"
+    },
+    {
+      "name": "Jaylen Nowell",
+      "rank": 371,
+      "espnId": "4278541"
+    },
+    {
+      "name": "Bruce Brown",
+      "rank": 372,
+      "espnId": "4065670"
+    },
+    {
+      "name": "Malcolm Brogdon",
+      "rank": 373,
+      "espnId": "2566769"
+    },
+    {
+      "name": "Chris Paul",
+      "rank": 374,
+      "espnId": "2779"
+    },
+    {
+      "name": "Joe Ingles",
+      "rank": 375,
+      "espnId": "2968436"
+    },
+    {
+      "name": "Maxi Kleber",
+      "rank": 376,
+      "espnId": "2960236"
+    },
+    {
+      "name": "Kyle Lowry",
+      "rank": 377,
+      "espnId": "3012"
+    },
+    {
+      "name": "Lonzo Ball",
+      "rank": 378,
+      "espnId": "4066421"
+    },
+    {
+      "name": "Jeff Green",
+      "rank": 379,
+      "espnId": "3209"
+    },
+    {
+      "name": "Richaun Holmes",
+      "rank": 380,
+      "espnId": "2993370"
+    },
+    {
+      "name": "Nicolas Batum",
+      "rank": 381,
+      "espnId": "3416"
+    },
+    {
+      "name": "Eric Gordon",
+      "rank": 382,
+      "espnId": "3431"
+    },
+    {
+      "name": "Kevin Love",
+      "rank": 383,
+      "espnId": "3449"
+    },
+    {
+      "name": "Guerschon Yabusele",
+      "rank": 384,
+      "espnId": "4017844"
+    },
+    {
+      "name": "Nigel Hayes-Davis",
+      "rank": 385,
+      "espnId": "3059409"
+    },
+    {
+      "name": "Garrett Temple",
+      "rank": 386,
+      "espnId": "4023"
+    },
+    {
+      "name": "Hunter Tyson",
+      "rank": 387,
+      "espnId": "4395620"
+    },
+    {
+      "name": "Quenton Jackson",
+      "rank": 388,
+      "espnId": "4592829"
+    },
+    {
+      "name": "Killian Hayes",
+      "rank": 389,
+      "espnId": "4683024"
+    },
+    {
+      "name": "Gary Payton II",
+      "rank": 390,
+      "espnId": "3134903"
+    },
+    {
+      "name": "Torrey Craig",
+      "rank": 391,
+      "espnId": "2528693"
+    },
+    {
+      "name": "John Konchar",
+      "rank": 392,
+      "espnId": "3134932"
+    },
+    {
+      "name": "Garrison Mathews",
+      "rank": 393,
+      "espnId": "3913180"
+    },
+    {
+      "name": "Vasilije Micic",
+      "rank": 394,
+      "espnId": "3102532"
+    },
+    {
+      "name": "Dante Exum",
+      "rank": 395,
+      "espnId": "3102528"
+    },
+    {
+      "name": "Kobe Bufkin",
+      "rank": 396,
+      "espnId": "4683736"
+    },
+    {
+      "name": "Ochai Agbaji",
+      "rank": 397,
+      "espnId": "4397018"
+    },
+    {
+      "name": "Nick Smith Jr.",
+      "rank": 398,
+      "espnId": "4683686"
+    },
+    {
+      "name": "Bol Bol",
+      "rank": 399,
+      "espnId": "4397102"
+    },
+    {
+      "name": "Vince Williams Jr.",
+      "rank": 400,
+      "espnId": "4397227"
+    },
+    {
+      "name": "Aaron Holiday",
+      "rank": 401,
+      "espnId": "3922230"
+    },
+    {
+      "name": "Alec Burks",
+      "rank": 402,
+      "espnId": "6429"
+    },
+    {
+      "name": "Jonas Valanciunas",
+      "rank": 403,
+      "espnId": "6477"
+    },
+    {
+      "name": "Mason Plumlee",
+      "rank": 404,
+      "espnId": "2488653"
+    },
+    {
+      "name": "Drew Eubanks",
+      "rank": 405,
+      "espnId": "3914285"
+    },
+    {
+      "name": "Dalano Banton",
+      "rank": 406,
+      "espnId": "4397885"
+    },
+    {
+      "name": "Brandon Clarke",
+      "rank": 407,
+      "espnId": "3906665"
+    },
+    {
+      "name": "Kelly Olynyk",
+      "rank": 408,
+      "espnId": "2489663"
+    },
+    {
+      "name": "Terry Rozier",
+      "rank": 409,
+      "espnId": "3074752"
+    },
+    {
+      "name": "Russell Westbrook",
+      "rank": 409,
+      "espnId": "3468"
+    }
+  ]
+}

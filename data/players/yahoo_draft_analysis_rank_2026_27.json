@@ -1,0 +1,2748 @@
+{
+  "meta": {
+    "source": "yahoo_draft_analysis_rank",
+    "url": "https://basketball.fantasysports.yahoo.com/nba/draftanalysis?type=standard",
+    "api": "https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2/league/478.l.public/players",
+    "fetchedAt": "2026-09-25T14:26:12.324Z",
+    "count": 684,
+    "note": "Yahoo player_ranks OR (mock draft Rank / draftanalysis Rank column)"
+  },
+  "rankings": [
+    {
+      "name": "Victor Wembanyama",
+      "adp": 1
+    },
+    {
+      "name": "Nikola Jokić",
+      "adp": 2
+    },
+    {
+      "name": "Luka Dončić",
+      "adp": 3
+    },
+    {
+      "name": "Shai Gilgeous-Alexander",
+      "adp": 4
+    },
+    {
+      "name": "Cade Cunningham",
+      "adp": 5
+    },
+    {
+      "name": "Tyrese Maxey",
+      "adp": 6
+    },
+    {
+      "name": "Anthony Edwards",
+      "adp": 7
+    },
+    {
+      "name": "Jayson Tatum",
+      "adp": 8
+    },
+    {
+      "name": "Giannis Antetokounmpo",
+      "adp": 9
+    },
+    {
+      "name": "Jalen Johnson",
+      "adp": 10
+    },
+    {
+      "name": "Donovan Mitchell",
+      "adp": 11
+    },
+    {
+      "name": "Tyrese Haliburton",
+      "adp": 12
+    },
+    {
+      "name": "Cooper Flagg",
+      "adp": 13
+    },
+    {
+      "name": "Scottie Barnes",
+      "adp": 14
+    },
+    {
+      "name": "Kevin Durant",
+      "adp": 15
+    },
+    {
+      "name": "Karl-Anthony Towns",
+      "adp": 16
+    },
+    {
+      "name": "Jamal Murray",
+      "adp": 17
+    },
+    {
+      "name": "Josh Giddey",
+      "adp": 18
+    },
+    {
+      "name": "Trae Young",
+      "adp": 19
+    },
+    {
+      "name": "Austin Reaves",
+      "adp": 20
+    },
+    {
+      "name": "Amen Thompson",
+      "adp": 21
+    },
+    {
+      "name": "Domantas Sabonis",
+      "adp": 22
+    },
+    {
+      "name": "LaMelo Ball",
+      "adp": 23
+    },
+    {
+      "name": "Devin Booker",
+      "adp": 24
+    },
+    {
+      "name": "Alperen Şengün",
+      "adp": 25
+    },
+    {
+      "name": "Stephen Curry",
+      "adp": 26
+    },
+    {
+      "name": "Chet Holmgren",
+      "adp": 27
+    },
+    {
+      "name": "Evan Mobley",
+      "adp": 28
+    },
+    {
+      "name": "Jalen Brunson",
+      "adp": 29
+    },
+    {
+      "name": "James Harden",
+      "adp": 30
+    },
+    {
+      "name": "Jaylen Brown",
+      "adp": 31
+    },
+    {
+      "name": "Bam Adebayo",
+      "adp": 32
+    },
+    {
+      "name": "Kawhi Leonard",
+      "adp": 33
+    },
+    {
+      "name": "Lauri Markkanen",
+      "adp": 34
+    },
+    {
+      "name": "Trey Murphy III",
+      "adp": 35
+    },
+    {
+      "name": "Jalen Duren",
+      "adp": 36
+    },
+    {
+      "name": "Walker Kessler",
+      "adp": 37
+    },
+    {
+      "name": "Jalen Williams",
+      "adp": 38
+    },
+    {
+      "name": "Donovan Clingan",
+      "adp": 39
+    },
+    {
+      "name": "Brandon Miller",
+      "adp": 40
+    },
+    {
+      "name": "Derrick White",
+      "adp": 41
+    },
+    {
+      "name": "LeBron James",
+      "adp": 42
+    },
+    {
+      "name": "Jaren Jackson Jr.",
+      "adp": 43
+    },
+    {
+      "name": "Anthony Davis",
+      "adp": 44
+    },
+    {
+      "name": "Kon Knueppel",
+      "adp": 45
+    },
+    {
+      "name": "Desmond Bane",
+      "adp": 46
+    },
+    {
+      "name": "Deni Avdija",
+      "adp": 47
+    },
+    {
+      "name": "Kyrie Irving",
+      "adp": 48
+    },
+    {
+      "name": "Franz Wagner",
+      "adp": 49
+    },
+    {
+      "name": "Onyeka Okongwu",
+      "adp": 50
+    },
+    {
+      "name": "Keyonte George",
+      "adp": 51
+    },
+    {
+      "name": "Paolo Banchero",
+      "adp": 52
+    },
+    {
+      "name": "Michael Porter Jr.",
+      "adp": 53
+    },
+    {
+      "name": "Nickeil Alexander-Walker",
+      "adp": 54
+    },
+    {
+      "name": "Brandon Ingram",
+      "adp": 55
+    },
+    {
+      "name": "Naz Reid",
+      "adp": 56
+    },
+    {
+      "name": "Cameron Boozer",
+      "adp": 57
+    },
+    {
+      "name": "Damian Lillard",
+      "adp": 58
+    },
+    {
+      "name": "Joel Embiid",
+      "adp": 59
+    },
+    {
+      "name": "Dyson Daniels",
+      "adp": 60
+    },
+    {
+      "name": "Darius Garland",
+      "adp": 61
+    },
+    {
+      "name": "Pascal Siakam",
+      "adp": 62
+    },
+    {
+      "name": "Ivica Zubac",
+      "adp": 63
+    },
+    {
+      "name": "Dejounte Murray",
+      "adp": 64
+    },
+    {
+      "name": "Jarrett Allen",
+      "adp": 65
+    },
+    {
+      "name": "Zach Edey",
+      "adp": 66
+    },
+    {
+      "name": "Tyler Herro",
+      "adp": 67
+    },
+    {
+      "name": "Alex Sarr",
+      "adp": 68
+    },
+    {
+      "name": "Kel'el Ware",
+      "adp": 69
+    },
+    {
+      "name": "Ryan Rollins",
+      "adp": 70
+    },
+    {
+      "name": "OG Anunoby",
+      "adp": 71
+    },
+    {
+      "name": "Rudy Gobert",
+      "adp": 72
+    },
+    {
+      "name": "De'Aaron Fox",
+      "adp": 73
+    },
+    {
+      "name": "Payton Pritchard",
+      "adp": 74
+    },
+    {
+      "name": "Julius Randle",
+      "adp": 75
+    },
+    {
+      "name": "Paul George",
+      "adp": 76
+    },
+    {
+      "name": "Stephon Castle",
+      "adp": 77
+    },
+    {
+      "name": "Mikal Bridges",
+      "adp": 78
+    },
+    {
+      "name": "VJ Edgecombe",
+      "adp": 79
+    },
+    {
+      "name": "Matas Buzelis",
+      "adp": 80
+    },
+    {
+      "name": "Cedric Coward",
+      "adp": 81
+    },
+    {
+      "name": "Caleb Wilson",
+      "adp": 82
+    },
+    {
+      "name": "Coby White",
+      "adp": 83
+    },
+    {
+      "name": "Zion Williamson",
+      "adp": 84
+    },
+    {
+      "name": "Norman Powell",
+      "adp": 85
+    },
+    {
+      "name": "Nic Claxton",
+      "adp": 86
+    },
+    {
+      "name": "Day'Ron Sharpe",
+      "adp": 87
+    },
+    {
+      "name": "Immanuel Quickley",
+      "adp": 88
+    },
+    {
+      "name": "Jaden McDaniels",
+      "adp": 89
+    },
+    {
+      "name": "Ausar Thompson",
+      "adp": 90
+    },
+    {
+      "name": "Dylan Harper",
+      "adp": 91
+    },
+    {
+      "name": "Derik Queen",
+      "adp": 92
+    },
+    {
+      "name": "Andrew Wiggins",
+      "adp": 93
+    },
+    {
+      "name": "Jabari Smith Jr.",
+      "adp": 94
+    },
+    {
+      "name": "AJ Dybantsa",
+      "adp": 95
+    },
+    {
+      "name": "Zach LaVine",
+      "adp": 96
+    },
+    {
+      "name": "Kristaps Porziņģis",
+      "adp": 97
+    },
+    {
+      "name": "Miles Bridges",
+      "adp": 98
+    },
+    {
+      "name": "Myles Turner",
+      "adp": 99
+    },
+    {
+      "name": "Josh Hart",
+      "adp": 100
+    },
+    {
+      "name": "Toumani Camara",
+      "adp": 101
+    },
+    {
+      "name": "Isaiah Hartenstein",
+      "adp": 102
+    },
+    {
+      "name": "Ja Morant",
+      "adp": 103
+    },
+    {
+      "name": "Jalen Suggs",
+      "adp": 104
+    },
+    {
+      "name": "Andrew Nembhard",
+      "adp": 105
+    },
+    {
+      "name": "Jusuf Nurkić",
+      "adp": 106
+    },
+    {
+      "name": "CJ McCollum",
+      "adp": 107
+    },
+    {
+      "name": "Peyton Watson",
+      "adp": 108
+    },
+    {
+      "name": "Davion Mitchell",
+      "adp": 109
+    },
+    {
+      "name": "Ayo Dosunmu",
+      "adp": 110
+    },
+    {
+      "name": "Collin Murray-Boyles",
+      "adp": 111
+    },
+    {
+      "name": "John Collins",
+      "adp": 112
+    },
+    {
+      "name": "Darryn Peterson",
+      "adp": 113
+    },
+    {
+      "name": "Jakob Poeltl",
+      "adp": 114
+    },
+    {
+      "name": "Khaman Maluach",
+      "adp": 115
+    },
+    {
+      "name": "Brandin Podziemski",
+      "adp": 116
+    },
+    {
+      "name": "Reed Sheppard",
+      "adp": 117
+    },
+    {
+      "name": "Neemias Queta",
+      "adp": 118
+    },
+    {
+      "name": "Aaron Gordon",
+      "adp": 119
+    },
+    {
+      "name": "Kyshawn George",
+      "adp": 120
+    },
+    {
+      "name": "Kevin Porter Jr.",
+      "adp": 121
+    },
+    {
+      "name": "Devin Vassell",
+      "adp": 122
+    },
+    {
+      "name": "Sandro Mamukelashvili",
+      "adp": 123
+    },
+    {
+      "name": "Yaxel Lendeborg",
+      "adp": 124
+    },
+    {
+      "name": "Jalen Green",
+      "adp": 125
+    },
+    {
+      "name": "Cason Wallace",
+      "adp": 126
+    },
+    {
+      "name": "Jaime Jaquez Jr.",
+      "adp": 127
+    },
+    {
+      "name": "Keegan Murray",
+      "adp": 128
+    },
+    {
+      "name": "Tre Jones",
+      "adp": 129
+    },
+    {
+      "name": "Ajay Mitchell",
+      "adp": 130
+    },
+    {
+      "name": "RJ Barrett",
+      "adp": 131
+    },
+    {
+      "name": "Jrue Holiday",
+      "adp": 132
+    },
+    {
+      "name": "Ty Jerome",
+      "adp": 133
+    },
+    {
+      "name": "Jimmy Butler III",
+      "adp": 134
+    },
+    {
+      "name": "Maxime Raynaud",
+      "adp": 135
+    },
+    {
+      "name": "Fred VanVleet",
+      "adp": 136
+    },
+    {
+      "name": "Collin Gillespie",
+      "adp": 137
+    },
+    {
+      "name": "Paul Reed",
+      "adp": 138
+    },
+    {
+      "name": "Tari Eason",
+      "adp": 139
+    },
+    {
+      "name": "Bobby Portis",
+      "adp": 140
+    },
+    {
+      "name": "Wendell Carter Jr.",
+      "adp": 141
+    },
+    {
+      "name": "Draymond Green",
+      "adp": 142
+    },
+    {
+      "name": "Christian Braun",
+      "adp": 143
+    },
+    {
+      "name": "Nikola Vučević",
+      "adp": 144
+    },
+    {
+      "name": "Moussa Diabaté",
+      "adp": 145
+    },
+    {
+      "name": "Saddiq Bey",
+      "adp": 146
+    },
+    {
+      "name": "Aaron Nesmith",
+      "adp": 147
+    },
+    {
+      "name": "Tobias Harris",
+      "adp": 148
+    },
+    {
+      "name": "Herbert Jones",
+      "adp": 149
+    },
+    {
+      "name": "Dillon Brooks",
+      "adp": 150
+    },
+    {
+      "name": "P.J. Washington",
+      "adp": 151
+    },
+    {
+      "name": "Ace Bailey",
+      "adp": 152
+    },
+    {
+      "name": "Anthony Black",
+      "adp": 153
+    },
+    {
+      "name": "Daniss Jenkins",
+      "adp": 154
+    },
+    {
+      "name": "Jeremiah Fears",
+      "adp": 155
+    },
+    {
+      "name": "Darius Acuff Jr.",
+      "adp": 156
+    },
+    {
+      "name": "Kelly Oubre Jr.",
+      "adp": 157
+    },
+    {
+      "name": "Quentin Grimes",
+      "adp": 158
+    },
+    {
+      "name": "Morez Johnson Jr.",
+      "adp": 159
+    },
+    {
+      "name": "Grayson Allen",
+      "adp": 160
+    },
+    {
+      "name": "Collin Sexton",
+      "adp": 161
+    },
+    {
+      "name": "Bennedict Mathurin",
+      "adp": 162
+    },
+    {
+      "name": "Jerami Grant",
+      "adp": 163
+    },
+    {
+      "name": "Egor Dëmin",
+      "adp": 164
+    },
+    {
+      "name": "Brook Lopez",
+      "adp": 165
+    },
+    {
+      "name": "Yves Missi",
+      "adp": 166
+    },
+    {
+      "name": "Sam Hauser",
+      "adp": 167
+    },
+    {
+      "name": "Isaiah Stewart",
+      "adp": 168
+    },
+    {
+      "name": "Scoot Henderson",
+      "adp": 169
+    },
+    {
+      "name": "Daniel Gafford",
+      "adp": 170
+    },
+    {
+      "name": "Oso Ighodaro",
+      "adp": 171
+    },
+    {
+      "name": "Cameron Johnson",
+      "adp": 172
+    },
+    {
+      "name": "Santi Aldama",
+      "adp": 173
+    },
+    {
+      "name": "Jordan Poole",
+      "adp": 174
+    },
+    {
+      "name": "Dereck Lively II",
+      "adp": 175
+    },
+    {
+      "name": "Kyle Filipowski",
+      "adp": 176
+    },
+    {
+      "name": "De'Andre Hunter",
+      "adp": 177
+    },
+    {
+      "name": "Mitchell Robinson",
+      "adp": 178
+    },
+    {
+      "name": "Julian Champagnie",
+      "adp": 179
+    },
+    {
+      "name": "Kyle Kuzma",
+      "adp": 180
+    },
+    {
+      "name": "Anfernee Simons",
+      "adp": 181
+    },
+    {
+      "name": "Andre Drummond",
+      "adp": 182
+    },
+    {
+      "name": "Deandre Ayton",
+      "adp": 183
+    },
+    {
+      "name": "Max Strus",
+      "adp": 184
+    },
+    {
+      "name": "Jaylen Wells",
+      "adp": 185
+    },
+    {
+      "name": "Rui Hachimura",
+      "adp": 186
+    },
+    {
+      "name": "Aaron Wiggins",
+      "adp": 187
+    },
+    {
+      "name": "Brayden Burries",
+      "adp": 188
+    },
+    {
+      "name": "De'Anthony Melton",
+      "adp": 189
+    },
+    {
+      "name": "Bilal Coulibaly",
+      "adp": 190
+    },
+    {
+      "name": "Scotty Pippen Jr.",
+      "adp": 191
+    },
+    {
+      "name": "Klay Thompson",
+      "adp": 192
+    },
+    {
+      "name": "Cam Whitmore",
+      "adp": 193
+    },
+    {
+      "name": "Obi Toppin",
+      "adp": 194
+    },
+    {
+      "name": "Miles McBride",
+      "adp": 195
+    },
+    {
+      "name": "Luguentz Dort",
+      "adp": 196
+    },
+    {
+      "name": "T.J. McConnell",
+      "adp": 197
+    },
+    {
+      "name": "Keldon Johnson",
+      "adp": 198
+    },
+    {
+      "name": "Jalen Smith",
+      "adp": 199
+    },
+    {
+      "name": "Al Horford",
+      "adp": 200
+    },
+    {
+      "name": "Mikel Brown Jr.",
+      "adp": 201
+    },
+    {
+      "name": "Royce O'Neale",
+      "adp": 202
+    },
+    {
+      "name": "Isaiah Joe",
+      "adp": 203
+    },
+    {
+      "name": "Robert Williams III",
+      "adp": 204
+    },
+    {
+      "name": "Duncan Robinson",
+      "adp": 205
+    },
+    {
+      "name": "Keaton Wagler",
+      "adp": 206
+    },
+    {
+      "name": "Keon Ellis",
+      "adp": 207
+    },
+    {
+      "name": "Malik Monk",
+      "adp": 208
+    },
+    {
+      "name": "Jay Huff",
+      "adp": 209
+    },
+    {
+      "name": "Naji Marshall",
+      "adp": 210
+    },
+    {
+      "name": "Kris Dunn",
+      "adp": 211
+    },
+    {
+      "name": "Max Christie",
+      "adp": 212
+    },
+    {
+      "name": "Shaedon Sharpe",
+      "adp": 213
+    },
+    {
+      "name": "Ryan Kalkbrenner",
+      "adp": 214
+    },
+    {
+      "name": "Derrick Jones Jr.",
+      "adp": 215
+    },
+    {
+      "name": "Donte DiVincenzo",
+      "adp": 216
+    },
+    {
+      "name": "Noah Clowney",
+      "adp": 217
+    },
+    {
+      "name": "Alex Caruso",
+      "adp": 218
+    },
+    {
+      "name": "Luke Kornet",
+      "adp": 219
+    },
+    {
+      "name": "Tristan da Silva",
+      "adp": 220
+    },
+    {
+      "name": "Tim Hardaway Jr.",
+      "adp": 221
+    },
+    {
+      "name": "Tre Johnson",
+      "adp": 222
+    },
+    {
+      "name": "Jake LaRavia",
+      "adp": 223
+    },
+    {
+      "name": "Dylan Cardwell",
+      "adp": 224
+    },
+    {
+      "name": "Jaxson Hayes",
+      "adp": 225
+    },
+    {
+      "name": "Zaccharie Risacher",
+      "adp": 226
+    },
+    {
+      "name": "Ronald Holland II",
+      "adp": 227
+    },
+    {
+      "name": "Kevin Huerter",
+      "adp": 228
+    },
+    {
+      "name": "Sam Merrill",
+      "adp": 229
+    },
+    {
+      "name": "Tony Bradley",
+      "adp": 230
+    },
+    {
+      "name": "Isaiah Jackson",
+      "adp": 231
+    },
+    {
+      "name": "Jaylon Tyson",
+      "adp": 232
+    },
+    {
+      "name": "Jarace Walker",
+      "adp": 233
+    },
+    {
+      "name": "Ja'Kobe Walter",
+      "adp": 234
+    },
+    {
+      "name": "Jordan Goodwin",
+      "adp": 235
+    },
+    {
+      "name": "Jaylin Williams",
+      "adp": 236
+    },
+    {
+      "name": "Khris Middleton",
+      "adp": 237
+    },
+    {
+      "name": "Luke Kennard",
+      "adp": 238
+    },
+    {
+      "name": "Quinten Post",
+      "adp": 239
+    },
+    {
+      "name": "Hannes Steinbach",
+      "adp": 240
+    },
+    {
+      "name": "Moritz Wagner",
+      "adp": 241
+    },
+    {
+      "name": "Kobe Sanders",
+      "adp": 242
+    },
+    {
+      "name": "Adem Bona",
+      "adp": 243
+    },
+    {
+      "name": "Taylor Hendricks",
+      "adp": 244
+    },
+    {
+      "name": "Dennis Schröder",
+      "adp": 245
+    },
+    {
+      "name": "Cam Spencer",
+      "adp": 246
+    },
+    {
+      "name": "Karlo Matković",
+      "adp": 247
+    },
+    {
+      "name": "Jared McCain",
+      "adp": 248
+    },
+    {
+      "name": "Baylor Scheierman",
+      "adp": 249
+    },
+    {
+      "name": "Gui Santos",
+      "adp": 250
+    },
+    {
+      "name": "DeMar DeRozan",
+      "adp": 251
+    },
+    {
+      "name": "Mark Williams",
+      "adp": 252
+    },
+    {
+      "name": "Justin Champagnie",
+      "adp": 253
+    },
+    {
+      "name": "Javonte Green",
+      "adp": 254
+    },
+    {
+      "name": "Harrison Barnes",
+      "adp": 255
+    },
+    {
+      "name": "Brice Sensabaugh",
+      "adp": 256
+    },
+    {
+      "name": "Moses Moody",
+      "adp": 257
+    },
+    {
+      "name": "AJ Green",
+      "adp": 258
+    },
+    {
+      "name": "Russell Westbrook",
+      "adp": 259
+    },
+    {
+      "name": "Goga Bitadze",
+      "adp": 260
+    },
+    {
+      "name": "Precious Achiuwa",
+      "adp": 261
+    },
+    {
+      "name": "Bub Carrington",
+      "adp": 262
+    },
+    {
+      "name": "Gary Payton II",
+      "adp": 263
+    },
+    {
+      "name": "Bruce Brown",
+      "adp": 264
+    },
+    {
+      "name": "Ziaire Williams",
+      "adp": 265
+    },
+    {
+      "name": "Dominick Barlow",
+      "adp": 266
+    },
+    {
+      "name": "Jamal Shead",
+      "adp": 267
+    },
+    {
+      "name": "John Konchar",
+      "adp": 268
+    },
+    {
+      "name": "Jose Alvarado",
+      "adp": 269
+    },
+    {
+      "name": "Jonas Valančiūnas",
+      "adp": 270
+    },
+    {
+      "name": "Marcus Smart",
+      "adp": 271
+    },
+    {
+      "name": "Dru Smith",
+      "adp": 272
+    },
+    {
+      "name": "Pelle Larsson",
+      "adp": 273
+    },
+    {
+      "name": "Vít Krejčí",
+      "adp": 274
+    },
+    {
+      "name": "Jock Landale",
+      "adp": 275
+    },
+    {
+      "name": "Dean Wade",
+      "adp": 276
+    },
+    {
+      "name": "Isaac Okoro",
+      "adp": 277
+    },
+    {
+      "name": "Brandon Williams",
+      "adp": 278
+    },
+    {
+      "name": "Ryan Dunn",
+      "adp": 279
+    },
+    {
+      "name": "Nicolas Batum",
+      "adp": 280
+    },
+    {
+      "name": "Isaiah Collier",
+      "adp": 281
+    },
+    {
+      "name": "Mouhamed Gueye",
+      "adp": 282
+    },
+    {
+      "name": "Simone Fontecchio",
+      "adp": 283
+    },
+    {
+      "name": "Kentavious Caldwell-Pope",
+      "adp": 284
+    },
+    {
+      "name": "Marvin Bagley III",
+      "adp": 285
+    },
+    {
+      "name": "Terance Mann",
+      "adp": 286
+    },
+    {
+      "name": "Clint Capela",
+      "adp": 287
+    },
+    {
+      "name": "Will Richard",
+      "adp": 288
+    },
+    {
+      "name": "Luka Garza",
+      "adp": 289
+    },
+    {
+      "name": "Jordan Walsh",
+      "adp": 290
+    },
+    {
+      "name": "Bones Hyland",
+      "adp": 291
+    },
+    {
+      "name": "Craig Porter Jr.",
+      "adp": 292
+    },
+    {
+      "name": "Caris LeVert",
+      "adp": 293
+    },
+    {
+      "name": "Sion James",
+      "adp": 294
+    },
+    {
+      "name": "Mike Conley",
+      "adp": 295
+    },
+    {
+      "name": "Ben Sheppard",
+      "adp": 296
+    },
+    {
+      "name": "Buddy Hield",
+      "adp": 297
+    },
+    {
+      "name": "Thomas Bryant",
+      "adp": 298
+    },
+    {
+      "name": "Justin Edwards",
+      "adp": 299
+    },
+    {
+      "name": "Guerschon Yabusele",
+      "adp": 300
+    },
+    {
+      "name": "Micah Potter",
+      "adp": 301
+    },
+    {
+      "name": "Patrick Williams",
+      "adp": 302
+    },
+    {
+      "name": "Nique Clifford",
+      "adp": 303
+    },
+    {
+      "name": "Gradey Dick",
+      "adp": 304
+    },
+    {
+      "name": "Jordan Miller",
+      "adp": 305
+    },
+    {
+      "name": "GG Jackson",
+      "adp": 306
+    },
+    {
+      "name": "Gary Trent Jr.",
+      "adp": 307
+    },
+    {
+      "name": "Tyus Jones",
+      "adp": 308
+    },
+    {
+      "name": "Kyle Anderson",
+      "adp": 309
+    },
+    {
+      "name": "Will Riley",
+      "adp": 310
+    },
+    {
+      "name": "Olivier-Maxence Prosper",
+      "adp": 311
+    },
+    {
+      "name": "Spencer Jones",
+      "adp": 312
+    },
+    {
+      "name": "Corey Kispert",
+      "adp": 313
+    },
+    {
+      "name": "Josh Minott",
+      "adp": 314
+    },
+    {
+      "name": "Josh Okogie",
+      "adp": 315
+    },
+    {
+      "name": "Walter Clayton Jr.",
+      "adp": 316
+    },
+    {
+      "name": "Svi Mykhailiuk",
+      "adp": 317
+    },
+    {
+      "name": "Cody Williams",
+      "adp": 318
+    },
+    {
+      "name": "Jarred Vanderbilt",
+      "adp": 319
+    },
+    {
+      "name": "Ochai Agbaji",
+      "adp": 320
+    },
+    {
+      "name": "Kris Murray",
+      "adp": 321
+    },
+    {
+      "name": "Jordan Clarkson",
+      "adp": 322
+    },
+    {
+      "name": "Nae'Qwan Tomlin",
+      "adp": 323
+    },
+    {
+      "name": "Jericho Sims",
+      "adp": 324
+    },
+    {
+      "name": "Danny Wolf",
+      "adp": 325
+    },
+    {
+      "name": "Pat Spencer",
+      "adp": 326
+    },
+    {
+      "name": "Josh Green",
+      "adp": 327
+    },
+    {
+      "name": "Julian Strawther",
+      "adp": 328
+    },
+    {
+      "name": "Jamir Watkins",
+      "adp": 329
+    },
+    {
+      "name": "Kenrich Williams",
+      "adp": 330
+    },
+    {
+      "name": "Taurean Prince",
+      "adp": 331
+    },
+    {
+      "name": "Landry Shamet",
+      "adp": 332
+    },
+    {
+      "name": "Tristan Vukcevic",
+      "adp": 333
+    },
+    {
+      "name": "Anthony Gill",
+      "adp": 334
+    },
+    {
+      "name": "Javon Small",
+      "adp": 335
+    },
+    {
+      "name": "Kasparas Jakučionis",
+      "adp": 336
+    },
+    {
+      "name": "Matisse Thybulle",
+      "adp": 337
+    },
+    {
+      "name": "Quenton Jackson",
+      "adp": 338
+    },
+    {
+      "name": "Hugo González",
+      "adp": 339
+    },
+    {
+      "name": "Jevon Carter",
+      "adp": 340
+    },
+    {
+      "name": "Dwight Powell",
+      "adp": 341
+    },
+    {
+      "name": "Rayan Rupert",
+      "adp": 342
+    },
+    {
+      "name": "Lonzo Ball",
+      "adp": 343
+    },
+    {
+      "name": "Trendon Watford",
+      "adp": 344
+    },
+    {
+      "name": "Ousmane Dieng",
+      "adp": 345
+    },
+    {
+      "name": "Kobe Brown",
+      "adp": 346
+    },
+    {
+      "name": "Jabari Walker",
+      "adp": 347
+    },
+    {
+      "name": "Sidy Cissoko",
+      "adp": 348
+    },
+    {
+      "name": "Ryan Nembhard",
+      "adp": 349
+    },
+    {
+      "name": "Grant Williams",
+      "adp": 350
+    },
+    {
+      "name": "Jaden Ivey",
+      "adp": 351
+    },
+    {
+      "name": "Jaylen Clark",
+      "adp": 352
+    },
+    {
+      "name": "Drake Powell",
+      "adp": 353
+    },
+    {
+      "name": "Aaron Holiday",
+      "adp": 354
+    },
+    {
+      "name": "Jonathan Isaac",
+      "adp": 355
+    },
+    {
+      "name": "Gabe Vincent",
+      "adp": 356
+    },
+    {
+      "name": "Leonard Miller",
+      "adp": 357
+    },
+    {
+      "name": "Kevin Love",
+      "adp": 358
+    },
+    {
+      "name": "Cameron Payne",
+      "adp": 359
+    },
+    {
+      "name": "Vince Williams Jr.",
+      "adp": 360
+    },
+    {
+      "name": "Tyrese Martin",
+      "adp": 361
+    },
+    {
+      "name": "Caleb Martin",
+      "adp": 362
+    },
+    {
+      "name": "Jonathan Kuminga",
+      "adp": 363
+    },
+    {
+      "name": "Jeremy Sochan",
+      "adp": 364
+    },
+    {
+      "name": "Jett Howard",
+      "adp": 365
+    },
+    {
+      "name": "Bryce McGowens",
+      "adp": 366
+    },
+    {
+      "name": "Zeke Nnaji",
+      "adp": 367
+    },
+    {
+      "name": "Jalen Pickett",
+      "adp": 368
+    },
+    {
+      "name": "Daeqwon Plowden",
+      "adp": 369
+    },
+    {
+      "name": "Nick Richards",
+      "adp": 370
+    },
+    {
+      "name": "Jalen Wilson",
+      "adp": 371
+    },
+    {
+      "name": "Dalton Knecht",
+      "adp": 372
+    },
+    {
+      "name": "Nikola Jović",
+      "adp": 373
+    },
+    {
+      "name": "Branden Carlson",
+      "adp": 374
+    },
+    {
+      "name": "Dorian Finney-Smith",
+      "adp": 375
+    },
+    {
+      "name": "Nolan Traore",
+      "adp": 376
+    },
+    {
+      "name": "Micah Peavy",
+      "adp": 377
+    },
+    {
+      "name": "Dalen Terry",
+      "adp": 378
+    },
+    {
+      "name": "Amir Coffey",
+      "adp": 379
+    },
+    {
+      "name": "Jaden Hardy",
+      "adp": 380
+    },
+    {
+      "name": "Carter Bryant",
+      "adp": 381
+    },
+    {
+      "name": "Cole Anthony",
+      "adp": 382
+    },
+    {
+      "name": "Tyler Kolek",
+      "adp": 383
+    },
+    {
+      "name": "Pete Nance",
+      "adp": 384
+    },
+    {
+      "name": "Caleb Love",
+      "adp": 385
+    },
+    {
+      "name": "Noah Penda",
+      "adp": 386
+    },
+    {
+      "name": "Gary Harris",
+      "adp": 387
+    },
+    {
+      "name": "Tidjane Salaün",
+      "adp": 388
+    },
+    {
+      "name": "Rob Dillingham",
+      "adp": 389
+    },
+    {
+      "name": "Jamaree Bouyea",
+      "adp": 390
+    },
+    {
+      "name": "Marcus Sasser",
+      "adp": 391
+    },
+    {
+      "name": "Kevon Looney",
+      "adp": 392
+    },
+    {
+      "name": "Steven Adams",
+      "adp": 393
+    },
+    {
+      "name": "Jordan Hawkins",
+      "adp": 394
+    },
+    {
+      "name": "D'Angelo Russell",
+      "adp": 395
+    },
+    {
+      "name": "Julian Phillips",
+      "adp": 396
+    },
+    {
+      "name": "Drew Eubanks",
+      "adp": 397
+    },
+    {
+      "name": "Jamison Battle",
+      "adp": 398
+    },
+    {
+      "name": "Keaton Wallace",
+      "adp": 399
+    },
+    {
+      "name": "Cam Thomas",
+      "adp": 400
+    },
+    {
+      "name": "Sharife Cooper",
+      "adp": 401
+    },
+    {
+      "name": "Devin Carter",
+      "adp": 402
+    },
+    {
+      "name": "Bogdan Bogdanović",
+      "adp": 403
+    },
+    {
+      "name": "Trayce Jackson-Davis",
+      "adp": 404
+    },
+    {
+      "name": "Myron Gardner",
+      "adp": 405
+    },
+    {
+      "name": "Jeremiah Robinson-Earl",
+      "adp": 406
+    },
+    {
+      "name": "Jonathan Mogbo",
+      "adp": 407
+    },
+    {
+      "name": "Jamal Cain",
+      "adp": 408
+    },
+    {
+      "name": "Tyrese Proctor",
+      "adp": 409
+    },
+    {
+      "name": "Oscar Tshiebwe",
+      "adp": 410
+    },
+    {
+      "name": "Ariel Hukporti",
+      "adp": 411
+    },
+    {
+      "name": "Kelly Olynyk",
+      "adp": 412
+    },
+    {
+      "name": "Larry Nance Jr.",
+      "adp": 413
+    },
+    {
+      "name": "Haywood Highsmith",
+      "adp": 414
+    },
+    {
+      "name": "Tre Mann",
+      "adp": 415
+    },
+    {
+      "name": "Zach Collins",
+      "adp": 416
+    },
+    {
+      "name": "Asa Newell",
+      "adp": 417
+    },
+    {
+      "name": "Rasheer Fleming",
+      "adp": 418
+    },
+    {
+      "name": "Mohamed Diawara",
+      "adp": 419
+    },
+    {
+      "name": "Yanic Konan Niederhäuser",
+      "adp": 420
+    },
+    {
+      "name": "Johnny Furphy",
+      "adp": 421
+    },
+    {
+      "name": "Ben Saraf",
+      "adp": 422
+    },
+    {
+      "name": "Joan Beringer",
+      "adp": 423
+    },
+    {
+      "name": "Bradley Beal",
+      "adp": 424
+    },
+    {
+      "name": "Bez Mbeng",
+      "adp": 425
+    },
+    {
+      "name": "Ethan Thompson",
+      "adp": 426
+    },
+    {
+      "name": "Mason Plumlee",
+      "adp": 427
+    },
+    {
+      "name": "Moussa Cisse",
+      "adp": 428
+    },
+    {
+      "name": "Christian Koloko",
+      "adp": 429
+    },
+    {
+      "name": "Nick Smith Jr.",
+      "adp": 430
+    },
+    {
+      "name": "Elijah Harkless",
+      "adp": 431
+    },
+    {
+      "name": "Terrence Shannon Jr.",
+      "adp": 432
+    },
+    {
+      "name": "Jase Richardson",
+      "adp": 433
+    },
+    {
+      "name": "Chaney Johnson",
+      "adp": 434
+    },
+    {
+      "name": "Jalen Slawson",
+      "adp": 435
+    },
+    {
+      "name": "Jae'Sean Tate",
+      "adp": 436
+    },
+    {
+      "name": "Taelon Peter",
+      "adp": 437
+    },
+    {
+      "name": "Jahmai Mashack",
+      "adp": 438
+    },
+    {
+      "name": "Chris Boucher",
+      "adp": 439
+    },
+    {
+      "name": "Jordan McLaughlin",
+      "adp": 440
+    },
+    {
+      "name": "Malachi Smith",
+      "adp": 441
+    },
+    {
+      "name": "Garrison Mathews",
+      "adp": 442
+    },
+    {
+      "name": "Seth Curry",
+      "adp": 443
+    },
+    {
+      "name": "Killian Hayes",
+      "adp": 444
+    },
+    {
+      "name": "Duop Reath",
+      "adp": 445
+    },
+    {
+      "name": "Leaky Black",
+      "adp": 446
+    },
+    {
+      "name": "Charles Bassey",
+      "adp": 447
+    },
+    {
+      "name": "Maxi Kleber",
+      "adp": 448
+    },
+    {
+      "name": "Pat Connaughton",
+      "adp": 449
+    },
+    {
+      "name": "Doug McDermott",
+      "adp": 450
+    },
+    {
+      "name": "Georges Niang",
+      "adp": 451
+    },
+    {
+      "name": "Cormac Ryan",
+      "adp": 452
+    },
+    {
+      "name": "E.J. Liddell",
+      "adp": 453
+    },
+    {
+      "name": "Keshad Johnson",
+      "adp": 454
+    },
+    {
+      "name": "A.J. Lawson",
+      "adp": 455
+    },
+    {
+      "name": "Malaki Branham",
+      "adp": 456
+    },
+    {
+      "name": "Johnny Juzang",
+      "adp": 457
+    },
+    {
+      "name": "Lindy Waters III",
+      "adp": 458
+    },
+    {
+      "name": "Tyson Etienne",
+      "adp": 459
+    },
+    {
+      "name": "Ron Harper Jr.",
+      "adp": 460
+    },
+    {
+      "name": "Kam Jones",
+      "adp": 461
+    },
+    {
+      "name": "DeAndre Jordan",
+      "adp": 462
+    },
+    {
+      "name": "Blake Hinson",
+      "adp": 463
+    },
+    {
+      "name": "Bronny James",
+      "adp": 464
+    },
+    {
+      "name": "Andre Jackson Jr.",
+      "adp": 465
+    },
+    {
+      "name": "Julian Reese",
+      "adp": 466
+    },
+    {
+      "name": "Cody Martin",
+      "adp": 467
+    },
+    {
+      "name": "Trey Lyles",
+      "adp": 468
+    },
+    {
+      "name": "Malevy Leons",
+      "adp": 469
+    },
+    {
+      "name": "John Poulakidas",
+      "adp": 470
+    },
+    {
+      "name": "Liam McNeeley",
+      "adp": 471
+    },
+    {
+      "name": "DaQuan Jeffries",
+      "adp": 472
+    },
+    {
+      "name": "Tyler Burton",
+      "adp": 473
+    },
+    {
+      "name": "Dalano Banton",
+      "adp": 474
+    },
+    {
+      "name": "Caleb Houstan",
+      "adp": 475
+    },
+    {
+      "name": "Cam Christie",
+      "adp": 476
+    },
+    {
+      "name": "Isaiah Livers",
+      "adp": 477
+    },
+    {
+      "name": "Ben Simmons",
+      "adp": 478
+    },
+    {
+      "name": "KJ Simpson",
+      "adp": 479
+    },
+    {
+      "name": "Brooks Barnhizer",
+      "adp": 480
+    },
+    {
+      "name": "PJ Hall",
+      "adp": 481
+    },
+    {
+      "name": "Eric Gordon",
+      "adp": 482
+    },
+    {
+      "name": "AJ Johnson",
+      "adp": 483
+    },
+    {
+      "name": "Blake Wesley",
+      "adp": 484
+    },
+    {
+      "name": "Adama Bal",
+      "adp": 485
+    },
+    {
+      "name": "David Roddy",
+      "adp": 486
+    },
+    {
+      "name": "LJ Cryer",
+      "adp": 487
+    },
+    {
+      "name": "Yuki Kawamura",
+      "adp": 488
+    },
+    {
+      "name": "Kennedy Chandler",
+      "adp": 489
+    },
+    {
+      "name": "Jeff Green",
+      "adp": 490
+    },
+    {
+      "name": "Drew Timme",
+      "adp": 491
+    },
+    {
+      "name": "DaRon Holmes II",
+      "adp": 492
+    },
+    {
+      "name": "MarJon Beauchamp",
+      "adp": 493
+    },
+    {
+      "name": "Lucas Williamson",
+      "adp": 494
+    },
+    {
+      "name": "Antonio Reeves",
+      "adp": 495
+    },
+    {
+      "name": "Nate Williams",
+      "adp": 496
+    },
+    {
+      "name": "Joe Ingles",
+      "adp": 497
+    },
+    {
+      "name": "DeJon Jarreau",
+      "adp": 498
+    },
+    {
+      "name": "Bismack Biyombo",
+      "adp": 499
+    },
+    {
+      "name": "Orlando Robinson",
+      "adp": 500
+    },
+    {
+      "name": "Xavier Tillman",
+      "adp": 501
+    },
+    {
+      "name": "Taj Gibson",
+      "adp": 502
+    },
+    {
+      "name": "Mo Bamba",
+      "adp": 503
+    },
+    {
+      "name": "JD Davison",
+      "adp": 504
+    },
+    {
+      "name": "Chris Youngblood",
+      "adp": 505
+    },
+    {
+      "name": "Wendell Moore Jr.",
+      "adp": 506
+    },
+    {
+      "name": "Alondes Williams",
+      "adp": 507
+    },
+    {
+      "name": "Dariq Whitehead",
+      "adp": 508
+    },
+    {
+      "name": "Tyler Smith",
+      "adp": 509
+    },
+    {
+      "name": "Monté Morris",
+      "adp": 510
+    },
+    {
+      "name": "Hunter Tyson",
+      "adp": 511
+    },
+    {
+      "name": "Andersson Garcia",
+      "adp": 512
+    },
+    {
+      "name": "Chaz Lanier",
+      "adp": 513
+    },
+    {
+      "name": "Kadary Richmond",
+      "adp": 514
+    },
+    {
+      "name": "Mac McClung",
+      "adp": 515
+    },
+    {
+      "name": "RayJ Dennis",
+      "adp": 516
+    },
+    {
+      "name": "Patrick Baldwin Jr.",
+      "adp": 517
+    },
+    {
+      "name": "Lachlan Olbrich",
+      "adp": 518
+    },
+    {
+      "name": "Trey Alexander",
+      "adp": 519
+    },
+    {
+      "name": "Luke Travers",
+      "adp": 520
+    },
+    {
+      "name": "Amari Williams",
+      "adp": 521
+    },
+    {
+      "name": "TyTy Washington Jr.",
+      "adp": 522
+    },
+    {
+      "name": "Kevin McCullar Jr.",
+      "adp": 523
+    },
+    {
+      "name": "Colby Jones",
+      "adp": 524
+    },
+    {
+      "name": "Dillon Jones",
+      "adp": 525
+    },
+    {
+      "name": "Tosan Evbuomwan",
+      "adp": 526
+    },
+    {
+      "name": "Alijah Martin",
+      "adp": 527
+    },
+    {
+      "name": "Pacôme Dadiet",
+      "adp": 528
+    },
+    {
+      "name": "Thanasis Antetokounmpo",
+      "adp": 529
+    },
+    {
+      "name": "Tolu Smith",
+      "adp": 530
+    },
+    {
+      "name": "Miles Kelly",
+      "adp": 531
+    },
+    {
+      "name": "Lonnie Walker IV",
+      "adp": 532
+    },
+    {
+      "name": "David Jones Garcia",
+      "adp": 533
+    },
+    {
+      "name": "Colin Castleton",
+      "adp": 534
+    },
+    {
+      "name": "Tristan Enaruna",
+      "adp": 535
+    },
+    {
+      "name": "Garrett Temple",
+      "adp": 536
+    },
+    {
+      "name": "Riley Minix",
+      "adp": 537
+    },
+    {
+      "name": "Elfrid Payton",
+      "adp": 538
+    },
+    {
+      "name": "Yang Hansen",
+      "adp": 539
+    },
+    {
+      "name": "Koby Brea",
+      "adp": 540
+    },
+    {
+      "name": "Rocco Zikarsky",
+      "adp": 541
+    },
+    {
+      "name": "Kobe Bufkin",
+      "adp": 542
+    },
+    {
+      "name": "Isaiah Crawford",
+      "adp": 543
+    },
+    {
+      "name": "Nigel Hayes-Davis",
+      "adp": 544
+    },
+    {
+      "name": "Adou Thiero",
+      "adp": 545
+    },
+    {
+      "name": "Curtis Jones",
+      "adp": 546
+    },
+    {
+      "name": "Enrique Freeman",
+      "adp": 547
+    },
+    {
+      "name": "Keshon Gilbert",
+      "adp": 548
+    },
+    {
+      "name": "Chris Mañon",
+      "adp": 549
+    },
+    {
+      "name": "Isaac Jones",
+      "adp": 550
+    },
+    {
+      "name": "Trey Jemison III",
+      "adp": 551
+    },
+    {
+      "name": "Skal Labissière",
+      "adp": 552
+    },
+    {
+      "name": "Zyon Pullin",
+      "adp": 553
+    },
+    {
+      "name": "Norchad Omier",
+      "adp": 554
+    },
+    {
+      "name": "Drew Peterson",
+      "adp": 555
+    },
+    {
+      "name": "Olivier Sarr",
+      "adp": 556
+    },
+    {
+      "name": "N'Faly Dante",
+      "adp": 557
+    },
+    {
+      "name": "Payton Sandfort",
+      "adp": 558
+    },
+    {
+      "name": "Nikola Topić",
+      "adp": 559
+    },
+    {
+      "name": "John Tonje",
+      "adp": 560
+    },
+    {
+      "name": "Jahmir Young",
+      "adp": 561
+    },
+    {
+      "name": "Mouhamadou Gueye",
+      "adp": 562
+    },
+    {
+      "name": "Grant Nelson",
+      "adp": 563
+    },
+    {
+      "name": "Vladislav Goldin",
+      "adp": 564
+    },
+    {
+      "name": "Chris Livingston",
+      "adp": 565
+    },
+    {
+      "name": "Jayson Kent",
+      "adp": 566
+    },
+    {
+      "name": "Lawson Lovering",
+      "adp": 567
+    },
+    {
+      "name": "Jacob Toppin",
+      "adp": 568
+    },
+    {
+      "name": "Josh Oduro",
+      "adp": 569
+    },
+    {
+      "name": "Markelle Fultz",
+      "adp": 570
+    },
+    {
+      "name": "Harrison Ingram",
+      "adp": 571
+    },
+    {
+      "name": "Dario Šarić",
+      "adp": 572
+    },
+    {
+      "name": "CJ Huntley",
+      "adp": 573
+    },
+    {
+      "name": "Hayden Gray",
+      "adp": 574
+    },
+    {
+      "name": "Kevin Knox II",
+      "adp": 575
+    },
+    {
+      "name": "Hunter Dickinson",
+      "adp": 576
+    },
+    {
+      "name": "Javonte Cooke",
+      "adp": 577
+    },
+    {
+      "name": "Stanley Umude",
+      "adp": 578
+    },
+    {
+      "name": "Toby Okani",
+      "adp": 579
+    },
+    {
+      "name": "Adam Flagler",
+      "adp": 580
+    },
+    {
+      "name": "Bobi Klintman",
+      "adp": 581
+    },
+    {
+      "name": "Ömer Yurtseven",
+      "adp": 582
+    },
+    {
+      "name": "Tristen Newton",
+      "adp": 583
+    },
+    {
+      "name": "Sean Pedulla",
+      "adp": 584
+    },
+    {
+      "name": "Alex Antetokounmpo",
+      "adp": 585
+    },
+    {
+      "name": "Max Shulga",
+      "adp": 586
+    },
+    {
+      "name": "James Wiseman",
+      "adp": 587
+    },
+    {
+      "name": "Mark Sears",
+      "adp": 588
+    },
+    {
+      "name": "Trevor Keels",
+      "adp": 589
+    },
+    {
+      "name": "Trentyn Flowers",
+      "adp": 590
+    },
+    {
+      "name": "Buddy Boeheim",
+      "adp": 591
+    },
+    {
+      "name": "Alex Morales",
+      "adp": 592
+    },
+    {
+      "name": "Noa Essengue",
+      "adp": 593
+    },
+    {
+      "name": "Braden Smith",
+      "adp": 594
+    },
+    {
+      "name": "Bryce Hopkins",
+      "adp": 595
+    },
+    {
+      "name": "Alex Karaban",
+      "adp": 596
+    },
+    {
+      "name": "Quadir Copeland",
+      "adp": 597
+    },
+    {
+      "name": "Tobi Lawal",
+      "adp": 598
+    },
+    {
+      "name": "Lajae Jones",
+      "adp": 599
+    },
+    {
+      "name": "Allen Graves",
+      "adp": 600
+    },
+    {
+      "name": "Ja'Kobi Gillespie",
+      "adp": 601
+    },
+    {
+      "name": "Otega Oweh",
+      "adp": 602
+    },
+    {
+      "name": "Tyler Nickel",
+      "adp": 603
+    },
+    {
+      "name": "Koa Peat",
+      "adp": 604
+    },
+    {
+      "name": "Meleek Thomas",
+      "adp": 605
+    },
+    {
+      "name": "Sergio De Larrea",
+      "adp": 606
+    },
+    {
+      "name": "Jaylin Sellers",
+      "adp": 607
+    },
+    {
+      "name": "Tamar Bates",
+      "adp": 608
+    },
+    {
+      "name": "Chance McMillian",
+      "adp": 609
+    },
+    {
+      "name": "Kylan Boswell",
+      "adp": 610
+    },
+    {
+      "name": "Jack Kayil",
+      "adp": 611
+    },
+    {
+      "name": "AK Okereke",
+      "adp": 612
+    },
+    {
+      "name": "Henri Veesaar",
+      "adp": 613
+    },
+    {
+      "name": "Josh Dix",
+      "adp": 614
+    },
+    {
+      "name": "Tobe Awaka",
+      "adp": 615
+    },
+    {
+      "name": "Sean McNeil",
+      "adp": 616
+    },
+    {
+      "name": "Boopie Miller",
+      "adp": 617
+    },
+    {
+      "name": "Jaden Bradley",
+      "adp": 618
+    },
+    {
+      "name": "Deivon Smith",
+      "adp": 619
+    },
+    {
+      "name": "Jake Stephens",
+      "adp": 620
+    },
+    {
+      "name": "Malik Dia",
+      "adp": 621
+    },
+    {
+      "name": "Bruce Thornton",
+      "adp": 622
+    },
+    {
+      "name": "Ebuka Okorie",
+      "adp": 623
+    },
+    {
+      "name": "Aday Mara",
+      "adp": 624
+    },
+    {
+      "name": "Vsevolod Ishchenko",
+      "adp": 625
+    },
+    {
+      "name": "Igor Milicic Jr.",
+      "adp": 626
+    },
+    {
+      "name": "Izaiyah Nelson",
+      "adp": 627
+    },
+    {
+      "name": "Thomas Sorber",
+      "adp": 628
+    },
+    {
+      "name": "Graham Ike",
+      "adp": 629
+    },
+    {
+      "name": "Nick Martinelli",
+      "adp": 630
+    },
+    {
+      "name": "Justin Harmon",
+      "adp": 631
+    },
+    {
+      "name": "Mario Hezonja",
+      "adp": 632
+    },
+    {
+      "name": "Ryan Conwell",
+      "adp": 633
+    },
+    {
+      "name": "Carson Cooper",
+      "adp": 634
+    },
+    {
+      "name": "Malique Lewis",
+      "adp": 635
+    },
+    {
+      "name": "Kingston Flemings",
+      "adp": 636
+    },
+    {
+      "name": "Ibrahima Diallo",
+      "adp": 637
+    },
+    {
+      "name": "Dillon Mitchell",
+      "adp": 638
+    },
+    {
+      "name": "Tarris Reed Jr.",
+      "adp": 639
+    },
+    {
+      "name": "Cameron Carr",
+      "adp": 640
+    },
+    {
+      "name": "Tarik Biberovic",
+      "adp": 641
+    },
+    {
+      "name": "Ernest Udeh Jr.",
+      "adp": 642
+    },
+    {
+      "name": "Michael Ajayi",
+      "adp": 643
+    },
+    {
+      "name": "Rafael Castro",
+      "adp": 644
+    },
+    {
+      "name": "Richie Saunders",
+      "adp": 645
+    },
+    {
+      "name": "Alex Toohey",
+      "adp": 646
+    },
+    {
+      "name": "Chris Cenac Jr.",
+      "adp": 647
+    },
+    {
+      "name": "Bennett Stirtz",
+      "adp": 648
+    },
+    {
+      "name": "Trevon Brazile",
+      "adp": 649
+    },
+    {
+      "name": "Kobe Stewart",
+      "adp": 650
+    },
+    {
+      "name": "Jayden Quaintance",
+      "adp": 651
+    },
+    {
+      "name": "Labaron Philon Jr.",
+      "adp": 652
+    },
+    {
+      "name": "Jayden Nunn",
+      "adp": 653
+    },
+    {
+      "name": "Emanuel Sharp",
+      "adp": 654
+    },
+    {
+      "name": "Tre Donaldson",
+      "adp": 655
+    },
+    {
+      "name": "Trey Kaufman-Renn",
+      "adp": 656
+    },
+    {
+      "name": "John Butler Jr.",
+      "adp": 657
+    },
+    {
+      "name": "Christian Anderson Jr.",
+      "adp": 658
+    },
+    {
+      "name": "Dain Dainja",
+      "adp": 659
+    },
+    {
+      "name": "Joshua Jefferson",
+      "adp": 660
+    },
+    {
+      "name": "Ugonna Onyenso",
+      "adp": 661
+    },
+    {
+      "name": "Trey Townsend",
+      "adp": 662
+    },
+    {
+      "name": "Arthur Kaluma",
+      "adp": 663
+    },
+    {
+      "name": "Khalifa Diop",
+      "adp": 664
+    },
+    {
+      "name": "Jaron Pierre Jr.",
+      "adp": 665
+    },
+    {
+      "name": "Isaiah Evans",
+      "adp": 666
+    },
+    {
+      "name": "Karim Lopez",
+      "adp": 667
+    },
+    {
+      "name": "Nate Ament",
+      "adp": 668
+    },
+    {
+      "name": "Dailyn Swain",
+      "adp": 669
+    },
+    {
+      "name": "Tyler Bilodeau",
+      "adp": 670
+    },
+    {
+      "name": "Jamarion Sharp",
+      "adp": 671
+    },
+    {
+      "name": "Bogoljub Marković",
+      "adp": 672
+    },
+    {
+      "name": "Alpha Diallo",
+      "adp": 673
+    },
+    {
+      "name": "Felix Okpara",
+      "adp": 674
+    },
+    {
+      "name": "Maliq Brown",
+      "adp": 675
+    },
+    {
+      "name": "Baba Miller",
+      "adp": 676
+    },
+    {
+      "name": "Zuby Ejiofor",
+      "adp": 677
+    },
+    {
+      "name": "James Johnson",
+      "adp": 678
+    },
+    {
+      "name": "Darius Brown",
+      "adp": 679
+    },
+    {
+      "name": "Chucky Hepburn",
+      "adp": 680
+    },
+    {
+      "name": "Liam Robbins",
+      "adp": 681
+    },
+    {
+      "name": "Hunter Sallis",
+      "adp": 682
+    },
+    {
+      "name": "Johni Broome",
+      "adp": 683
+    },
+    {
+      "name": "Jahmyl Telfort",
+      "adp": 684
+    }
+  ]
+}

@@ -1,0 +1,1186 @@
+import { describe, expect, it } from "vitest"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import { applyStreamingPlanPreview, previewSeatKey } from "@/lib/matchup/applyStreamingPlanPreview"
+import { youTotalsFromDaily, type DailyLineups } from "@/lib/matchup/dailyLineups"
+import { buildStreamingPlan } from "@/lib/matchup/streamingPlans"
+import type {
+  MatchupBoard,
+  StreamingPlan,
+  StreamingPlanDayCell,
+} from "@/lib/matchup/types"
+import type {
+  ScheduleResponse,
+  SeasonPlayer,
+  SeasonRosterEntry,
+} from "@/lib/season/types"
+
+const DAYS = ["2025-11-03", "2025-11-04", "2025-11-05"] as const
+
+const emptyActiveEntries = (): SeasonRosterEntry[] => [
+  { slot: "PG", playerId: null },
+  { slot: "SG", playerId: null },
+  { slot: "SF", playerId: null },
+  { slot: "PF", playerId: null },
+  { slot: "C", playerId: null },
+  { slot: "G", playerId: null },
+  { slot: "F", playerId: null },
+  { slot: "UTIL", playerId: null },
+  { slot: "UTIL", playerId: null },
+  { slot: "UTIL", playerId: null },
+]
+
+const withStarter = (playerId: string): SeasonRosterEntry[] => {
+  const entries = emptyActiveEntries()
+  entries[0] = { ...entries[0]!, playerId }
+  return entries
+}
+
+const player = (
+  id: string,
+  teamAbbr: string,
+  overrides: Partial<SeasonPlayer> = {},
+): SeasonPlayer => {
+  const { projections, shooting, ...rest } = overrides
+  return {
+    id,
+    name: id,
+    teamAbbr,
+    positions: ["PF", "C"],
+    projections: {
+      FG_PCT: 0.5,
+      FT_PCT: 0.8,
+      TPM: 1,
+      REB: 5,
+      AST: 2,
+      STL: 1,
+      BLK: 1,
+      TO: 2,
+      PTS: 10,
+      ...projections,
+    },
+    shooting: { FGM: 4, FGA: 8, FTM: 2, FTA: 2.5, ...shooting },
+    ...rest,
+  }
+}
+
+const emptyCell = (spotIndex: number): StreamingPlanDayCell => ({
+  spotIndex,
+  playerId: null,
+  action: "empty",
+  droppedPlayerId: null,
+  rosterDropPlayerId: null,
+  rosterDropKind: "none",
+  addIndex: null,
+  alternativePlayerIds: [],
+  targetCategoryIds: [],
+})
+
+const plan = (
+  spotCount: 1 | 2 | 3,
+  days: StreamingPlan["days"],
+): StreamingPlan => ({
+  spotCount,
+  addLimit: 7,
+  addsUsed: 1,
+  gameStarts: 1,
+  summaryReasons: [],
+  days,
+  opponentDays: [],
+  opponentDaily: {},
+})
+
+const playerIdsOn = (daily: DailyLineups, day: string): string[] =>
+  (daily[day] ?? [])
+    .map((entry) => entry.playerId)
+    .filter((playerId): playerId is string => playerId !== null)
+
+describe("applyStreamingPlanPreview", () => {
+  it("clears a roster drop from the add-day onward and seats the streamer on game days only", () => {
+    const jjj = player("jjj", "MEM", { projections: { STL: 1, PTS: 8 } })
+    const streamer = player("fa-stl", "BOS", {
+      projections: { STL: 5, PTS: 20 },
+    })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[2],
+        days: [...DAYS],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "MEM", awayAbbr: "NYK" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[2], homeAbbr: "MEM", awayAbbr: "MIA" },
+      ],
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter("jjj"),
+      [DAYS[1]]: withStarter("jjj"),
+      [DAYS[2]]: withStarter("jjj"),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [emptyCell(0)],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stl",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: "jjj",
+            rosterDropKind: "player",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[2],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stl",
+            action: "hold",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: null,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+    const playersById = { jjj, "fa-stl": streamer }
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      playersById,
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toEqual(["jjj"])
+    expect(playerIdsOn(preview, DAYS[1])).toEqual(["fa-stl"])
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain("jjj")
+    expect(playerIdsOn(preview, DAYS[2])).not.toContain("jjj")
+    expect(playerIdsOn(preview, DAYS[2])).not.toContain("fa-stl")
+    expect(preview[DAYS[0]]).toHaveLength(10)
+    expect(preview[DAYS[1]]).toHaveLength(10)
+
+    const players = [jjj, streamer]
+    const baseStl = youTotalsFromDaily(baseDaily, players, schedule).STL
+    const previewStl = youTotalsFromDaily(preview, players, schedule).STL
+    expect(previewStl).toBeGreaterThan(baseStl)
+  })
+
+  it("does not reseat a plan-dropped roster player even if keepRosterSeats asks", () => {
+    const jjj = player("jjj", "MEM")
+    const streamer = player("fa-stl", "BOS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "MEM", awayAbbr: "NYK" },
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "MEM", awayAbbr: "MIA" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "ORL" },
+      ],
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter("jjj"),
+      [DAYS[1]]: withStarter("jjj"),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stl",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: "jjj",
+            rosterDropKind: "player",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stl",
+            action: "hold",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: null,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { jjj, "fa-stl": streamer },
+      schedule,
+      { keepRosterSeats: new Set([previewSeatKey(DAYS[1], "jjj")]) },
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).not.toContain("jjj")
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain("jjj")
+  })
+
+  it("seats a kept roster player who is missing from the saved day without evicting other starters", () => {
+    const jjj = player("jjj", "MEM")
+    const other = player("other", "NYK")
+    const kept = player("kept", "CHI")
+    const streamer = player("fa-stl", "BOS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "MEM", awayAbbr: "CHI" },
+        { date: DAYS[0], homeAbbr: "NYK", awayAbbr: "ATL" },
+        { date: DAYS[0], homeAbbr: "CHI", awayAbbr: "WAS" },
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "ORL" },
+      ],
+    }
+    const dayEntries = emptyActiveEntries()
+    dayEntries[0] = { slot: "PG", playerId: "other" }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stl",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: "jjj",
+            rosterDropKind: "player",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: dayEntries },
+      previewPlan,
+      { jjj, other, kept, "fa-stl": streamer },
+      schedule,
+      { keepRosterSeats: new Set([previewSeatKey(DAYS[0], "kept")]) },
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain("kept")
+    expect(playerIdsOn(preview, DAYS[0])).toContain("other")
+    expect(playerIdsOn(preview, DAYS[0])).not.toContain("jjj")
+  })
+
+  it("clears a swapped-out streamer from the drop day onward", () => {
+    const streamerA = player("fa-a", "BOS")
+    const streamerB = player("fa-b", "NYK")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[2],
+        days: [...DAYS],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: DAYS[1], homeAbbr: "NYK", awayAbbr: "ATL" },
+        { date: DAYS[2], homeAbbr: "BOS", awayAbbr: "ORL" },
+        { date: DAYS[2], homeAbbr: "NYK", awayAbbr: "PHI" },
+      ],
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter("fa-a"),
+      [DAYS[1]]: withStarter("fa-a"),
+      [DAYS[2]]: withStarter("fa-a"),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-a",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-b",
+            action: "drop_add",
+            droppedPlayerId: "fa-a",
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: 2,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[2],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-b",
+            action: "hold",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: null,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { "fa-a": streamerA, "fa-b": streamerB },
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toEqual(["fa-a"])
+    expect(playerIdsOn(preview, DAYS[1])).toEqual(["fa-b"])
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain("fa-a")
+    expect(playerIdsOn(preview, DAYS[2])).not.toContain("fa-a")
+    expect(playerIdsOn(preview, DAYS[2])).toContain("fa-b")
+  })
+
+  it("does not seat a streamer on an off night", () => {
+    const streamer = player("fa-off", "BOS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [{ date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" }],
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: emptyActiveEntries(),
+      [DAYS[1]]: emptyActiveEntries(),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-off",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-off",
+            action: "hold",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: null,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { "fa-off": streamer },
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toEqual(["fa-off"])
+    expect(playerIdsOn(preview, DAYS[1])).toEqual([])
+  })
+
+  it("seats two different free agents on the same day in a multi-spot plan", () => {
+    const faA = player("fa-a", "BOS", { positions: ["PG"] })
+    const faB = player("fa-b", "NYK", { positions: ["SG"] })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[0], homeAbbr: "NYK", awayAbbr: "MIA" },
+      ],
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: emptyActiveEntries(),
+    }
+    const previewPlan = plan(2, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-a",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+          {
+            spotIndex: 1,
+            playerId: "fa-b",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 2,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      new Map([
+        ["fa-a", faA],
+        ["fa-b", faB],
+      ]),
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0]).sort()).toEqual(["fa-a", "fa-b"])
+  })
+
+  it("does not mutate the base daily lineups", () => {
+    const jjj = player("jjj", "MEM")
+    const streamer = player("fa-stl", "BOS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "MEM", awayAbbr: "NYK" },
+      ],
+    }
+    const day0 = withStarter("jjj")
+    const day1 = withStarter("jjj")
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: day0,
+      [DAYS[1]]: day1,
+    }
+    const snapshot = structuredClone(baseDaily)
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stl",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: "jjj",
+            rosterDropKind: "player",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { jjj, "fa-stl": streamer },
+      schedule,
+    )
+
+    expect(preview).not.toBe(baseDaily)
+    expect(preview[DAYS[0]]).not.toBe(day0)
+    expect(baseDaily).toEqual(snapshot)
+    expect(day0[0]?.playerId).toBe("jjj")
+  })
+
+  it("does not displace a game-day starter on a full night when roster drop is none", () => {
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[0], homeAbbr: "NYK", awayAbbr: "MIA" },
+        { date: DAYS[0], homeAbbr: "LAL", awayAbbr: "GSW" },
+        { date: DAYS[0], homeAbbr: "PHX", awayAbbr: "DEN" },
+        { date: DAYS[0], homeAbbr: "MIL", awayAbbr: "ATL" },
+        { date: DAYS[0], homeAbbr: "WAS", awayAbbr: "TOR" },
+      ],
+    }
+    const roster = [
+      player("r0", "NYK"),
+      player("r1", "LAL"),
+      player("r2", "PHX"),
+      player("r3", "MIL"),
+      player("r4", "ATL"),
+      player("r5", "DEN"),
+      player("r6", "GSW"),
+      player("r7", "MIA"),
+      player("r8", "CHI"),
+      player("r9", "BOS"),
+    ]
+    const entries = emptyActiveEntries().map((entry, index) => ({
+      ...entry,
+      playerId: roster[index]!.id,
+    }))
+    const fa = player("fa-was", "WAS")
+    const playersById = Object.fromEntries([
+      ...roster.map((p) => [p.id, p] as const),
+      ["fa-was", fa] as const,
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: entries },
+      plan(1, [
+        {
+          date: DAYS[0],
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-was",
+              action: "add",
+              droppedPlayerId: null,
+              rosterDropPlayerId: null,
+              rosterDropKind: "none",
+              addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+            },
+          ],
+        },
+      ]),
+      playersById,
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).not.toContain("fa-was")
+    expect(playerIdsOn(preview, DAYS[0])).toHaveLength(10)
+  })
+
+  it("omits seating when omitSeats includes the streamer day", () => {
+    const streamer = player("fa-stl", "BOS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [{ date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" }],
+    }
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: emptyActiveEntries() },
+      plan(1, [
+        {
+          date: DAYS[0],
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-stl",
+              action: "add",
+              droppedPlayerId: null,
+              rosterDropPlayerId: null,
+              rosterDropKind: "open_slot",
+              addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+            },
+          ],
+        },
+      ]),
+      { "fa-stl": streamer },
+      schedule,
+      { omitSeats: new Set([`${DAYS[0]}:fa-stl`]) },
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).not.toContain("fa-stl")
+  })
+
+  it("seats a center streamer in C, not the first empty PG slot", () => {
+    const streamer = player("fa-c", "NYK", { positions: ["C"] })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [{ date: DAYS[0], homeAbbr: "NYK", awayAbbr: "PHI" }],
+    }
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: emptyActiveEntries() },
+      plan(1, [
+        {
+          date: DAYS[0],
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-c",
+              action: "add",
+              droppedPlayerId: null,
+              rosterDropPlayerId: null,
+              rosterDropKind: "open_slot",
+              addIndex: 1,
+              alternativePlayerIds: [],
+            targetCategoryIds: [],
+            },
+          ],
+        },
+      ]),
+      { "fa-c": streamer },
+      schedule,
+    )
+
+    const seated = preview[DAYS[0]]?.find((entry) => entry.playerId === "fa-c")
+    expect(seated?.slot).toBe("C")
+    expect(preview[DAYS[0]]?.[0]?.playerId).not.toBe("fa-c")
+  })
+
+  it("does not cut a future-day starter when the plan is built with today set", () => {
+    const you = player("you-1", "CHI")
+    const streamer = player("fa-a", "BOS", {
+      projections: { STL: 180, PTS: 20 },
+    })
+    const losingStlBoard: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        you: categoryId === "STL" ? 1 : 10,
+        opp: categoryId === "STL" ? 5 : 8,
+        outcome: categoryId === "STL" ? "L" : "W",
+        winProb: categoryId === "STL" ? 0.2 : 0.8,
+      })),
+      wins: 8,
+      losses: 1,
+      ties: 0,
+      projectedCatWins: 7,
+    }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "ORL" },
+        { date: DAYS[1], homeAbbr: "CHI", awayAbbr: "MIA" },
+      ],
+    }
+    const state = {
+      name: "Tiny League",
+      season: 2025,
+      categories: ALL_CATEGORY_IDS.map((id) => ({
+        id,
+        enabled: true,
+        weight: 1,
+      })),
+      perspectiveTeamIndex: 0,
+      teams: [
+        {
+          teamIndex: 0,
+          name: "You",
+          entries: [{ slot: "UTIL" as const, playerId: "you-1" }],
+        },
+        {
+          teamIndex: 1,
+          name: "Them",
+          entries: [{ slot: "UTIL" as const, playerId: null }],
+        },
+      ],
+      players: [you, streamer],
+      availablePlayerIds: ["fa-a"],
+      waiverOrder: [0, 1],
+      source: "manual" as const,
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter("you-1"),
+      [DAYS[1]]: withStarter("you-1"),
+    }
+    const previewPlan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: losingStlBoard,
+      today: DAYS[0],
+      forcedRosterDrops: { [`${DAYS[0]}:0`]: "hold" },
+    })
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { "you-1": you, "fa-a": streamer },
+      schedule,
+    )
+
+    expect(previewPlan.days[1]!.cells[0]).toMatchObject({
+      action: "empty",
+      rosterDropKind: "none",
+      rosterDropPlayerId: null,
+    })
+    expect(playerIdsOn(preview, DAYS[0])).toContain("you-1")
+    expect(playerIdsOn(preview, DAYS[1])).toContain("you-1")
+  })
+
+  it("seats a held PF streamer into UTIL when PF is full and only PG is empty", () => {
+    const bagley = player("bagley", "WAS", { positions: ["PF", "C"] })
+    const rosterPf = player("r-pf", "MIL", { positions: ["PF"] })
+    const rosterC = player("r-c", "ATL", { positions: ["C"] })
+    const rosterOthers = {
+      "r-sg": player("r-sg", "NYK", { positions: ["SG"] }),
+      "r-sf": player("r-sf", "BOS", { positions: ["SF"] }),
+      "r-g": player("r-g", "MIA", { positions: ["PG"] }),
+      "r-f": player("r-f", "DEN", { positions: ["SF"] }),
+    }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "WAS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "WAS", awayAbbr: "NYK" },
+        { date: DAYS[1], homeAbbr: "MIL", awayAbbr: "ORL" },
+        { date: DAYS[1], homeAbbr: "ATL", awayAbbr: "DET" },
+        { date: DAYS[1], homeAbbr: "NYK", awayAbbr: "CHA" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "IND" },
+        { date: DAYS[1], homeAbbr: "MIA", awayAbbr: "CLE" },
+        { date: DAYS[1], homeAbbr: "DEN", awayAbbr: "SAC" },
+      ],
+    }
+    const addDay = emptyActiveEntries()
+    const holdDay = emptyActiveEntries()
+    holdDay[1] = { slot: "SG", playerId: "r-sg" }
+    holdDay[2] = { slot: "SF", playerId: "r-sf" }
+    holdDay[3] = { slot: "PF", playerId: "r-pf" }
+    holdDay[4] = { slot: "C", playerId: "r-c" }
+    holdDay[5] = { slot: "G", playerId: "r-g" }
+    holdDay[6] = { slot: "F", playerId: "r-f" }
+    const previewPlan = plan(2, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "bagley",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+          emptyCell(1),
+        ],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "bagley",
+            action: "hold",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: null,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+          emptyCell(1),
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: addDay, [DAYS[1]]: holdDay },
+      previewPlan,
+      { bagley, "r-pf": rosterPf, "r-c": rosterC, ...rosterOthers },
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain("bagley")
+    expect(playerIdsOn(preview, DAYS[1])).toContain("bagley")
+    expect(preview[DAYS[1]]!.find((entry) => entry.slot === "PF")?.playerId).toBe(
+      "r-pf",
+    )
+  })
+
+  it("keeps a playing roster player seated after preview without a Start toggle", () => {
+    const rostered = player("roster-guard", "BOS", { positions: ["PG", "SG"] })
+    const streamer = player("fa-stream", "NYK", { positions: ["SG"] })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[0], homeAbbr: "NYK", awayAbbr: "ATL" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: DAYS[1], homeAbbr: "NYK", awayAbbr: "ORL" },
+      ],
+    }
+    const day0 = emptyActiveEntries()
+    day0[0] = { slot: "PG", playerId: "roster-guard" }
+    const day1 = emptyActiveEntries()
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stream",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-stream",
+            action: "hold",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: null,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: day0, [DAYS[1]]: day1 },
+      previewPlan,
+      { "roster-guard": rostered, "fa-stream": streamer },
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain("roster-guard")
+    expect(playerIdsOn(preview, DAYS[1])).toContain("roster-guard")
+  })
+
+  it("does not sit a playing roster player to open the only hole for a streamer", () => {
+    const rostered = player("roster-open", "BOS", { positions: ["PG", "SG"] })
+    const streamer = player("fa-only-hole", "NYK", { positions: ["SG"] })
+    const fillers = Array.from({ length: 9 }, (_, index) =>
+      player(`fill-${index}`, "ATL", { positions: ["PF", "C"] }),
+    )
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: DAYS[1], homeAbbr: "NYK", awayAbbr: "ORL" },
+        { date: DAYS[1], homeAbbr: "ATL", awayAbbr: "WAS" },
+      ],
+    }
+    const day0 = emptyActiveEntries()
+    day0[0] = { slot: "PG", playerId: "roster-open" }
+    const day1 = emptyActiveEntries().map((entry, index) =>
+      index === 1 ? entry : { ...entry, playerId: fillers[index === 0 ? 0 : index - 1]!.id },
+    )
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [emptyCell(0)],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-only-hole",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+    const playersById = Object.fromEntries([
+      ["roster-open", rostered] as const,
+      ["fa-only-hole", streamer] as const,
+      ...fillers.map((row) => [row.id, row] as const),
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: day0, [DAYS[1]]: day1 },
+      previewPlan,
+      playersById,
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[1])).toContain("roster-open")
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain("fa-only-hole")
+  })
+
+  it("lets a streamer take a no-game occupant slot after playing roster stay seated", () => {
+    const playing = player("roster-play", "BOS", { positions: ["PG"] })
+    const idle = player("roster-idle", "CHI", { positions: ["SG"] })
+    const streamer = player("fa-idle-slot", "NYK", { positions: ["SG"] })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: DAYS[0], homeAbbr: "NYK", awayAbbr: "ATL" },
+      ],
+    }
+    const day = emptyActiveEntries()
+    day[0] = { slot: "PG", playerId: "roster-play" }
+    day[1] = { slot: "SG", playerId: "roster-idle" }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-idle-slot",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: day },
+      previewPlan,
+      {
+        "roster-play": playing,
+        "roster-idle": idle,
+        "fa-idle-slot": streamer,
+      },
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain("roster-play")
+    expect(playerIdsOn(preview, DAYS[0])).toContain("fa-idle-slot")
+    expect(playerIdsOn(preview, DAYS[0])).not.toContain("roster-idle")
+  })
+
+  it("keeps a B2B night-2 roster player started instead of treating 0.75 as Sit", () => {
+    const rostered = player("roster-b2b", "BOS", { positions: ["PG"] })
+    const streamer = player("fa-b2b", "NYK", { positions: ["SG"] })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: DAYS[1], homeAbbr: "NYK", awayAbbr: "ORL" },
+      ],
+    }
+    const day0 = emptyActiveEntries()
+    day0[0] = { slot: "PG", playerId: "roster-b2b" }
+    const day1 = emptyActiveEntries()
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [emptyCell(0)],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-b2b",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: day0, [DAYS[1]]: day1 },
+      previewPlan,
+      { "roster-b2b": rostered, "fa-b2b": streamer },
+      schedule,
+    )
+
+    expect(playerIdsOn(preview, DAYS[1])).toContain("roster-b2b")
+  })
+
+  it("starts a G-only roster player into empty PG instead of leaving them Sit", () => {
+    const rostered = player("roster-g", "BOS", { positions: ["G"] })
+    const streamer = player("fa-later", "NYK", { positions: ["SG"] })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[0],
+        days: [DAYS[0]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[0], homeAbbr: "NYK", awayAbbr: "ORL" },
+      ],
+    }
+    const day = emptyActiveEntries()
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-later",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "open_slot",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      { [DAYS[0]]: day },
+      previewPlan,
+      { "roster-g": rostered, "fa-later": streamer },
+      schedule,
+      { rosterPlayerIds: ["roster-g"] },
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain("roster-g")
+    expect(playerIdsOn(preview, DAYS[0])).toContain("fa-later")
+  })
+})

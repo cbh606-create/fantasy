@@ -1,0 +1,138 @@
+import type { MatchupBoard as MatchupBoardData } from "@/lib/matchup/types"
+import type { CategoryOutcome } from "@/lib/matchup/types"
+import { mostCategoriesHeadline } from "@/lib/matchup/mostCategories"
+import type { SeasonScoringMode } from "@/lib/season/types"
+import {
+  CATEGORY_SHORT_LABELS,
+  categoryStatLead,
+  formatCategoryStat,
+  formatCategoryStatDelta,
+} from "@/lib/season/formatCategoryStat"
+
+type MatchupBoardProps = {
+  board: MatchupBoardData
+  scoringMode?: SeasonScoringMode
+}
+
+const valueClass = (
+  side: "you" | "opp",
+  outcome: CategoryOutcome,
+): string => {
+  const won =
+    (side === "you" && outcome === "W") ||
+    (side === "opp" && outcome === "L")
+
+  if (won) {
+    return side === "you"
+      ? "font-semibold tabular-nums text-[var(--color-info)]"
+      : "font-semibold tabular-nums text-[var(--color-sale)]"
+  }
+  return "tabular-nums text-[var(--color-mute)]"
+}
+
+const deltaClass = (outcome: CategoryOutcome): string => {
+  if (outcome === "W") {
+    return "font-semibold tabular-nums text-[var(--color-info)]"
+  }
+  if (outcome === "L") {
+    return "tabular-nums text-[var(--color-sale)]"
+  }
+  return "tabular-nums text-[var(--color-mute)]"
+}
+
+export const MatchupBoard = ({ board, scoringMode }: MatchupBoardProps) => {
+  const headline =
+    scoringMode === "most_categories"
+      ? mostCategoriesHeadline(board.wins, board.losses)
+      : `${board.wins}–${board.losses}–${board.ties}`
+
+  return (
+    <section
+      aria-label="Matchup board"
+      className="w-full rounded-3xl bg-[var(--color-soft-cloud)] px-4 py-3 sm:px-5"
+    >
+      <div className="flex min-h-[6rem] items-stretch gap-4 overflow-x-auto">
+        <div className="flex shrink-0 flex-col justify-center border-r border-[var(--color-hairline)] pr-4">
+          <p className="font-[family-name:var(--font-bebas-neue)] text-3xl leading-none tracking-wide tabular-nums text-[var(--color-ink)] sm:text-4xl">
+            {headline}
+          </p>
+          <p className="mt-1 whitespace-nowrap text-[0.8125rem] text-[var(--color-mute)]">
+            Proj {board.projectedCatWins.toFixed(2)}
+          </p>
+        </div>
+
+        <table className="w-full min-w-[28rem] flex-1 border-collapse text-base">
+          <thead>
+            <tr className="text-[0.75rem] tracking-[0.08em] text-[var(--color-mute)] uppercase">
+              <th className="px-1.5 py-1 text-left font-medium" scope="col">
+                <span className="sr-only">Team</span>
+              </th>
+              {board.categories.map((row) => (
+                <th
+                  className="px-1.5 py-1 text-center font-medium"
+                  key={row.categoryId}
+                  scope="col"
+                >
+                  {CATEGORY_SHORT_LABELS[row.categoryId]}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th
+                className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+                scope="row"
+              >
+                You
+              </th>
+              {board.categories.map((row) => (
+                <td
+                  className={`px-1.5 py-0.5 text-center ${valueClass("you", row.outcome)}`}
+                  key={`you-${row.categoryId}`}
+                >
+                  {formatCategoryStat(row.categoryId, row.you)}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th
+                className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+                scope="row"
+              >
+                Opp
+              </th>
+              {board.categories.map((row) => (
+                <td
+                  className={`px-1.5 py-0.5 text-center ${valueClass("opp", row.outcome)}`}
+                  key={`opp-${row.categoryId}`}
+                >
+                  {formatCategoryStat(row.categoryId, row.opp)}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th
+                className="whitespace-nowrap px-1.5 py-0.5 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase"
+                scope="row"
+              >
+                Diff
+              </th>
+              {board.categories.map((row) => (
+                <td
+                  className={`px-1.5 py-0.5 text-center text-[0.8125rem] ${deltaClass(row.outcome)}`}
+                  key={`diff-${row.categoryId}`}
+                >
+                  {formatCategoryStatDelta(
+                    row.categoryId,
+                    categoryStatLead(row.categoryId, row.you, row.opp),
+                  )}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}

@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --color-ink: #0a0a0a;
+  --color-canvas: #ffffff;
+  --color-soft-cloud: #f3f3f3;
+  --color-mute: #6b6b6d;
+  --color-stone: #8f8f91;
+  --color-hairline: #d0d0d1;
+  --color-sale: #d30005;
+  --color-success: #007d48;
+  --color-info: #0a0a0a;
+  --font-display: "Bebas Neue", Impact, Haettenschweiler, sans-serif;
+  --font-ui: "Barlow", "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+@keyframes athletic-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes athletic-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.athletic-rise {
+  animation: athletic-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.athletic-rise-delay {
+  animation: athletic-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.athletic-rise-delay-2 {
+  animation: athletic-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+}
+
+.athletic-fade {
+  animation: athletic-fade 1s ease-out both;
+}
+
+.athletic-grid {
+  background-image:
+    linear-gradient(to right, rgb(10 10 10 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(10 10 10 / 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 30% 40%, #000 20%, transparent 75%);
+}

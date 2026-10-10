@@ -1,0 +1,22 @@
+{
+  "players": [
+    {
+      "status": "FREEAGENT",
+      "player": {
+        "id": 9001,
+        "fullName": "Sample FA",
+        "proTeamId": 1,
+        "stats": []
+      }
+    },
+    {
+      "status": "WAIVERS",
+      "player": {
+        "id": 9002,
+        "fullName": "Sample Waiver",
+        "proTeamId": 2,
+        "stats": []
+      }
+    }
+  ]
+}

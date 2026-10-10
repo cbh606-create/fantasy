@@ -1,0 +1,146 @@
+import type { CategoryId } from "@/lib/domain/types"
+import type { DailyLineups } from "./dailyLineups"
+
+export type StatWindow = "season" | "l7" | "l15" | "l30"
+
+export const isStatWindow = (value: unknown): value is StatWindow =>
+  value === "season" || value === "l7" || value === "l15" || value === "l30"
+
+export type CategoryOutcome = "W" | "L" | "T"
+
+export type MatchupCategoryRow = {
+  categoryId: CategoryId
+  you: number
+  opp: number
+  outcome: CategoryOutcome
+  winProb: number
+}
+
+export type MatchupBoard = {
+  categories: MatchupCategoryRow[]
+  wins: number
+  losses: number
+  ties: number
+  projectedCatWins: number
+}
+
+export type WeeklyShooting = {
+  FGM: number
+  FGA: number
+  FTM: number
+  FTA: number
+}
+
+export type WeeklyPlayerStats = {
+  projections: Record<CategoryId, number>
+  shooting: WeeklyShooting
+}
+
+export type SitStartSuggestion = {
+  benchPlayerId: string
+  activePlayerId: string
+  deltaProjectedCatWins: number
+  reason: string
+}
+
+export type RatioSitSuggestion = {
+  playerId: string
+  date: string
+  targetCategoryId: "FG_PCT" | "FT_PCT" | "TO"
+  deltaWinProb: number
+  reason: string
+}
+
+export type SitStartSwap = {
+  benchPlayerId: string
+  activePlayerId: string
+}
+
+export type StreamerSuggestion = {
+  playerId: string
+  score: number
+  gamesThisWeek: number
+  b2bNights: number
+  reasons: string[]
+}
+
+export type StreamingDensityTier = "elite" | "strong" | "ok" | "thin"
+
+export type StreamingPlanSpotCount = 1 | 2 | 3
+
+export type OppSpotChoice = "auto" | 1 | 2 | 3
+
+export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
+
+export type StreamingPlanRosterDropKind = "player" | "open_slot" | "none"
+
+export type StreamingPlanDayCell = {
+  spotIndex: number
+  playerId: string | null
+  action: StreamingPlanAction
+  droppedPlayerId: string | null
+  rosterDropPlayerId: string | null
+  rosterDropKind: StreamingPlanRosterDropKind
+  addIndex: number | null
+  /** Next-best free agents / blocks for this add (hover hints). */
+  alternativePlayerIds: string[]
+  targetCategoryIds: CategoryId[]
+}
+
+export type StreamingPlanDay = {
+  date: string
+  cells: StreamingPlanDayCell[]
+}
+
+export type OpponentStreamDayCell = {
+  spotIndex: number
+  playerId: string | null
+  droppedPlayerId: string | null
+  action: StreamingPlanAction
+  addIndex: number | null
+}
+
+export type OpponentStreamDay = {
+  date: string
+  streamerPlayerId: string | null
+  droppedPlayerId: string | null
+  rosterGameCount: number
+  cells: OpponentStreamDayCell[]
+}
+
+export type StreamingPlan = {
+  spotCount: StreamingPlanSpotCount
+  addLimit: number
+  addsUsed: number
+  /** Team Starts after applying the planned you-side Daily overlay. */
+  gameStarts: number
+  summaryReasons: string[]
+  days: StreamingPlanDay[]
+  opponentDays: OpponentStreamDay[]
+  opponentDaily: DailyLineups
+}
+
+export type SlotGroup = "G" | "F" | "C"
+
+export type WinnerStreamRecipe = {
+  situationCat: CategoryId
+  addKind: CategoryId
+  addGroup: SlotGroup
+  count: number
+}
+
+export type MatchupAdvice = {
+  opponentTeamIndex: number
+  scoringPeriod: {
+    scoringPeriodId: number
+    startDate: string
+    endDate: string
+    days: string[]
+  }
+  board: MatchupBoard
+  sitStart: SitStartSuggestion[]
+  streamers: StreamerSuggestion[]
+  streamingPlans: StreamingPlan[]
+  adpByPlayerId?: Record<string, number>
+  winnerStreamRecipes?: WinnerStreamRecipe[]
+}
