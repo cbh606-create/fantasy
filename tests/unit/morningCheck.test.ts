@@ -6,6 +6,7 @@ import {
   blendWeekTotals,
   buildMorningSummary,
   closeFinishedDays,
+  combineCategoryTotals,
   outcomesFromBoard,
   dayComparisonRows,
   emptyCategoryTotals,
@@ -146,7 +147,6 @@ describe("closeFinishedDays", () => {
   it("freezes the first close and ignores a later roster add", () => {
     const first = closeFinishedDays({
       matchupDays: days,
-      today: "2026-10-21",
       previousClosed: [
         {
           date: "2026-10-20",
@@ -171,21 +171,86 @@ describe("closeFinishedDays", () => {
     expect(first.closedDays[0]?.youStartableIds).toEqual(["a"])
     expect(first.closedDays[0]?.youActual.PTS).toBe(99)
     expect(first.actualsPending).toBe(false)
+    expect(first.closedDays.map((day) => day.date)).toEqual([
+      "2026-10-20",
+      "2026-10-21",
+    ])
+    expect(first.frontierDate).toBeNull()
 
     const rows = dayComparisonRows(
+      days,
       first.closedDays,
+      youEntries,
+      oppEntries,
       playersById,
       schedule(),
       "season",
     )
     expect(rows[0]?.youProjection.PTS).toBeCloseTo(20)
-    expect(rows[0]?.youActual.PTS).toBe(99)
+    expect(rows[0]?.youActual?.PTS).toBe(99)
+    expect(rows[0]?.youPlayedIds).toEqual(["a"])
+    expect(rows[0]?.oppPlayedIds).toEqual(["c"])
+    expect(rows[1]?.youActual?.PTS).toBe(0)
+    expect(rows[1]?.youPlayedIds).toEqual([])
+  })
+
+  it("fills projections for days that have not closed", () => {
+    const openSchedule = schedule()
+    openSchedule.games.push({
+      date: "2026-10-21",
+      homeAbbr: "BOS",
+      awayAbbr: "NYK",
+    })
+    const rows = dayComparisonRows(
+      days,
+      [],
+      youEntries,
+      oppEntries,
+      playersById,
+      openSchedule,
+      "season",
+    )
+    expect(rows).toHaveLength(2)
+    expect(rows[1]?.youProjection.PTS).toBeCloseTo(
+      projectDayTotals(
+        ["added-later"],
+        playersById,
+        "2026-10-21",
+        openSchedule,
+        "season",
+      ).PTS,
+    )
+    expect(rows[1]?.youProjection.PTS).toBeGreaterThan(0)
+    expect(rows[1]?.oppProjection.PTS).toBeGreaterThan(0)
+    expect(rows[1]?.youActual).toBeNull()
+    expect(rows[1]?.oppActual).toBeNull()
+  })
+
+  it("sums closed-day actuals into week totals", () => {
+    const first = emptyCategoryTotals()
+    first.PTS = 10
+    const second = emptyCategoryTotals()
+    second.PTS = 4
+    const combined = combineCategoryTotals([
+      {
+        totals: first,
+        shooting: { FGM: 5, FGA: 10, FTM: 1, FTA: 2 },
+      },
+      {
+        totals: second,
+        shooting: { FGM: 1, FGA: 10, FTM: 1, FTA: 2 },
+      },
+      { totals: null },
+    ])
+    expect(combined?.PTS).toBe(14)
+    expect(combined?.FG_PCT).toBeCloseTo(0.3)
+    expect(combined?.FT_PCT).toBeCloseTo(0.5)
+    expect(combineCategoryTotals([{ totals: null }])).toBeNull()
   })
 
   it("leaves a played day open when ESPN has no final line", () => {
     const pending = closeFinishedDays({
       matchupDays: days,
-      today: "2026-10-21",
       previousClosed: [],
       actualsByDate: new Map(),
       schedule: schedule(),
@@ -194,13 +259,13 @@ describe("closeFinishedDays", () => {
       playersById,
     })
     expect(pending.closedDays).toEqual([])
-    expect(pending.actualsPending).toBe(true)
+    expect(pending.actualsPending).toBe(false)
+    expect(pending.frontierDate).toBe("2026-10-20")
   })
 
   it("closes a day with no NBA games at zero", () => {
     const quiet = closeFinishedDays({
       matchupDays: ["2026-10-19", "2026-10-20"],
-      today: "2026-10-20",
       previousClosed: [],
       actualsByDate: new Map(),
       schedule: schedule(),
@@ -211,33 +276,80 @@ describe("closeFinishedDays", () => {
     expect(quiet.closedDays.map((day) => day.date)).toEqual(["2026-10-19"])
     expect(quiet.closedDays[0]?.youActual.PTS).toBe(0)
     expect(quiet.actualsPending).toBe(false)
+    expect(quiet.frontierDate).toBe("2026-10-20")
+  })
+
+  it("closes a game day with ESPN actuals even when the clock date equals that day", () => {
+    const settled = closeFinishedDays({
+      matchupDays: ["2026-10-20", "2026-10-21", "2026-10-22"],
+      today: "2026-10-20",
+      previousClosed: [],
+      actualsByDate: new Map([
+        ["2026-10-20", actualLine("2026-10-20", 22, 11)],
+      ]),
+      schedule: (() => {
+        const slate = schedule()
+        slate.matchup.days = ["2026-10-20", "2026-10-21", "2026-10-22"]
+        slate.matchup.endDate = "2026-10-22"
+        slate.games = [
+          { date: "2026-10-20", homeAbbr: "BOS", awayAbbr: "NYK" },
+          { date: "2026-10-21", homeAbbr: "BOS", awayAbbr: "MIA" },
+        ]
+        return slate
+      })(),
+      youEntries,
+      oppEntries,
+      playersById,
+    })
+    expect(settled.closedDays.map((day) => day.date)).toEqual(["2026-10-20"])
+    expect(settled.frontierDate).toBe("2026-10-21")
+    expect(settled.actualsPending).toBe(false)
   })
 
   it("adds closed actuals to remaining-day projections", () => {
+    const openSchedule = schedule()
+    openSchedule.games.push({
+      date: "2026-10-21",
+      homeAbbr: "BOS",
+      awayAbbr: "NYK",
+    })
     const closed = closeFinishedDays({
       matchupDays: days,
-      today: "2026-10-21",
       previousClosed: [],
       actualsByDate: new Map([
         ["2026-10-20", actualLine("2026-10-20", 18, 12)],
       ]),
-      schedule: schedule(),
+      schedule: openSchedule,
       youEntries: [{ slot: "UTIL", playerId: "a" }],
       oppEntries,
       playersById,
-    }).closedDays
+    })
+    expect(closed.frontierDate).toBe("2026-10-21")
+    const remainingYou = projectDayTotals(
+      ["a"],
+      playersById,
+      "2026-10-21",
+      openSchedule,
+      "season",
+    )
+    const remainingOpp = projectDayTotals(
+      ["c"],
+      playersById,
+      "2026-10-21",
+      openSchedule,
+      "season",
+    )
     const blended = blendWeekTotals({
-      closedDays: closed,
+      closedDays: closed.closedDays,
       remainingDates: ["2026-10-21"],
       youEntries: [{ slot: "UTIL", playerId: "a" }],
       oppEntries,
       playersById,
-      schedule: schedule(),
+      schedule: openSchedule,
       statWindow: "season",
     })
-    expect(blended.you.PTS).toBeCloseTo(18)
-    expect(blended.opp.PTS).toBeCloseTo(12)
-    expect(blended.you.FG_PCT).toBeCloseTo(8 / 16)
+    expect(blended.you.PTS).toBeCloseTo(18 + remainingYou.PTS)
+    expect(blended.opp.PTS).toBeCloseTo(12 + remainingOpp.PTS)
   })
 })
 

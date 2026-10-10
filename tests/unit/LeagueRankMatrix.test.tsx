@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest"
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, describe, expect, it } from "vitest"
+import { CategoryZScale } from "@/components/season/CategoryZScale"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
@@ -137,6 +138,28 @@ describe("LeagueRankMatrix z row", () => {
     fireEvent.keyDown(document, { key: "Tab" })
 
     expect(close).toHaveFocus()
+  })
+
+  it("places a lower dot's name below the dot", () => {
+    render(
+      <CategoryZScale
+        categoryId="REB"
+        dots={[
+          { teamIndex: 1, name: "Alpha", raw: 40, z: 0, isYou: false },
+          { teamIndex: 2, name: "Beta", raw: 30, z: 0, isYou: false },
+          { teamIndex: 3, name: "Gamma", raw: 20, z: 0, isYou: false },
+        ]}
+        mode="expanded"
+      />,
+    )
+
+    const lower = screen.getByTestId("z-dot-3")
+    const upper = screen.getByTestId("z-dot-2")
+
+    expect(Number(lower.getAttribute("data-y"))).toBeGreaterThan(64)
+    expect(lower.querySelector("span")?.className).toContain("top-full")
+    expect(Number(upper.getAttribute("data-y"))).toBeLessThan(64)
+    expect(upper.querySelector("span")?.className).toContain("bottom-full")
   })
 })
 

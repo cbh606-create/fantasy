@@ -30,9 +30,9 @@ const projPool = [
 
 describe("streamingDropPolicy", () => {
   it("protects ADP at or below 60", () => {
-    expect(STREAMING_PROTECTED_ADP_MAX).toBe(60)
-    expect(isAdpProtected(60)).toBe(true)
-    expect(isAdpProtected(61)).toBe(false)
+    expect(STREAMING_PROTECTED_ADP_MAX).toBe(100)
+    expect(isAdpProtected(100)).toBe(true)
+    expect(isAdpProtected(101)).toBe(false)
     expect(isAdpProtected(null)).toBe(false)
   })
 

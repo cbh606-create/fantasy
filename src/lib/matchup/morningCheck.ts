@@ -52,9 +52,15 @@ export type ClosedDayRecord = {
 export type DayComparisonRow = {
   date: string
   youProjection: CategoryTotals
-  youActual: CategoryTotals
+  youActual: CategoryTotals | null
   oppProjection: CategoryTotals
-  oppActual: CategoryTotals
+  oppActual: CategoryTotals | null
+  youGames?: number
+  oppGames?: number
+  youPlayedIds?: string[]
+  oppPlayedIds?: string[]
+  youActualShooting?: DayShootingTotals | null
+  oppActualShooting?: DayShootingTotals | null
 }
 
 const emptyShooting = (): DayShootingTotals => ({
@@ -139,94 +145,225 @@ export const projectDayTotals = (
   return totals
 }
 
+const buildClosedDayRecord = (input: {
+  date: string
+  previous: ClosedDayRecord | undefined
+  actuals: DayActuals | undefined
+  youEntries: SeasonRosterEntry[]
+  oppEntries: SeasonRosterEntry[]
+  playersById: Map<string, SeasonPlayer>
+  schedule: ScheduleResponse
+}): ClosedDayRecord => {
+  const { date, previous, actuals } = input
+  return {
+    date,
+    youStartableIds:
+      previous?.youStartableIds ??
+      startableIdsOnDate(
+        input.youEntries,
+        input.playersById,
+        date,
+        input.schedule,
+      ),
+    oppStartableIds:
+      previous?.oppStartableIds ??
+      startableIdsOnDate(
+        input.oppEntries,
+        input.playersById,
+        date,
+        input.schedule,
+      ),
+    youActual: actuals?.you ?? previous?.youActual ?? emptyCategoryTotals(),
+    oppActual: actuals?.opp ?? previous?.oppActual ?? emptyCategoryTotals(),
+    youPlayedIds: actuals?.youPlayedIds ?? previous?.youPlayedIds ?? [],
+    oppPlayedIds: actuals?.oppPlayedIds ?? previous?.oppPlayedIds ?? [],
+    youShooting:
+      actuals?.youShooting ?? previous?.youShooting ?? emptyShooting(),
+    oppShooting:
+      actuals?.oppShooting ?? previous?.oppShooting ?? emptyShooting(),
+  }
+}
+
+/**
+ * Closes matchup days that ESPN (or a prior save) has settled.
+ * Does not use calendar "today" — a day with actuals closes even if the
+ * clock date still equals that day. Returns frontierDate = first open day.
+ */
 export const closeFinishedDays = (input: {
   matchupDays: string[]
-  today: string
+  /** @deprecated Ignored; frontier comes from settled days only. */
+  today?: string
   previousClosed: ClosedDayRecord[]
   actualsByDate: Map<string, DayActuals>
   schedule: ScheduleResponse
   youEntries: SeasonRosterEntry[]
   oppEntries: SeasonRosterEntry[]
   playersById: Map<string, SeasonPlayer>
-}): { closedDays: ClosedDayRecord[]; actualsPending: boolean } => {
+}): {
+  closedDays: ClosedDayRecord[]
+  actualsPending: boolean
+  frontierDate: string | null
+} => {
   const previousByDate = new Map(
     input.previousClosed.map((day) => [day.date, day]),
   )
-  let actualsPending = false
+  const openGameDays = input.matchupDays.filter((date) => {
+    if (!dateHasNbaGame(date, input.schedule)) return false
+    if (previousByDate.has(date)) return false
+    if (input.actualsByDate.has(date)) return false
+    return true
+  })
+  const firstOpenGameDay = openGameDays[0] ?? null
   const closedDays: ClosedDayRecord[] = []
 
   for (const date of input.matchupDays) {
-    if (date >= input.today) continue
     const previous = previousByDate.get(date)
     const actuals = input.actualsByDate.get(date)
     const noGames = !dateHasNbaGame(date, input.schedule)
 
-    if (!previous && !actuals && !noGames) {
-      actualsPending = true
+    if (previous || actuals) {
+      closedDays.push(
+        buildClosedDayRecord({
+          date,
+          previous,
+          actuals,
+          youEntries: input.youEntries,
+          oppEntries: input.oppEntries,
+          playersById: input.playersById,
+          schedule: input.schedule,
+        }),
+      )
       continue
     }
 
-    const youActual =
-      actuals?.you ?? previous?.youActual ?? emptyCategoryTotals()
-    const oppActual =
-      actuals?.opp ?? previous?.oppActual ?? emptyCategoryTotals()
-    closedDays.push({
-      date,
-      youStartableIds:
-        previous?.youStartableIds ??
-        startableIdsOnDate(
-          input.youEntries,
-          input.playersById,
+    if (noGames && (firstOpenGameDay == null || date < firstOpenGameDay)) {
+      closedDays.push(
+        buildClosedDayRecord({
           date,
-          input.schedule,
-        ),
-      oppStartableIds:
-        previous?.oppStartableIds ??
-        startableIdsOnDate(
-          input.oppEntries,
-          input.playersById,
-          date,
-          input.schedule,
-        ),
-      youActual,
-      oppActual,
-      youPlayedIds: actuals?.youPlayedIds ?? previous?.youPlayedIds ?? [],
-      oppPlayedIds: actuals?.oppPlayedIds ?? previous?.oppPlayedIds ?? [],
-      youShooting:
-        actuals?.youShooting ?? previous?.youShooting ?? emptyShooting(),
-      oppShooting:
-        actuals?.oppShooting ?? previous?.oppShooting ?? emptyShooting(),
-    })
+          previous: undefined,
+          actuals: undefined,
+          youEntries: input.youEntries,
+          oppEntries: input.oppEntries,
+          playersById: input.playersById,
+          schedule: input.schedule,
+        }),
+      )
+    }
   }
 
-  return { closedDays, actualsPending }
+  const closedDates = new Set(closedDays.map((day) => day.date))
+  const frontierDate =
+    input.matchupDays.find((date) => !closedDates.has(date)) ?? null
+
+  return {
+    closedDays,
+    // ESPN-closed periods missing a box would surface via fetch failure /
+    // stale path; open current-period game days are not "pending."
+    actualsPending: false,
+    frontierDate,
+  }
 }
 
 export const dayComparisonRows = (
+  matchupDays: string[],
   closedDays: ClosedDayRecord[],
+  youEntries: SeasonRosterEntry[],
+  oppEntries: SeasonRosterEntry[],
   playersById: Map<string, SeasonPlayer>,
   schedule: ScheduleResponse,
   statWindow: StatWindow,
-): DayComparisonRow[] =>
-  closedDays.map((day) => ({
-    date: day.date,
-    youProjection: projectDayTotals(
-      day.youStartableIds,
-      playersById,
-      day.date,
-      schedule,
-      statWindow,
-    ),
-    youActual: day.youActual,
-    oppProjection: projectDayTotals(
-      day.oppStartableIds,
-      playersById,
-      day.date,
-      schedule,
-      statWindow,
-    ),
-    oppActual: day.oppActual,
-  }))
+): DayComparisonRow[] => {
+  const closedByDate = new Map(closedDays.map((day) => [day.date, day]))
+  return matchupDays.map((date) => {
+    const closed = closedByDate.get(date)
+    if (closed) {
+      return {
+        date,
+        youProjection: projectDayTotals(
+          closed.youStartableIds,
+          playersById,
+          date,
+          schedule,
+          statWindow,
+        ),
+        youActual: closed.youActual,
+        youPlayedIds: closed.youPlayedIds,
+        oppProjection: projectDayTotals(
+          closed.oppStartableIds,
+          playersById,
+          date,
+          schedule,
+          statWindow,
+        ),
+        oppActual: closed.oppActual,
+        oppPlayedIds: closed.oppPlayedIds,
+        youActualShooting: closed.youShooting,
+        oppActualShooting: closed.oppShooting,
+      }
+    }
+    return {
+      date,
+      youProjection: projectDayTotals(
+        startableIdsOnDate(youEntries, playersById, date, schedule),
+        playersById,
+        date,
+        schedule,
+        statWindow,
+      ),
+      youActual: null,
+      oppProjection: projectDayTotals(
+        startableIdsOnDate(oppEntries, playersById, date, schedule),
+        playersById,
+        date,
+        schedule,
+        statWindow,
+      ),
+      oppActual: null,
+      youActualShooting: null,
+      oppActualShooting: null,
+    }
+  })
+}
+
+export const combineCategoryTotals = (
+  parts: Array<{
+    totals: CategoryTotals | null
+    shooting?: DayShootingTotals | null
+  }>,
+): CategoryTotals | null => {
+  const present = parts.filter(
+    (part): part is { totals: CategoryTotals; shooting?: DayShootingTotals | null } =>
+      part.totals != null,
+  )
+  if (present.length === 0) return null
+
+  const totals = emptyCategoryTotals()
+  let fgm = 0
+  let fga = 0
+  let ftm = 0
+  let fta = 0
+  let sawShooting = false
+  for (const part of present) {
+    for (const categoryId of COUNTING_CATEGORIES) {
+      totals[categoryId] += part.totals[categoryId]
+    }
+    if (!part.shooting) continue
+    sawShooting = true
+    fgm += part.shooting.FGM
+    fga += part.shooting.FGA
+    ftm += part.shooting.FTM
+    fta += part.shooting.FTA
+  }
+  if (sawShooting) {
+    totals.FG_PCT = fga > 0 ? fgm / fga : 0
+    totals.FT_PCT = fta > 0 ? ftm / fta : 0
+    return totals
+  }
+  const only = present.length === 1 ? present[0]?.totals : null
+  totals.FG_PCT = only?.FG_PCT ?? 0
+  totals.FT_PCT = only?.FT_PCT ?? 0
+  return totals
+}
 
 const shootingForStartableIdsOnDate = (
   entries: SeasonRosterEntry[],

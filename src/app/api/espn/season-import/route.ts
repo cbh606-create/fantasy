@@ -93,15 +93,41 @@ export const POST = async (request: Request): Promise<Response> => {
       typeof body.name === "string" && body.name.trim()
         ? body.name.trim()
         : state.name
+    const espnLeagueId = body.leagueId.trim()
+    const existing = await db.seasonLeague.findFirst({
+      where: {
+        clerkUserId: userId,
+        espnLeagueId,
+        season: state.season,
+      },
+      orderBy: { createdAt: "asc" },
+    })
+    const stateJson = JSON.stringify({ ...state, name })
+
+    if (existing) {
+      const league = await db.seasonLeague.update({
+        where: { id: existing.id },
+        data: {
+          name,
+          perspectiveTeamIndex: state.perspectiveTeamIndex,
+          source: existing.localLineupJson ? existing.source : state.source,
+          stateJson,
+          lastSyncedAt: new Date(),
+        },
+      })
+
+      return NextResponse.json(league, { status: 200 })
+    }
+
     const league = await db.seasonLeague.create({
       data: {
         clerkUserId: userId,
         name,
-        espnLeagueId: body.leagueId.trim(),
+        espnLeagueId,
         season: state.season,
         perspectiveTeamIndex: state.perspectiveTeamIndex,
         source: state.source,
-        stateJson: JSON.stringify({ ...state, name }),
+        stateJson,
         lastSyncedAt: new Date(),
       },
     })

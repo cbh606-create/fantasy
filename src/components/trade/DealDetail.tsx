@@ -1,9 +1,10 @@
+import { SideRankColumn } from "@/components/trade/SideRankColumn"
 import type { CategoryId } from "@/lib/domain/types"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import type { CategoryTotalMove } from "@/lib/trade/accept"
 import { formatTotal, formatValueLine } from "@/lib/trade/offerCopy"
-import { replacementScaledValues } from "@/lib/trade/score"
+import { simulateTrade } from "@/lib/trade/simulateTrade"
 import type { TradeSuggestion } from "@/lib/trade/types"
 import { buildPlayerValueMap } from "@/lib/trade/value"
 
@@ -82,7 +83,7 @@ export const DealDetail = ({
   const counterparty = state.teams.find(
     (team) => team.teamIndex === suggestion.counterpartyTeamIndex,
   )?.name ?? `Team ${suggestion.counterpartyTeamIndex + 1}`
-  const values = replacementScaledValues(buildPlayerValueMap(state))
+  const values = buildPlayerValueMap(state)
   const giveLarger =
     packageValue(suggestion.givePlayerIds, values)
     > packageValue(suggestion.getPlayerIds, values)
@@ -93,6 +94,21 @@ export const DealDetail = ({
       requestedCategoryIds.includes(move.categoryId)
       && !suggestion.youGains.some((gain) => gain.categoryId === move.categoryId),
   )
+  const yourTeam = state.teams.find(
+    (team) => team.teamIndex === state.perspectiveTeamIndex,
+  )
+  const yourIds = new Set(
+    yourTeam?.entries.flatMap((entry) => (entry.playerId ? [entry.playerId] : [])) ?? [],
+  )
+  const yourDropPlayerId = suggestion.droppedPlayerId && yourIds.has(suggestion.droppedPlayerId)
+    ? suggestion.droppedPlayerId
+    : undefined
+  const ranks = simulateTrade(state, {
+    counterpartyTeamIndex: suggestion.counterpartyTeamIndex,
+    youPlayerIds: suggestion.givePlayerIds,
+    themPlayerIds: suggestion.getPlayerIds,
+    ...(yourDropPlayerId ? { yourDropPlayerId } : {}),
+  })
 
   return (
     <section className="rounded-3xl border border-[var(--color-hairline)] p-5 sm:p-6">
@@ -109,17 +125,33 @@ export const DealDetail = ({
           roster spot
         </p>
       ) : null}
-      <div className="mt-6 space-y-4">
-        <SideGains
-          gains={suggestion.themGains}
-          strengthsHeld={suggestion.themStrengthsHeld}
-          title="What they get"
-        />
-        <SideGains
-          gains={[...suggestion.youGains, ...extraGains]}
-          strengthsHeld={suggestion.youStrengthsHeld}
-          title="What you get"
-        />
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        <div className="space-y-4">
+          <SideGains
+            gains={suggestion.themGains}
+            strengthsHeld={suggestion.themStrengthsHeld}
+            title="What they get"
+          />
+          <SideGains
+            gains={[...suggestion.youGains, ...extraGains]}
+            strengthsHeld={suggestion.youStrengthsHeld}
+            title="What you get"
+          />
+        </div>
+        {ranks?.status === "ready" ? (
+          <div className="grid grid-cols-2 gap-3">
+            <SideRankColumn
+              report={ranks.you}
+              teamCount={state.teams.length}
+              title={yourTeam?.name ?? "You"}
+            />
+            <SideRankColumn
+              report={ranks.them}
+              teamCount={state.teams.length}
+              title={counterparty}
+            />
+          </div>
+        ) : null}
       </div>
       <p className="mt-4 text-[0.8125rem] font-medium">
         {formatValueLine({

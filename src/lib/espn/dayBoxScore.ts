@@ -39,14 +39,8 @@ const STAT = {
 const readStat = (row: Record<string, number> | undefined, key: string): number =>
   row?.[key] ?? 0
 
-const playerPlayed = (row: Record<string, number> | undefined): boolean => {
-  const pts = readStat(row, STAT.PTS)
-  const reb = readStat(row, STAT.REB)
-  const ast = readStat(row, STAT.AST)
-  const tpm = readStat(row, STAT.TPM)
-  const fga = readStat(row, STAT.FGA)
-  return pts > 0 || reb > 0 || ast > 0 || tpm > 0 || fga > 0
-}
+const playerPlayed = (row: Record<string, number> | undefined): boolean =>
+  Object.values(STAT).some((key) => readStat(row, key) > 0)
 
 const sumRosterEntries = (
   entries: EspnBoxEntry[] | undefined,
@@ -155,13 +149,28 @@ type EspnLeagueStatus = {
   }
 }
 
+export const matchupPeriodIdForScoringPeriod = (
+  scoringPeriodId: number,
+  matchupPeriods: Record<string, number[]>,
+): number | null => {
+  for (const [periodId, days] of Object.entries(matchupPeriods)) {
+    if (!days.includes(scoringPeriodId)) continue
+    const parsed = Number(periodId)
+    if (Number.isInteger(parsed)) return parsed
+  }
+  return null
+}
+
 export const pairClosedScoringPeriods = (input: {
   dates: string[]
   matchupDates: string[]
   matchupPeriodDays: number[]
   currentScoringPeriod: number
 }): Map<string, number> => {
-  if (input.matchupDates.length !== input.matchupPeriodDays.length) {
+  if (
+    input.matchupPeriodDays.length > 0 &&
+    input.matchupDates.length !== input.matchupPeriodDays.length
+  ) {
     throw new Error("espn_matchup_period_length_mismatch")
   }
   const paired = new Map<string, number>()
@@ -216,6 +225,8 @@ export const fetchEspnDayActuals = async (params: {
   cookies: EspnCookies
   dates: string[]
   matchupDates: string[]
+  /** Prefer product schedule ids (weekly board) over ESPN's raw period days. */
+  scoringPeriodIds?: number[]
   youTeamId: number
   oppTeamId: number
   fetchImpl?: typeof fetch
@@ -237,16 +248,26 @@ export const fetchEspnDayActuals = async (params: {
     throw new Error("espn_status_missing")
   }
 
+  const matchupPeriods =
+    settings.settings?.scheduleSettings?.matchupPeriods ?? {}
+  const matchupPeriodDays =
+    params.scoringPeriodIds &&
+    params.scoringPeriodIds.length === params.matchupDates.length
+      ? params.scoringPeriodIds
+      : (matchupPeriods[String(currentMatchupPeriod)] ?? [])
+
   const scoringPeriodByDate = pairClosedScoringPeriods({
     dates: params.dates,
     matchupDates: params.matchupDates,
-    matchupPeriodDays:
-      settings.settings?.scheduleSettings?.matchupPeriods?.[String(currentMatchupPeriod)] ?? [],
+    matchupPeriodDays,
     currentScoringPeriod,
   })
 
   const payloads = await Promise.all(
     [...scoringPeriodByDate].map(async ([date, scoringPeriodId]) => {
+      const matchupPeriodId =
+        matchupPeriodIdForScoringPeriod(scoringPeriodId, matchupPeriods) ??
+        currentMatchupPeriod
       const url = leagueUrl(params.season, params.leagueId)
       url.searchParams.append("view", "mScoreboard")
       url.searchParams.append("view", "mMatchupScore")
@@ -254,7 +275,7 @@ export const fetchEspnDayActuals = async (params: {
       const payload = (await fetchEspnJson(url, params.cookies, fetchImpl, {
         "X-Fantasy-Filter": JSON.stringify({
           schedule: {
-            filterMatchupPeriodIds: { value: [currentMatchupPeriod] },
+            filterMatchupPeriodIds: { value: [matchupPeriodId] },
           },
         }),
       })) as EspnDayBoxPayload

@@ -19,6 +19,11 @@ export const categoryStatLead = (
   opp: number,
 ): number => (categoryId === "TO" ? opp - you : you - opp)
 
+export const fantasyCategoryDelta = (
+  categoryId: CategoryId,
+  delta: number,
+): number => (categoryId === "TO" ? -delta : delta)
+
 export const formatCategoryStatDelta = (
   categoryId: CategoryId,
   delta: number,

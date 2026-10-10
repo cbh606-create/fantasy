@@ -2,8 +2,12 @@ import { buildDayLineupFromRoster, type DailyLineups } from "@/lib/matchup/daily
 import { isActiveSlot } from "@/lib/matchup/constants"
 import { eligibleForSlot } from "@/lib/matchup/eligibility"
 import { teamHasGameOnDate } from "@/lib/matchup/games"
-import { isAdpProtected } from "@/lib/matchup/streamingDropPolicy"
-import type { StreamingDensityTier } from "@/lib/matchup/types"
+import {
+  compareDropPriority,
+  expectedWinsAdded,
+  isAdpProtected,
+} from "@/lib/matchup/streamingDropPolicy"
+import type { MatchupBoard, StatWindow, StreamingDensityTier } from "@/lib/matchup/types"
 import type {
   ScheduleResponse,
   SeasonPlayer,
@@ -212,6 +216,9 @@ export const pickAutoRosterCut = (args: {
   schedule: ScheduleResponse
   seatedTonight: SeasonRosterEntry[]
   adpByPlayerId?: Record<string, number>
+  board?: MatchupBoard
+  statWindow?: StatWindow
+  droppablePlayerIds?: ReadonlySet<string>
 }): string | null => {
   const {
     date,
@@ -221,6 +228,9 @@ export const pickAutoRosterCut = (args: {
     schedule,
     seatedTonight,
     adpByPlayerId,
+    board,
+    statWindow,
+    droppablePlayerIds,
   } = args
 
   const seatedTonightIds = new Set(
@@ -242,7 +252,9 @@ export const pickAutoRosterCut = (args: {
     const rostered = playersById.get(entry.playerId)
     if (!rostered) continue
     if (playerPlaysOnDate(rostered, date, schedule)) continue
-    if (isAdpProtected(adpByPlayerId?.[entry.playerId])) continue
+    if (droppablePlayerIds) {
+      if (!droppablePlayerIds.has(entry.playerId)) continue
+    } else if (isAdpProtected(adpByPlayerId?.[entry.playerId])) continue
     candidates.push(entry.playerId)
   }
 
@@ -262,9 +274,26 @@ export const pickAutoRosterCut = (args: {
   }
 
   candidates.sort((left, right) => {
-    const gameDiff = remainingGameDays(left) - remainingGameDays(right)
-    if (gameDiff !== 0) return gameDiff
-    return left.localeCompare(right)
+    const leftPlayer = playersById.get(left)
+    const rightPlayer = playersById.get(right)
+    const leftGames = remainingGameDays(left)
+    const rightGames = remainingGameDays(right)
+    return compareDropPriority(
+      {
+        games: leftGames,
+        expectedWins: leftPlayer
+          ? expectedWinsAdded(leftPlayer, leftGames, board, statWindow)
+          : 0,
+        adp: adpByPlayerId?.[left],
+      },
+      {
+        games: rightGames,
+        expectedWins: rightPlayer
+          ? expectedWinsAdded(rightPlayer, rightGames, board, statWindow)
+          : 0,
+        adp: adpByPlayerId?.[right],
+      },
+    )
   })
 
   return candidates[0] ?? null

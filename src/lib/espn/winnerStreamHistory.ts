@@ -106,7 +106,7 @@ const espnHeaders = (cookies: EspnCookies): Record<string, string> => ({
 
 const leagueUrl = (season: number, leagueId: string): URL =>
   new URL(
-    `https://fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/${leagueId}`,
+    `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/${leagueId}`,
   )
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

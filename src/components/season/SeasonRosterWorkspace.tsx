@@ -7,6 +7,7 @@ import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { PlayerSchedulePanel } from "@/components/season/PlayerSchedulePanel"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
+import { LeagueScoringLabel } from "@/components/season/LeagueScoringLabel"
 import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import {
@@ -357,9 +358,12 @@ export const SeasonRosterWorkspace = ({
               {data.state.season} season · YOU · {data.state.source}
               {data.state.lastSyncedAt ? ` · synced ${new Date(data.state.lastSyncedAt).toLocaleDateString()}` : ""}
             </p>
-            <h1 className="mt-1 font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
-              {data.state.name}
-            </h1>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h1 className="font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
+                {data.state.name}
+              </h1>
+              <LeagueScoringLabel mode={data.state.scoringMode} />
+            </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <button

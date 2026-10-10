@@ -21,8 +21,10 @@ export type SeasonPlayer = {
   positions?: SeasonPosition[]
   availability?: "fa" | "waiver"
   projections: Record<CategoryId, number>
-  /** ESPN (or overlay) projected games; used for weekly scaling when set. */
+  /** ESPN (or overlay) projected games; used to turn season totals into a per-game rate. */
   projectedGames?: number
+  /** ESPN injury. `out` plays no games this week. */
+  injuryStatus?: "out" | "gtd"
   shooting: {
     FGM: number
     FGA: number
@@ -57,6 +59,10 @@ export type ScheduleMatchup = {
   startDate: string
   endDate: string
   days: string[]
+  /** ESPN fantasy matchup period id when schedule came from the league. */
+  matchupPeriodId?: number
+  /** ESPN scoring period ids aligned 1:1 with `days`. */
+  scoringPeriodIds?: number[]
 }
 
 export type ScheduleResponse = {
@@ -77,10 +83,13 @@ export type SeasonTeamRoster = {
   entries: SeasonRosterEntry[]
 }
 
+export type SeasonScoringMode = "each_category" | "most_categories"
+
 export type SeasonLeagueState = {
   id?: string
   name: string
   season: number
+  scoringMode?: SeasonScoringMode
   categories: CategorySetting[]
   perspectiveTeamIndex: number
   espnTeamId?: number

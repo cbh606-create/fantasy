@@ -16,7 +16,10 @@ import {
   manualToSeasonLeagueState,
   type ManualSeasonLeagueInput,
 } from "@/lib/adapters/manualSeason"
-import { espnImportToSeasonLeagueState } from "@/lib/adapters/espnSeason"
+import {
+  espnImportPreferringNewerSeason,
+  espnImportToSeasonLeagueState,
+} from "@/lib/adapters/espnSeason"
 import { db } from "@/lib/db"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import fixture from "../../data/fixtures/espn-season-league.json"
@@ -33,6 +36,9 @@ vi.mock("@/lib/adapters/espnSeason", async (importOriginal) => {
     ...actual,
     espnImportToSeasonLeagueState: vi.fn(
       actual.espnImportToSeasonLeagueState,
+    ),
+    espnImportPreferringNewerSeason: vi.fn(
+      actual.espnImportPreferringNewerSeason,
     ),
   }
 })
@@ -83,6 +89,56 @@ describe("GET /api/season-leagues", () => {
     const response = await GET_LIST()
 
     expect(response.status).toBe(401)
+  })
+
+  it("returns one row when the same ESPN league was imported twice", async () => {
+    const older = await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: "PIA Fantasy Basketball 2025-26",
+        espnLeagueId: "120853513",
+        season: 2026,
+        perspectiveTeamIndex: 8,
+        source: "espn",
+        stateJson: "{}",
+        createdAt: new Date("2026-09-25T13:28:18.922Z"),
+      },
+    })
+    await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: "PIA Fantasy Basketball 2025-26",
+        espnLeagueId: "120853513",
+        season: 2026,
+        perspectiveTeamIndex: 8,
+        source: "espn",
+        stateJson: "{}",
+        createdAt: new Date("2026-09-27T10:37:46.630Z"),
+      },
+    })
+    await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: "Korea League",
+        espnLeagueId: "86031675",
+        season: 2026,
+        perspectiveTeamIndex: 0,
+        source: "espn",
+        stateJson: "{}",
+      },
+    })
+
+    const response = await GET_LIST()
+    const leagues = (await response.json()) as { id: string; name: string }[]
+
+    expect(response.status).toBe(200)
+    expect(leagues.map((league) => league.name).sort()).toEqual([
+      "Korea League",
+      "PIA Fantasy Basketball 2025-26",
+    ])
+    expect(leagues.find((league) => league.name.startsWith("PIA"))?.id).toBe(
+      older.id,
+    )
   })
 })
 
@@ -396,6 +452,38 @@ describe("POST /api/espn/season-import", () => {
       source: "espn",
     })
   })
+
+  it("updates the existing season league when the same ESPN league is imported again", async () => {
+    const first = await importEspnSeason(
+      createRequest("/api/espn/season-import", {
+        name: "Imported season league",
+        leagueId: "fixture-league",
+        season: fixture.season,
+        teamId: 2,
+      }),
+    )
+    const created = await first.json()
+    const second = await importEspnSeason(
+      createRequest("/api/espn/season-import", {
+        name: "Imported season league",
+        leagueId: "fixture-league",
+        season: fixture.season,
+        teamId: 2,
+      }),
+    )
+    const updated = await second.json()
+    const stored = await db.seasonLeague.findMany({
+      where: {
+        clerkUserId: currentUserId,
+        espnLeagueId: "fixture-league",
+        season: fixture.season,
+      },
+    })
+
+    expect(second.status).toBe(200)
+    expect(updated.id).toBe(created.id)
+    expect(stored).toHaveLength(1)
+  })
 })
 
 describe("POST /api/season-leagues/:id/refresh", () => {
@@ -403,7 +491,7 @@ describe("POST /api/season-leagues/:id/refresh", () => {
     const state = manualToSeasonLeagueState(
       fixture as ManualSeasonLeagueInput,
     )
-    vi.mocked(espnImportToSeasonLeagueState).mockResolvedValueOnce({
+    vi.mocked(espnImportPreferringNewerSeason).mockResolvedValueOnce({
       ...state,
       id: "fixture-league",
       source: "espn",

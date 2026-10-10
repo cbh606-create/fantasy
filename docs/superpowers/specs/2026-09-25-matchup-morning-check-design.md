@@ -1,21 +1,25 @@
 # Matchup morning check
 
 **Date:** 2026-09-25  
-**Status:** Draft, waiting for review  
+**Status:** Approved for planning  
 **Product:** Matchup — once each morning, lock finished days to actual stats, compare them with that day's projection, and replan today through the end of the week
+
+**Superseded for “when it runs”:** see `2026-09-30-matchup-settled-day-frontier-design.md` (ESPN settled-day frontier instead of calendar morning cut). Closed-day contents, day comparison, summary, and id-freeze below still apply unless that doc says otherwise.
 
 ## Goal
 
-When a matchup week is in progress, the page should show what already happened and what to do with the days that are left. Finished days use actual 9-category totals. The projection for those days still comes from the selected stat window, even if the app was not opened that morning. The week board, streaming plan, and lineup then recompute from today forward.
+When a matchup week is in progress, the page should show what already happened and what to do with the days that are left. Finished days use actual 9-category totals. The projection for those days still comes from the selected stat window, even if the app was not opened that morning. The week board, streaming plan, and lineup then recompute from the frontier (first still-open day) forward.
 
 ## Locked decisions
 
 ### When it runs
 
-- Once a day, after the previous night's games are final and before today's lineup lock.
-- Opening the matchup in that window performs the check and saves it.
-- Opening again the same morning reads the saved check.
-- Games still in progress do not update the check. Today stays unfinished until the next morning.
+> **Updated 2026-09-30:** calendar morning is no longer the cut line. See `2026-09-30-matchup-settled-day-frontier-design.md`. ESPN-closed scoring periods settle immediately; remaining plans start at `frontierDate`.
+
+- ~~Once a day, after the previous night's games are final and before today's lineup lock.~~
+- Opening matchup consults ESPN status; newly closed periods fetch boxes and rebuild.
+- Opening again reuses saved boxes when the ESPN-closed date set is unchanged.
+- Games still in a current scoring period stay unfinished (projected).
 
 ### What a finished day contributes
 

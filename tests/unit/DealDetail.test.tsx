@@ -31,13 +31,13 @@ const state: SeasonLeagueState = {
   players: [
     {
       id: "give-1",
-      name: "Your Guard",
+      name: "Nikola Jokic",
       projections: { ...baseProjections, PTS: 30, AST: 9, REB: 9 },
       shooting,
     },
     {
       id: "get-1",
-      name: "Their Center",
+      name: "Kevin Durant",
       projections: baseProjections,
       shooting,
     },
@@ -100,7 +100,9 @@ describe("DealDetail", () => {
 
     expect(screen.getByRole("heading", { name: "What they get" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "What you get" })).toBeInTheDocument()
-    expect(screen.getByText("REB")).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "My Team" }).querySelector("svg")).toBeTruthy()
+    expect(screen.getByRole("region", { name: "Rivals" }).querySelector("svg")).toBeTruthy()
+    expect(screen.getAllByText("REB").length).toBeGreaterThan(0)
     expect(screen.getByText("40.0 → 55.0")).toBeInTheDocument()
     expect(screen.getByText("Stays strong in AST")).toBeInTheDocument()
     expect(screen.getByText("Your package is larger by 8%")).toBeInTheDocument()
@@ -135,8 +137,10 @@ describe("DealDetail", () => {
       />,
     )
 
-    expect(screen.getByText("3PM")).toBeInTheDocument()
-    expect(screen.queryByText("TPM")).toBeNull()
-    expect(screen.getByText("1.0 → 2.0")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "What you get" })).toBeInTheDocument()
+    const yourGains = screen.getByRole("heading", { name: "What you get" }).parentElement
+    expect(yourGains).toHaveTextContent("3PM")
+    expect(yourGains).not.toHaveTextContent("TPM")
+    expect(yourGains).toHaveTextContent("1.0 → 2.0")
   })
 })

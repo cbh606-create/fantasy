@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { applyPoolProjections } from "@/lib/players/applyPoolProjections"
+import {
+  applyPoolInjuryStatus,
+  applyPoolProjections,
+} from "@/lib/players/applyPoolProjections"
 import type { SeasonPlayer } from "@/lib/season/types"
 
 const pool = [
@@ -8,6 +11,7 @@ const pool = [
     espnId: "3112335",
     name: "Nikola Jokic",
     teamAbbr: "DEN",
+    status: "out" as const,
     projectedGames: 74,
     shooting: { FGM: 800, FGA: 1400, FTM: 400, FTA: 480 },
     projections: {
@@ -49,6 +53,7 @@ describe("applyPoolProjections", () => {
     expect(report.matched).toHaveLength(1)
     expect(players[0].projections.PTS).toBe(2144)
     expect(players[0].projectedGames).toBe(74)
+    expect(players[0].injuryStatus).toBe("out")
     expect(players[0].shooting).toEqual({
       FGM: 800,
       FGA: 1400,
@@ -97,5 +102,48 @@ describe("applyPoolProjections", () => {
     const { players } = applyPoolProjections([target], pool)
     expect(players[0].projections.PTS).toBe(2144)
     expect(players[0].seasonRates).toEqual(target.seasonRates)
+  })
+
+  it("copies out status without replacing the stored projection", () => {
+    const target = seasonPlayer()
+    const [player] = applyPoolInjuryStatus([target], pool)
+    expect(player.injuryStatus).toBe("out")
+    expect(player.projections.PTS).toBe(100)
+  })
+
+  it("does not attach projectedGames when the pool player has no team", () => {
+    const unsignedPool = [
+      {
+        id: "espn-2779",
+        espnId: "2779",
+        name: "Chris Paul",
+        status: "active" as const,
+        projectedGames: 74,
+        projections: {
+          FG_PCT: 0.4,
+          FT_PCT: 0.8,
+          TPM: 100,
+          REB: 200,
+          AST: 400,
+          STL: 80,
+          BLK: 10,
+          TO: 150,
+          PTS: 800,
+        },
+      },
+    ]
+    const { players } = applyPoolProjections(
+      [
+        seasonPlayer({
+          id: "2779",
+          name: "Chris Paul",
+          teamAbbr: "LAC",
+          projectedGames: 82,
+        }),
+      ],
+      unsignedPool,
+    )
+    expect(players[0]?.teamAbbr).toBe("LAC")
+    expect(players[0]?.projectedGames).toBeUndefined()
   })
 })

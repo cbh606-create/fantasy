@@ -5,7 +5,7 @@ import {
 } from "@/lib/matchup/opponentStreaming"
 
 describe("resolveOppSpotCount", () => {
-  it("uses two empty non-IL seats as Auto 2", () => {
+  it("counts empty non-IL seats", () => {
     const entries = [
       { slot: "UTIL" as const, playerId: "opp-1" },
       { slot: "BE" as const, playerId: null },
@@ -13,19 +13,11 @@ describe("resolveOppSpotCount", () => {
       { slot: "IL" as const, playerId: null },
     ]
     expect(emptyNonIlSeatCount(entries)).toBe(2)
-    expect(resolveOppSpotCount("auto", entries)).toBe(2)
   })
 
-  it("uses 1 spot when Auto and every non-IL seat is filled", () => {
-    const entries = [
-      { slot: "UTIL" as const, playerId: "opp-1" },
-      { slot: "IL" as const, playerId: null },
-    ]
-    expect(emptyNonIlSeatCount(entries)).toBe(0)
-    expect(resolveOppSpotCount("auto", entries)).toBe(1)
-  })
-
-  it("honors a manual 3 override", () => {
+  it("returns the manual choice as-is", () => {
     expect(resolveOppSpotCount(3, [{ slot: "UTIL", playerId: "opp-1" }])).toBe(3)
+    expect(resolveOppSpotCount(1)).toBe(1)
+    expect(resolveOppSpotCount(0, [{ slot: "UTIL", playerId: null }])).toBe(0)
   })
 })

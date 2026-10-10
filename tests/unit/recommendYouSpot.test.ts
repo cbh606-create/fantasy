@@ -7,37 +7,38 @@ import {
 
 const score = (
   spot: YouSpotScore["spot"],
-  gameStarts: number,
+  projectedCatWins: number,
   addsUsed = 0,
-): YouSpotScore => ({ spot, gameStarts, addsUsed })
+  gameStarts = 0,
+): YouSpotScore => ({ spot, gameStarts, addsUsed, projectedCatWins })
 
 describe("pickRecommendedYouSpot", () => {
-  it("picks the spot with the most team starts", () => {
+  it("picks the spot with the highest expected category wins", () => {
     expect(
       pickRecommendedYouSpot([
-        score(null, 40),
-        score(1, 44),
-        score(2, 48),
-        score(3, 46),
+        score(null, 3.1),
+        score(1, 3.4),
+        score(2, 3.9),
+        score(3, 3.6),
       ]),
     ).toBe(2)
   })
 
-  it("breaks a start tie toward fewer adds", () => {
+  it("breaks an expected-wins tie toward fewer adds", () => {
     expect(
       pickRecommendedYouSpot([
-        score(2, 45, 6),
-        score(1, 45, 3),
+        score(2, 3.5, 6),
+        score(1, 3.5, 3),
       ]),
     ).toBe(1)
   })
 
-  it("breaks an equal start and add tie toward fewer spots, treating None as zero", () => {
+  it("breaks an equal expected-wins and add tie toward fewer spots, treating None as zero", () => {
     expect(
       pickRecommendedYouSpot([
-        score(2, 45, 3),
-        score(null, 45, 3),
-        score(1, 45, 3),
+        score(2, 3.5, 3),
+        score(null, 3.5, 3),
+        score(1, 3.5, 3),
       ]),
     ).toBeNull()
   })
@@ -49,8 +50,8 @@ describe("pickRecommendedYouSpot", () => {
 
 describe("shouldAutoApplyYouSpot", () => {
   it("applies on the first scores and when the Opp assumption changes", () => {
-    expect(shouldAutoApplyYouSpot(null, "auto:")).toBe(true)
-    expect(shouldAutoApplyYouSpot("auto:", "auto:")).toBe(false)
-    expect(shouldAutoApplyYouSpot("auto:", "2:")).toBe(true)
+    expect(shouldAutoApplyYouSpot(null, "0:")).toBe(true)
+    expect(shouldAutoApplyYouSpot("0:", "0:")).toBe(false)
+    expect(shouldAutoApplyYouSpot("0:", "2:")).toBe(true)
   })
 })

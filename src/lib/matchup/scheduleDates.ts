@@ -16,3 +16,18 @@ export const buildWeekDays = (startIso: string, endIso: string): string[] => {
 
   return days
 }
+
+/** Monday–Sunday ISO dates for the America/New_York fantasy week containing `isoDate`. */
+export const weekContainingIsoDate = (
+  isoDate: string,
+): { startIso: string; endIso: string; days: string[] } => {
+  const day = parseIsoDate(isoDate)
+  const daysSinceMonday = (day.getUTCDay() + 6) % 7
+  const start = new Date(day)
+  start.setUTCDate(start.getUTCDate() - daysSinceMonday)
+  const end = new Date(start)
+  end.setUTCDate(end.getUTCDate() + 6)
+  const startIso = formatUtcIsoDate(start)
+  const endIso = formatUtcIsoDate(end)
+  return { startIso, endIso, days: buildWeekDays(startIso, endIso) }
+}

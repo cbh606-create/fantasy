@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { formatTotal, formatValueLine } from "@/lib/trade/offerCopy"
+import { formatAdvantageLine, formatTotal, formatValueLine } from "@/lib/trade/offerCopy"
 
 describe("offer copy", () => {
   it("formats percentages and counting totals", () => {
@@ -20,5 +20,10 @@ describe("offer copy", () => {
     expect(formatValueLine({ giveLarger: true, overpayRatio: 1.236 })).toBe(
       "The two-player side is 1.24× the one-player side",
     )
+  })
+
+  it("names the team with the value advantage", () => {
+    expect(formatAdvantageLine("My Team", 0.084)).toBe("Advantage My Team by 8%")
+    expect(formatAdvantageLine("Rivals", 0.004)).toBe("Packages are even")
   })
 })

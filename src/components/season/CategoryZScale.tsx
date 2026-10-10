@@ -183,10 +183,12 @@ export const CategoryZScale = ({
         .filter((mark) => !mark.dot.isYou)
         .map(({ dot, x, y }) => {
           const fact = dotFact(categoryId, dot)
+          const labelBelow = y > metrics.axisY
+
           return (
             <button
               aria-label={fact}
-              className="group absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-mute)]"
+              className="group absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-mute)] hover:z-30 focus:z-30"
               data-testid={`z-dot-${dot.teamIndex}`}
               data-y={y}
               key={dot.teamIndex}
@@ -198,7 +200,11 @@ export const CategoryZScale = ({
               }}
               type="button"
             >
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-[var(--color-ink)] px-2 py-1 text-[10px] text-white group-hover:block group-focus:block">
+              <span
+                className={`pointer-events-none absolute left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-[var(--color-ink)] px-2 py-1 text-[10px] text-white group-hover:block group-focus:block ${
+                  labelBelow ? "top-full mt-1" : "bottom-full mb-1"
+                }`}
+              >
                 {fact}
               </span>
             </button>

@@ -1,17 +1,16 @@
 "use client"
 
-import Link from "next/link"
 import {
   Fragment,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
   type ChangeEvent,
   type ReactNode,
 } from "react"
-import { createPortal } from "react-dom"
+import { AddTeamPlayerPicker } from "@/components/matchup/AddTeamPlayerPicker"
+import { Banner } from "@/components/ui/Banner"
 import { Chip } from "@/components/ui/Chip"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
@@ -34,36 +33,44 @@ import {
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import { mostCategoriesSeedPuntIds } from "@/lib/matchup/mostCategories"
 import {
+  addOverrideCandidates,
+  lockAfterPick,
+  type StreamingAddLock,
+} from "@/lib/matchup/streamingAddOverride"
+import { carryForwardStreamerId } from "@/lib/matchup/streamingCarryForward"
+import {
   buildStreamingPlan,
   streamingAddDropKey,
+  streamingHoldUntil,
 } from "@/lib/matchup/streamingPlans"
 import {
+  collectEarlierAddedStreamerIds,
   collectEarlierRosterDropIds,
-  eligibleRosterDropPlayerIds,
   hasOpenNonIlRosterSlot,
   isAfterStreamingAddDropKey,
+  parseStreamingAddDropKey,
   perspectiveRosterEntries,
   rosterDropSelectOptions,
+  rosterDropSelectPlayerIds,
 } from "@/lib/matchup/streamingDropOptions"
-import {
-  formatHelpsCatsLine,
-  formatSuggestedDropTooltip,
-  suggestStreamingDrop,
-} from "@/lib/matchup/streamingDropExplain"
+import { isAdpProtected } from "@/lib/matchup/streamingDropPolicy"
 import { winnerStreamHint } from "@/lib/matchup/winnerStreamPrior"
 import type {
   MatchupBoard,
+  StreamingChaseNote,
   StreamingPlan,
   StreamingPlanDayCell,
   StatWindow,
   WinnerStreamRecipe,
 } from "@/lib/matchup/types"
+import type { StatPairRow } from "@/lib/players/statPairCorrelation"
 import type { CategoryId } from "@/lib/domain/types"
 
 const MIN_ADD_BUDGET = 1
 const MAX_ADD_BUDGET = 14
 
 const EMPTY_WINNER_STREAM_RECIPES: WinnerStreamRecipe[] = []
+const EMPTY_STAT_PAIRS: StatPairRow[] = []
 
 type ForcedRosterDropValue = string | "open_slot" | "hold"
 
@@ -73,15 +80,11 @@ const localIsoDate = () => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-const editableStreamingDropDate = (
-  days: string[],
-  today: string,
-): string | null => {
-  if (days.includes(today)) return today
-  const start = days[0]
-  if (start && today < start) return start
-  return null
-}
+const isPastStreamingDate = (date: string, today: string) => date < today
+
+const canEditStreamingDate = (date: string, today: string) =>
+  !isPastStreamingDate(date, today)
+
 
 const plannedDropValue = (
   cell: StreamingPlanDayCell | undefined,
@@ -90,6 +93,10 @@ const plannedDropValue = (
     return cell.rosterDropPlayerId
   }
   if (cell?.rosterDropKind === "open_slot") return "open_slot"
+  // Spot swap: previous streamer is the drop, even when rosterDropKind is none.
+  if (cell?.action === "drop_add" && cell.droppedPlayerId) {
+    return cell.droppedPlayerId
+  }
   return "hold"
 }
 
@@ -105,10 +112,11 @@ type StreamingPlansPanelProps = {
   previewSpotCount?: 1 | 2 | 3 | null
   onPlansBuilt?: (payload: {
     plans: StreamingPlan[]
+    baselinePlans: StreamingPlan[]
     noneOpponentPlan: StreamingPlan | null
   }) => void
-  /** Resolved opponent stream spots. Parent resolves Auto; do not resolve here. */
-  oppSpotCount?: 1 | 2 | 3
+  /** Resolved opponent stream spots. Parent resolves Auto; do not resolve here. 0 = idle. */
+  oppSpotCount?: 0 | 1 | 2 | 3
   forcedOpponentRosterDrops?: (string | null)[]
   opponentTeamIndex?: number
   /** Base (non-preview) daily lineups — used to skip adds on full days. */
@@ -116,6 +124,7 @@ type StreamingPlansPanelProps = {
   winnerStreamRecipes?: WinnerStreamRecipe[]
   today?: string
   statWindow?: StatWindow
+  statPairs?: StatPairRow[]
   puntSeedReady?: boolean
 }
 
@@ -210,225 +219,39 @@ const targetCatChips = (categoryIds: CategoryId[]) =>
     </span>
   ))
 
-const DropSuggestTip = ({
-  board,
-  children,
-  daily,
-  date,
-  players,
-  playersById,
-  rosterPlayerIds,
-  schedule,
-  statWindow,
-}: {
-  board: MatchupBoard
-  children: ReactNode
-  daily?: DailyLineups
-  date: string
-  players: SeasonPlayer[]
-  playersById: Record<string, SeasonPlayer>
-  rosterPlayerIds: string[]
-  schedule: ScheduleResponse
-  statWindow?: StatWindow
-}) => {
-  const tipId = useId()
-  const rootRef = useRef<HTMLSpanElement>(null)
-  const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState({ top: 0, left: 0 })
-
-  const placeTip = () => {
-    const rect = rootRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const width = 224
-    const left = Math.max(
-      8,
-      Math.min(rect.left, window.innerWidth - width - 8),
-    )
-    setPos({ top: rect.bottom + 6, left })
-  }
-
-  const handleShow = () => {
-    if (!daily) return
-    placeTip()
-    setOpen(true)
-  }
-
-  const handleHide = () => setOpen(false)
-
-  const tooltip = (() => {
-    if (!open || !daily) return null
-    const suggestion = suggestStreamingDrop({
-      rosterPlayerIds,
-      players,
-      workingDaily: daily,
-      fromDate: date,
-      schedule,
-      board,
-      statWindow,
-    })
-    if (!suggestion) return null
-    return formatSuggestedDropTooltip(
-      playerName(suggestion.playerId, playersById),
-      suggestion.categoryIds,
-    )
-  })()
-
-  useEffect(() => {
-    if (!open) return
-    const close = () => setOpen(false)
-    window.addEventListener("scroll", close, true)
-    window.addEventListener("resize", close)
-    return () => {
-      window.removeEventListener("scroll", close, true)
-      window.removeEventListener("resize", close)
-    }
-  }, [open])
-
-  return (
-    <span
-      className="relative block w-full max-w-full"
-      onBlur={handleHide}
-      onFocus={handleShow}
-      onMouseEnter={handleShow}
-      onMouseLeave={handleHide}
-      ref={rootRef}
-    >
-      {children}
-      {open && tooltip
-        ? createPortal(
-            <span
-              className="w-56 rounded-xl border border-[var(--color-hairline)] bg-white p-2.5 text-left text-[0.75rem] leading-snug text-[var(--color-ink)] shadow-md"
-              id={tipId}
-              role="tooltip"
-              style={{
-                position: "fixed",
-                top: pos.top,
-                left: pos.left,
-                zIndex: 60,
-              }}
-            >
-              {tooltip}
-            </span>,
-            document.body,
-          )
-        : null}
-    </span>
-  )
-}
-
 const DropCell = ({
-  adpByPlayerId,
-  board,
   cell,
-  daily,
   date,
   onForcedRosterDropChange,
   plan,
-  players,
   playersById,
   rosterEntries,
-  rosterPlayerIds,
-  schedule,
   spotIndex,
-  statWindow,
   today,
-  todayInWeek,
-  dropEditDate,
   forcedDropValue,
 }: {
-  adpByPlayerId?: Record<string, number>
-  board: MatchupBoard
   cell: StreamingPlanDayCell | undefined
-  daily?: DailyLineups
   date: string
   onForcedRosterDropChange: (key: string, value: ForcedRosterDropValue) => void
   plan: StreamingPlan
-  players: SeasonPlayer[]
   playersById: Record<string, SeasonPlayer>
   rosterEntries: SeasonLeagueState["teams"][number]["entries"]
-  rosterPlayerIds: string[]
-  schedule: ScheduleResponse
   spotIndex: number
-  statWindow?: StatWindow
   today: string
-  todayInWeek: boolean
-  dropEditDate: string | null
   forcedDropValue: ForcedRosterDropValue
 }) => {
-  const suggestTip = (child: ReactNode) => (
-    <DropSuggestTip
-      board={board}
-      daily={daily}
-      date={date}
-      players={players}
-      playersById={playersById}
-      rosterPlayerIds={rosterPlayerIds}
-      schedule={schedule}
-      statWindow={statWindow}
-    >
-      {child}
-    </DropSuggestTip>
-  )
+  const [lazyOptions, setLazyOptions] = useState<
+    { value: string; label: string }[] | null
+  >(null)
 
-  if (dropEditDate && date === dropEditDate) {
-    const key = streamingAddDropKey(date, spotIndex)
-    const earlierDroppedIds = collectEarlierRosterDropIds(
-      plan,
-      date,
-      spotIndex,
-    )
-    const seatedTonightIds = new Set(
-      (daily?.[date] ?? [])
-        .map((entry) => entry.playerId)
-        .filter((playerId): playerId is string => playerId !== null),
-    )
-    const eligiblePlayerIds = eligibleRosterDropPlayerIds(
-      rosterEntries,
-      playersById,
-      earlierDroppedIds,
-      adpByPlayerId,
-      undefined,
-      { seatedTonightIds },
-    )
-    const options = rosterDropSelectOptions({
-      eligiblePlayerIds,
-      earlierDroppedIds,
-      allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
-      includeHold: true,
-      playersById,
-    })
-    const value = forcedDropValue
+  const key = streamingAddDropKey(date, spotIndex)
+  const value = forcedDropValue
 
-    const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-      const next = event.target.value
-      if (next === "open_slot") {
-        onForcedRosterDropChange(key, "open_slot")
-        return
-      }
-      if (next === "hold") {
-        onForcedRosterDropChange(key, "hold")
-        return
-      }
-      onForcedRosterDropChange(key, next)
-    }
+  useEffect(() => {
+    setLazyOptions(null)
+  }, [value, date, spotIndex])
 
-    return suggestTip(
-      <select
-        aria-label={`Roster drop ${formatMatchupDayLabel(date)} spot ${spotIndex + 1}`}
-        className="w-full max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-        onChange={handleChange}
-        value={value}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>,
-    )
-  }
-
-  if (todayInWeek && date < today) {
+  if (isPastStreamingDate(date, today)) {
     return (
       <span className="text-[var(--color-mute)]">
         {dropPlanLabel(cell, playersById)}
@@ -436,46 +259,271 @@ const DropCell = ({
     )
   }
 
-  return suggestTip(
-    <span className="text-[var(--color-mute)]" tabIndex={0}>
-      {dropPlanLabel(cell, playersById)}
-    </span>,
+  if (!canEditStreamingDate(date, today)) {
+    return (
+      <span className="text-[var(--color-mute)]">
+        {dropPlanLabel(cell, playersById)}
+      </span>
+    )
+  }
+
+  const closedLabel =
+    value === "hold"
+      ? "Hold"
+      : value === "open_slot"
+        ? "Open slot"
+        : playerName(value, playersById)
+
+  const ensureOptions = () => {
+    setLazyOptions((current) => {
+      if (current) return current
+      const earlierDroppedIds = collectEarlierRosterDropIds(
+        plan,
+        date,
+        spotIndex,
+      )
+      const earlierAddedStreamerIds = collectEarlierAddedStreamerIds(
+        plan,
+        date,
+        spotIndex,
+      )
+      const selectPlayerIds = rosterDropSelectPlayerIds(
+        rosterEntries,
+        playersById,
+        earlierDroppedIds,
+        earlierAddedStreamerIds,
+      )
+      return rosterDropSelectOptions({
+        eligiblePlayerIds: selectPlayerIds,
+        earlierDroppedIds,
+        allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
+        includeHold: true,
+        playersById,
+      })
+    })
+  }
+
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const next = event.target.value
+    if (next === "open_slot") {
+      onForcedRosterDropChange(key, "open_slot")
+      return
+    }
+    if (next === "hold") {
+      onForcedRosterDropChange(key, "hold")
+      return
+    }
+    onForcedRosterDropChange(key, next)
+  }
+
+  const options = lazyOptions ?? [{ value, label: closedLabel }]
+
+  return (
+    <select
+      aria-label={`Roster drop ${formatMatchupDayLabel(date)} spot ${spotIndex + 1}`}
+      className="w-full max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+      onChange={handleChange}
+      onFocus={ensureOptions}
+      onMouseDown={ensureOptions}
+      value={value}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   )
 }
+
+const formatChaseNote = (note: StreamingChaseNote) => {
+  const labels = note.categoryIds
+    .map((categoryId) => CATEGORY_SHORT_LABELS[categoryId])
+    .join(" · ")
+  if (note.categoryIds.length < 2) return `${labels} · penalty 0`
+  const rLabel = note.r == null ? "—" : note.r.toFixed(2)
+  return `${labels} · r ${rLabel} · penalty ${note.penalty.toFixed(3)}`
+}
+
+const gameNightLabel = (hasGame: boolean) => (
+  <span
+    aria-label={hasGame ? "Game day" : "Off night"}
+    className="ml-1 text-[0.625rem] font-medium text-[var(--color-mute)]"
+  >
+    {hasGame ? "Game" : "Off"}
+  </span>
+)
+
+const gameNightToneClass = (hasGame: boolean) =>
+  hasGame
+    ? "rounded-md bg-[var(--color-soft-cloud)] px-1 py-0.5"
+    : "rounded-md bg-[color-mix(in_srgb,var(--color-mute)_10%,transparent)] px-1 py-0.5"
 
 const AddCell = ({
   cell,
   date,
-  leagueId,
+  displayPlayerId,
   oppStreamerName,
   playersById,
   schedule,
+  chaseNote,
+  today,
+  locks,
+  allPlayers,
+  availableIds,
+  spotIndex,
+  onAddSelect,
+  onHoldThrough,
+  selectEpoch = 0,
 }: {
   cell: StreamingPlanDayCell | undefined
   date: string
-  leagueId: string
+  displayPlayerId: string | null
   oppStreamerName?: string | null
   playersById: Record<string, SeasonPlayer>
   schedule: ScheduleResponse
+  chaseNote?: StreamingChaseNote
+  today: string
+  locks: readonly StreamingAddLock[]
+  allPlayers: readonly SeasonPlayer[]
+  availableIds: ReadonlySet<string>
+  spotIndex: number
+  onAddSelect?: (playerId: string) => boolean
+  onHoldThrough?: () => void
+  selectEpoch?: number
 }) => {
+  const selectValue = cell?.playerId ?? ""
+  const shownPlayerId = cell?.playerId ?? displayPlayerId
+  const seated = shownPlayerId ? playersById[shownPlayerId] : undefined
+  const hasGame = playerPlaysOn(seated, date, schedule)
+  const shownName = shownPlayerId
+    ? playerName(shownPlayerId, playersById)
+    : "—"
+
+  const wrapTone = (child: ReactNode) =>
+    shownPlayerId ? (
+      <div
+        className={gameNightToneClass(hasGame)}
+        data-game-night={hasGame ? "game" : "off"}
+      >
+        {child}
+      </div>
+    ) : (
+      child
+    )
+
   const oppLabel = oppStreamerName ? (
     <span className="mt-0.5 block text-[0.625rem] text-[var(--color-mute)]">
       Opp: {oppStreamerName}
     </span>
   ) : null
 
-  if (!cell || cell.action === "empty" || !cell.playerId) {
-    return (
+  if (isPastStreamingDate(date, today)) {
+    if (!shownPlayerId) {
+      return (
+        <>
+          <span className="text-[var(--color-mute)]">—</span>
+          {oppLabel}
+        </>
+      )
+    }
+    return wrapTone(
       <>
-        <span className="text-[var(--color-mute)]">—</span>
+        <span
+          className="inline-flex max-w-full flex-wrap items-baseline"
+          title={hasGame ? "Game day" : "Off night"}
+        >
+          <span
+            className={
+              hasGame
+                ? "font-bold text-[var(--color-ink)]"
+                : "font-normal text-[var(--color-mute)]"
+            }
+          >
+            {shownName}
+          </span>
+          {gameNightLabel(hasGame)}
+        </span>
         {oppLabel}
-      </>
+      </>,
     )
   }
 
-  const seated = playersById[cell.playerId]
-  const name = playerName(cell.playerId, playersById)
-  const hasGame = playerPlaysOn(seated, date, schedule)
+  if (canEditStreamingDate(date, today) && onAddSelect) {
+    const value = selectValue
+    const closedLabel = value
+      ? playerName(value, playersById)
+      : shownPlayerId
+        ? shownName
+        : "—"
+    const chips = targetCatChips(cell?.targetCategoryIds ?? [])
+
+    return wrapTone(
+      <>
+        <AddTeamPlayerPicker
+          ariaLabel={`Stream add ${formatMatchupDayLabel(date)} spot ${spotIndex + 1}`}
+          loadCandidates={() =>
+            addOverrideCandidates({
+              players: allPlayers,
+              availableIds,
+              date,
+              schedule,
+              locks,
+              query: "",
+            })
+          }
+          onSelect={onAddSelect}
+          selectEpoch={selectEpoch}
+          title={hasGame ? "Game day" : "Off night"}
+          value={value}
+          valueLabel={closedLabel}
+        />
+        {shownPlayerId ? gameNightLabel(hasGame) : null}
+        {cell?.addIndex != null ? (
+          <span
+            aria-label={`Add ${cell.addIndex}`}
+            className={`ml-0.5 text-[0.8125rem] font-semibold tabular-nums ${addIndexColorClass(cell.addIndex)}`}
+          >
+            {cell.addIndex}
+          </span>
+        ) : null}
+        {chips}
+        {chaseNote && chaseNote.categoryIds.length > 0 ? (
+          <span className="mt-0.5 block text-[0.625rem] leading-snug text-[var(--color-mute)]">
+            {formatChaseNote(chaseNote)}
+          </span>
+        ) : null}
+        {oppLabel}
+      </>,
+    )
+  }
+
+  const holdControl = (child: ReactNode) => {
+    if (!onHoldThrough) return child
+    return (
+      <button
+        aria-label={`Hold through ${formatMatchupDayLabel(date)}`}
+        className="block w-full max-w-full text-left"
+        onClick={(event) => {
+          event.stopPropagation()
+          onHoldThrough()
+        }}
+        type="button"
+      >
+        {child}
+      </button>
+    )
+  }
+
+  if (!shownPlayerId) {
+    return holdControl(
+      <>
+        <span className="text-[var(--color-mute)]">—</span>
+        {oppLabel}
+      </>,
+    )
+  }
+
   const nameClass = hasGame
     ? "font-bold text-[var(--color-ink)]"
     : "font-normal text-[var(--color-mute)]"
@@ -486,184 +534,43 @@ const AddCell = ({
     </span>
   )
 
-  const chips = targetCatChips(cell.targetCategoryIds ?? [])
-
-  if (isAddAction(cell.action)) {
-    return (
-      <>
-        <AddCellHoverTip
-          addIndex={cell.addIndex}
-          alternativePlayerIds={cell.alternativePlayerIds ?? []}
-          hasGame={hasGame}
-          leagueId={leagueId}
-          meta={
-            <>
-              {meta}
-              {chips}
-            </>
-          }
-          name={name}
-          nameClass={nameClass}
-          playerId={cell.playerId}
-          playersById={playersById}
-          targetCategoryIds={cell.targetCategoryIds ?? []}
-        />
-        {oppLabel}
-      </>
-    )
-  }
-
-  return (
+  const chips = targetCatChips(cell?.targetCategoryIds ?? [])
+  const nameBlock = wrapTone(
     <>
       <span
         className="inline-flex max-w-full flex-wrap items-baseline"
         title={hasGame ? "Game day" : "Off night"}
       >
-        <span className={nameClass}>{name}</span>
+        <span className={nameClass}>{shownName}</span>
+        {cell?.playerId && cell.addIndex != null ? (
+          <span
+            aria-label={`Add ${cell.addIndex}`}
+            className={`ml-0.5 text-[0.8125rem] font-semibold tabular-nums ${addIndexColorClass(cell.addIndex)}`}
+          >
+            {cell.addIndex}
+          </span>
+        ) : null}
+        {gameNightLabel(hasGame)}
         {meta}
+        {chips}
       </span>
-      {oppLabel}
-    </>
-  )
-}
-
-const AddCellHoverTip = ({
-  addIndex,
-  alternativePlayerIds,
-  hasGame,
-  leagueId,
-  meta,
-  name,
-  nameClass,
-  playerId,
-  playersById,
-  targetCategoryIds,
-}: {
-  addIndex: number | null
-  alternativePlayerIds: string[]
-  hasGame: boolean
-  leagueId: string
-  meta: ReactNode
-  name: string
-  nameClass: string
-  playerId: string
-  playersById: Record<string, SeasonPlayer>
-  targetCategoryIds: CategoryId[]
-}) => {
-  const tipId = useId()
-  const rootRef = useRef<HTMLSpanElement>(null)
-  const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState({ top: 0, left: 0 })
-
-  const alternativeNames = alternativePlayerIds
-    .map((id) => playerName(id, playersById))
-    .filter((label) => label !== "—")
-  const gameLabel = hasGame ? "Game day" : "Off night"
-
-  const placeTip = () => {
-    const rect = rootRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const width = 224
-    const left = Math.max(
-      8,
-      Math.min(rect.left, window.innerWidth - width - 8),
-    )
-    setPos({ top: rect.bottom + 6, left })
-  }
-
-  const show = () => {
-    placeTip()
-    setOpen(true)
-  }
-
-  const hide = () => setOpen(false)
-
-  useEffect(() => {
-    if (!open) return
-    const close = () => setOpen(false)
-    window.addEventListener("scroll", close, true)
-    window.addEventListener("resize", close)
-    return () => {
-      window.removeEventListener("scroll", close, true)
-      window.removeEventListener("resize", close)
-    }
-  }, [open])
-
-  return (
-    <span
-      className="relative inline-flex max-w-full flex-wrap items-baseline"
-      onMouseEnter={show}
-      onMouseLeave={hide}
-      ref={rootRef}
-    >
-      <Link
-        aria-describedby={open ? tipId : undefined}
-        className={`${nameClass} underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]`}
-        href={`/waivers/${leagueId}?addPlayerId=${playerId}`}
-        onBlur={(event) => {
-          if (!rootRef.current?.contains(event.relatedTarget as Node)) hide()
-        }}
-        onFocus={show}
-      >
-        {name}
-      </Link>
-      {addIndex != null ? (
-        <span
-          aria-label={`Add ${addIndex}`}
-          className={`ml-0.5 text-[0.8125rem] font-semibold tabular-nums ${addIndexColorClass(addIndex)}`}
-        >
-          {addIndex}
+      {chaseNote &&
+      cell?.playerId &&
+      isAddAction(cell.action) &&
+      chaseNote.categoryIds.length > 0 ? (
+        <span className="mt-0.5 block text-[0.625rem] leading-snug text-[var(--color-mute)]">
+          {formatChaseNote(chaseNote)}
         </span>
       ) : null}
-      {meta}
-      {open
-        ? createPortal(
-            <span
-              className="w-56 rounded-xl border border-[var(--color-hairline)] bg-white p-2.5 text-left shadow-md"
-              id={tipId}
-              role="tooltip"
-              style={{
-                position: "fixed",
-                top: pos.top,
-                left: pos.left,
-                zIndex: 60,
-              }}
-            >
-              <span className="inline-flex rounded-md bg-[var(--color-soft-cloud)] px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
-                {gameLabel}
-              </span>
-              {alternativeNames.length > 0 ? (
-                <span className="mt-2 block">
-                  <span className="text-[0.625rem] font-medium tracking-wide text-[var(--color-mute)] uppercase">
-                    Also consider
-                  </span>
-                  <ul className="mt-1 space-y-0.5">
-                    {alternativeNames.map((altName) => (
-                      <li
-                        className="text-[0.75rem] leading-snug font-medium text-[var(--color-ink)]"
-                        key={altName}
-                      >
-                        {altName}
-                      </li>
-                    ))}
-                  </ul>
-                </span>
-              ) : (
-                <span className="mt-1.5 block text-[0.7rem] leading-snug text-[var(--color-mute)]">
-                  No close alternatives today
-                </span>
-              )}
-              {targetCategoryIds.length > 0 ? (
-                <span className="mt-1.5 block text-[0.7rem] leading-snug text-[var(--color-mute)]">
-                  {formatHelpsCatsLine(targetCategoryIds)}
-                </span>
-              ) : null}
-            </span>,
-            document.body,
-          )
-        : null}
-    </span>
+      {oppLabel}
+    </>,
   )
+
+  if (cell?.playerId && isAddAction(cell.action) && !onHoldThrough) {
+    return nameBlock
+  }
+
+  return holdControl(nameBlock)
 }
 
 const clampBudget = (value: number) =>
@@ -687,6 +594,7 @@ export const StreamingPlansPanel = ({
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
   today = localIsoDate(),
   statWindow,
+  statPairs = EMPTY_STAT_PAIRS,
   puntSeedReady = true,
 }: StreamingPlansPanelProps) => {
   const slateAddLimit = useMemo(
@@ -747,37 +655,115 @@ export const StreamingPlansPanel = ({
     setForcedRosterDropsBySpotCount({})
   }, [addBudget])
 
-  const plans = useMemo(
+  const [addLocksBySpotCount, setAddLocksBySpotCount] = useState<
+    Partial<Record<1 | 2 | 3, StreamingAddLock[]>>
+  >({})
+  const [streamingMoveError, setStreamingMoveError] = useState<string | null>(
+    null,
+  )
+  const [addSelectEpoch, setAddSelectEpoch] = useState(0)
+  const matchupDaysKey = schedule.matchup.days.join()
+
+  useEffect(() => {
+    setAddLocksBySpotCount({})
+    setStreamingMoveError(null)
+  }, [addBudget, opponentTeamIndex, matchupDaysKey])
+
+  // Sit/start updates `daily` on the click. Plan search is slow, so paint the
+  // lineup first and rebuild plans after that commit.
+  const [planDaily, setPlanDaily] = useState(daily)
+  useEffect(() => {
+    setPlanDaily(daily)
+  }, [daily])
+
+  const forcedDrops1 = forcedRosterDropsBySpotCount[1]
+  const forcedDrops2 = forcedRosterDropsBySpotCount[2]
+  const forcedDrops3 = forcedRosterDropsBySpotCount[3]
+  const addLocks1 = addLocksBySpotCount[1]
+  const addLocks2 = addLocksBySpotCount[2]
+  const addLocks3 = addLocksBySpotCount[3]
+
+  const rosterDropCandidates = useMemo(() => {
+    const byId = new Map(state.players.map((player) => [player.id, player]))
+    const rows: { id: string; name: string }[] = []
+    const seen = new Set<string>()
+    for (const entry of perspectiveRosterEntries(state)) {
+      if (entry.slot === "IL" || !entry.playerId || seen.has(entry.playerId)) {
+        continue
+      }
+      const player = byId.get(entry.playerId)
+      if (!player) continue
+      seen.add(entry.playerId)
+      rows.push({ id: player.id, name: player.name })
+    }
+    rows.sort((left, right) => left.name.localeCompare(right.name))
+    return rows
+  }, [state])
+  const defaultDroppableIds = useMemo(
     () =>
-      ([1, 2, 3] as const).map((spotCount) =>
-        buildStreamingPlan({
-          state,
-          schedule,
-          board,
-          addLimit: addBudget,
-          adpByPlayerId,
-          spotCount,
-          forcedRosterDrops: forcedRosterDropsBySpotCount[spotCount],
-          daily,
-          winnerStreamRecipes,
-          today,
-          ...(oppSpotCount ? { oppSpotCount } : {}),
-          ...(forcedOpponentRosterDrops
-            ? { forcedOpponentRosterDrops }
-            : {}),
-          opponentTeamIndex,
-          statWindow,
-          puntCategoryIds,
-        }),
-      ),
+      rosterDropCandidates
+        .filter((player) => !isAdpProtected(adpByPlayerId?.[player.id]))
+        .map((player) => player.id),
+    [adpByPlayerId, rosterDropCandidates],
+  )
+  const [droppableIds, setDroppableIds] = useState<string[] | null>(null)
+  const rosterDropKey = rosterDropCandidates.map((player) => player.id).join()
+  useEffect(() => {
+    setDroppableIds(null)
+  }, [rosterDropKey])
+  const activeDroppableIds = droppableIds ?? defaultDroppableIds
+  const droppableKey = [...activeDroppableIds].sort().join()
+  const droppablePlayerIds = useMemo(
+    () => new Set(activeDroppableIds),
+    // activeDroppableIds is captured when droppableKey changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [droppableKey],
+  )
+
+  const handleToggleDroppable = (playerId: string) => {
+    setDroppableIds((current) => {
+      const base = current ?? defaultDroppableIds
+      return base.includes(playerId)
+        ? base.filter((id) => id !== playerId)
+        : [...base, playerId]
+    })
+  }
+
+  const sharedPlanInput = {
+    state,
+    schedule,
+    board,
+    addLimit: addBudget,
+    adpByPlayerId,
+    daily: planDaily,
+    winnerStreamRecipes,
+    today,
+    ...(oppSpotCount ? { oppSpotCount } : {}),
+    ...(forcedOpponentRosterDrops ? { forcedOpponentRosterDrops } : {}),
+    opponentTeamIndex,
+    statWindow,
+    puntCategoryIds,
+    statPairs,
+    droppablePlayerIds,
+  }
+
+  const plan1Base = useMemo(
+    () =>
+      buildStreamingPlan({
+        ...sharedPlanInput,
+        spotCount: 1,
+        forcedRosterDrops: forcedDrops1,
+      }),
+    // sharedPlanInput fields listed explicitly for eslint
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       state,
       schedule,
       board,
       addBudget,
       adpByPlayerId,
-      forcedRosterDropsBySpotCount,
-      daily,
+      forcedDrops1,
+      planDaily,
       winnerStreamRecipes,
       today,
       oppSpotCount,
@@ -785,8 +771,118 @@ export const StreamingPlansPanel = ({
       opponentTeamIndex,
       statWindow,
       puntCategoryIds,
+      statPairs,
+      droppableKey,
     ],
   )
+
+  const plan2Base = useMemo(
+    () =>
+      buildStreamingPlan({
+        ...sharedPlanInput,
+        spotCount: 2,
+        forcedRosterDrops: forcedDrops2,
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      state,
+      schedule,
+      board,
+      addBudget,
+      adpByPlayerId,
+      forcedDrops2,
+      planDaily,
+      winnerStreamRecipes,
+      today,
+      oppSpotCount,
+      forcedOpponentRosterDrops,
+      opponentTeamIndex,
+      statWindow,
+      puntCategoryIds,
+      statPairs,
+      droppableKey,
+    ],
+  )
+
+  const plan3Base = useMemo(
+    () =>
+      buildStreamingPlan({
+        ...sharedPlanInput,
+        spotCount: 3,
+        forcedRosterDrops: forcedDrops3,
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      state,
+      schedule,
+      board,
+      addBudget,
+      adpByPlayerId,
+      forcedDrops3,
+      planDaily,
+      winnerStreamRecipes,
+      today,
+      oppSpotCount,
+      forcedOpponentRosterDrops,
+      opponentTeamIndex,
+      statWindow,
+      puntCategoryIds,
+      statPairs,
+      droppableKey,
+    ],
+  )
+
+  const plan1 = useMemo(() => {
+    if (!addLocks1?.length) return plan1Base
+    return buildStreamingPlan({
+      ...sharedPlanInput,
+      spotCount: 1,
+      forcedRosterDrops: forcedDrops1,
+      forcedAdds: addLocks1,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan1Base, addLocks1, forcedDrops1, state, schedule, board, addBudget, adpByPlayerId, planDaily, winnerStreamRecipes, today, oppSpotCount, forcedOpponentRosterDrops, opponentTeamIndex, statWindow, puntCategoryIds, statPairs, droppableKey])
+
+  const plan2 = useMemo(() => {
+    if (!addLocks2?.length) return plan2Base
+    return buildStreamingPlan({
+      ...sharedPlanInput,
+      spotCount: 2,
+      forcedRosterDrops: forcedDrops2,
+      forcedAdds: addLocks2,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan2Base, addLocks2, forcedDrops2, state, schedule, board, addBudget, adpByPlayerId, planDaily, winnerStreamRecipes, today, oppSpotCount, forcedOpponentRosterDrops, opponentTeamIndex, statWindow, puntCategoryIds, statPairs, droppableKey])
+
+  const plan3 = useMemo(() => {
+    if (!addLocks3?.length) return plan3Base
+    return buildStreamingPlan({
+      ...sharedPlanInput,
+      spotCount: 3,
+      forcedRosterDrops: forcedDrops3,
+      forcedAdds: addLocks3,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan3Base, addLocks3, forcedDrops3, state, schedule, board, addBudget, adpByPlayerId, planDaily, winnerStreamRecipes, today, oppSpotCount, forcedOpponentRosterDrops, opponentTeamIndex, statWindow, puntCategoryIds, statPairs, droppableKey])
+
+  const plans = useMemo(
+    () => [plan1Base, plan2Base, plan3Base],
+    [plan1Base, plan2Base, plan3Base],
+  )
+
+  const displayPlans = useMemo(
+    () => [plan1, plan2, plan3],
+    [plan1, plan2, plan3],
+  )
+
+  const lockedPlan = useMemo(() => {
+    if (previewSpotCount == null) return null
+    const locks = addLocksBySpotCount[previewSpotCount]
+    if (!locks?.length) return null
+    return (
+      displayPlans.find((plan) => plan.spotCount === previewSpotCount) ?? null
+    )
+  }, [addLocksBySpotCount, displayPlans, previewSpotCount])
 
   const noneOpponentPlan = useMemo(() => {
     if (!oppSpotCount) return null
@@ -798,7 +894,7 @@ export const StreamingPlansPanel = ({
       adpByPlayerId,
       spotCount: 1,
       youIdle: true,
-      daily,
+      daily: planDaily,
       winnerStreamRecipes,
       today,
       oppSpotCount,
@@ -808,26 +904,51 @@ export const StreamingPlansPanel = ({
       opponentTeamIndex,
       statWindow,
       puntCategoryIds,
+      statPairs,
+      droppablePlayerIds,
     })
   }, [
     addBudget,
     adpByPlayerId,
     board,
-    daily,
+    planDaily,
     forcedOpponentRosterDrops,
     opponentTeamIndex,
     oppSpotCount,
     schedule,
     state,
     statWindow,
+    statPairs,
     puntCategoryIds,
     today,
     winnerStreamRecipes,
+    droppableKey,
   ])
 
   useEffect(() => {
-    onPlansBuilt?.({ plans, noneOpponentPlan })
-  }, [noneOpponentPlan, onPlansBuilt, plans])
+    onPlansBuilt?.({
+      plans: displayPlans,
+      baselinePlans: plans,
+      noneOpponentPlan,
+    })
+  }, [displayPlans, noneOpponentPlan, onPlansBuilt, plans])
+
+  useEffect(() => {
+    if (previewSpotCount == null || !lockedPlan) return
+    const locks = addLocksBySpotCount[previewSpotCount] ?? []
+    const rejected = locks.filter((lock) =>
+      lockedPlan.rejectedAddLocks.includes(lock),
+    )
+    if (rejected.length === 0) return
+    setAddLocksBySpotCount((prev) => {
+      const current = prev[previewSpotCount] ?? []
+      const next = current.filter(
+        (lock) => !lockedPlan.rejectedAddLocks.includes(lock),
+      )
+      if (next.length === current.length) return prev
+      return { ...prev, [previewSpotCount]: next }
+    })
+  }, [addLocksBySpotCount, lockedPlan, previewSpotCount])
 
   const streamHint = winnerStreamHint(board, winnerStreamRecipes)
 
@@ -836,6 +957,19 @@ export const StreamingPlansPanel = ({
     key: string,
     value: ForcedRosterDropValue,
   ) => {
+    setStreamingMoveError(null)
+    if (value === "hold") {
+      const { date, spotIndex } = parseStreamingAddDropKey(key)
+      setAddLocksBySpotCount((prev) => {
+        const current = prev[spotCount] ?? []
+        const next = current.filter(
+          (lock) =>
+            !(lock.date === date && lock.spotIndex === spotIndex),
+        )
+        if (next.length === current.length) return prev
+        return { ...prev, [spotCount]: next }
+      })
+    }
     setForcedRosterDropsBySpotCount((prev) => {
       const nextForSpot = { ...(prev[spotCount] ?? {}), [key]: value }
       for (const forcedKey of Object.keys(nextForSpot)) {
@@ -856,24 +990,128 @@ export const StreamingPlansPanel = ({
     const spot = previewSpotRef.current
     if (spot == null) return
     onPreviewPlanChange?.(
-      plans.find((plan) => plan.spotCount === spot) ?? null,
+      displayPlans.find((plan) => plan.spotCount === spot) ?? null,
     )
-  }, [plans, onPreviewPlanChange, onPreviewSpotCountChange])
+  }, [displayPlans, onPreviewPlanChange, onPreviewSpotCountChange])
 
   const resolvedPlayers: Record<string, SeasonPlayer> = {
     ...Object.fromEntries(state.players.map((player) => [player.id, player])),
     ...playersById,
   }
   const rosterEntries = perspectiveRosterEntries(state)
-  const rosterPlayerIds = rosterEntries
-    .filter((entry) => entry.slot !== "IL" && entry.playerId)
-    .map((entry) => entry.playerId!)
-  const todayInWeek = schedule.matchup.days.includes(today)
-  const dropEditDate = editableStreamingDropDate(schedule.matchup.days, today)
+  const availableIds = useMemo(
+    () => new Set(state.availablePlayerIds),
+    [state.availablePlayerIds],
+  )
 
   const softCaps = [1, 2, 3].map((spotCount) =>
     Math.ceil(addBudget / spotCount),
   )
+
+  const focusSpotCount = (spotCount: 1 | 2 | 3) => {
+    if (previewSpotCount === spotCount) return
+    setPreviewSpotCount(spotCount)
+  }
+
+  const handleHoldUntil = (
+    spotCount: 1 | 2 | 3,
+    lockDate: string,
+    spotIndex: number,
+    holdUntil: string,
+  ) => {
+    setAddLocksBySpotCount((prev) => {
+      const current = prev[spotCount] ?? []
+      return {
+        ...prev,
+        [spotCount]: current.map((lock) =>
+          lock.date === lockDate && lock.spotIndex === spotIndex
+            ? { ...lock, holdUntil }
+            : lock,
+        ),
+      }
+    })
+    focusSpotCount(spotCount)
+  }
+
+  const handleAddSelect = (
+    spotCount: 1 | 2 | 3,
+    date: string,
+    spotIndex: number,
+    playerId: string,
+  ): boolean => {
+    const player = resolvedPlayers[playerId]
+    if (!player) return false
+
+    const plan =
+      displayPlans.find((item) => item.spotCount === spotCount) ??
+      plans.find((item) => item.spotCount === spotCount)
+    const cell = plan ? cellFor(plan, date, spotIndex) : undefined
+    const dropKey = streamingAddDropKey(date, spotIndex)
+    const dropValue =
+      forcedRosterDropsBySpotCount[spotCount]?.[dropKey] ??
+      plannedDropValue(cell)
+
+    if (dropValue === "hold" && playerId !== (cell?.playerId ?? null)) {
+      setStreamingMoveError(
+        "Choose who to drop (or Open slot) before adding a streamer.",
+      )
+      setAddSelectEpoch((epoch) => epoch + 1)
+      return false
+    }
+
+    setStreamingMoveError(null)
+    const baseline = plans.find((item) => item.spotCount === spotCount)
+    const recommendedPlayerId = baseline
+      ? (cellFor(baseline, date, spotIndex)?.playerId ?? null)
+      : null
+    setAddLocksBySpotCount((prev) => {
+      const current = prev[spotCount] ?? []
+      const existing = current.find(
+        (lock) => lock.date === date && lock.spotIndex === spotIndex,
+      )
+      const defaultHold = streamingHoldUntil(
+        player,
+        date,
+        spotCount,
+        schedule,
+      )
+      const holdUntil =
+        existing &&
+        existing.holdUntil >= date &&
+        existing.holdUntil > defaultHold
+          ? existing.holdUntil
+          : defaultHold
+      return {
+        ...prev,
+        [spotCount]: lockAfterPick(current, {
+          date,
+          spotIndex,
+          playerId,
+          holdUntil,
+          recommendedPlayerId,
+        }),
+      }
+    })
+    focusSpotCount(spotCount)
+    return true
+  }
+
+  const handleResetToSuggested = () => {
+    setAddLocksBySpotCount({})
+    setForcedRosterDropsBySpotCount({})
+    setStreamingMoveError(null)
+    setAddSelectEpoch((epoch) => epoch + 1)
+  }
+
+  const hasPlanOverrides = (() => {
+    for (const locks of Object.values(addLocksBySpotCount)) {
+      if (locks && locks.length > 0) return true
+    }
+    for (const drops of Object.values(forcedRosterDropsBySpotCount)) {
+      if (drops && Object.keys(drops).length > 0) return true
+    }
+    return false
+  })()
 
   return (
     <section className="min-w-0">
@@ -898,14 +1136,60 @@ export const StreamingPlansPanel = ({
           })}
         </div>
       </div>
+      {rosterDropCandidates.length > 0 ? (
+        <div className="mb-3">
+          <p className="text-[0.65rem] tracking-[0.16em] text-[var(--color-mute)] uppercase">
+            Drop
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {rosterDropCandidates.map((player) => {
+              const selected = activeDroppableIds.includes(player.id)
+              const shortName = player.name.trim().split(/\s+/).at(-1) ?? player.name
+              return (
+                <button
+                  aria-label={`Droppable ${player.name}`}
+                  aria-pressed={selected}
+                  className={
+                    selected
+                      ? "rounded-full bg-[var(--color-ink)] px-2 py-0.5 text-[0.6875rem] font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                      : "rounded-full border border-[var(--color-hairline)] px-2 py-0.5 text-[0.6875rem] font-medium text-[var(--color-mute)] transition-colors hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                  }
+                  key={player.id}
+                  onClick={() => handleToggleDroppable(player.id)}
+                  type="button"
+                >
+                  {shortName}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Streaming plans</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-semibold">Streaming plans</h2>
+            <button
+              aria-label="Reset to suggested plan"
+              aria-pressed={!hasPlanOverrides}
+              className={
+                hasPlanOverrides
+                  ? "rounded-full border border-[var(--color-ink)] px-2.5 py-0.5 text-[0.75rem] font-medium text-[var(--color-ink)] transition-colors hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                  : "rounded-full border border-[var(--color-hairline)] px-2.5 py-0.5 text-[0.75rem] font-medium text-[var(--color-mute)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:opacity-60"
+              }
+              disabled={!hasPlanOverrides}
+              onClick={handleResetToSuggested}
+              type="button"
+            >
+              Suggested
+            </button>
+          </div>
           <p className="mt-1 text-[0.8125rem] text-[var(--color-mute)]">
             Drops are free. Prefer dense schedules and hold through off nights
-            when more games remain. Game days are bold; off nights stay muted.
-            Adds stay even across spots (max {softCaps[1]}/spot on 2-spot,{" "}
-            {softCaps[2]}/spot on 3-spot).
+            when more games remain. Names stay until an actual drop; game nights
+            use a stronger shade and Off nights a lighter one. Adds stay even
+            across spots (max {softCaps[1]}/spot on 2-spot, {softCaps[2]}/spot
+            on 3-spot).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -963,8 +1247,14 @@ export const StreamingPlansPanel = ({
         </p>
       ) : null}
 
+      {streamingMoveError ? (
+        <Banner className="mt-2" tone="danger">
+          {streamingMoveError}
+        </Banner>
+      ) : null}
+
       <div className="mt-3 space-y-5">
-        {plans.map((plan) => {
+        {displayPlans.map((plan) => {
           const dates = plan.days.map((day) => day.date)
           const addsBySpot = countAddsBySpot(plan)
 
@@ -1074,21 +1364,88 @@ export const StreamingPlansPanel = ({
                                 const oppName = streamerPlayerId
                                   ? playerName(streamerPlayerId, resolvedPlayers)
                                   : null
+                                const cell = cellFor(plan, date, spotIndex)
+                                const displayPlayerId = carryForwardStreamerId(
+                                  plan.days,
+                                  date,
+                                  spotIndex,
+                                )
+                                const spotLocks =
+                                  addLocksBySpotCount[plan.spotCount] ?? []
+                                const lockOnDate = spotLocks.find(
+                                  (lock) =>
+                                    lock.spotIndex === spotIndex &&
+                                    lock.date === date,
+                                )
+                                const priorLock = spotLocks
+                                  .filter(
+                                    (lock) =>
+                                      lock.spotIndex === spotIndex &&
+                                      lock.date < date,
+                                  )
+                                  .sort((left, right) =>
+                                    left.date < right.date ? 1 : -1,
+                                  )[0]
+                                const weekEnd = dates[dates.length - 1]
+                                const holdLockDate =
+                                  !lockOnDate &&
+                                  priorLock &&
+                                  weekEnd != null &&
+                                  date <= weekEnd
+                                    ? priorLock.date
+                                    : undefined
 
                                 return (
                                   <td
-                                    className={`${MATCHUP_WEEK_STREAMING_DAY_COL_CLASS} px-1 py-1.5 align-top break-words`}
+                                    className={`${MATCHUP_WEEK_STREAMING_DAY_COL_CLASS} relative px-1 py-1.5 align-top break-words`}
                                     key={`${date}-add-${spotIndex}`}
+                                    onClick={
+                                      holdLockDate
+                                        ? () =>
+                                            handleHoldUntil(
+                                              plan.spotCount,
+                                              holdLockDate,
+                                              spotIndex,
+                                              date,
+                                            )
+                                        : undefined
+                                    }
                                   >
                                     <AddCell
-                                      cell={cellFor(plan, date, spotIndex)}
+                                      allPlayers={state.players}
+                                      availableIds={availableIds}
+                                      cell={cell}
+                                      chaseNote={plan.chaseNote}
                                       date={date}
-                                      leagueId={leagueId}
+                                      displayPlayerId={displayPlayerId}
+                                      locks={spotLocks}
+                                      selectEpoch={addSelectEpoch}
+                                      spotIndex={spotIndex}
+                                      onAddSelect={(playerId) =>
+                                        handleAddSelect(
+                                          plan.spotCount,
+                                          date,
+                                          spotIndex,
+                                          playerId,
+                                        )
+                                      }
+                                      onHoldThrough={
+                                        holdLockDate
+                                          ? () =>
+                                              handleHoldUntil(
+                                                plan.spotCount,
+                                                holdLockDate,
+                                                spotIndex,
+                                                date,
+                                              )
+                                          : undefined
+                                      }
                                       oppStreamerName={
                                         oppName === "—" ? null : oppName
                                       }
                                       playersById={resolvedPlayers}
                                       schedule={schedule}
+                                      today={today}
                                     />
                                   </td>
                                 )
@@ -1114,10 +1471,7 @@ export const StreamingPlansPanel = ({
                                     key={`${date}-drop-${spotIndex}`}
                                   >
                                     <DropCell
-                                      adpByPlayerId={adpByPlayerId}
-                                      board={board}
                                       cell={cell}
-                                      daily={daily}
                                       date={date}
                                       forcedDropValue={
                                         forcedRosterDropsBySpotCount[
@@ -1133,16 +1487,10 @@ export const StreamingPlansPanel = ({
                                         )
                                       }
                                       plan={plan}
-                                      players={state.players}
                                       playersById={resolvedPlayers}
                                       rosterEntries={rosterEntries}
-                                      rosterPlayerIds={rosterPlayerIds}
-                                      schedule={schedule}
                                       spotIndex={spotIndex}
-                                      statWindow={statWindow}
                                       today={today}
-                                      todayInWeek={todayInWeek}
-                                      dropEditDate={dropEditDate}
                                     />
                                   </td>
                                 )

@@ -55,36 +55,29 @@ describe("MatchupBoard", () => {
     expect(screen.getByText("+1.00%")).toBeInTheDocument()
   })
 
-  it("shows a most-categories lead as one week win", () => {
+  it("shows a most-categories lead as the category record", () => {
     render(
       <MatchupBoard
-        board={{ ...board, wins: 5, losses: 4, ties: 0, projectedCatWins: 4.2 }}
-        scoringMode="most_categories"
+        board={{ ...board, wins: 4, losses: 5, ties: 0, projectedCatWins: 4.2 }}
       />,
     )
 
-    expect(screen.getByText("1–0")).toBeInTheDocument()
+    expect(screen.getByText("4–5–0")).toBeInTheDocument()
     expect(screen.getByText("Proj 4.20")).toBeInTheDocument()
     expect(screen.getByRole("columnheader", { name: "PTS" })).toBeInTheDocument()
   })
 
-  it("shows an even most-categories record as a tie", () => {
+  it("keeps a most-categories tie in the category record", () => {
     render(
-      <MatchupBoard
-        board={{ ...board, wins: 4, losses: 4, ties: 1 }}
-        scoringMode="most_categories"
-      />,
+      <MatchupBoard board={{ ...board, wins: 4, losses: 4, ties: 1 }} />,
     )
 
-    expect(screen.getByText("0–0–1")).toBeInTheDocument()
+    expect(screen.getByText("4–4–1")).toBeInTheDocument()
   })
 
   it("keeps the category record for each category", () => {
     render(
-      <MatchupBoard
-        board={{ ...board, wins: 5, losses: 4, ties: 0 }}
-        scoringMode="each_category"
-      />,
+      <MatchupBoard board={{ ...board, wins: 5, losses: 4, ties: 0 }} />,
     )
 
     expect(screen.getByText("5–4–0")).toBeInTheDocument()
@@ -94,5 +87,12 @@ describe("MatchupBoard", () => {
     render(<MatchupBoard board={{ ...board, wins: 2, losses: 1, ties: 0 }} />)
 
     expect(screen.getByText("2–1–0")).toBeInTheDocument()
+  })
+
+  it("shows a category delta only when one is passed", () => {
+    render(<MatchupBoard board={board} categoryDeltas={{ PTS: 2, TO: -1 }} />)
+    expect(screen.getAllByText("+2.0")).toHaveLength(2)
+    expect(screen.getByText("-1.0")).toBeInTheDocument()
+    expect(screen.queryByText("+0.0")).not.toBeInTheDocument()
   })
 })

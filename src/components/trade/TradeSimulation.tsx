@@ -1,12 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { RankNonagon } from "@/components/trade/RankNonagon"
+import { SideRankColumn } from "@/components/trade/SideRankColumn"
 import { SimulationRoster } from "@/components/trade/SimulationRoster"
-import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
+import { TradePackageStats } from "@/components/trade/TradePackageStats"
 import type { SeasonLeagueState } from "@/lib/season/types"
-import { formatTotal } from "@/lib/trade/offerCopy"
-import { simulateTrade, type SideRankReport } from "@/lib/trade/simulateTrade"
+import { fairFills, formatFairFill, shapeLimits, type SimShape } from "@/lib/trade/fairFill"
+import { formatAdvantageLine } from "@/lib/trade/offerCopy"
+import { evenValueGap } from "@/lib/trade/score"
+import { simulateTrade, standingReports } from "@/lib/trade/simulateTrade"
+import { buildPlayerValueMap } from "@/lib/trade/value"
 
 type TradeSimulationProps = {
   state: SeasonLeagueState
@@ -17,57 +20,45 @@ type PlayerOption = {
   name: string
 }
 
-const MAX_PACKAGE_SIZE = 2
+const SHAPES: SimShape[] = ["1:1", "1:2", "2:1", "2:2", "2:3", "3:2", "3:3"]
 
-const toggleId = (ids: string[], id: string) => {
+const toggleId = (ids: string[], id: string, max: number) => {
   if (ids.includes(id)) return ids.filter((existing) => existing !== id)
-  if (ids.length >= MAX_PACKAGE_SIZE) return ids
+  if (ids.length >= max) return ids
 
   return [...ids, id]
 }
 
-const rankText = (rankBefore: number, rankAfter: number) =>
-  `#${rankBefore} → #${rankAfter}`
+const advantageLine = (
+  yourName: string,
+  theirName: string,
+  sendIds: string[],
+  receiveIds: string[],
+  values: Map<string, number>,
+) => {
+  const give = sendIds.reduce((sum, id) => sum + (values.get(id) ?? 0), 0)
+  const get = receiveIds.reduce((sum, id) => sum + (values.get(id) ?? 0), 0)
+  const gap = evenValueGap(
+    {
+      shape: "2:2",
+      counterpartyTeamIndex: 0,
+      youPlayerIds: sendIds,
+      themPlayerIds: receiveIds,
+    },
+    values,
+  )
 
-type SideColumnProps = {
-  title: string
-  report: SideRankReport
-  teamCount: number
+  return formatAdvantageLine(get > give ? yourName : theirName, gap)
 }
 
-const SideColumn = ({ title, report, teamCount }: SideColumnProps) => (
-  <section aria-label={title} className="flex flex-col gap-2">
-    <h3 className="text-sm font-semibold">{title}</h3>
-    <p>
-      {`Overall ${rankText(report.overallBefore, report.overallAfter)} (rank sum ${report.rankSumBefore} → ${report.rankSumAfter})`}
-    </p>
-    <RankNonagon
-      categories={report.categories.map((category) => ({
-        label: CATEGORY_SHORT_LABELS[category.categoryId],
-        rankBefore: category.rankBefore,
-        rankAfter: category.rankAfter,
-      }))}
-      teamCount={teamCount}
-    />
-    <ul className="flex flex-col gap-1 text-sm">
-      {report.categories.map((category) => (
-        <li className="flex justify-between gap-2" key={category.categoryId}>
-          <span>{CATEGORY_SHORT_LABELS[category.categoryId]}</span>
-          <span>
-            {`${formatTotal(category.categoryId, category.beforeTotal)} → ${formatTotal(category.categoryId, category.afterTotal)}`}
-          </span>
-          <span>{rankText(category.rankBefore, category.rankAfter)}</span>
-        </li>
-      ))}
-    </ul>
-  </section>
-)
-
 export const TradeSimulation = ({ state }: TradeSimulationProps) => {
+  const [shape, setShape] = useState<SimShape>("2:2")
   const [teamIndex, setTeamIndex] = useState<number | null>(null)
   const [receiveIds, setReceiveIds] = useState<string[]>([])
   const [sendIds, setSendIds] = useState<string[]>([])
   const [dropId, setDropId] = useState<string | null>(null)
+  const limits = shapeLimits(shape)
+  const values = buildPlayerValueMap(state)
 
   const playerName = (playerId: string) =>
     state.players.find((player) => player.id === playerId)?.name ?? playerId
@@ -100,19 +91,32 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
 
   const dropRequired = needsDrop(receiveIds.length, sendIds.length)
   const dropOptions = yourPlayers.filter((player) => !sendIds.includes(player.id))
+  const fills = teamIndex === null
+    ? []
+    : fairFills(shape, sendIds, receiveIds, yourPlayers, theirPlayers, values)
+  const recommendation = formatFairFill(fills.map((player) => player.name))
 
+  const handleShape = (next: SimShape) => {
+    const nextLimits = shapeLimits(next)
+    const nextSend = sendIds.slice(0, nextLimits.send)
+    const nextReceive = receiveIds.slice(0, nextLimits.receive)
+    setShape(next)
+    setSendIds(nextSend)
+    setReceiveIds(nextReceive)
+    setDropId(keepDrop(nextReceive, nextSend))
+  }
   const handleTeamSelect = (nextTeamIndex: number) => {
     setTeamIndex(nextTeamIndex)
     setReceiveIds([])
     setDropId(keepDrop([], sendIds))
   }
   const handleReceiveSelect = (playerId: string) => {
-    const nextReceive = toggleId(receiveIds, playerId)
+    const nextReceive = toggleId(receiveIds, playerId, limits.receive)
     setReceiveIds(nextReceive)
     setDropId(keepDrop(nextReceive, sendIds))
   }
   const handleSendSelect = (playerId: string) => {
-    const nextSend = toggleId(sendIds, playerId)
+    const nextSend = toggleId(sendIds, playerId, limits.send)
     setSendIds(nextSend)
     setDropId(keepDrop(receiveIds, nextSend))
   }
@@ -120,33 +124,91 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
     setDropId(playerId === dropId ? null : playerId)
   }
 
-  const renderResult = () => {
-    if (teamIndex === null) return <p>Choose another team.</p>
-    if (receiveIds.length === 0) return <p>Choose who to receive.</p>
-    if (sendIds.length === 0) return <p>Choose who to send.</p>
-    if (dropRequired && dropOptions.length === 0) {
-      return <p>Your roster cannot fit the extra player.</p>
+  const receiveShort = limits.receive - receiveIds.length
+  const sendShort = limits.send - sendIds.length
+  const oneShort = receiveShort + sendShort === 1 && receiveShort >= 0 && sendShort >= 0
+  const selectionPrompt = (() => {
+    if (teamIndex === null) return null
+    if (oneShort) {
+      return recommendation ?? (receiveShort === 1 ? "Choose who to receive." : "Choose who to send.")
     }
-    if (dropRequired && dropId === null) return <p>Choose who to drop.</p>
-
-    const result = simulateTrade(state, {
+    if (receiveIds.length === 0) return "Choose who to receive."
+    if (sendIds.length === 0) return "Choose who to send."
+    if (receiveShort > 0) return "Choose who to receive."
+    if (sendShort > 0) return "Choose who to send."
+    if (dropRequired && dropOptions.length === 0) return "Your roster cannot fit the extra player."
+    if (dropRequired && dropId === null) return "Choose who to drop."
+    return null
+  })()
+  const completedTrade = teamIndex !== null && selectionPrompt === null
+    ? simulateTrade(state, {
       counterpartyTeamIndex: teamIndex,
       youPlayerIds: sendIds,
       themPlayerIds: receiveIds,
       yourDropPlayerId: dropId ?? undefined,
     })
+    : null
+  const readyTrade = completedTrade?.status === "ready" ? completedTrade : null
+
+  const standingColumns = () => {
+    if (teamIndex === null) return null
+    const standing = standingReports(state, teamIndex)
+    if (!standing) return null
+
+    return (
+      <div className="grid grid-cols-2 gap-3">
+        <SideRankColumn report={standing.you} teamCount={state.teams.length} title={yourTeam?.name ?? "You"} />
+        <SideRankColumn report={standing.them} teamCount={state.teams.length} title={counterparty?.name ?? "Them"} />
+      </div>
+    )
+  }
+
+  const renderResult = () => {
+    if (teamIndex === null) return <p>Choose another team.</p>
+    if (selectionPrompt) {
+      return (
+        <div className="flex flex-col gap-3">
+          <p>{selectionPrompt}</p>
+          {standingColumns()}
+        </div>
+      )
+    }
+
+    const result = completedTrade
     if (!result) return null
-    if (result.status === "unfit") return <p>{result.sentence}</p>
+    if (result.status === "unfit") {
+      return (
+        <div className="flex flex-col gap-3">
+          <p>{result.sentence}</p>
+          {standingColumns()}
+        </div>
+      )
+    }
+
+    const valueLine = sendIds.length === receiveIds.length
+      ? advantageLine(
+        yourTeam?.name ?? "You",
+        counterparty?.name ?? "Them",
+        sendIds,
+        receiveIds,
+        values,
+      )
+      : result.valueLine
 
     return (
       <div className="flex flex-col gap-3">
+        <p className="w-fit rounded-full border border-[var(--color-hairline)] px-3 py-1 text-sm font-semibold">
+          {valueLine}
+        </p>
         <div className="grid grid-cols-2 gap-3">
-          <SideColumn report={result.you} teamCount={state.teams.length} title={yourTeam?.name ?? "You"} />
-          <SideColumn report={result.them} teamCount={state.teams.length} title={counterparty?.name ?? "Them"} />
+          <SideRankColumn report={result.you} teamCount={state.teams.length} title={yourTeam?.name ?? "You"} />
+          <SideRankColumn report={result.them} teamCount={state.teams.length} title={counterparty?.name ?? "Them"} />
         </div>
-        <p>{result.valueLine}</p>
         {result.yourDroppedPlayerId ? (
           <p>{`Drops ${playerName(result.yourDroppedPlayerId)} to open a roster spot`}</p>
+        ) : null}
+        {result.replacementPlayerId ? (
+          <p>{`Ranks include ${playerName(result.replacementPlayerId)}, the top waiver add.`}</p>
         ) : null}
         {result.theirDroppedPlayerId ? (
           <p>{`They drop ${playerName(result.theirDroppedPlayerId)} to open a roster spot`}</p>
@@ -180,14 +242,41 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
   )
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-4 overflow-hidden">
-      <div className="grid min-h-0 grid-cols-2 gap-3 overflow-hidden">
-        {yourRoster}
-        {theirRoster}
+    <div className="flex flex-col gap-3">
+      <div aria-label="Trade shape" className="flex flex-wrap gap-2" role="group">
+        {SHAPES.map((option) => (
+          <button
+            aria-pressed={shape === option}
+            className={`shrink-0 rounded border px-3 py-1 text-sm ${shape === option ? "border-[var(--color-ink)] bg-[var(--color-ink)] text-white" : "border-[var(--color-hairline)]"}`}
+            key={option}
+            onClick={() => handleShape(option)}
+            type="button"
+          >
+            {option}
+          </button>
+        ))}
       </div>
-      <div className="min-h-0 overflow-y-auto">
-        {renderResult()}
+      <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start gap-4">
+        <div className="grid grid-cols-2 items-start gap-3">
+          {yourRoster}
+          {theirRoster}
+        </div>
+        <div className="min-w-0">
+          {renderResult()}
+        </div>
       </div>
+      {readyTrade && teamIndex !== null ? (
+        <TradePackageStats
+          state={state}
+          suggestion={{
+            counterpartyTeamIndex: teamIndex,
+            givePlayerIds: sendIds,
+            getPlayerIds: receiveIds,
+            droppedPlayerId: readyTrade.yourDroppedPlayerId ?? readyTrade.theirDroppedPlayerId,
+            addedPlayerId: readyTrade.replacementPlayerId,
+          }}
+        />
+      ) : null}
     </div>
   )
 }

@@ -17,7 +17,7 @@ One scoring contract for draft, season roster, and matchup. Do not invent a seco
 
 **Not this skill:** ESPN HTTP, cookies, fixtures, scoringPeriodId sync (**espn-adapter**), draft board UI, opponent ADP sampling, points leagues, weekly stream/add/drop policy.
 
-**Who counts:** season profile/matrix = all 14 filled slots. Draft outlook = drafted roster. Weekly matchup who-plays is **matchup-analysis** (daily 10 startable slots, not the raw 14).
+**Who counts:** season profile/matrix = filled slots except `IL` (shown as IR). Draft outlook = drafted roster. Weekly matchup who-plays is **matchup-analysis** (daily 10 startable slots, not the raw 14).
 
 ## Category ids
 

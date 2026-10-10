@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import {
+  applyPlayedDayLineups,
   autofillOpenSlotsFromRoster,
   buildDayLineupFromRoster,
   buildLineupDisplayRows,
@@ -7,8 +9,10 @@ import {
   effectiveGamesByPlayerId,
   initDailyLineups,
   isDailyLineupFullForDate,
+  projectLineupDay,
   setSlotPlayer,
   sortPlayerIdsByLineupSlots,
+  sumDayLineupProjections,
   togglePlayerDay,
   youTotalsFromDaily,
   type DailyLineups,
@@ -315,6 +319,68 @@ describe("youTotalsFromDaily", () => {
     const expectedDrop = (1640 / ASSUMED_SEASON_GAMES) * 1
     expect(fullTotals.PTS - satTotals.PTS).toBeCloseTo(expectedDrop)
   })
+
+  it("sums daily projections, including a replacement, to the scoreboard totals", () => {
+    const replacement: SeasonPlayer = {
+      id: "replacement",
+      name: "Replacement",
+      teamAbbr: "CHI",
+      positions: ["SF"],
+      projections: {
+        FG_PCT: 0.45,
+        FT_PCT: 0.75,
+        TPM: 164,
+        REB: 328,
+        AST: 246,
+        STL: 82,
+        BLK: 41,
+        TO: 123,
+        PTS: 1230,
+      },
+      shooting: { FGM: 400, FGA: 900, FTM: 150, FTA: 200 },
+    }
+    const backToBack: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: "2025-11-03",
+        endDate: "2025-11-05",
+        days: ["2025-11-03", "2025-11-04", "2025-11-05"],
+      },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: "2025-11-04", homeAbbr: "MIA", awayAbbr: "BOS" },
+        { date: "2025-11-05", homeAbbr: "CHI", awayAbbr: "NYK" },
+      ],
+    }
+    const base = initDailyLineups(backToBack.matchup.days, activeEntries)
+    const withReplacement = setSlotPlayer(base, "2025-11-05", 2, "replacement")
+    const players = [star, scrub, replacement]
+    const dayProjections = backToBack.matchup.days.map((date) =>
+      projectLineupDay(
+        withReplacement[date],
+        players,
+        date,
+        backToBack,
+      ),
+    )
+    const summed = sumDayLineupProjections(dayProjections)
+    const scoreboard = youTotalsFromDaily(withReplacement, players, backToBack)
+    for (const categoryId of ALL_CATEGORY_IDS) {
+      expect(summed[categoryId], categoryId).toBeCloseTo(scoreboard[categoryId])
+    }
+    const replacementDay = dayProjections[2]
+    const withoutReplacement = projectLineupDay(
+      base["2025-11-05"],
+      players,
+      "2025-11-05",
+      backToBack,
+    )
+    expect(
+      (replacementDay?.totals.PTS ?? 0) - withoutReplacement.totals.PTS,
+    ).toBeCloseTo(1230 / ASSUMED_SEASON_GAMES)
+    expect(replacementDay?.games).toBe((withoutReplacement.games ?? 0) + 1)
+  })
 })
 
 describe("setSlotPlayer", () => {
@@ -328,7 +394,7 @@ describe("setSlotPlayer", () => {
 })
 
 describe("togglePlayerDay", () => {
-  it("keeps a playing starter started when sitting would leave an eligible hole", () => {
+  it("sits a playing starter even when the open slot could hold them", () => {
     const daily = initDailyLineups(
       schedule.matchup.days,
       activeEntries,
@@ -347,9 +413,8 @@ describe("togglePlayerDay", () => {
       undefined,
       schedule,
     )
-    expect(sat.status).toBe("started")
-    expect(sat.daily).toBe(daily)
-    expect(sat.daily["2025-11-03"][0].playerId).toBe("star")
+    expect(sat.status).toBe("sat")
+    expect(sat.daily["2025-11-03"][0].playerId).toBeNull()
   })
 
   it("starts into the first empty slot", () => {
@@ -470,7 +535,7 @@ describe("togglePlayerDay", () => {
     expect(blocked.daily).toBe(fullDaily)
   })
 
-  it("starts a playing player into any empty active slot when one exists", () => {
+  it("returns ineligible when the only open slots are positionally unavailable", () => {
     const center = { ...star, id: "center", positions: ["C"] as const }
     const daily = {
       "2025-11-03": [{ slot: "PG" as const, playerId: null }],
@@ -486,8 +551,34 @@ describe("togglePlayerDay", () => {
       schedule,
     )
 
+    expect(result.status).toBe("ineligible")
+    expect(result.daily["2025-11-03"]?.[0]?.playerId).toBeNull()
+  })
+
+  it("starts a center into an empty UTIL slot", () => {
+    const center = { ...star, id: "center", positions: ["C"] as const }
+    const daily = {
+      "2025-11-03": [
+        { slot: "PG" as const, playerId: null },
+        { slot: "UTIL" as const, playerId: null },
+      ],
+    }
+
+    const result = togglePlayerDay(
+      daily,
+      "2025-11-03",
+      center.id,
+      true,
+      { center },
+      undefined,
+      schedule,
+    )
+
     expect(result.status).toBe("started")
-    expect(result.daily["2025-11-03"]?.[0]?.playerId).toBe("center")
+    expect(result.daily["2025-11-03"]?.find((e) => e.slot === "UTIL")?.playerId).toBe(
+      "center",
+    )
+    expect(result.daily["2025-11-03"]?.find((e) => e.slot === "PG")?.playerId).toBeNull()
   })
 })
 
@@ -960,6 +1051,133 @@ describe("buildDayLineupFromRoster keeps playing roster players", () => {
     expect(lineup.some((entry) => entry.playerId === "idle")).toBe(false)
   })
 
+  it("moves an ineligible roster occupant into an eligible slot", () => {
+    const day = "2026-03-11"
+    const daySchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: day,
+        endDate: day,
+        days: [day],
+      },
+      games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+    }
+    const center: SeasonPlayer = {
+      ...star,
+      id: "center",
+      teamAbbr: "BOS",
+      positions: ["C"],
+    }
+    const lineup = buildDayLineupFromRoster(
+      day,
+      [
+        { slot: "PG", playerId: "center" },
+        { slot: "C", playerId: null },
+      ],
+      [center],
+      daySchedule,
+      ["PG", "C"],
+    )
+    expect(lineup.find((entry) => entry.slot === "PG")?.playerId).toBeNull()
+    expect(lineup.find((entry) => entry.slot === "C")?.playerId).toBe("center")
+  })
+
+  it("still starts a center on a later day when an earlier day has no eligible slot", () => {
+    const days = ["2026-03-11", "2026-03-12"]
+    const weekSchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: days[0]!,
+        endDate: days[1]!,
+        days,
+      },
+      games: [
+        { date: days[0]!, homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: days[1]!, homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: days[0]!, homeAbbr: "CHI", awayAbbr: "ATL" },
+        { date: days[1]!, homeAbbr: "CHI", awayAbbr: "ORL" },
+        { date: days[0]!, homeAbbr: "MIL", awayAbbr: "DET" },
+      ],
+    }
+    const center: SeasonPlayer = {
+      ...star,
+      id: "center",
+      teamAbbr: "BOS",
+      positions: ["C"],
+    }
+    const guard: SeasonPlayer = {
+      ...scrub,
+      id: "guard",
+      teamAbbr: "CHI",
+      positions: ["PG"],
+    }
+    const utilFiller: SeasonPlayer = {
+      ...scrub,
+      id: "util-fill",
+      teamAbbr: "MIL",
+      positions: ["SF"],
+    }
+    const entries: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: "center" },
+      { slot: "SG", playerId: "guard" },
+      { slot: "UTIL", playerId: "util-fill" },
+      { slot: "BE", playerId: null },
+    ]
+    const lineups = initDailyLineups(
+      days,
+      entries,
+      ["PG", "SG", "UTIL", "BE"],
+      [center, guard, utilFiller],
+      weekSchedule,
+    )
+    expect(lineups[days[0]!]?.some((e) => e.playerId === "center")).toBe(false)
+    expect(lineups[days[1]!]?.some((e) => e.playerId === "center")).toBe(true)
+  })
+
+  it("benches a playing player when no eligible active slot is open", () => {
+    const day = "2026-03-11"
+    const daySchedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: day,
+        endDate: day,
+        days: [day],
+      },
+      games: [
+        { date: day, homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: day, homeAbbr: "MIA", awayAbbr: "CHI" },
+      ],
+    }
+    const center: SeasonPlayer = {
+      ...star,
+      id: "center",
+      teamAbbr: "BOS",
+      positions: ["C"],
+    }
+    const guard: SeasonPlayer = {
+      ...scrub,
+      id: "guard",
+      teamAbbr: "MIA",
+      positions: ["PG"],
+    }
+    const lineup = buildDayLineupFromRoster(
+      day,
+      [
+        { slot: "PG", playerId: "center" },
+        { slot: "SG", playerId: "guard" },
+        { slot: "BE", playerId: null },
+      ],
+      [center, guard],
+      daySchedule,
+      ["PG", "SG", "BE"],
+    )
+    expect(lineup.some((entry) => entry.playerId === "center")).toBe(false)
+    expect(lineup.some((entry) => entry.playerId === "guard")).toBe(true)
+  })
+
   it("starts a playing bench player into an eligible empty slot", () => {
     const day = "2026-03-11"
     const daySchedule: ScheduleResponse = {
@@ -1389,5 +1607,214 @@ describe("daily sit/start reseat rules", () => {
       },
     )
     expect(rows.find((row) => row.playerId === "grid-g")?.slot).toBe("PG")
+  })
+})
+
+describe("applyPlayedDayLineups", () => {
+  const played: SeasonPlayer = {
+    ...star,
+    id: "played",
+    name: "Played",
+    positions: ["PG"],
+  }
+  const added: SeasonPlayer = {
+    ...star,
+    id: "added",
+    name: "Added",
+    positions: ["SG"],
+  }
+  const slots = ["PG", "SG", "UTIL"] as const
+
+  it("keeps players who already recorded actuals after the roster changes", () => {
+    const refreshed = initDailyLineups(
+      ["2025-11-03", "2025-11-05"],
+      [
+        { slot: "PG", playerId: "added" },
+        { slot: "SG", playerId: null },
+        { slot: "UTIL", playerId: null },
+      ],
+      [...slots],
+      [played, added],
+      schedule,
+    )
+
+    const pinned = applyPlayedDayLineups(
+      refreshed,
+      { "2025-11-03": ["played"] },
+      [played, added],
+      [...slots],
+    )
+
+    expect(
+      pinned["2025-11-03"]?.flatMap((entry) =>
+        entry.playerId ? [entry.playerId] : [],
+      ),
+    ).toEqual(["played"])
+    expect(
+      pinned["2025-11-05"]?.some((entry) => entry.playerId === "added"),
+    ).toBe(true)
+    expect(
+      pinned["2025-11-05"]?.some((entry) => entry.playerId === "played"),
+    ).toBe(false)
+  })
+
+  it("seats a recorded player who is no longer on the roster", () => {
+    const daily = initDailyLineups(
+      ["2025-11-03"],
+      [
+        { slot: "PG", playerId: "added" },
+        { slot: "SG", playerId: null },
+        { slot: "UTIL", playerId: null },
+      ],
+      [...slots],
+      [played, added],
+      schedule,
+    )
+
+    const pinned = applyPlayedDayLineups(
+      daily,
+      { "2025-11-03": ["played"] },
+      [played, added],
+      [...slots],
+    )
+
+    expect(pinned["2025-11-03"]?.[0]).toEqual({ slot: "PG", playerId: "played" })
+  })
+
+  it("clears a closed day when nobody recorded a stat", () => {
+    const daily = initDailyLineups(
+      ["2025-11-03"],
+      [{ slot: "PG", playerId: "added" }],
+      ["PG"],
+      [added],
+      schedule,
+    )
+
+    const pinned = applyPlayedDayLineups(
+      daily,
+      { "2025-11-03": [] },
+      [added],
+      ["PG"],
+    )
+
+    expect(pinned["2025-11-03"]?.every((entry) => entry.playerId === null)).toBe(
+      true,
+    )
+  })
+
+  it("does not put the refreshed roster into a closed day's seats", () => {
+    const rows = buildLineupDisplayRows(
+      [
+        { slot: "PG", playerId: "added" },
+        { slot: "SG", playerId: null },
+      ],
+      ["played"],
+      [],
+      {
+        focusDay: "2025-11-03",
+        restrictToDaily: true,
+        schedule,
+        playersById: { played, added },
+        daily: {
+          "2025-11-03": [
+            { slot: "PG", playerId: "played" },
+            { slot: "SG", playerId: null },
+          ],
+        },
+      },
+    )
+
+    expect(rows.find((row) => row.slot === "PG")?.playerId).toBe("played")
+    expect(rows.some((row) => row.playerId === "added")).toBe(false)
+  })
+
+  it("keeps recorded projections on every closed date and the current roster on open dates", () => {
+    const kept: SeasonPlayer = {
+      ...star,
+      id: "kept",
+      name: "kept",
+      positions: ["PG"],
+    }
+    const next: SeasonPlayer = {
+      ...star,
+      id: "next",
+      name: "next",
+      teamAbbr: "CHI",
+      positions: ["SG"],
+      projections: { ...star.projections, PTS: 820 },
+    }
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
+    const weekSchedule: ScheduleResponse = {
+      ...schedule,
+      matchup: { ...schedule.matchup, days },
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "NYK" },
+        { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "CHI" },
+      ],
+    }
+    const refreshed = initDailyLineups(
+      days,
+      [
+        { slot: "SG", playerId: "next" },
+        { slot: "PG", playerId: null },
+        { slot: "UTIL", playerId: null },
+      ],
+      [...slots],
+      [kept, next],
+      weekSchedule,
+    )
+    const pinned = applyPlayedDayLineups(
+      refreshed,
+      {
+        "2025-11-03": ["kept"],
+        "2025-11-04": ["kept"],
+      },
+      [kept, next],
+      [...slots],
+    )
+    const players = [kept, next]
+    const closedFirst = projectLineupDay(
+      pinned["2025-11-03"],
+      players,
+      "2025-11-03",
+      weekSchedule,
+    )
+    const closedMiddle = projectLineupDay(
+      pinned["2025-11-04"],
+      players,
+      "2025-11-04",
+      weekSchedule,
+    )
+    const openDay = projectLineupDay(
+      pinned["2025-11-05"],
+      players,
+      "2025-11-05",
+      weekSchedule,
+    )
+
+    expect(
+      pinned["2025-11-03"]?.flatMap((entry) =>
+        entry.playerId ? [entry.playerId] : [],
+      ),
+    ).toEqual(["kept"])
+    expect(
+      pinned["2025-11-04"]?.flatMap((entry) =>
+        entry.playerId ? [entry.playerId] : [],
+      ),
+    ).toEqual(["kept"])
+    expect(
+      pinned["2025-11-05"]?.flatMap((entry) =>
+        entry.playerId ? [entry.playerId] : [],
+      ),
+    ).toEqual(["next"])
+    expect(closedFirst.totals.PTS).toBeCloseTo(20)
+    expect(closedMiddle.totals.PTS).toBeCloseTo(15)
+    expect(openDay.totals.PTS).toBeCloseTo(10)
+    const week = sumDayLineupProjections([closedFirst, closedMiddle, openDay])
+    const board = youTotalsFromDaily(pinned, players, weekSchedule)
+    for (const categoryId of ALL_CATEGORY_IDS) {
+      expect(week[categoryId]).toBeCloseTo(board[categoryId])
+    }
   })
 })

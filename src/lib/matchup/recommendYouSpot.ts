@@ -1,6 +1,7 @@
 import { applyStreamingPlanPreview } from "./applyStreamingPlanPreview"
 import type { DailyLineups } from "./dailyLineups"
 import { countTeamStarts } from "./streamingHoleCalendar"
+import { projectedCatWinsFromDaily } from "./streamerMove"
 import type { MatchupBoard, StatWindow, StreamingPlan } from "./types"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 
@@ -10,6 +11,7 @@ export type YouSpotScore = {
   spot: YouSpotCount
   gameStarts: number
   addsUsed: number
+  projectedCatWins: number
 }
 
 const spotRank = (spot: YouSpotCount) => (spot == null ? 0 : spot)
@@ -25,8 +27,8 @@ export const pickRecommendedYouSpot = (
   if (scores.length === 0) return undefined
 
   return [...scores].sort((left, right) => {
-    if (right.gameStarts !== left.gameStarts) {
-      return right.gameStarts - left.gameStarts
+    if (right.projectedCatWins !== left.projectedCatWins) {
+      return right.projectedCatWins - left.projectedCatWins
     }
     if (left.addsUsed !== right.addsUsed) {
       return left.addsUsed - right.addsUsed
@@ -41,8 +43,8 @@ export const scoreYouSpotPlans = ({
   baseDaily,
   players,
   schedule,
-  board: _board,
-  statWindow: _statWindow,
+  board,
+  statWindow,
 }: {
   plans: StreamingPlan[]
   noneOpponentDaily: DailyLineups
@@ -55,19 +57,28 @@ export const scoreYouSpotPlans = ({
   const playersById = Object.fromEntries(
     players.map((player) => [player.id, player]),
   )
-  const noneScore: YouSpotScore = {
-    spot: null,
-    gameStarts: countTeamStarts(baseDaily, players, schedule),
-    addsUsed: 0,
-  }
-  const planScores = plans.map((plan) => ({
-    spot: plan.spotCount,
-    gameStarts: countTeamStarts(
-      applyStreamingPlanPreview(baseDaily, plan, playersById, schedule),
+  const oppDaily =
+    Object.keys(noneOpponentDaily).length > 0 ? noneOpponentDaily : undefined
+  const scoreDaily = (daily: DailyLineups, addsUsed: number, spot: YouSpotCount): YouSpotScore => ({
+    spot,
+    gameStarts: countTeamStarts(daily, players, schedule),
+    addsUsed,
+    projectedCatWins: projectedCatWinsFromDaily(
+      daily,
       players,
       schedule,
+      board,
+      oppDaily,
+      statWindow,
     ),
-    addsUsed: plan.addsUsed,
-  }))
+  })
+  const noneScore = scoreDaily(baseDaily, 0, null)
+  const planScores = plans.map((plan) =>
+    scoreDaily(
+      applyStreamingPlanPreview(baseDaily, plan, playersById, schedule),
+      plan.addsUsed,
+      plan.spotCount,
+    ),
+  )
   return [noneScore, ...planScores]
 }

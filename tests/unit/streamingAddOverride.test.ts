@@ -4,6 +4,7 @@ import type { MatchupBoard } from "@/lib/matchup/types"
 import {
   addOverrideCandidates,
   categoryTotalDeltas,
+  lockAfterPick,
   playersLockedOnDate,
 } from "@/lib/matchup/streamingAddOverride"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
@@ -14,6 +15,7 @@ const player = (id: string, teamAbbr: string): SeasonPlayer => ({
   teamAbbr,
   availability: "fa",
   positions: ["PG"],
+  projectedGames: 82,
   projections: {
     FG_PCT: 0.48,
     FT_PCT: 0.78,
@@ -108,5 +110,41 @@ describe("streaming add override helpers", () => {
     expect(categoryTotalDeltas(board(12, 10), board(10, 10))).toEqual({
       PTS: 2,
     })
+  })
+
+  it("clears the lock when the picked player is already the recommendation", () => {
+    const current = [
+      {
+        date: "2026-10-20",
+        spotIndex: 0,
+        playerId: "wire-a",
+        holdUntil: "2026-10-22",
+      },
+    ]
+    expect(
+      lockAfterPick(current, {
+        date: "2026-10-20",
+        spotIndex: 0,
+        playerId: "wire-rec",
+        holdUntil: "2026-10-22",
+        recommendedPlayerId: "wire-rec",
+      }),
+    ).toEqual([])
+    expect(
+      lockAfterPick(current, {
+        date: "2026-10-20",
+        spotIndex: 0,
+        playerId: "wire-other",
+        holdUntil: "2026-10-21",
+        recommendedPlayerId: "wire-rec",
+      }),
+    ).toEqual([
+      {
+        date: "2026-10-20",
+        spotIndex: 0,
+        playerId: "wire-other",
+        holdUntil: "2026-10-21",
+      },
+    ])
   })
 })

@@ -1,5 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId, Player } from "@/lib/domain/types"
+import { capnightPlayerZ } from "@/lib/players/capnightZ"
 
 type CategoryTotals = Record<CategoryId, number>
 
@@ -111,21 +112,16 @@ export const playerPoolStats = (players: Player[]): LeagueTotals => {
   return { means, standardDeviations }
 }
 
-/** Raw weighted z-score vs the remaining pool — separates stars when league EV is flat. */
+/** Capnight category z-scores, weighted by punt and focus. Missing players are 0. */
 export const weightedPlayerZScore = (
   player: Player,
-  poolStats: LeagueTotals,
+  _poolStats: LeagueTotals,
   weights: CategoryTotals,
 ): number => {
-  const { means, standardDeviations } = poolStats
+  const categories = capnightPlayerZ(player.name).z
 
-  return ALL_CATEGORY_IDS.reduce((score, categoryId) => {
-    const standardDeviation = standardDeviations[categoryId] || 1
-    const difference =
-      categoryId === "TO"
-        ? means[categoryId] - player.projections[categoryId]
-        : player.projections[categoryId] - means[categoryId]
-
-    return score + (weights[categoryId] ?? 0) * (difference / standardDeviation)
-  }, 0)
+  return ALL_CATEGORY_IDS.reduce(
+    (score, categoryId) => score + (weights[categoryId] ?? 0) * categories[categoryId],
+    0,
+  )
 }

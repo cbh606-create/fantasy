@@ -284,6 +284,28 @@ describe("sit/start preview drop filter", () => {
     expect(badges[sitStartBadgeKey("2026-10-22", "r-bench")]).toBeUndefined()
   })
 
+  it("does not badge Start over when that player is already in an active slot", () => {
+    const activeDaily: DailyLineups = {
+      ...daily,
+      "2026-10-20": [
+        { slot: "UTIL", playerId: "r-bench" },
+        { slot: "BE", playerId: "r-active" },
+      ],
+    }
+    const badges = sitStartBadgesByPlayerDay([suggestion], {
+      ...displayArgs,
+      daily: activeDaily,
+    })
+    const visible = visibleSitStartSuggestions([suggestion], {
+      ...displayArgs,
+      daily: activeDaily,
+    })
+
+    expect(badges[sitStartBadgeKey("2026-10-20", "r-bench")]).toBeUndefined()
+    expect(badges[sitStartBadgeKey("2026-10-20", "r-active")]).toBeUndefined()
+    expect(visible).toEqual([])
+  })
+
   it("shows the same swap again when preview drops are cleared", () => {
     const hidden = visibleSitStartSuggestions([suggestion], {
       ...displayArgs,

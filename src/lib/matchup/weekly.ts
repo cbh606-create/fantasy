@@ -9,7 +9,10 @@ const COUNTING_CATEGORIES = ALL_CATEGORY_IDS.filter(
   (categoryId) => categoryId !== "FG_PCT" && categoryId !== "FT_PCT",
 )
 
-/** ESPN season averageStats are per-game; draft/Hashtag pools use season totals. */
+/**
+ * A line with no projectedGames and PTS under this is already per-game.
+ * Season totals always divide by projectedGames when that count is set.
+ */
 const PER_GAME_PTS_CEILING = 50
 
 const emptyTotals = (): Record<CategoryId, number> =>
@@ -25,12 +28,14 @@ export const weeklyProjectionFactor = (
   games: number,
 ): number => {
   if (games <= 0) return 0
+  if (
+    typeof player.projectedGames === "number" &&
+    player.projectedGames > 0
+  ) {
+    return games / player.projectedGames
+  }
   if (isPerGameProjectionPlayer(player)) return games
-  const seasonGames =
-    typeof player.projectedGames === "number" && player.projectedGames > 0
-      ? player.projectedGames
-      : ASSUMED_SEASON_GAMES
-  return games / seasonGames
+  return games / ASSUMED_SEASON_GAMES
 }
 
 const countingRatesLive = (projections: Record<CategoryId, number>) =>

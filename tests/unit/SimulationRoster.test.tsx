@@ -36,6 +36,7 @@ describe("SimulationRoster", () => {
     )
     expect(within(group).getByText("YG")).toBeInTheDocument()
     expect(group).toHaveClass("flex-col")
+    expect(screen.getByRole("heading", { name: "My Team" })).toBeInTheDocument()
   })
 
   it("presses at the row and offers Drop only for a droppable player", () => {
@@ -109,5 +110,6 @@ describe("SimulationRoster", () => {
 
     expect(onTeamChange).toHaveBeenCalledWith(1)
     expect(screen.queryByRole("button", { name: "Rivals" })).toBeNull()
+    expect(screen.queryByRole("heading", { name: "Rivals" })).toBeNull()
   })
 })

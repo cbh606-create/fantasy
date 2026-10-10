@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import type { CategoryId } from "@/lib/domain/types"
 import { initDailyLineups } from "@/lib/matchup/dailyLineups"
 import {
   buildHoleDayLineup,
@@ -11,6 +13,7 @@ import {
   remainingHoleStarts,
   nextHoleStartDate,
 } from "@/lib/matchup/streamingHoleCalendar"
+import type { MatchupBoard } from "@/lib/matchup/types"
 import type {
   ScheduleResponse,
   SeasonPlayer,
@@ -374,6 +377,40 @@ describe("pickAutoRosterCut", () => {
     expect(cut).toBe("r-be")
   })
 
+  it("uses the droppable allowlist instead of the ADP floor", () => {
+    const days = ["2025-10-21", "2025-10-22"]
+    const reaves = player("r-reaves", "LAL", { positions: ["SG"] })
+    const streamer = player("r-be", "DET", { positions: ["PF"] })
+    const schedule = scheduleOf(days, [
+      { date: "2025-10-22", homeAbbr: "LAL", awayAbbr: "BOS" },
+      { date: "2025-10-22", homeAbbr: "DET", awayAbbr: "CHA" },
+    ])
+    const shared = {
+      date: "2025-10-21",
+      days,
+      teamEntries: [
+        { slot: "SG" as const, playerId: "r-reaves" },
+        { slot: "BE" as const, playerId: "r-be" },
+      ],
+      players: [reaves, streamer],
+      schedule,
+      seatedTonight: [{ slot: "PG" as const, playerId: null }],
+      adpByPlayerId: { "r-reaves": 38, "r-be": 140 },
+    }
+    expect(
+      pickAutoRosterCut({
+        ...shared,
+        droppablePlayerIds: new Set(["r-reaves"]),
+      }),
+    ).toBe("r-reaves")
+    expect(
+      pickAutoRosterCut({
+        ...shared,
+        droppablePlayerIds: new Set(["r-be"]),
+      }),
+    ).toBe("r-be")
+  })
+
   it("counts remaining games from date onward only", () => {
     const days = ["2025-10-20", "2025-10-21", "2025-10-22"]
     const date = "2025-10-21"
@@ -441,6 +478,100 @@ describe("pickAutoRosterCut", () => {
       seatedTonight: [{ slot: "UTIL", playerId: null }],
     })
     expect(cut).toBeNull()
+  })
+
+  it("cuts the less productive player when remaining games match", () => {
+    const days = ["2025-10-21", "2025-10-22"]
+    const productive = player("a-powell", "MIA", {
+      projections: { ...projections(), PTS: 1800 },
+    })
+    const quiet = player("z-walker", "IND", {
+      projections: { ...projections(), PTS: 400 },
+    })
+    const schedule = scheduleOf(days, [
+      { date: "2025-10-22", homeAbbr: "MIA", awayAbbr: "BOS" },
+      { date: "2025-10-22", homeAbbr: "IND", awayAbbr: "NYK" },
+    ])
+    const cut = pickAutoRosterCut({
+      date: "2025-10-21",
+      days,
+      teamEntries: [
+        { slot: "BE", playerId: "a-powell" },
+        { slot: "BE", playerId: "z-walker" },
+      ],
+      players: [productive, quiet],
+      schedule,
+      seatedTonight: [],
+    })
+    expect(cut).toBe("z-walker")
+  })
+
+  it("cuts the player who adds fewer expected category wins", () => {
+    const days = ["2025-10-21", "2025-10-22"]
+    const scorer = player("a-scorer", "MIA", {
+      projections: { ...projections(), PTS: 3000, STL: 10 },
+    })
+    const stopper = player("z-stopper", "IND", {
+      projections: { ...projections(), PTS: 400, STL: 200 },
+    })
+    const schedule = scheduleOf(days, [
+      { date: "2025-10-22", homeAbbr: "MIA", awayAbbr: "BOS" },
+      { date: "2025-10-22", homeAbbr: "IND", awayAbbr: "NYK" },
+    ])
+    const tied = (categoryId: CategoryId) => {
+      if (categoryId === "PTS") return { you: 200, opp: 20 }
+      if (categoryId === "FG_PCT") return { you: 0.47, opp: 0.47 }
+      if (categoryId === "FT_PCT") return { you: 0.78, opp: 0.78 }
+      return { you: 10, opp: 10 }
+    }
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => ({
+        categoryId,
+        ...tied(categoryId),
+        outcome: "T",
+        winProb: 0.5,
+      })),
+      wins: 0,
+      losses: 0,
+      ties: 9,
+      projectedCatWins: 4.5,
+    }
+    const cut = pickAutoRosterCut({
+      date: "2025-10-21",
+      days,
+      teamEntries: [
+        { slot: "BE", playerId: "a-scorer" },
+        { slot: "BE", playerId: "z-stopper" },
+      ],
+      players: [scorer, stopper],
+      schedule,
+      seatedTonight: [],
+      board,
+    })
+    expect(cut).toBe("a-scorer")
+  })
+
+  it("cuts the worse ADP when production and games match", () => {
+    const days = ["2025-10-21", "2025-10-22"]
+    const betterAdp = player("a-early", "MIA")
+    const worseAdp = player("z-late", "IND")
+    const schedule = scheduleOf(days, [
+      { date: "2025-10-22", homeAbbr: "MIA", awayAbbr: "BOS" },
+      { date: "2025-10-22", homeAbbr: "IND", awayAbbr: "NYK" },
+    ])
+    const cut = pickAutoRosterCut({
+      date: "2025-10-21",
+      days,
+      teamEntries: [
+        { slot: "BE", playerId: "a-early" },
+        { slot: "BE", playerId: "z-late" },
+      ],
+      players: [betterAdp, worseAdp],
+      schedule,
+      seatedTonight: [],
+      adpByPlayerId: { "a-early": 85, "z-late": 160 },
+    })
+    expect(cut).toBe("z-late")
   })
 
   it("does not count a packed next game as a remaining hole start", () => {

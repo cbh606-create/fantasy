@@ -1,6 +1,6 @@
 import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 import type { DailyLineups } from "./dailyLineups"
-import { teamHasGameOnDate } from "./games"
+import { playerHasGameOnDate } from "./games"
 import { seatStreamerIfOpen } from "./streamerMove"
 import type { StreamingPlan } from "./types"
 
@@ -34,6 +34,8 @@ const clearPlayerFromDay = (
 export type ApplyStreamingPlanPreviewOptions = {
   /** `${date}:${playerId}` — skip seating these streamers (user sat them in preview). */
   omitSeats?: ReadonlySet<string>
+  /** `${date}:${playerId}` — do not auto-start these roster players. */
+  omitRosterSeats?: ReadonlySet<string>
   /** `${date}:${playerId}` — reseat a sat roster player; ignored for plan roster cuts. */
   keepRosterSeats?: ReadonlySet<string>
   /** Non-IL roster ids to reseat even when they are missing from `baseDaily`. */
@@ -42,6 +44,60 @@ export type ApplyStreamingPlanPreviewOptions = {
 
 export const previewSeatKey = (date: string, playerId: string) =>
   `${date}:${playerId}`
+
+/** FA adds on the opponent streaming plan — must survive pruneDailyToRoster. */
+export const previewOpponentStreamerIds = (
+  plan: StreamingPlan | null,
+): Set<string> => {
+  const ids = new Set<string>()
+  if (!plan) return ids
+  for (const day of plan.opponentDays ?? []) {
+    if (day.streamerPlayerId) ids.add(day.streamerPlayerId)
+    for (const cell of day.cells ?? []) {
+      if (cell.playerId) ids.add(cell.playerId)
+    }
+  }
+  return ids
+}
+
+/** Days a streamer stays on the roster: from the add through the day before a drop. */
+export const streamerActiveDatesByPlayerId = (
+  plan: StreamingPlan | null,
+): Record<string, Set<string>> => {
+  const byId: Record<string, Set<string>> = {}
+  if (!plan) return byId
+
+  const playerIds = new Set<string>()
+  for (const day of plan.days) {
+    for (const cell of day.cells) {
+      if (cell.playerId && cell.action !== "empty") playerIds.add(cell.playerId)
+      if (cell.droppedPlayerId) playerIds.add(cell.droppedPlayerId)
+    }
+  }
+
+  const days = [...plan.days].sort((left, right) =>
+    left.date < right.date ? -1 : left.date > right.date ? 1 : 0,
+  )
+
+  for (const playerId of playerIds) {
+    let active = false
+    const dates = new Set<string>()
+    for (const day of days) {
+      const droppedToday = day.cells.some(
+        (cell) => cell.droppedPlayerId === playerId,
+      )
+      const listedToday = day.cells.some(
+        (cell) => cell.playerId === playerId && cell.action !== "empty",
+      )
+      if (droppedToday && !listedToday) active = false
+      else if (listedToday) active = true
+      if (active) dates.add(day.date)
+    }
+    if (dates.size > 0) byId[playerId] = dates
+  }
+
+  return byId
+}
 
 export const applyStreamingPlanPreview = (
   baseDaily: DailyLineups,
@@ -53,13 +109,14 @@ export const applyStreamingPlanPreview = (
   const next = cloneDaily(baseDaily)
   const matchupDays = Object.keys(next).sort()
   const omitSeats = options.omitSeats
+  const omitRosterSeats = options.omitRosterSeats
   const keepRosterSeats = options.keepRosterSeats
 
   const rosterDropFromById: Record<string, string> = {}
   for (const day of plan.days) {
     for (const cell of day.cells) {
       if (
-        cell.action === "add" &&
+        (cell.action === "add" || cell.action === "drop_add") &&
         cell.rosterDropKind === "player" &&
         cell.rosterDropPlayerId
       ) {
@@ -86,9 +143,23 @@ export const applyStreamingPlanPreview = (
     ),
   )
   const baseRosterIds = new Set<string>(options.rosterPlayerIds ?? [])
-  for (const entries of Object.values(baseDaily)) {
-    for (const entry of entries) {
-      if (entry.playerId) baseRosterIds.add(entry.playerId)
+  if (options.rosterPlayerIds == null) {
+    for (const entries of Object.values(baseDaily)) {
+      for (const entry of entries) {
+        if (entry.playerId) baseRosterIds.add(entry.playerId)
+      }
+    }
+  } else {
+    for (const date of matchupDays) {
+      const entries = next[date]
+      if (!entries) continue
+      for (let index = 0; index < entries.length; index += 1) {
+        const entry = entries[index]
+        const playerId = entry?.playerId
+        if (!playerId) continue
+        if (baseRosterIds.has(playerId) || planStreamerIds.has(playerId)) continue
+        entries[index] = { ...entry, playerId: null }
+      }
     }
   }
 
@@ -101,16 +172,18 @@ export const applyStreamingPlanPreview = (
         if (!playerId) continue
         const droppedFrom = rosterDropFromById[playerId]
         if (droppedFrom && date >= droppedFrom) continue
+        if (omitRosterSeats?.has(previewSeatKey(date, playerId))) continue
         if (next[date]?.some((entry) => entry.playerId === playerId)) continue
         const kept = resolvePlayer(playersById, playerId)
         if (!kept?.teamAbbr) continue
-        if (!teamHasGameOnDate(kept.teamAbbr, date, schedule)) continue
+        if (!playerHasGameOnDate(kept, date, schedule)) continue
         seatStreamerIfOpen(next[date], playerId, date, playersById, schedule, {
           allowFlexSlots: true,
         })
       }
     }
     for (const playerId of baseRosterIds) {
+      if (omitRosterSeats?.has(previewSeatKey(date, playerId))) continue
       if (planStreamerIds.has(playerId) || droppedStreamerIds.has(playerId)) {
         continue
       }
@@ -119,7 +192,7 @@ export const applyStreamingPlanPreview = (
       if (next[date]?.some((entry) => entry.playerId === playerId)) continue
       const rostered = resolvePlayer(playersById, playerId)
       if (!rostered?.teamAbbr) continue
-      if (!teamHasGameOnDate(rostered.teamAbbr, date, schedule)) continue
+      if (!playerHasGameOnDate(rostered, date, schedule)) continue
       seatStreamerIfOpen(next[date], playerId, date, playersById, schedule, {
         allowFlexSlots: true,
       })
@@ -130,7 +203,7 @@ export const applyStreamingPlanPreview = (
     const date = day.date
     for (const cell of day.cells) {
       if (
-        cell.action === "add" &&
+        (cell.action === "add" || cell.action === "drop_add") &&
         cell.rosterDropKind === "player" &&
         cell.rosterDropPlayerId
       ) {
@@ -147,6 +220,12 @@ export const applyStreamingPlanPreview = (
   }
 
   for (const date of matchupDays) {
+    for (const key of omitRosterSeats ?? []) {
+      const prefix = `${date}:`
+      if (!key.startsWith(prefix)) continue
+      const playerId = key.slice(prefix.length)
+      if (playerId) clearPlayerFromDay(next[date], playerId)
+    }
     seatPlayingRosterOnDate(date)
   }
 
@@ -157,10 +236,39 @@ export const applyStreamingPlanPreview = (
       if (omitSeats?.has(previewSeatKey(date, cell.playerId))) continue
       const player = resolvePlayer(playersById, cell.playerId)
       if (!player?.teamAbbr) continue
-      if (!teamHasGameOnDate(player.teamAbbr, date, schedule)) continue
+      if (!playerHasGameOnDate(player, date, schedule)) continue
       seatStreamerIfOpen(next[date], cell.playerId, date, playersById, schedule, {
         allowFlexSlots: true,
       })
+    }
+  }
+
+  const activeDates = streamerActiveDatesByPlayerId(plan)
+  for (const date of matchupDays) {
+    for (const [playerId, dates] of Object.entries(activeDates)) {
+      if (!dates.has(date)) continue
+      if (omitSeats?.has(previewSeatKey(date, playerId))) continue
+      const player = resolvePlayer(playersById, playerId)
+      if (!player?.teamAbbr) continue
+      if (!playerHasGameOnDate(player, date, schedule)) continue
+      seatStreamerIfOpen(next[date], playerId, date, playersById, schedule, {
+        allowFlexSlots: true,
+      })
+    }
+  }
+
+  for (const date of matchupDays) {
+    for (const key of omitRosterSeats ?? []) {
+      const prefix = `${date}:`
+      if (!key.startsWith(prefix)) continue
+      const playerId = key.slice(prefix.length)
+      if (playerId) clearPlayerFromDay(next[date], playerId)
+    }
+    for (const key of omitSeats ?? []) {
+      const prefix = `${date}:`
+      if (!key.startsWith(prefix)) continue
+      const playerId = key.slice(prefix.length)
+      if (playerId) clearPlayerFromDay(next[date], playerId)
     }
   }
 

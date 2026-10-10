@@ -1,5 +1,10 @@
 import type { InjuryStatus } from "@/lib/injuries/types"
+import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import type { CategoryId } from "@/lib/domain/types"
 import { STREAMING_PROTECTED_ADP_MAX } from "@/lib/matchup/constants"
+import { categoryWinProb } from "@/lib/matchup/board"
+import { weeklyPlayerStats } from "@/lib/matchup/weekly"
+import type { MatchupBoard, StatWindow } from "@/lib/matchup/types"
 import type { SeasonPlayer } from "@/lib/season/types"
 
 type ExpectedOutDaysInput = {
@@ -34,6 +39,102 @@ export const isUnderperformingDropException = (_player: SeasonPlayer): boolean =
 
 export const isAdpProtected = (adp: number | null | undefined): boolean =>
   adp != null && adp <= STREAMING_PROTECTED_ADP_MAX
+
+const TEAM_FGA_PER_GAME = 80
+const TEAM_FTA_PER_GAME = 20
+
+const neutralYou = (categoryId: CategoryId) => {
+  if (categoryId === "FG_PCT") return 0.47
+  if (categoryId === "FT_PCT") return 0.78
+  return 0
+}
+
+const neutralBoard = (): MatchupBoard => ({
+  categories: ALL_CATEGORY_IDS.map((categoryId) => {
+    const you = neutralYou(categoryId)
+    return {
+      categoryId,
+      you,
+      opp: you,
+      outcome: "T" as const,
+      winProb: 0.5,
+    }
+  }),
+  wins: 0,
+  losses: 0,
+  ties: ALL_CATEGORY_IDS.length,
+  projectedCatWins: ALL_CATEGORY_IDS.length * 0.5,
+})
+
+const blendedRate = (
+  teamRate: number,
+  playerRate: number,
+  playerAttempts: number,
+  teamAttempts: number,
+) => {
+  const total = teamAttempts + playerAttempts
+  if (total <= 0) return teamRate
+  return (teamRate * teamAttempts + playerRate * playerAttempts) / total
+}
+
+/** Marginal matchup expected category wins from adding this player's games. */
+export const expectedWinsAdded = (
+  player: SeasonPlayer,
+  games: number,
+  board?: MatchupBoard,
+  window: StatWindow = "season",
+): number => {
+  const weekly = weeklyPlayerStats(player, games, window)
+  const rows = (board ?? neutralBoard()).categories
+  const attemptGames = Math.max(games, 1)
+  let delta = 0
+  for (const row of rows) {
+    const before = categoryWinProb(row.you, row.opp, row.categoryId)
+    let nextYou = row.you
+    if (row.categoryId === "FG_PCT") {
+      nextYou = blendedRate(
+        row.you,
+        weekly.projections.FG_PCT,
+        weekly.shooting.FGA,
+        TEAM_FGA_PER_GAME * attemptGames,
+      )
+    } else if (row.categoryId === "FT_PCT") {
+      nextYou = blendedRate(
+        row.you,
+        weekly.projections.FT_PCT,
+        weekly.shooting.FTA,
+        TEAM_FTA_PER_GAME * attemptGames,
+      )
+    } else {
+      nextYou = row.you + (weekly.projections[row.categoryId] ?? 0)
+    }
+    delta += categoryWinProb(nextYou, row.opp, row.categoryId) - before
+  }
+  return delta
+}
+
+const adpDropRank = (adp: number | null | undefined) =>
+  adp == null ? Number.POSITIVE_INFINITY : adp
+
+export const compareDropPriority = (
+  left: { games: number; expectedWins: number; adp: number | null | undefined },
+  right: { games: number; expectedWins: number; adp: number | null | undefined },
+): number => {
+  if (left.games !== right.games) return left.games - right.games
+  if (left.expectedWins !== right.expectedWins) {
+    return left.expectedWins - right.expectedWins
+  }
+  return adpDropRank(right.adp) - adpDropRank(left.adp)
+}
+
+export const compareAddTiebreak = (
+  left: { expectedWins: number; adp: number | null | undefined },
+  right: { expectedWins: number; adp: number | null | undefined },
+): number => {
+  const adpDelta = adpDropRank(left.adp) - adpDropRank(right.adp)
+  if (adpDelta !== 0) return adpDelta
+  return right.expectedWins - left.expectedWins
+}
 
 type ProjAdpPlayer = {
   id: string

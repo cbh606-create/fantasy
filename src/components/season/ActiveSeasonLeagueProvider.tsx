@@ -39,10 +39,9 @@ export const ActiveSeasonLeagueProvider = ({
 }: {
   children: ReactNode
 }) => {
-  // Sync read so SiteNav deep-links on first paint (avoids /tool → /tool/id hop).
-  const [activeId, setActiveIdState] = useState<string | null>(() =>
-    readActiveSeasonLeagueId(),
-  )
+  // Storage is read after mount so the server and the first client render
+  // share the same links. Reading it here mismatches href on hydration.
+  const [activeId, setActiveIdState] = useState<string | null>(null)
   const [leagues, setLeagues] = useState<SeasonLeagueListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -66,6 +65,10 @@ export const ActiveSeasonLeagueProvider = ({
       clearActiveSeasonLeagueId()
       return null
     })
+  }, [])
+
+  useEffect(() => {
+    setActiveIdState(readActiveSeasonLeagueId())
   }, [])
 
   useEffect(() => {

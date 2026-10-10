@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest"
 import {
+  collectEarlierAddedStreamerIds,
   compareStreamingAddDropKeys,
   eligibleRosterDropPlayerIds,
   isAfterStreamingAddDropKey,
   rosterDropSelectOptions,
+  rosterDropSelectPlayerIds,
 } from "@/lib/matchup/streamingDropOptions"
 import type { SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
@@ -150,5 +152,73 @@ describe("eligibleRosterDropPlayerIds", () => {
     )
 
     expect(ids).toEqual(["b"])
+  })
+})
+
+describe("rosterDropSelectPlayerIds", () => {
+  const star = player("star", "Star Player")
+  const bench = player("bench", "Bench Guy")
+  const streamer = player("fa-a", "Streamer A")
+  const playersById = { star, bench, "fa-a": streamer }
+  const entries: SeasonRosterEntry[] = [
+    { slot: "UTIL", playerId: "star" },
+    { slot: "SG", playerId: "bench" },
+  ]
+
+  it("includes ADP-protected and earlier stream adds for the dropdown", () => {
+    const ids = rosterDropSelectPlayerIds(entries, playersById, [], ["fa-a"])
+    expect(ids).toEqual(["bench", "star", "fa-a"].sort((a, b) =>
+      playersById[a]!.name.localeCompare(playersById[b]!.name),
+    ))
+  })
+})
+
+describe("collectEarlierAddedStreamerIds", () => {
+  it("returns streamers still held before the target cell", () => {
+    const plan = {
+      spotCount: 1,
+      addsUsed: 1,
+      addLimit: 3,
+      gameStarts: 1,
+      summaryReasons: [],
+      days: [
+        {
+          date: "2025-11-03",
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-a",
+              action: "add" as const,
+              droppedPlayerId: null,
+              rosterDropPlayerId: "bench",
+              rosterDropKind: "player" as const,
+              addIndex: 1,
+              alternativePlayerIds: [],
+              targetCategoryIds: [],
+            },
+          ],
+        },
+        {
+          date: "2025-11-04",
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "fa-a",
+              action: "hold" as const,
+              droppedPlayerId: null,
+              rosterDropPlayerId: null,
+              rosterDropKind: "none" as const,
+              addIndex: null,
+              alternativePlayerIds: [],
+              targetCategoryIds: [],
+            },
+          ],
+        },
+      ],
+      opponentDays: [],
+    }
+    expect(
+      collectEarlierAddedStreamerIds(plan as never, "2025-11-04", 0),
+    ).toEqual(["fa-a"])
   })
 })

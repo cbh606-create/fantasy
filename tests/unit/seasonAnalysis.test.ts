@@ -82,6 +82,23 @@ describe("analyzeSeasonLeague", () => {
     )
   })
 
+  it("leaves an IR player out of the team total", () => {
+    const analysis = analyzeSeasonLeague(
+      state(
+        [
+          player("starter", { PTS: 20 }),
+          player("bench", { PTS: 10 }),
+          player("hurt", { PTS: 30 }),
+        ],
+        [["starter", "bench", "hurt"]],
+      ),
+    )
+
+    expect(categoryRows(analysis, "PTS")).toEqual([
+      expect.objectContaining({ teamIndex: 0, raw: 30 }),
+    ])
+  })
+
   it("ranks lower turnover totals first", () => {
     const analysis = analyzeSeasonLeague(
       state(
@@ -116,6 +133,61 @@ describe("analyzeSeasonLeague", () => {
           raw: 11 / 12,
         }),
       ]),
+    )
+  })
+
+  it("ranks overall by sum of category ranks (roto-style)", () => {
+    const analysis = analyzeSeasonLeague(
+      state(
+        [
+          player("ace", {
+            PTS: 30,
+            REB: 12,
+            AST: 10,
+            STL: 2,
+            BLK: 2,
+            TPM: 3,
+            TO: 1,
+            FG_PCT: 0.5,
+            FT_PCT: 0.85,
+          }),
+          player("mid", {
+            PTS: 20,
+            REB: 8,
+            AST: 6,
+            STL: 1,
+            BLK: 1,
+            TPM: 2,
+            TO: 2,
+            FG_PCT: 0.45,
+            FT_PCT: 0.8,
+          }),
+          player("weak", {
+            PTS: 10,
+            REB: 4,
+            AST: 2,
+            STL: 0.5,
+            BLK: 0.5,
+            TPM: 1,
+            TO: 3,
+            FG_PCT: 0.4,
+            FT_PCT: 0.75,
+          }),
+        ],
+        [["ace"], ["mid"], ["weak"]],
+      ),
+    )
+
+    expect(analysis.overall.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ teamIndex: 0, rank: 1 }),
+        expect.objectContaining({ teamIndex: 1, rank: 2 }),
+        expect.objectContaining({ teamIndex: 2, rank: 3 }),
+      ]),
+    )
+    const ace = analysis.overall.rows.find((row) => row.teamIndex === 0)!
+    expect(ace.rankSum).toBeLessThan(
+      analysis.overall.rows.find((row) => row.teamIndex === 2)!.rankSum,
     )
   })
 })

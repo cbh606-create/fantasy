@@ -1,5 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
+import { capnightPlayerZ } from "@/lib/players/capnightZ"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
@@ -35,6 +36,14 @@ export type SeasonAnalysis = {
       raw: number
     }[]
   }[]
+  /** Roto-style overall: sum of category ranks (lower better), then place. */
+  overall: {
+    rows: {
+      teamIndex: number
+      rank: number
+      rankSum: number
+    }[]
+  }
 }
 
 const emptyTotals = (): CategoryTotals =>
@@ -110,7 +119,8 @@ export const rosterPlayers = (
   playersById: Map<string, SeasonPlayer>,
 ): SeasonPlayer[] =>
   team.entries.flatMap((entry) => {
-    const player = entry.playerId ? playersById.get(entry.playerId) : undefined
+    if (entry.slot === "IL" || !entry.playerId) return []
+    const player = playersById.get(entry.playerId)
     return player ? [player] : []
   })
 
@@ -165,15 +175,95 @@ export const analyzeTeamTotals = (
     return { categoryId, rows }
   })
 
+  const rankSumByTeam = new Map<number, number>()
+  for (const category of byCategory) {
+    for (const row of category.rows) {
+      rankSumByTeam.set(
+        row.teamIndex,
+        (rankSumByTeam.get(row.teamIndex) ?? 0) + row.rank,
+      )
+    }
+  }
+  const overall = {
+    rows: [...rankSumByTeam.entries()]
+      .map(([teamIndex, rankSum]) => ({ teamIndex, rankSum }))
+      .sort((left, right) =>
+        left.rankSum - right.rankSum || left.teamIndex - right.teamIndex)
+      .map((row, index) => ({ ...row, rank: index + 1 })),
+  }
+
   return {
     byTeam: totalsByTeam.map(({ teamIndex }) => ({
       teamIndex,
       levels: levelsByTeam.get(teamIndex) ?? [],
     })),
     byCategory,
+    overall,
   }
 }
 
 export const analyzeSeasonLeague = (
   state: SeasonLeagueState,
-): SeasonAnalysis => analyzeTeamTotals(seasonTeamTotals(state))
+): SeasonAnalysis => {
+  const analysis = analyzeTeamTotals(seasonTeamTotals(state))
+  const playersById = new Map(state.players.map((player) => [player.id, player]))
+  const zByTeam = new Map<number, Record<CategoryId, number>>()
+
+  for (const team of state.teams) {
+    const totals = Object.fromEntries(
+      ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
+    ) as Record<CategoryId, number>
+
+    for (const player of rosterPlayers(team, playersById)) {
+      const categories = capnightPlayerZ(player.name).z
+      for (const categoryId of ALL_CATEGORY_IDS) {
+        totals[categoryId] += categories[categoryId]
+      }
+    }
+
+    zByTeam.set(team.teamIndex, totals)
+  }
+
+  const leagueZByCategory = new Map(
+    ALL_CATEGORY_IDS.map((categoryId) => {
+      const values = state.teams.map(
+        (team) => zByTeam.get(team.teamIndex)?.[categoryId] ?? 0,
+      )
+      const mean = values.reduce((sum, value) => sum + value, 0) / values.length
+      const deviation = standardDeviation(values, mean)
+
+      return [
+        categoryId,
+        new Map(
+          state.teams.map((team, index) => {
+            const value = values[index] ?? 0
+            const z = deviation === 0 ? 0 : (value - mean) / deviation
+            return [team.teamIndex, z]
+          }),
+        ),
+      ] as const
+    }),
+  )
+  const zFor = (teamIndex: number, categoryId: CategoryId) =>
+    leagueZByCategory.get(categoryId)?.get(teamIndex) ?? 0
+
+  return {
+    byTeam: analysis.byTeam.map((team) => ({
+      ...team,
+      levels: team.levels.map((level) => {
+        const z = zFor(team.teamIndex, level.categoryId)
+        const kind = z > 0 ? "positive" : z < 0 ? "negative" : "neutral"
+
+        return { ...level, z, intensity: Math.abs(z), kind }
+      }),
+    })),
+    byCategory: analysis.byCategory.map((category) => ({
+      ...category,
+      rows: category.rows.map((row) => ({
+        ...row,
+        z: zFor(row.teamIndex, category.categoryId),
+      })),
+    })),
+    overall: analysis.overall,
+  }
+}

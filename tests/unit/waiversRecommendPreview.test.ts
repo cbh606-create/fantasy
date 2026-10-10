@@ -14,9 +14,10 @@ const createPlayer = (
   id: string,
   projections: Record<CategoryId, number>,
   availability?: SeasonPlayer["availability"],
+  name = id,
 ): SeasonPlayer => ({
   id,
-  name: id,
+  name,
   availability,
   projections,
   shooting: {
@@ -73,6 +74,7 @@ const createLeagueState = (): SeasonLeagueState => {
     "fa-specialist",
     specialistProjections,
     "fa",
+    "Nikola Jokic",
   )
   const faScrub = createPlayer("fa-scrub", scrubProjections, "fa")
   const waiverSpecialist = createPlayer(

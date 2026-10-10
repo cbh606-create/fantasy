@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import {
-  espnImportToSeasonLeagueState,
+  espnImportPreferringNewerSeason,
   detectLineupConflict,
 } from "@/lib/adapters/espnSeason"
 import { EspnAdapterError } from "@/lib/adapters/errors"
@@ -76,7 +76,7 @@ export const POST = async (
       (process.env.ESPN_LIVE === "true" ? envCookies : null) ??
       undefined
 
-    const importedState = await espnImportToSeasonLeagueState({
+    const importedState = await espnImportPreferringNewerSeason({
       leagueId: league.espnLeagueId,
       season: league.season,
       teamId: storedState?.espnTeamId,
@@ -103,8 +103,12 @@ export const POST = async (
     const updatedLeague = await db.seasonLeague.update({
       where: { id: league.id },
       data: {
+        season: incomingState.season,
         stateJson: JSON.stringify(incomingState),
         localLineupJson: null,
+        ...(incomingState.season !== league.season
+          ? { morningCheckJson: null }
+          : {}),
         source: "espn",
         lastSyncedAt: new Date(),
       },

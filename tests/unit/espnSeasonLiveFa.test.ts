@@ -41,7 +41,10 @@ describe("fetchEspnSeasonLeague free agents", () => {
     )
     expect(fetchMock).toHaveBeenCalledTimes(2)
 
+    const [rosterUrl] = fetchMock.mock.calls[0] as [URL, RequestInit]
     const [faUrl, faInit] = fetchMock.mock.calls[1] as [URL, RequestInit]
+    expect(rosterUrl.host).toBe("lm-api-reads.fantasy.espn.com")
+    expect(faUrl.host).toBe("lm-api-reads.fantasy.espn.com")
     expect(faUrl.searchParams.getAll("view")).toEqual(["kona_player_info"])
     expect(faInit.headers).toMatchObject({
       Cookie: "espn_s2=test-s2; SWID={TEST-SWID}",

@@ -176,9 +176,7 @@ describe("TradeWorkspace", () => {
     const centerSuggestion = screen.getByRole("button", {
       name: /trade your guard for their center/i,
     })
-    expect(within(centerSuggestion.closest("li")!).getByRole("heading", {
-      name: "Their Center",
-    })).toBeInTheDocument()
+    expect(within(centerSuggestion.closest("li")!).queryByRole("heading")).toBeNull()
 
     fireEvent.click(screen.getByRole("button", {
       name: /trade your guard for their wing/i,
@@ -186,12 +184,9 @@ describe("TradeWorkspace", () => {
     const wingSuggestion = screen.getByRole("button", {
       name: /trade your guard for their wing/i,
     })
-    expect(within(wingSuggestion.closest("li")!).getByRole("heading", {
-      name: "Their Wing",
-    })).toBeInTheDocument()
-    expect(within(centerSuggestion.closest("li")!).queryByRole("heading", {
-      name: "Their Center",
-    })).toBeNull()
+    expect(screen.getByRole("heading", { name: "Their Wing" })).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: "Their Center" })).toBeNull()
+    expect(within(wingSuggestion.closest("li")!).queryByRole("heading")).toBeNull()
 
     const callsBefore = vi.mocked(fetch).mock.calls.length
     fireEvent.click(screen.getByRole("button", { name: "AST" }))

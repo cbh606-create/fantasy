@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  BEST_PLAYER_GAP,
   FAIRNESS_BAND,
   NEED_RANK_FLOOR,
   OVERPAY_RATIO,
@@ -13,6 +14,7 @@ describe("trade constants", () => {
     expect(SURPLUS_RANK_CEILING).toBe(4)
     expect(FAIRNESS_BAND).toBe(0.1)
     expect(OVERPAY_RATIO).toBe(1.2)
+    expect(BEST_PLAYER_GAP).toBe(0.2)
     expect(TRADE_PAGE_SIZE).toBe(20)
   })
 })

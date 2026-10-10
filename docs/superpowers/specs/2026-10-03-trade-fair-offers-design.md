@@ -49,7 +49,7 @@ Shapes stay `1:1`, `2:1`, `1:2`, and `2:2`. Asymmetric packages still open a ros
 
 Run the value check before simulating. It is unchanged.
 
-- `1:1` and `2:2`: `|give − get| / max(give, get, ε) ≤ 0.25`, using the current softplus-scaled player values.
+- `1:1` and `2:2`: `|give − get| / max(give, get, ε) ≤ 0.10`, using the current softplus-scaled player values.
 - `2:1` and `1:2`: the two-player side’s value is at least `1.2` times the one-player side.
 
 Then apply the package and recompute the two teams’ totals. Other teams stay put. The post-trade league mean is the mean of those updated totals.
@@ -109,7 +109,7 @@ Each suggestion keeps `id`, `shape`, `counterpartyTeamIndex`, `givePlayerIds`, `
 - `youGains`, `themGains`: `{ categoryId, before, after }[]` for matched weaks that improved
 - `youWorsened`, `themWorsened`: the same shape, for pre-trade weaks that got worse
 - `youStrengthsHeld`, `themStrengthsHeld`: category ids
-- `valueGap`: the even-shape spread in `0…0.25`. Omit it on asymmetric shapes, which already carry `overpayRatio`.
+- `valueGap`: the even-shape spread in `0…0.10`. Omit it on asymmetric shapes, which already carry `overpayRatio`.
 
 `mutualScore` is the sort key above. `reasons[0]` is the list line. The card builds its sentences from the structured fields.
 
@@ -119,7 +119,7 @@ Auth and errors stay: `401`, `400`, `404`, `429`, `500` for a broken stored leag
 
 ### Constants
 
-- `FAIRNESS_BAND = 0.25` and `OVERPAY_RATIO = 1.2` stay.
+- `FAIRNESS_BAND = 0.10` and `OVERPAY_RATIO = 1.2` stay.
 - `NEED_RANK_FLOOR` and `SURPLUS_RANK_CEILING` stay for `teamNeedsAndSurplus`.
 - `MAX_CANDIDATES_PER_TEAM` is removed.
 - `MAX_SUGGESTIONS` is removed. The list uses `TRADE_PAGE_SIZE = 20`.
@@ -148,7 +148,7 @@ Unit:
 - A pre-trade weak total that moves further the bad way stays a suggestion, and that category is on `youWorsened` or `themWorsened`.
 - A pre-trade strong category that finishes on the bad side of the post-trade mean is rejected.
 - A pre-trade strong category that drops and stays on the good side, or lands exactly on the post-trade mean, passes.
-- An even package outside `0.25`, and a two-for-one under `1.2`, are rejected.
+- An even package outside `0.10`, and a two-for-one under `1.2`, are rejected.
 - `TO` improves only when the team total falls. `FG_PCT` improves only when the team percentage rises.
 - The server result is not cut at 20 when more than 20 packages pass. Order follows the harmonic mean, with a non-positive side sum after those.
 

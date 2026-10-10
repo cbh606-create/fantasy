@@ -1,7 +1,6 @@
+import type { CategoryId } from "@/lib/domain/types"
 import type { MatchupBoard as MatchupBoardData } from "@/lib/matchup/types"
 import type { CategoryOutcome } from "@/lib/matchup/types"
-import { mostCategoriesHeadline } from "@/lib/matchup/mostCategories"
-import type { SeasonScoringMode } from "@/lib/season/types"
 import {
   CATEGORY_SHORT_LABELS,
   categoryStatLead,
@@ -11,7 +10,7 @@ import {
 
 type MatchupBoardProps = {
   board: MatchupBoardData
-  scoringMode?: SeasonScoringMode
+  categoryDeltas?: Partial<Record<CategoryId, number>>
 }
 
 const valueClass = (
@@ -40,11 +39,8 @@ const deltaClass = (outcome: CategoryOutcome): string => {
   return "tabular-nums text-[var(--color-mute)]"
 }
 
-export const MatchupBoard = ({ board, scoringMode }: MatchupBoardProps) => {
-  const headline =
-    scoringMode === "most_categories"
-      ? mostCategoriesHeadline(board.wins, board.losses)
-      : `${board.wins}–${board.losses}–${board.ties}`
+export const MatchupBoard = ({ board, categoryDeltas }: MatchupBoardProps) => {
+  const headline = `${board.wins}–${board.losses}–${board.ties}`
 
   return (
     <section
@@ -86,14 +82,22 @@ export const MatchupBoard = ({ board, scoringMode }: MatchupBoardProps) => {
               >
                 You
               </th>
-              {board.categories.map((row) => (
-                <td
-                  className={`px-1.5 py-0.5 text-center ${valueClass("you", row.outcome)}`}
-                  key={`you-${row.categoryId}`}
-                >
-                  {formatCategoryStat(row.categoryId, row.you)}
-                </td>
-              ))}
+              {board.categories.map((row) => {
+                const delta = categoryDeltas?.[row.categoryId]
+                return (
+                  <td
+                    className={`px-1.5 py-0.5 text-center ${valueClass("you", row.outcome)}`}
+                    key={`you-${row.categoryId}`}
+                  >
+                    {formatCategoryStat(row.categoryId, row.you)}
+                    {typeof delta === "number" && delta !== 0 ? (
+                      <span className="mt-0.5 block text-[0.625rem] text-[var(--color-mute)]">
+                        {formatCategoryStatDelta(row.categoryId, delta)}
+                      </span>
+                    ) : null}
+                  </td>
+                )
+              })}
             </tr>
             <tr>
               <th
