@@ -46,6 +46,14 @@ const emptyLineupCache = (): LineupCache => ({ lineups: [], gameStartTimes: [] }
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null
 
+const parseableStartTime = (raw: string): string | null => {
+  const startsAt = raw.trim()
+  if (startsAt.length === 0) return null
+  const parsed = new Date(startsAt)
+  if (Number.isNaN(parsed.getTime())) return null
+  return startsAt
+}
+
 const parseGameStartTimes = (payload: unknown): string[] => {
   if (!isRecord(payload)) return []
 
@@ -54,8 +62,8 @@ const parseGameStartTimes = (payload: unknown): string[] => {
 
   return games.flatMap((game) => {
     if (!isRecord(game)) return []
-    const startsAt = typeof game.DateTime === "string" ? game.DateTime.trim() : ""
-    return startsAt.length > 0 ? [startsAt] : []
+    const startsAt = typeof game.DateTime === "string" ? parseableStartTime(game.DateTime) : null
+    return startsAt !== null ? [startsAt] : []
   })
 }
 
@@ -65,8 +73,17 @@ export const clearInjurySelectionCache = (): void => {
   memory = null
 }
 
-const sameUtcDate = (left: Date, right: Date): boolean =>
-  left.toISOString().slice(0, 10) === right.toISOString().slice(0, 10)
+const easternCalendarDate = (date: Date): string | null => {
+  if (Number.isNaN(date.getTime())) return null
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(date)
+}
+
+const sameEasternDate = (left: Date, right: Date): boolean => {
+  const leftDay = easternCalendarDate(left)
+  const rightDay = easternCalendarDate(right)
+  if (leftDay === null || rightDay === null) return false
+  return leftDay === rightDay
+}
 
 const stale = (stamp: Stamp<unknown> | undefined, now: number, ttl: number): boolean =>
   !stamp || now - stamp.fetchedAt >= ttl
@@ -98,39 +115,58 @@ export const loadInjurySelectionInputs = async (options: {
   const cachedTips = memory?.lineups.value.gameStartTimes ?? []
   const gameDay =
     memory !== null &&
-    cachedTips.some((startsAt) => sameUtcDate(new Date(startsAt), options.now))
+    cachedTips.some((startsAt) => {
+      const tipAt = new Date(startsAt)
+      if (Number.isNaN(tipAt.getTime())) return false
+      return sameEasternDate(tipAt, options.now)
+    })
   const nextTip = cachedTips
     .map((startsAt) => new Date(startsAt).getTime())
     .filter((startsAt) => !Number.isNaN(startsAt) && startsAt > nowMs)
     .sort((left, right) => left - right)[0]
+  const nextTipDate = nextTip !== undefined ? new Date(nextTip) : null
   const lineupTtl =
-    nextTip !== undefined && nextTip - nowMs <= TWO_HOURS ? FIVE_MINUTES : SIX_HOURS
+    nextTip !== undefined &&
+    (nextTip - nowMs <= TWO_HOURS ||
+      (nextTipDate !== null &&
+        !Number.isNaN(nextTipDate.getTime()) &&
+        sameEasternDate(nextTipDate, options.now)))
+      ? FIVE_MINUTES
+      : SIX_HOURS
 
-  try {
-    const next: Memory = {
-      updates: memory?.updates ?? { value: [], fetchedAt: 0 },
-      depth: memory?.depth ?? { value: { teams: [] }, fetchedAt: 0 },
-      lineups: memory?.lineups ?? { value: emptyLineupCache(), fetchedAt: 0 },
-      players: memory?.players ?? { value: [], fetchedAt: 0 },
-    }
+  const next: Memory = {
+    updates: memory?.updates ?? { value: [], fetchedAt: 0 },
+    depth: memory?.depth ?? { value: { teams: [] }, fetchedAt: 0 },
+    lineups: memory?.lineups ?? { value: emptyLineupCache(), fetchedAt: 0 },
+    players: memory?.players ?? { value: [], fetchedAt: 0 },
+  }
 
-    if (stale(memory?.updates, nowMs, gameDay ? FIVE_MINUTES : THIRTY_MINUTES)) {
+  if (stale(memory?.updates, nowMs, gameDay ? FIVE_MINUTES : THIRTY_MINUTES)) {
+    try {
       next.updates = {
         value: parseInjuryUpdates(
           await readJson(fetchImpl, endpoint("/Basketball/get-nba-injuries.php", key, 24)),
         ),
         fetchedAt: nowMs,
       }
+    } catch {
+      // keep previous stamp for this input
     }
-    if (stale(memory?.depth, nowMs, gameDay ? SIXTY_MINUTES : SIX_HOURS)) {
+  }
+  if (stale(memory?.depth, nowMs, gameDay ? SIXTY_MINUTES : SIX_HOURS)) {
+    try {
       next.depth = {
         value: parseDepthChart(
           await readJson(fetchImpl, endpoint("/Basketball/get-nba-depth-charts.php", key)),
         ),
         fetchedAt: nowMs,
       }
+    } catch {
+      // keep previous stamp for this input
     }
-    if (stale(memory?.lineups, nowMs, lineupTtl)) {
+  }
+  if (stale(memory?.lineups, nowMs, lineupTtl)) {
+    try {
       const payload = await readJson(
         fetchImpl,
         endpoint("/Basketball/get-nba-lineups.php", key),
@@ -142,21 +178,25 @@ export const loadInjurySelectionInputs = async (options: {
         },
         fetchedAt: nowMs,
       }
+    } catch {
+      // keep previous stamp for this input
     }
-    if (stale(memory?.players, nowMs, SIX_HOURS)) {
+  }
+  if (stale(memory?.players, nowMs, SIX_HOURS)) {
+    try {
       next.players = {
         value: parseRotoPlayers(
           await readJson(fetchImpl, endpoint("/Basketball/get-nba-players.php", key)),
         ),
         fetchedAt: nowMs,
       }
+    } catch {
+      // keep previous stamp for this input
     }
-
-    memory = next
-    return snapshot(next, options.espnPlayers)
-  } catch {
-    return memory ? snapshot(memory, options.espnPlayers) : EMPTY_INPUTS()
   }
+
+  memory = next
+  return snapshot(next, options.espnPlayers)
 }
 
 const snapshot = (cached: Memory, espnPlayers: CrosswalkEspnPlayer[]): CachedInjuryInputs => ({
