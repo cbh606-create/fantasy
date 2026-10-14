@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { GET as getInjuryPickups } from "@/app/api/injuries/pickups/route"
+import { loadInjurySelectionInputs } from "@/lib/injuries/rotowireCache"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import { db } from "@/lib/db"
@@ -9,6 +10,17 @@ import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
 }))
+
+vi.mock("@/lib/injuries/rotowireCache", () => ({
+  loadInjurySelectionInputs: vi.fn(),
+}))
+
+const emptyCache = {
+  updates: [],
+  depth: { teams: [] },
+  lineups: [],
+  crosswalk: new Map<string, string>(),
+}
 
 const testUserPrefix = `injuries-pickups-api-${crypto.randomUUID()}`
 let currentUserId: string
@@ -151,24 +163,56 @@ describe("GET /api/injuries/pickups", () => {
     expect(response.status).toBe(404)
   })
 
-  it("returns injury pickup recommendations for a seeded league", async () => {
+  it("returns an empty pickup list when RotoWire has not loaded", async () => {
+    vi.mocked(loadInjurySelectionInputs).mockResolvedValue(emptyCache)
     const league = await seedInjuryPickupLeague()
 
     const response = await getInjuryPickups(
-      new Request(
-        `http://localhost/api/injuries/pickups?seasonLeagueId=${league.id}`,
-      ),
+      new Request(`http://localhost/api/injuries/pickups?seasonLeagueId=${league.id}`),
     )
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(payload).toMatchObject({
-      events: expect.any(Array),
-      recommendations: expect.any(Array),
-      source: { depth: "fixture", injuries: "fixture" },
+    expect(payload).toEqual({
+      events: [],
+      recommendations: [],
+      source: { depth: "empty", injuries: "empty" },
     })
-    expect(payload.events.length).toBeGreaterThan(0)
-    expect(payload.recommendations.length).toBeGreaterThan(0)
+  })
+
+  it("returns the selected replacement for a seeded league", async () => {
+    vi.mocked(loadInjurySelectionInputs).mockResolvedValue({
+      updates: [
+        {
+          rotowirePlayerId: "rw-trae",
+          teamAbbr: "ATL",
+          status: "out",
+          at: new Date().toISOString(),
+        },
+      ],
+      depth: {
+        teams: [
+          {
+            teamAbbr: "ATL",
+            positions: [{ position: "PG", playerIds: ["rw-trae", "rw-naw"] }],
+          },
+        ],
+      },
+      lineups: [],
+      crosswalk: new Map([
+        ["rw-trae", "trae-young"],
+        ["rw-naw", "nickeil-alexander-walker"],
+      ]),
+    })
+    const league = await seedInjuryPickupLeague()
+
+    const response = await getInjuryPickups(
+      new Request(`http://localhost/api/injuries/pickups?seasonLeagueId=${league.id}`),
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.source).toEqual({ depth: "rotowire", injuries: "rotowire" })
     expect(payload.recommendations[0]).toMatchObject({
       injuredPlayerId: "trae-young",
       addPlayerId: "nickeil-alexander-walker",
@@ -177,8 +221,7 @@ describe("GET /api/injuries/pickups", () => {
       status: "out",
       depthRank: 1,
       urgency: "league",
-      score: expect.any(Number),
-      reasons: expect.any(Array),
+      score: 0,
     })
   })
 })

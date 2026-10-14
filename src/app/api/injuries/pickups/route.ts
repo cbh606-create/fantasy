@@ -1,11 +1,68 @@
 import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
-import {
-  fixtureDepthChartProvider,
-  fixtureInjuryEventProvider,
-} from "@/lib/injuries/providers"
-import { recommendInjuryPickups } from "@/lib/injuries/recommend"
+import { loadInjurySelectionInputs } from "@/lib/injuries/rotowireCache"
+import { selectInjuryReplacements } from "@/lib/injuries/selection"
+import type { InjuryEvent, InjuryPickupRecommendation, InjuryPickupsResult } from "@/lib/injuries/types"
+import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { loadOwnedSeasonLeague } from "@/lib/waivers/loadSeasonLeague"
+
+const youRosterIds = (state: SeasonLeagueState): Set<string> => {
+  const youTeam = state.teams.find((team) => team.teamIndex === state.perspectiveTeamIndex)
+  return new Set(
+    (youTeam?.entries ?? [])
+      .map((entry) => entry.playerId)
+      .filter((playerId): playerId is string => playerId !== null),
+  )
+}
+
+const toPickups = (
+  state: SeasonLeagueState,
+  cached: Awaited<ReturnType<typeof loadInjurySelectionInputs>>,
+): InjuryPickupsResult => {
+  const names = new Map(state.players.map((player) => [player.id, player]))
+  const rosterIds = youRosterIds(state)
+  const rows = selectInjuryReplacements({
+    ...cached,
+    availablePlayerIds: state.availablePlayerIds,
+    now: new Date(),
+  })
+  const loaded =
+    cached.updates.length > 0 ||
+    cached.depth.teams.length > 0 ||
+    cached.lineups.length > 0 ||
+    cached.crosswalk.size > 0
+
+  const events: InjuryEvent[] = rows.map((row) => ({
+    playerId: row.injuredPlayerId,
+    teamAbbr: names.get(row.injuredPlayerId)?.teamAbbr ?? "",
+    status: row.status,
+  }))
+
+  const recommendations: InjuryPickupRecommendation[] = rows.map((row) => {
+    const injured = names.get(row.injuredPlayerId)
+    const add = names.get(row.addPlayerId)
+    return {
+      injuredPlayerId: row.injuredPlayerId,
+      injuredPlayerName: injured?.name ?? row.injuredPlayerId,
+      addPlayerId: row.addPlayerId,
+      addPlayerName: add?.name ?? row.addPlayerId,
+      teamAbbr: add?.teamAbbr ?? injured?.teamAbbr ?? "",
+      status: row.status,
+      depthRank: row.source === "depth" ? 1 : 0,
+      urgency: rosterIds.has(row.injuredPlayerId) ? "roster" : "league",
+      score: 0,
+      reasons: [row.source === "lineup" ? "Confirmed lineup" : "Depth chart"],
+    }
+  })
+
+  return {
+    events,
+    recommendations,
+    source: loaded
+      ? { depth: "rotowire", injuries: "rotowire" }
+      : { depth: "empty", injuries: "empty" },
+  }
+}
 
 export const GET = async (request: Request): Promise<Response> => {
   let userId: string
@@ -29,11 +86,14 @@ export const GET = async (request: Request): Promise<Response> => {
     return NextResponse.json({ error: "invalid_state" }, { status: 500 })
   }
 
-  const result = recommendInjuryPickups({
-    state: loaded.state,
-    depth: fixtureDepthChartProvider,
-    injuries: fixtureInjuryEventProvider,
+  const cached = await loadInjurySelectionInputs({
+    now: new Date(),
+    espnPlayers: loaded.state.players.map((player: SeasonPlayer) => ({
+      id: player.id,
+      name: player.name,
+      teamAbbr: player.teamAbbr,
+    })),
   })
 
-  return NextResponse.json(result)
+  return NextResponse.json(toPickups(loaded.state, cached))
 }
