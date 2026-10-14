@@ -72,7 +72,10 @@ const positionListFor = (
   return best
 }
 
-const latestUpdates = (updates: InjuryUpdate[], now: Date): InjuryUpdate[] => {
+const latestUpdates = (
+  updates: InjuryUpdate[],
+  now: Date,
+): Array<InjuryUpdate & { status: "out" | "gtd" }> => {
   const byPlayer = new Map<string, InjuryUpdate>()
   for (const update of updates) {
     const at = new Date(update.at).getTime()
