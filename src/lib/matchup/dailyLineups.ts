@@ -1054,3 +1054,56 @@ export const isDailyLineupFullForDate = (
 
   return !entries.some(slotIsOpenForStart)
 }
+
+export type OpponentSeatOverride = "sat" | "start"
+
+/** Reapply opponent sit/start choices on top of the latest simulated lineup. */
+export const applyOpponentSeatOverrides = (
+  daily: DailyLineups,
+  overrides: ReadonlyMap<string, OpponentSeatOverride>,
+  playersById: Record<string, SeasonPlayer>,
+  rosterSlots: SeasonSlot[] | undefined,
+  schedule: ScheduleResponse,
+  closedDates: ReadonlySet<string> = new Set(),
+): DailyLineups => {
+  let next = daily
+  for (const key of [...overrides.keys()].sort()) {
+    const action = overrides.get(key)
+    const splitAt = key.indexOf(":")
+    if (!action || splitAt <= 0) continue
+    const day = key.slice(0, splitAt)
+    const playerId = key.slice(splitAt + 1)
+    if (closedDates.has(day)) continue
+    const player = playersById[playerId]
+    const hasGame = player
+      ? playerHasGameOnDate(player, day, schedule)
+      : false
+    const started = findPlayerSlotIndex(next, day, playerId) >= 0
+    if (action === "sat") {
+      if (!started) continue
+      const toggled = togglePlayerDay(
+        next,
+        day,
+        playerId,
+        hasGame,
+        playersById,
+        rosterSlots,
+        schedule,
+      )
+      if (toggled.status === "sat") next = toggled.daily
+      continue
+    }
+    if (started) continue
+    const toggled = togglePlayerDay(
+      next,
+      day,
+      playerId,
+      hasGame,
+      playersById,
+      rosterSlots,
+      schedule,
+    )
+    if (toggled.status === "started") next = toggled.daily
+  }
+  return next
+}

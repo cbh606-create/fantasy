@@ -1392,6 +1392,59 @@ describe("StreamingPlansPanel", () => {
     )
   })
 
+  it("replaces the shown streamer on a day whose drop still reads Hold", async () => {
+    const bothPlaySchedule: ScheduleResponse = {
+      ...schedule,
+      games: [
+        { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "WAS" },
+        { date: "2025-11-03", homeAbbr: "NYK", awayAbbr: "ORL" },
+        { date: "2025-11-04", homeAbbr: "BOS", awayAbbr: "MIA" },
+        { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "CHI" },
+      ],
+    }
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={bothPlaySchedule}
+        state={state}
+        today="2025-11-03"
+      />,
+    )
+
+    const oneSpotRoot = screen
+      .getByRole("heading", { name: /^1-spot$/i })
+      .closest("div")!
+    const friLabel = formatMatchupDayLabel("2025-11-05")
+    const friAdd = within(oneSpotRoot)
+      .getAllByRole("combobox", { name: /Stream add/i })
+      .find((el) => (el.getAttribute("aria-label") ?? "").includes(friLabel))!
+    expect(friAdd).not.toHaveTextContent("Streamer B")
+    const friDrop = within(oneSpotRoot)
+      .getAllByRole("combobox", { name: /Roster drop/i })
+      .find((el) => (el.getAttribute("aria-label") ?? "").includes(friLabel))!
+    expect(friDrop).toHaveValue("hold")
+
+    fireEvent.click(friAdd)
+    await waitFor(() => {
+      expect(screen.getByLabelText("Team NYK")).toBeInTheDocument()
+    })
+    fireEvent.mouseEnter(screen.getByLabelText("Team NYK"))
+    fireEvent.click(screen.getByRole("option", { name: "Add Streamer B" }))
+
+    await waitFor(() => {
+      expect(
+        within(oneSpotRoot)
+          .getAllByRole("combobox", { name: /Stream add/i })
+          .find((el) =>
+            (el.getAttribute("aria-label") ?? "").includes(friLabel),
+          ),
+      ).toHaveTextContent("Streamer B")
+    })
+    expect(screen.queryByRole("alert")).toBeNull()
+  })
+
   it("blocks adding a streamer while the drop select is Hold", async () => {
     const onPlansBuilt = vi.fn()
     const bothPlaySchedule: ScheduleResponse = {

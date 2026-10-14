@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS, defaultCategorySettings } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import { analyzePerGameLeague, analyzeSeasonLeague } from "@/lib/season/analysis"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
@@ -188,6 +188,86 @@ describe("analyzeSeasonLeague", () => {
     const ace = analysis.overall.rows.find((row) => row.teamIndex === 0)!
     expect(ace.rankSum).toBeLessThan(
       analysis.overall.rows.find((row) => row.teamIndex === 2)!.rankSum,
+    )
+  })
+})
+
+describe("analyzePerGameLeague", () => {
+  it("ranks counting stats by per-game rate instead of season volume", () => {
+    const league = state(
+      [
+        { ...player("volume", { AST: 200, PTS: 1600, TO: 80 }), projectedGames: 80 },
+        { ...player("rate", { AST: 100, PTS: 400, TO: 40 }), projectedGames: 20 },
+      ],
+      [["volume"], ["rate"]],
+    )
+
+    expect(categoryRows(analyzeSeasonLeague(league), "AST")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ teamIndex: 0, rank: 1, raw: 200 }),
+      ]),
+    )
+    expect(categoryRows(analyzePerGameLeague(league), "AST")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ teamIndex: 1, rank: 1, raw: 5 }),
+        expect.objectContaining({ teamIndex: 0, rank: 2, raw: 2.5 }),
+      ]),
+    )
+    expect(categoryRows(analyzePerGameLeague(league), "TO")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ teamIndex: 0, rank: 1, raw: 1 }),
+      ]),
+    )
+  })
+
+  it("keeps shooting percentages on the season volume ratio", () => {
+    const league = state(
+      [
+        {
+          ...player("efficient", { FG_PCT: 1, PTS: 800 }, { FGM: 10, FGA: 10 }),
+          projectedGames: 40,
+        },
+        {
+          ...player("low-volume", { FG_PCT: 0.5, PTS: 200 }, { FGM: 1, FGA: 2 }),
+          projectedGames: 10,
+        },
+        {
+          ...player("opponent", { FG_PCT: 0.4, PTS: 800 }, { FGM: 4, FGA: 10 }),
+          projectedGames: 40,
+        },
+      ],
+      [["efficient", "low-volume"], ["opponent"]],
+    )
+
+    const rateRank = (
+      analysis: ReturnType<typeof analyzeSeasonLeague>,
+    ) =>
+      categoryRows(analysis, "FG_PCT").map(({ teamIndex, rank, raw }) => ({
+        teamIndex,
+        rank,
+        raw,
+      }))
+
+    expect(rateRank(analyzePerGameLeague(league))).toEqual(
+      rateRank(analyzeSeasonLeague(league)),
+    )
+  })
+
+  it("leaves an IR player out and does not divide an already per-game line by 82", () => {
+    const league = state(
+      [
+        player("rate", { AST: 8, PTS: 20 }),
+        player("hurt", { AST: 40, PTS: 40 }),
+        { ...player("season", { AST: 656, PTS: 1640 }), projectedGames: 82 },
+      ],
+      [["rate", "open", "hurt"], ["season"]],
+    )
+
+    expect(categoryRows(analyzePerGameLeague(league), "AST")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ teamIndex: 0, raw: 8 }),
+        expect.objectContaining({ teamIndex: 1, raw: 8 }),
+      ]),
     )
   })
 })

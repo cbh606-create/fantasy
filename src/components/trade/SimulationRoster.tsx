@@ -5,6 +5,7 @@ import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 export type SimulationRosterPlayer = {
   id: string
   name: string
+  value: number
 }
 
 export type SimulationRosterProps = {
@@ -68,6 +69,7 @@ export const SimulationRoster = ({
           return (
             <div className="flex items-center gap-1" key={player.id}>
               <button
+                aria-label={player.name}
                 aria-pressed={pressed}
                 className={`flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1 text-left text-sm ${pressed ? pressedClass : quietClass}`}
                 onClick={() => onPress(player.id)}
@@ -75,6 +77,9 @@ export const SimulationRoster = ({
               >
                 <PlayerAvatar nameShown player={{ id: player.id, name: player.name }} size="sm" />
                 <span className="truncate">{player.name}</span>
+                <span className="shrink-0 text-xs tabular-nums opacity-70">
+                  {player.value.toFixed(3)}
+                </span>
               </button>
               {showDrop ? (
                 <button

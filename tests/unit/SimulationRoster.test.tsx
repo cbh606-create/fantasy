@@ -10,8 +10,8 @@ afterEach(() => {
 })
 
 const players = [
-  { id: "123", name: "Photo Guard" },
-  { id: "give-1", name: "Your Guard" },
+  { id: "123", name: "Photo Guard", value: 0.2 },
+  { id: "give-1", name: "Your Guard", value: 0.1 },
 ]
 
 describe("SimulationRoster", () => {
@@ -30,6 +30,8 @@ describe("SimulationRoster", () => {
 
     expect(buttons[0]).toHaveAccessibleName("Photo Guard")
     expect(buttons[1]).toHaveAccessibleName("Your Guard")
+    expect(within(group).getByText("0.200")).toBeInTheDocument()
+    expect(within(group).getByText("0.100")).toBeInTheDocument()
     expect(group.querySelector("img")).toHaveAttribute(
       "src",
       "https://a.espncdn.com/i/headshots/nba/players/full/123.png",

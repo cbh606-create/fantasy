@@ -39,7 +39,7 @@ export const pickRecommendedYouSpot = (
 
 export const scoreYouSpotPlans = ({
   plans,
-  noneOpponentDaily: _noneOpponentDaily,
+  noneOpponentDaily,
   baseDaily,
   players,
   schedule,

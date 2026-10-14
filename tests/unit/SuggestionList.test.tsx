@@ -89,6 +89,7 @@ describe("SuggestionList", () => {
     )
 
     expect(screen.getAllByRole("button", { name: /trade/i })).toHaveLength(20)
+    expect(screen.getAllByText("0.000").length).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByRole("button", { name: "Show 20 more" }))
 

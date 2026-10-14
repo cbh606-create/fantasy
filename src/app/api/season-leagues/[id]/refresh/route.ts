@@ -83,9 +83,10 @@ export const POST = async (
       cookies,
       forbidFixture: true,
     })
+    const importedName = importedState.name.trim()
     const incomingState: SeasonLeagueState = {
       ...importedState,
-      name: league.name,
+      name: importedName || league.name,
       espnTeamId: storedState?.espnTeamId ?? importedState.espnTeamId,
     }
     const incomingEntries = incomingState.teams.find(
@@ -103,6 +104,7 @@ export const POST = async (
     const updatedLeague = await db.seasonLeague.update({
       where: { id: league.id },
       data: {
+        name: incomingState.name,
         season: incomingState.season,
         stateJson: JSON.stringify(incomingState),
         localLineupJson: null,

@@ -38,6 +38,7 @@ export type TradeSuggestion = {
 export type SuggestTradesOptions = {
   targetCategoryIds?: readonly CategoryId[]
   excludedPlayerIds?: readonly string[]
+  shapes?: readonly TradeShape[]
 }
 
 export type TradePackage = {

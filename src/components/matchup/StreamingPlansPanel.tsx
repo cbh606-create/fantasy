@@ -940,6 +940,10 @@ export const StreamingPlansPanel = ({
       lockedPlan.rejectedAddLocks.includes(lock),
     )
     if (rejected.length === 0) return
+    setStreamingMoveError(
+      "That player could not be added on that day. Free a slot or pick someone who plays.",
+    )
+    setAddSelectEpoch((epoch) => epoch + 1)
     setAddLocksBySpotCount((prev) => {
       const current = prev[previewSpotCount] ?? []
       const next = current.filter(
@@ -1047,11 +1051,9 @@ export const StreamingPlansPanel = ({
       plans.find((item) => item.spotCount === spotCount)
     const cell = plan ? cellFor(plan, date, spotIndex) : undefined
     const dropKey = streamingAddDropKey(date, spotIndex)
-    const dropValue =
-      forcedRosterDropsBySpotCount[spotCount]?.[dropKey] ??
-      plannedDropValue(cell)
+    const explicitDrop = forcedRosterDropsBySpotCount[spotCount]?.[dropKey]
 
-    if (dropValue === "hold" && playerId !== (cell?.playerId ?? null)) {
+    if (explicitDrop === "hold" && playerId !== (cell?.playerId ?? null)) {
       setStreamingMoveError(
         "Choose who to drop (or Open slot) before adding a streamer.",
       )

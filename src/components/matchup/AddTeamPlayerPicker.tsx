@@ -155,6 +155,8 @@ export const AddTeamPlayerPicker = ({
       <div
         className="fixed z-[80] flex max-h-72 overflow-hidden rounded-xl border border-[var(--color-hairline)] bg-white text-left shadow-md"
         id={listboxId}
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
         ref={menuRef}
         role="listbox"
         style={{ top: menuCoords.top, left: menuCoords.left }}

@@ -13,8 +13,11 @@ import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import { sortTeamsByCategoryRank, type SortDirection } from "@/lib/season/matrixSort"
 import type { SeasonTeamRoster } from "@/lib/season/types"
 
+type RankBasis = "total" | "perGame"
+
 type LeagueRankMatrixProps = {
   analysis: SeasonAnalysis
+  perGameAnalysis?: SeasonAnalysis | null
   perspectiveTeamIndex: number
   teams: SeasonTeamRoster[]
 }
@@ -38,24 +41,28 @@ const sortKeyLabel = (key: SortKey) =>
 
 export const LeagueRankMatrix = ({
   analysis,
+  perGameAnalysis,
   perspectiveTeamIndex,
   teams,
 }: LeagueRankMatrixProps) => {
+  const [basis, setBasis] = useState<RankBasis>("total")
   const [activeSortKey, setActiveSortKey] = useState<SortKey | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [openCategoryId, setOpenCategoryId] = useState<CategoryId | null>(null)
+  const shownAnalysis =
+    basis === "perGame" && perGameAnalysis ? perGameAnalysis : analysis
   const triggerRefs = useRef<Partial<Record<CategoryId, HTMLButtonElement | null>>>({})
   const ranksByCategory = new Map(
-    analysis.byCategory.map((category) => [
+    shownAnalysis.byCategory.map((category) => [
       category.categoryId,
       Object.fromEntries(category.rows.map((row) => [row.teamIndex, row.rank])),
     ]),
   )
   const overallByTeam = Object.fromEntries(
-    analysis.overall.rows.map((row) => [row.teamIndex, row.rank]),
+    shownAnalysis.overall.rows.map((row) => [row.teamIndex, row.rank]),
   )
   const rankSumByTeam = Object.fromEntries(
-    analysis.overall.rows.map((row) => [row.teamIndex, row.rankSum]),
+    shownAnalysis.overall.rows.map((row) => [row.teamIndex, row.rankSum]),
   )
   const teamIndexes = teams.map((team) => team.teamIndex)
   const sortedTeamIndexes = activeSortKey
@@ -71,7 +78,7 @@ export const LeagueRankMatrix = ({
   const teamsByIndex = new Map(teams.map((team) => [team.teamIndex, team]))
 
   const dotsFor = (categoryId: CategoryId): CategoryZDot[] | null => {
-    const category = analysis.byCategory.find(
+    const category = shownAnalysis.byCategory.find(
       (entry) => entry.categoryId === categoryId,
     )
     if (!category || category.rows.length === 0) return null
@@ -161,13 +168,44 @@ export const LeagueRankMatrix = ({
             League rank matrix
           </h2>
         </div>
-        <button
-          className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-          onClick={handleReset}
-          type="button"
-        >
-          Reset matrix order
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div
+            aria-label="Rank basis"
+            className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
+            role="radiogroup"
+          >
+            {([
+              ["total", "Total"],
+              ["perGame", "Per game"],
+            ] as const).map(([value, label]) => {
+              const selected = basis === value
+
+              return (
+                <button
+                  aria-checked={selected}
+                  className={`rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                    selected
+                      ? "bg-[var(--color-ink)] text-white"
+                      : "text-[var(--color-mute)] hover:text-[var(--color-ink)]"
+                  }`}
+                  key={value}
+                  onClick={() => setBasis(value)}
+                  role="radio"
+                  type="button"
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+          <button
+            className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+            onClick={handleReset}
+            type="button"
+          >
+            Reset matrix order
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto rounded-[2rem] border border-[var(--color-hairline)]">
         <table className="w-full min-w-[48rem] border-collapse text-sm">

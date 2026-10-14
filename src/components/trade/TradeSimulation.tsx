@@ -5,7 +5,7 @@ import { SideRankColumn } from "@/components/trade/SideRankColumn"
 import { SimulationRoster } from "@/components/trade/SimulationRoster"
 import { TradePackageStats } from "@/components/trade/TradePackageStats"
 import type { SeasonLeagueState } from "@/lib/season/types"
-import { fairFills, formatFairFill, shapeLimits, type SimShape } from "@/lib/trade/fairFill"
+import { fairFills, formatFairFill, shapeLimits, TRADE_SHAPES, type SimShape } from "@/lib/trade/fairFill"
 import { formatAdvantageLine } from "@/lib/trade/offerCopy"
 import { evenValueGap } from "@/lib/trade/score"
 import { simulateTrade, standingReports } from "@/lib/trade/simulateTrade"
@@ -19,8 +19,6 @@ type PlayerOption = {
   id: string
   name: string
 }
-
-const SHAPES: SimShape[] = ["1:1", "1:2", "2:1", "2:2", "2:3", "3:2", "3:3"]
 
 const toggleId = (ids: string[], id: string, max: number) => {
   if (ids.includes(id)) return ids.filter((existing) => existing !== id)
@@ -65,7 +63,11 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
   const playersOf = (team: SeasonLeagueState["teams"][number] | undefined): PlayerOption[] =>
     (team?.entries ?? []).flatMap((entry) =>
       entry.slot !== "IL" && entry.playerId
-        ? [{ id: entry.playerId, name: playerName(entry.playerId) }]
+        ? [{
+          id: entry.playerId,
+          name: playerName(entry.playerId),
+          value: values.get(entry.playerId) ?? 0,
+        }]
         : [],
     )
 
@@ -244,7 +246,7 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
   return (
     <div className="flex flex-col gap-3">
       <div aria-label="Trade shape" className="flex flex-wrap gap-2" role="group">
-        {SHAPES.map((option) => (
+        {TRADE_SHAPES.map((option) => (
           <button
             aria-pressed={shape === option}
             className={`shrink-0 rounded border px-3 py-1 text-sm ${shape === option ? "border-[var(--color-ink)] bg-[var(--color-ink)] text-white" : "border-[var(--color-hairline)]"}`}

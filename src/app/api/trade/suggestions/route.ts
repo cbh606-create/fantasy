@@ -83,6 +83,7 @@ export const GET = async (request: Request): Promise<Response> => {
   const result = suggestTrades(effectiveState, {
     targetCategoryIds: query.targetCategoryIds,
     excludedPlayerIds: query.excludedPlayerIds,
+    shapes: query.shapes,
   })
 
   return NextResponse.json({

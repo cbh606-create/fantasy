@@ -101,6 +101,7 @@ export const suggestTrades = (
     state,
     context.totalsByTeam,
     excludedPlayerIds,
+    options.shapes,
   ).flatMap(
     (tradePackage): TradeSuggestion[] => {
       const { ok, overpayRatio } = passesShapeRules(tradePackage, values)

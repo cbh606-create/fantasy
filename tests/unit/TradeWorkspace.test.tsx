@@ -109,8 +109,9 @@ const suggestions = [
 ]
 
 const previewUrl = "/api/trade/suggestions?seasonLeagueId=season-1"
-const generateUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds="
-const excludedUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1"
+const generateUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=&shape=2%3A2"
+const excludedUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1&shape=2%3A2"
+const multiShapeUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1&shape=1%3A1&shape=2%3A2"
 const generatedBody = {
   suggestions,
   youWeak: ["AST", "TPM"],
@@ -131,7 +132,7 @@ describe("TradeWorkspace", () => {
         }), { status: 200 })
       }
 
-      if (url === generateUrl || url === excludedUrl) {
+      if (url === generateUrl || url === excludedUrl || url === multiShapeUrl) {
         return new Response(JSON.stringify(generatedBody), { status: 200 })
       }
 
@@ -191,6 +192,31 @@ describe("TradeWorkspace", () => {
     const callsBefore = vi.mocked(fetch).mock.calls.length
     fireEvent.click(screen.getByRole("button", { name: "AST" }))
     expect(vi.mocked(fetch).mock.calls.length).toBe(callsBefore)
+  })
+
+  it("sends every pressed trade shape", async () => {
+    render(<TradeWorkspace leagueId="season-1" />)
+    await screen.findByText("Select a category, then generate trade suggestions.")
+
+    const oneForOne = screen.getByRole("button", { name: "1:1" })
+    const twoForTwo = screen.getByRole("button", { name: "2:2" })
+    expect(twoForTwo).toHaveAttribute("aria-pressed", "true")
+    expect(oneForOne).toHaveAttribute("aria-pressed", "false")
+
+    fireEvent.click(oneForOne)
+    expect(oneForOne).toHaveAttribute("aria-pressed", "true")
+    expect(twoForTwo).toHaveAttribute("aria-pressed", "true")
+
+    fireEvent.click(twoForTwo)
+    expect(twoForTwo).toHaveAttribute("aria-pressed", "false")
+    fireEvent.click(screen.getByRole("button", { name: "3PM" }))
+    expect(screen.getByRole("button", { name: "Generate trade suggestions" })).toBeEnabled()
+
+    fireEvent.click(twoForTwo)
+    fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
+
+    await screen.findByRole("heading", { name: "Their Center" })
+    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(multiShapeUrl)
   })
 
   it("omits a player switched to Include", async () => {

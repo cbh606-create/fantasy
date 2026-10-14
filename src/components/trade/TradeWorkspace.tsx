@@ -17,6 +17,7 @@ import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonLeagueState } from "@/lib/season/types"
+import { TRADE_SHAPES, type SimShape } from "@/lib/trade/fairFill"
 import type { TradeSuggestion } from "@/lib/trade/types"
 
 type TradeWorkspaceProps = {
@@ -44,6 +45,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   const [hasGenerated, setHasGenerated] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [tab, setTab] = useState<"suggestions" | "simulation">("suggestions")
+  const [shapes, setShapes] = useState<SimShape[]>(["2:2"])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -123,6 +125,12 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   const handleInclude = (playerId: string) =>
     setExcludedIds((current) => current.filter((id) => id !== playerId))
 
+  const handleToggleShape = (option: SimShape) =>
+    setShapes((current) =>
+      current.includes(option)
+        ? current.filter((selected) => selected !== option)
+        : [...current, option])
+
   const handleGenerate = async () => {
     const categories = ALL_CATEGORY_IDS.filter((categoryId) =>
       selectedIds.includes(categoryId))
@@ -131,6 +139,9 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
       categories: categories.join(","),
       excludedPlayerIds: excludedIds.join(","),
     })
+    for (const option of TRADE_SHAPES) {
+      if (shapes.includes(option)) params.append("shape", option)
+    }
 
     setIsGenerating(true)
     setError("")
@@ -220,9 +231,22 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             onInclude={handleInclude}
             state={state}
           />
+          <div aria-label="Trade shape" className="mt-6 flex flex-wrap gap-2" role="group">
+            {TRADE_SHAPES.map((option) => (
+              <button
+                aria-pressed={shapes.includes(option)}
+                className={`shrink-0 rounded border px-3 py-1 text-sm ${shapes.includes(option) ? "border-[var(--color-ink)] bg-[var(--color-ink)] text-white" : "border-[var(--color-hairline)]"}`}
+                key={option}
+                onClick={() => handleToggleShape(option)}
+                type="button"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
           <button
-            className="mt-6 rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
-            disabled={selectedIds.length === 0 || isGenerating}
+            className="mt-4 rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
+            disabled={selectedIds.length === 0 || shapes.length === 0 || isGenerating}
             onClick={handleGenerate}
             type="button"
           >

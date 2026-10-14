@@ -1,7 +1,8 @@
 "use client"
 
-import { Fragment } from "react"
+import { Fragment, useState } from "react"
 import { eligibleForSlot } from "@/lib/matchup/eligibility"
+import { playerLineForBasis } from "@/lib/season/analysis"
 import {
   formatPlayerPositions,
   slotDisplayLabel,
@@ -32,6 +33,8 @@ const groupForSlot = (slot: SeasonSlot) => {
   return "Starters"
 }
 
+type StatBasis = "total" | "perGame"
+
 const optionLabel = (player: SeasonPlayer) => {
   const parts = [player.name, formatPlayerPositions(player)]
   if (player.teamAbbr) parts.push(player.teamAbbr)
@@ -47,6 +50,7 @@ export const PlayerRosterTable = ({
   subtitle = "Full roster",
   compact = false,
 }: PlayerRosterTableProps) => {
+  const [basis, setBasis] = useState<StatBasis>("total")
   const playersById = new Map(players.map((player) => [player.id, player]))
   const headingId = compact ? "matchup-weekly-roster-heading" : "roster-heading"
 
@@ -68,9 +72,40 @@ export const PlayerRosterTable = ({
             {title}
           </h2>
         </div>
-        <p className="text-sm text-[var(--color-mute)]">
-          {entries.length} slots · PG–C, G, F, UTIL×3, BE×3, IR
-        </p>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <div
+            aria-label="Stat basis"
+            className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
+            role="radiogroup"
+          >
+            {([
+              ["total", "Total"],
+              ["perGame", "Per game"],
+            ] as const).map(([value, label]) => {
+              const selected = basis === value
+
+              return (
+                <button
+                  aria-checked={selected}
+                  className={`rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                    selected
+                      ? "bg-[var(--color-ink)] text-white"
+                      : "text-[var(--color-mute)] hover:text-[var(--color-ink)]"
+                  }`}
+                  key={value}
+                  onClick={() => setBasis(value)}
+                  role="radio"
+                  type="button"
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-sm text-[var(--color-mute)]">
+            {entries.length} slots · PG–C, G, F, UTIL×3, BE×3, IR
+          </p>
+        </div>
       </div>
       <div className="overflow-x-auto rounded-[2rem] border border-[var(--color-hairline)]">
         <table className="w-full min-w-[74rem] border-collapse text-left text-sm">
@@ -107,6 +142,7 @@ export const PlayerRosterTable = ({
                 index > 0 ? groupForSlot(entries[index - 1].slot) : null
               const currentGroup = groupForSlot(entry.slot)
               const slotLabel = slotDisplayLabel(entry.slot)
+              const line = player ? playerLineForBasis(player, basis) : null
 
               return (
                 <Fragment key={`${entry.slot}-${index}`}>
@@ -168,41 +204,41 @@ export const PlayerRosterTable = ({
                       {formatPlayerPositions(player)}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatPercentage(player.projections.FG_PCT) : "—"}
+                      {line ? formatPercentage(line.projections.FG_PCT) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player
-                        ? `${formatStat(player.shooting.FGM)}/${formatStat(player.shooting.FGA)}`
+                      {line
+                        ? `${formatStat(line.shooting.FGM)}/${formatStat(line.shooting.FGA)}`
                         : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatPercentage(player.projections.FT_PCT) : "—"}
+                      {line ? formatPercentage(line.projections.FT_PCT) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player
-                        ? `${formatStat(player.shooting.FTM)}/${formatStat(player.shooting.FTA)}`
+                      {line
+                        ? `${formatStat(line.shooting.FTM)}/${formatStat(line.shooting.FTA)}`
                         : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatStat(player.projections.TPM) : "—"}
+                      {line ? formatStat(line.projections.TPM) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatStat(player.projections.REB) : "—"}
+                      {line ? formatStat(line.projections.REB) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatStat(player.projections.AST) : "—"}
+                      {line ? formatStat(line.projections.AST) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatStat(player.projections.STL) : "—"}
+                      {line ? formatStat(line.projections.STL) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatStat(player.projections.BLK) : "—"}
+                      {line ? formatStat(line.projections.BLK) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatStat(player.projections.TO) : "—"}
+                      {line ? formatStat(line.projections.TO) : "—"}
                     </td>
                     <td className="px-3 py-3 tabular-nums">
-                      {player ? formatStat(player.projections.PTS) : "—"}
+                      {line ? formatStat(line.projections.PTS) : "—"}
                     </td>
                   </tr>
                 </Fragment>

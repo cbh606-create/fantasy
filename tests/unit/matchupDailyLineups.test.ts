@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import {
+  applyOpponentSeatOverrides,
   applyPlayedDayLineups,
   autofillOpenSlotsFromRoster,
   buildDayLineupFromRoster,
@@ -1816,5 +1817,73 @@ describe("applyPlayedDayLineups", () => {
     for (const categoryId of ALL_CATEGORY_IDS) {
       expect(week[categoryId]).toBeCloseTo(board[categoryId])
     }
+  })
+})
+
+describe("applyOpponentSeatOverrides", () => {
+  const day = "2025-11-03"
+  const schedule: ScheduleResponse = {
+    source: "fixture",
+    matchup: {
+      scoringPeriodId: 1,
+      startDate: day,
+      endDate: day,
+      days: [day],
+    },
+    games: [{ date: day, homeAbbr: "BOS", awayAbbr: "NYK" }],
+  }
+  const starter: SeasonPlayer = {
+    id: "starter",
+    name: "Starter",
+    teamAbbr: "BOS",
+    positions: ["PG"],
+    projections: {
+      FG_PCT: 0.5,
+      FT_PCT: 0.8,
+      TPM: 1,
+      REB: 1,
+      AST: 1,
+      STL: 1,
+      BLK: 1,
+      TO: 1,
+      PTS: 10,
+    },
+    shooting: { FGM: 1, FGA: 2, FTM: 1, FTA: 1 },
+  }
+  const bench: SeasonPlayer = {
+    ...starter,
+    id: "bench",
+    name: "Bench",
+    positions: ["SG"],
+  }
+
+  it("sits a started opponent and can start a benched one into an open slot", () => {
+    const daily: DailyLineups = {
+      [day]: [
+        { slot: "PG", playerId: "starter" },
+        { slot: "SG", playerId: null },
+      ],
+    }
+    const playersById = { starter, bench }
+    const sat = applyOpponentSeatOverrides(
+      daily,
+      new Map([[`${day}:starter`, "sat"]]),
+      playersById,
+      ["PG", "SG"],
+      schedule,
+    )
+    expect(sat[day]?.map((entry) => entry.playerId)).toEqual([null, null])
+
+    const started = applyOpponentSeatOverrides(
+      sat,
+      new Map([[`${day}:bench`, "start"]]),
+      playersById,
+      ["PG", "SG"],
+      schedule,
+    )
+    expect(started[day]?.map((entry) => entry.playerId)).toEqual([
+      null,
+      "bench",
+    ])
   })
 })

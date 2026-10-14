@@ -5,7 +5,12 @@ import {
   findPlayerSlotIndex,
   type DailyLineups,
 } from "@/lib/matchup/dailyLineups"
-import { teamHasGameOnDate } from "@/lib/matchup/games"
+import {
+  isB2bSecondNight,
+  playerHasGameOnDate,
+  teamHasGameOnDate,
+} from "@/lib/matchup/games"
+import type { TogglePlayerDayResult } from "@/lib/matchup/dailyLineups"
 import {
   MATCHUP_WEEK_DAY_COL_CLASS,
   MATCHUP_WEEK_PLAYER_COL_CLASS,
@@ -89,6 +94,91 @@ const fallbackCells = (
   }))
 }
 
+const cellsForDay = (day: OpponentStreamDay | undefined): OpponentStreamDayCell[] => {
+  if (day?.cells && day.cells.length > 0) return day.cells
+  if (!day?.streamerPlayerId && !day?.droppedPlayerId) return []
+  return [
+    {
+      spotIndex: 0,
+      playerId: day.streamerPlayerId,
+      droppedPlayerId: day.droppedPlayerId,
+      action: day.droppedPlayerId ? "drop_add" : day.streamerPlayerId ? "add" : "empty",
+      addIndex: null,
+    },
+  ]
+}
+
+/** Dates a player is on the opponent roster. Adds start that day; drops leave that day. */
+export const opponentRosteredDatesByPlayerId = (
+  matchupDays: readonly string[],
+  rosterEntries: readonly SeasonRosterEntry[],
+  opponentDays: readonly OpponentStreamDay[],
+): Map<string, Set<string>> => {
+  const rosterIds = new Set(
+    rosterEntries.flatMap((entry) =>
+      entry.slot !== "IL" && entry.playerId ? [entry.playerId] : [],
+    ),
+  )
+  const dayByDate = new Map(opponentDays.map((day) => [day.date, day]))
+  const sortedDays = [...matchupDays].sort()
+  const involved = new Set<string>()
+  for (const day of opponentDays) {
+    for (const cell of cellsForDay(day)) {
+      if (cell.playerId) involved.add(cell.playerId)
+      if (cell.droppedPlayerId) involved.add(cell.droppedPlayerId)
+    }
+  }
+
+  const firstMoveIsAdd = (playerId: string) => {
+    for (const date of sortedDays) {
+      const cells = cellsForDay(dayByDate.get(date))
+      const added = cells.some(
+        (cell) =>
+          cell.playerId === playerId &&
+          (cell.action === "add" || cell.action === "drop_add"),
+      )
+      const dropped = cells.some((cell) => cell.droppedPlayerId === playerId)
+      const listed = cells.some(
+        (cell) => cell.playerId === playerId && cell.action !== "empty",
+      )
+      if (!added && !dropped && !listed) continue
+      return added && !dropped
+    }
+    return false
+  }
+
+  const track = (playerId: string, startsActive: boolean) => {
+    let active = startsActive
+    const owned = new Set<string>()
+    for (const date of sortedDays) {
+      const cells = cellsForDay(dayByDate.get(date))
+      const listed = cells.some(
+        (cell) => cell.playerId === playerId && cell.action !== "empty",
+      )
+      const dropped = cells.some((cell) => cell.droppedPlayerId === playerId)
+      if (listed) active = true
+      if (dropped && !listed) active = false
+      if (active) owned.add(date)
+    }
+    return owned
+  }
+
+  const dates = new Map<string, Set<string>>()
+  for (const playerId of rosterIds) {
+    dates.set(
+      playerId,
+      involved.has(playerId)
+        ? track(playerId, !firstMoveIsAdd(playerId))
+        : new Set(sortedDays),
+    )
+  }
+  for (const playerId of involved) {
+    if (rosterIds.has(playerId)) continue
+    dates.set(playerId, track(playerId, false))
+  }
+  return dates
+}
+
 const extraPlayerIdsFromDaily = (
   daily: DailyLineups,
   rosterEntries: SeasonRosterEntry[],
@@ -120,6 +210,8 @@ export const OpponentWeekStrip = ({
   schedule,
   playersById,
   oppSpotCount = 1,
+  closedDates = [],
+  onTogglePlayerDay,
 }: {
   days: string[]
   opponentName: string
@@ -129,8 +221,15 @@ export const OpponentWeekStrip = ({
   schedule?: ScheduleResponse
   playersById: Record<string, SeasonPlayer>
   oppSpotCount?: 0 | 1 | 2 | 3
+  closedDates?: string[]
+  onTogglePlayerDay?: (
+    playerId: string,
+    day: string,
+  ) => TogglePlayerDayResult["status"]
 }) => {
   const [focusDay, setFocusDay] = useState(days[0] ?? "")
+  const [hint, setHint] = useState("")
+  const closedDateSet = new Set(closedDates)
   const activeFocusDay = days.includes(focusDay) ? focusDay : (days[0] ?? "")
   const dayByDate = Object.fromEntries(
     opponentDays.map((day) => [day.date, day]),
@@ -150,6 +249,11 @@ export const OpponentWeekStrip = ({
   const extras = showLineup
     ? extraPlayerIdsFromDaily(daily, opponentEntries)
     : []
+  const rosteredDatesByPlayerId = opponentRosteredDatesByPlayerId(
+    days,
+    opponentEntries,
+    opponentDays,
+  )
   const slotRows = showLineup
     ? buildLineupDisplayRows(opponentEntries, extras, [], {
         focusDay: activeFocusDay,
@@ -180,7 +284,10 @@ export const OpponentWeekStrip = ({
     <section aria-label="Opponent week">
       <div className="flex flex-wrap items-center gap-2 border-b border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] px-2 py-1.5 text-[0.75rem]">
         <p className="font-medium text-[var(--color-ink)]">{opponentName}</p>
-        <p className="text-[var(--color-mute)]">Daily lineup · read-only</p>
+        <p className="text-[var(--color-mute)]">
+          Sit a game to simulate an injury or B2B
+        </p>
+        {hint ? <p className="text-[var(--color-ink)]">{hint}</p> : null}
       </div>
       <table
         className={`${MATCHUP_WEEK_TABLE_CLASS} text-left text-[0.6875rem] leading-tight`}
@@ -313,17 +420,19 @@ export const OpponentWeekStrip = ({
                   }
                   const started =
                     findPlayerSlotIndex(daily, day, player.id) >= 0
-                  const hasGame = player.teamAbbr
+                  const teamPlays = player.teamAbbr
                     ? teamHasGameOnDate(player.teamAbbr, day, schedule)
                     : false
-                  if (!hasGame) {
+                  const available = playerHasGameOnDate(player, day, schedule)
+                  const dayLabel = formatMatchupDayLabel(day)
+                  if (!teamPlays) {
                     return (
                       <td
                         className={dayColClassName(day, "px-1 py-0.5 text-center")}
                         key={day}
                       >
                         <span
-                          aria-label={`${player.name} no game ${formatMatchupDayLabel(day)}`}
+                          aria-label={`${player.name} no game ${dayLabel}`}
                           className="inline-flex h-6 min-w-[3rem] items-center justify-center text-[var(--color-mute)]"
                         >
                           —
@@ -331,28 +440,80 @@ export const OpponentWeekStrip = ({
                       </td>
                     )
                   }
+                  if (!available || row.slot === "IL") {
+                    const onIr = row.slot === "IL" && available
+                    return (
+                      <td
+                        className={dayColClassName(day, "px-1 py-0.5 text-center")}
+                        key={day}
+                      >
+                        <span
+                          aria-label={
+                            onIr
+                              ? `${player.name} on IR ${dayLabel}`
+                              : `${player.name} out ${dayLabel}`
+                          }
+                          className="inline-flex h-6 min-w-[3rem] items-center justify-center text-[0.625rem] font-medium text-[var(--color-mute)]"
+                        >
+                          {onIr ? "IR" : "OUT"}
+                        </span>
+                      </td>
+                    )
+                  }
                   const shortLabel = shortOpponentLabel(
                     dayOpponentLabel(player, day, schedule),
                   )
+                  const isClosed = closedDateSet.has(day)
+                  const rosteredDates = rosteredDatesByPlayerId.get(player.id)
+                  const offRoster = Boolean(rosteredDates && !rosteredDates.has(day))
+                  const isB2b = player.teamAbbr
+                    ? isB2bSecondNight(player.teamAbbr, day, schedule)
+                    : false
+                  const handleToggle = () => {
+                    if (!onTogglePlayerDay || isClosed || offRoster) return
+                    const status = onTogglePlayerDay(player.id, day)
+                    if (status === "full") {
+                      setHint("No open slot that day — sit someone who has a game first")
+                      return
+                    }
+                    if (status === "ineligible") {
+                      setHint(`${player.name} is not eligible for an open slot that day`)
+                      return
+                    }
+                    setHint("")
+                  }
                   return (
                     <td
                       className={dayColClassName(day, "px-1 py-0.5 text-center")}
                       key={day}
                     >
-                      <span
+                      <button
                         aria-label={
-                          started
-                            ? `${player.name} starts ${formatMatchupDayLabel(day)} ${shortLabel}`
-                            : `${player.name} sits ${formatMatchupDayLabel(day)} ${shortLabel}`
+                          offRoster
+                            ? `${player.name} not on roster ${dayLabel}`
+                            : isClosed
+                              ? `${player.name} recorded on ${dayLabel}`
+                              : `${started ? "Sit" : "Start"} ${player.name} on ${dayLabel}`
                         }
-                        className={`inline-flex h-6 min-w-[3rem] items-center justify-center whitespace-nowrap rounded-md px-1 text-[0.625rem] font-medium ${
-                          started
-                            ? "bg-[var(--color-ink)] text-white"
-                            : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)]"
+                        aria-pressed={isClosed || offRoster ? undefined : started}
+                        className={`inline-flex h-6 min-w-[3rem] items-center justify-center whitespace-nowrap rounded-md px-1 text-[0.625rem] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
+                          offRoster || isClosed
+                            ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
+                            : started
+                              ? "bg-[var(--color-ink)] text-white"
+                              : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)]"
                         }`}
+                        disabled={isClosed || offRoster || !onTogglePlayerDay}
+                        onClick={handleToggle}
+                        type="button"
                       >
                         {shortLabel}
-                      </span>
+                        {isB2b && !isClosed ? (
+                          <span className="ml-0.5 text-[0.5rem] font-semibold tracking-wide opacity-70">
+                            B2B
+                          </span>
+                        ) : null}
+                      </button>
                     </td>
                   )
                 })}

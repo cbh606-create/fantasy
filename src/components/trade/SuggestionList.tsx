@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from "react"
 import { tradableRosterPlayerIds } from "@/components/trade/RosterIncludeGroups"
+import { PlayerValueNames } from "@/components/trade/PlayerValueNames"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import { TRADE_PAGE_SIZE } from "@/lib/trade/constants"
 import type { TradeSuggestion } from "@/lib/trade/types"
+import { buildPlayerValueMap } from "@/lib/trade/value"
 
 export const NO_SUGGESTIONS_COPY =
   "No mutually beneficial deals found under current rules."
@@ -66,6 +68,13 @@ export const SuggestionList = ({
     )
   }
 
+  const values = buildPlayerValueMap(state)
+  const named = (playerIds: string[]) =>
+    playerIds.map((playerId) => ({
+      id: playerId,
+      name: state.players.find((player) => player.id === playerId)?.name ?? "Unknown player",
+      value: values.get(playerId) ?? 0,
+    }))
   const teamName = (teamIndex: number) =>
     state.teams.find((team) => team.teamIndex === teamIndex)?.name
     ?? `Team ${teamIndex + 1}`
@@ -137,13 +146,15 @@ export const SuggestionList = ({
                   type="button"
                 >
                   <span className="flex items-center justify-between gap-3">
-                    <span className="font-semibold">{getNames}</span>
+                    <span className="font-semibold">
+                      <PlayerValueNames players={named(suggestion.getPlayerIds)} />
+                    </span>
                     <span className="shrink-0 rounded-full border border-[var(--color-hairline)] px-2 py-0.5 text-xs">
                       {suggestion.shape}
                     </span>
                   </span>
                   <span className="mt-1 block text-[var(--color-mute)]">
-                    Give {giveNames} · {counterparty}
+                    Give <PlayerValueNames players={named(suggestion.givePlayerIds)} /> · {counterparty}
                   </span>
                   <span className="mt-1 block text-xs text-[var(--color-info)]">
                     {suggestion.reasons[0] ?? "Mutually beneficial package"}

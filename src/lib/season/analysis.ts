@@ -46,6 +46,12 @@ export type SeasonAnalysis = {
   }
 }
 
+const COUNTING_CATEGORY_IDS = ALL_CATEGORY_IDS.filter(
+  (categoryId) => categoryId !== "FG_PCT" && categoryId !== "FT_PCT",
+)
+const PER_GAME_PTS_CEILING = 50
+const ASSUMED_SEASON_GAMES = 82
+
 const emptyTotals = (): CategoryTotals =>
   Object.fromEntries(
     ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
@@ -124,6 +130,21 @@ export const rosterPlayers = (
     return player ? [player] : []
   })
 
+const gamesForPerGameRate = (player: SeasonPlayer): number => {
+  if (typeof player.projectedGames === "number" && player.projectedGames > 0) {
+    return player.projectedGames
+  }
+
+  if (
+    player.projections.PTS > 0 &&
+    player.projections.PTS < PER_GAME_PTS_CEILING
+  ) {
+    return 1
+  }
+
+  return ASSUMED_SEASON_GAMES
+}
+
 export const seasonTeamTotals = (
   state: SeasonLeagueState,
 ): TeamCategoryTotals[] => {
@@ -133,6 +154,56 @@ export const seasonTeamTotals = (
     teamIndex: team.teamIndex,
     totals: teamTotals(rosterPlayers(team, playersById)),
   }))
+}
+
+export const playerLineForBasis = (
+  player: SeasonPlayer,
+  basis: "total" | "perGame",
+): { projections: SeasonPlayer["projections"]; shooting: SeasonPlayer["shooting"] } => {
+  if (basis === "total") {
+    return { projections: player.projections, shooting: player.shooting }
+  }
+
+  const games = gamesForPerGameRate(player)
+  const projections = { ...player.projections }
+
+  for (const categoryId of COUNTING_CATEGORY_IDS) {
+    projections[categoryId] = player.projections[categoryId] / games
+  }
+
+  return {
+    projections,
+    shooting: {
+      FGM: player.shooting.FGM / games,
+      FGA: player.shooting.FGA / games,
+      FTM: player.shooting.FTM / games,
+      FTA: player.shooting.FTA / games,
+    },
+  }
+}
+
+export const perGameTeamTotals = (
+  state: SeasonLeagueState,
+): TeamCategoryTotals[] => {
+  const playersById = new Map(state.players.map((player) => [player.id, player]))
+
+  return state.teams.map((team) => {
+    const players = rosterPlayers(team, playersById)
+    const totals = emptyTotals()
+
+    for (const player of players) {
+      const games = gamesForPerGameRate(player)
+
+      for (const categoryId of COUNTING_CATEGORY_IDS) {
+        totals[categoryId] += player.projections[categoryId] / games
+      }
+    }
+
+    totals.FG_PCT = percentageTotal(players, "FG_PCT")
+    totals.FT_PCT = percentageTotal(players, "FT_PCT")
+
+    return { teamIndex: team.teamIndex, totals }
+  })
 }
 
 export const analyzeTeamTotals = (
@@ -201,6 +272,10 @@ export const analyzeTeamTotals = (
     overall,
   }
 }
+
+export const analyzePerGameLeague = (
+  state: SeasonLeagueState,
+): SeasonAnalysis => analyzeTeamTotals(perGameTeamTotals(state))
 
 export const analyzeSeasonLeague = (
   state: SeasonLeagueState,

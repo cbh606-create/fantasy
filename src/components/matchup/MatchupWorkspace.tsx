@@ -28,6 +28,7 @@ import {
 } from "@/lib/matchup/morningCheck"
 import { isActiveSlot } from "@/lib/matchup/constants"
 import {
+  applyOpponentSeatOverrides,
   applyPlayedDayLineups,
   clearNoGameActiveSlots,
   dailyLineupsMatchDays,
@@ -326,6 +327,13 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const [previewSatSeats, setPreviewSatSeats] = useState<Set<string>>(
     () => new Set(),
   )
+  const [oppSeatOverrides, setOppSeatOverrides] = useState<
+    ReadonlyMap<string, "sat" | "start">
+  >(() => new Map())
+  const oppWeekKey = matchupData?.schedule.matchup.days.join() ?? ""
+  useEffect(() => {
+    setOppSeatOverrides(new Map())
+  }, [opponentTeamIndex, oppWeekKey])
   const [keepRosterSeats, setKeepRosterSeats] = useState<Set<string>>(
     () => new Set(),
   )
@@ -686,16 +694,50 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       players.push(player)
       seen.add(player.id)
     }
+    const playersById = Object.fromEntries(players.map((player) => [player.id, player]))
+    const planOppDaily = noneOpponentPlan?.opponentDaily ?? {}
+    const oppTeam = state.teams.find(
+      (team) => team.teamIndex === opponentTeamIndex,
+    )
+    const baseOppDaily =
+      oppSeatOverrides.size === 0
+        ? planOppDaily
+        : Object.keys(planOppDaily).length > 0
+          ? planOppDaily
+          : oppTeam
+            ? initDailyLineups(
+                matchupData.schedule.matchup.days,
+                oppTeam.entries,
+                rosterSlotsFor(state),
+                players,
+                matchupData.schedule,
+              )
+            : planOppDaily
     return scoreYouSpotPlans({
       plans: builtPlans,
-      noneOpponentDaily: noneOpponentPlan?.opponentDaily ?? {},
+      noneOpponentDaily: applyOpponentSeatOverrides(
+        baseOppDaily,
+        oppSeatOverrides,
+        playersById,
+        rosterSlotsFor(state),
+        matchupData.schedule,
+      ),
       baseDaily: daily,
       players,
       schedule: matchupData.schedule,
       board: matchupData.board,
       statWindow,
     })
-  }, [builtPlans, daily, matchupData, noneOpponentPlan, state, statWindow])
+  }, [
+    builtPlans,
+    daily,
+    matchupData,
+    noneOpponentPlan,
+    opponentTeamIndex,
+    oppSeatOverrides,
+    state,
+    statWindow,
+  ])
 
   const oppSpotScores = useMemo(() => {
     if (!matchupData || !state || opponentTeamIndex == null) return []
@@ -1277,7 +1319,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         oppPreviewIds,
       )
     : null
-  const recordedOpponentDaily = prunedOpponentBase
+  const opponentLineupBase = prunedOpponentBase
     ? applyPlayedDayLineups(
         prunedOpponentBase,
         oppPlayedByDate,
@@ -1285,6 +1327,45 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         rosterSlots,
       )
     : null
+  const recordedOpponentDaily = opponentLineupBase
+    ? applyOpponentSeatOverrides(
+        opponentLineupBase,
+        oppSeatOverrides,
+        playersMap,
+        rosterSlots,
+        matchupData.schedule,
+        oppClosedDateSet,
+      )
+    : null
+
+  const handleToggleOpponentDay = (
+    playerId: string,
+    day: string,
+  ): TogglePlayerDayResult["status"] => {
+    if (!opponentLineupBase || !recordedOpponentDaily) return "missing_day"
+    if (oppClosedDateSet.has(day)) return "no_game"
+    const key = previewSeatKey(day, playerId)
+    const started =
+      findPlayerSlotIndex(recordedOpponentDaily, day, playerId) >= 0
+    const next = new Map(oppSeatOverrides)
+    if (started) {
+      next.set(key, "sat")
+      setOppSeatOverrides(next)
+      return "sat"
+    }
+    next.set(key, "start")
+    const trial = applyOpponentSeatOverrides(
+      opponentLineupBase,
+      next,
+      playersMap,
+      rosterSlots,
+      matchupData.schedule,
+      oppClosedDateSet,
+    )
+    if (findPlayerSlotIndex(trial, day, playerId) < 0) return "full"
+    setOppSeatOverrides(next)
+    return "started"
+  }
 
   const savedComparison = new Map(
     (matchupData.dayComparison ?? []).map((row) => [row.date, row]),
@@ -1323,6 +1404,16 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const liveOppTotals = recordedOpponentDaily
     ? weekTotalsFromParts("opp", recordedOpponentDaily)
     : oppTotalsFromBoard(matchupData.board)
+  const streamingBoard =
+    planningBoard && oppSeatOverrides.size > 0
+      ? buildMatchupBoard(
+          Object.fromEntries(
+            planningBoard.categories.map((row) => [row.categoryId, row.you]),
+          ) as Record<CategoryId, number>,
+          liveOppTotals,
+          enabledCategoryIds(state),
+        )
+      : (planningBoard ?? matchupData.board)
 
   const liveBoard = buildMatchupBoard(
     liveYouTotals,
@@ -1605,7 +1696,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
               weekFooter={
                 oppTeam ? (
                   <OpponentWeekStrip
+                    closedDates={[...oppClosedDateSet]}
                     days={matchupData.schedule.matchup.days}
+                    onTogglePlayerDay={handleToggleOpponentDay}
                     opponentDaily={recordedOpponentDaily ?? undefined}
                     opponentDays={displayOppPlan?.opponentDays ?? []}
                     opponentEntries={oppTeam.entries}
@@ -1621,7 +1714,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
 
           <StreamingPlansPanel
             adpByPlayerId={matchupData.adpByPlayerId}
-            board={planningBoard ?? matchupData.board}
+            board={streamingBoard}
             daily={daily ?? undefined}
             leagueId={leagueId}
             onPlansBuilt={handlePlansBuilt}

@@ -28,6 +28,7 @@ type ActiveSeasonLeagueContextValue = {
   isLoading: boolean
   error: string
   setActiveId: (id: string | null) => void
+  updateLeague: (id: string, patch: { name: string; season: number }) => void
   removeLeague: (id: string) => void
 }
 
@@ -57,6 +58,19 @@ export const ActiveSeasonLeagueProvider = ({
 
     clearActiveSeasonLeagueId()
   }, [])
+
+  const updateLeague = useCallback(
+    (id: string, patch: { name: string; season: number }) => {
+      setLeagues((current) =>
+        current.map((league) =>
+          league.id === id
+            ? { ...league, name: patch.name, season: patch.season }
+            : league,
+        ),
+      )
+    },
+    [],
+  )
 
   const removeLeague = useCallback((id: string) => {
     setLeagues((current) => current.filter((league) => league.id !== id))
@@ -115,8 +129,16 @@ export const ActiveSeasonLeagueProvider = ({
   }, [activeId, hasLoadedLeagues, leagues])
 
   const value = useMemo(
-    () => ({ activeId, leagues, isLoading, error, setActiveId, removeLeague }),
-    [activeId, error, isLoading, leagues, removeLeague, setActiveId],
+    () => ({
+      activeId,
+      leagues,
+      isLoading,
+      error,
+      setActiveId,
+      updateLeague,
+      removeLeague,
+    }),
+    [activeId, error, isLoading, leagues, removeLeague, setActiveId, updateLeague],
   )
 
   return (

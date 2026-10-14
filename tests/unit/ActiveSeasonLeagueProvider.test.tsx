@@ -193,6 +193,41 @@ describe("ActiveSeasonLeagueProvider with SiteNav", () => {
     expect(new Set(observedSetters).size).toBe(1)
   })
 
+  it("renames the selected roster in the dropdown", async () => {
+    const RenameLeague = () => {
+      const { updateLeague } = useActiveSeasonLeague()
+
+      return (
+        <button
+          onClick={() =>
+            updateLeague("league-1", { name: "Renamed League", season: 2026 })
+          }
+          type="button"
+        >
+          Rename league
+        </button>
+      )
+    }
+
+    render(
+      <ActiveSeasonLeagueProvider>
+        <SiteNav />
+        <RenameLeague />
+      </ActiveSeasonLeagueProvider>,
+    )
+
+    const select = await screen.findByRole("combobox", {
+      name: "Active season roster",
+    })
+    fireEvent.change(select, { target: { value: "league-1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Rename league" }))
+
+    expect(
+      screen.getByRole("option", { name: "Renamed League · 2026" }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("option", { name: "Downtown Hoops · 2026" })).not.toBeInTheDocument()
+  })
+
   it("syncs the active league from a detail route", async () => {
     render(
       <ActiveSeasonLeagueProvider>

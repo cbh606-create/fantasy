@@ -1,4 +1,5 @@
 import { SideRankColumn } from "@/components/trade/SideRankColumn"
+import { PlayerValueNames } from "@/components/trade/PlayerValueNames"
 import type { CategoryId } from "@/lib/domain/types"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type { SeasonLeagueState } from "@/lib/season/types"
@@ -78,12 +79,17 @@ export const DealDetail = ({
   state,
   requestedCategoryIds,
 }: DealDetailProps) => {
-  const giveNames = playerNames(suggestion.givePlayerIds, state)
   const getNames = playerNames(suggestion.getPlayerIds, state)
   const counterparty = state.teams.find(
     (team) => team.teamIndex === suggestion.counterpartyTeamIndex,
   )?.name ?? `Team ${suggestion.counterpartyTeamIndex + 1}`
   const values = buildPlayerValueMap(state)
+  const namedPlayers = (playerIds: string[]) =>
+    playerIds.map((playerId) => ({
+      id: playerId,
+      name: state.players.find((player) => player.id === playerId)?.name ?? "Unknown player",
+      value: values.get(playerId) ?? 0,
+    }))
   const giveLarger =
     packageValue(suggestion.givePlayerIds, values)
     > packageValue(suggestion.getPlayerIds, values)
@@ -115,9 +121,11 @@ export const DealDetail = ({
       <p className="text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">
         Receive
       </p>
-      <h2 className="mt-1 text-2xl font-semibold">{getNames}</h2>
+      <h2 aria-label={getNames} className="mt-1 text-2xl font-semibold">
+        <PlayerValueNames players={namedPlayers(suggestion.getPlayerIds)} />
+      </h2>
       <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]">
-        Send {giveNames} to {counterparty}
+        Send <PlayerValueNames players={namedPlayers(suggestion.givePlayerIds)} /> to {counterparty}
       </p>
       {suggestion.droppedPlayerId ? (
         <p className="mt-2 text-[0.8125rem] text-[var(--color-mute)]">

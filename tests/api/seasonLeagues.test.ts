@@ -542,6 +542,48 @@ describe("POST /api/season-leagues/:id/refresh", () => {
     })
   })
 
+  it("stores the ESPN league name", async () => {
+    const state = manualToSeasonLeagueState(
+      fixture as ManualSeasonLeagueInput,
+    )
+    vi.mocked(espnImportPreferringNewerSeason).mockResolvedValueOnce({
+      ...state,
+      name: "Renamed League",
+      id: "fixture-league",
+      source: "espn",
+      espnTeamId: 2,
+    })
+    const league = await db.seasonLeague.create({
+      data: {
+        clerkUserId: currentUserId,
+        name: "Old League",
+        espnLeagueId: "fixture-league",
+        season: state.season,
+        perspectiveTeamIndex: state.perspectiveTeamIndex,
+        source: "espn",
+        stateJson: JSON.stringify({ ...state, name: "Old League" }),
+      },
+    })
+
+    const response = await refreshSeasonLeague(
+      new Request(
+        `http://localhost/api/season-leagues/${league.id}/refresh`,
+        { method: "POST" },
+      ),
+      routeContext(league.id),
+    )
+    const storedLeague = await db.seasonLeague.findUnique({
+      where: { id: league.id },
+    })
+    const storedState = JSON.parse(
+      storedLeague?.stateJson ?? "{}",
+    ) as SeasonLeagueState
+
+    expect(response.status).toBe(200)
+    expect(storedLeague?.name).toBe("Renamed League")
+    expect(storedState.name).toBe("Renamed League")
+  })
+
   it("does not overwrite state when ESPN credentials are missing", async () => {
     const previousEspnLive = process.env.ESPN_LIVE
     delete process.env.ESPN_LIVE

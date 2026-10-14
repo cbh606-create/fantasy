@@ -71,6 +71,7 @@ export const POST = async (
   const updatedLeague = await db.seasonLeague.update({
     where: { id: league.id },
     data: {
+      name: body.incomingState.name.trim() || league.name,
       stateJson: JSON.stringify(body.incomingState),
       localLineupJson:
         body.resolution === "apply_espn" ? null : league.localLineupJson,

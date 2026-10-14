@@ -3,6 +3,8 @@ import { evenValueGap, passesShapeRules } from "./score"
 
 export type SimShape = "1:1" | "1:2" | "2:1" | "2:2" | "2:3" | "3:2" | "3:3"
 
+export const TRADE_SHAPES: SimShape[] = ["1:1", "1:2", "2:1", "2:2", "2:3", "3:2", "3:3"]
+
 export type FairFillPlayer = {
   id: string
   name: string
