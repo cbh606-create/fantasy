@@ -29,11 +29,34 @@ const TWO_HOURS = 2 * 60 * 60 * 1000
 
 type Stamp<T> = { value: T; fetchedAt: number }
 
+type LineupCache = {
+  lineups: ConfirmedLineup[]
+  gameStartTimes: string[]
+}
+
 type Memory = {
   updates: Stamp<InjuryUpdate[]>
   depth: Stamp<DepthChart>
-  lineups: Stamp<ConfirmedLineup[]>
+  lineups: Stamp<LineupCache>
   players: Stamp<ReturnType<typeof parseRotoPlayers>>
+}
+
+const emptyLineupCache = (): LineupCache => ({ lineups: [], gameStartTimes: [] })
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null
+
+const parseGameStartTimes = (payload: unknown): string[] => {
+  if (!isRecord(payload)) return []
+
+  const games = payload.Games
+  if (!Array.isArray(games)) return []
+
+  return games.flatMap((game) => {
+    if (!isRecord(game)) return []
+    const startsAt = typeof game.DateTime === "string" ? game.DateTime.trim() : ""
+    return startsAt.length > 0 ? [startsAt] : []
+  })
 }
 
 let memory: Memory | null = null
@@ -72,12 +95,12 @@ export const loadInjurySelectionInputs = async (options: {
 
   const fetchImpl = options.fetchImpl ?? fetch
   const nowMs = options.now.getTime()
+  const cachedTips = memory?.lineups.value.gameStartTimes ?? []
   const gameDay =
-    memory?.lineups.value.some((lineup) =>
-      sameUtcDate(new Date(lineup.startsAt), options.now),
-    ) ?? false
-  const nextTip = memory?.lineups.value
-    .map((lineup) => new Date(lineup.startsAt).getTime())
+    memory !== null &&
+    cachedTips.some((startsAt) => sameUtcDate(new Date(startsAt), options.now))
+  const nextTip = cachedTips
+    .map((startsAt) => new Date(startsAt).getTime())
     .filter((startsAt) => !Number.isNaN(startsAt) && startsAt > nowMs)
     .sort((left, right) => left - right)[0]
   const lineupTtl =
@@ -87,7 +110,7 @@ export const loadInjurySelectionInputs = async (options: {
     const next: Memory = {
       updates: memory?.updates ?? { value: [], fetchedAt: 0 },
       depth: memory?.depth ?? { value: { teams: [] }, fetchedAt: 0 },
-      lineups: memory?.lineups ?? { value: [], fetchedAt: 0 },
+      lineups: memory?.lineups ?? { value: emptyLineupCache(), fetchedAt: 0 },
       players: memory?.players ?? { value: [], fetchedAt: 0 },
     }
 
@@ -108,10 +131,15 @@ export const loadInjurySelectionInputs = async (options: {
       }
     }
     if (stale(memory?.lineups, nowMs, lineupTtl)) {
+      const payload = await readJson(
+        fetchImpl,
+        endpoint("/Basketball/get-nba-lineups.php", key),
+      )
       next.lineups = {
-        value: parseConfirmedLineups(
-          await readJson(fetchImpl, endpoint("/Basketball/get-nba-lineups.php", key)),
-        ),
+        value: {
+          lineups: parseConfirmedLineups(payload),
+          gameStartTimes: parseGameStartTimes(payload),
+        },
         fetchedAt: nowMs,
       }
     }
@@ -134,6 +162,6 @@ export const loadInjurySelectionInputs = async (options: {
 const snapshot = (cached: Memory, espnPlayers: CrosswalkEspnPlayer[]): CachedInjuryInputs => ({
   updates: cached.updates.value,
   depth: cached.depth.value,
-  lineups: cached.lineups.value,
+  lineups: cached.lineups.value.lineups,
   crosswalk: buildCrosswalk(espnPlayers, cached.players.value),
 })

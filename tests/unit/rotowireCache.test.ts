@@ -127,4 +127,57 @@ describe("loadInjurySelectionInputs", () => {
 
     expect(inputs.updates[0]?.rotowirePlayerId).toBe("rw-trae")
   })
+
+  it("uses projected game tips for refresh TTL before lineups confirm", async () => {
+    vi.stubEnv("ROTOWIRE_API_KEY", "test-key")
+    const now = new Date("2026-01-15T00:00:00.000Z")
+    const tipAt = new Date(now.getTime() + 90 * 60 * 1000).toISOString()
+    const bodies = payloads()
+    bodies.lineups = {
+      Games: [
+        {
+          DateTime: tipAt,
+          Status: "Projected",
+          Team: { Code: "ATL" },
+          Starters: [],
+        },
+      ],
+    }
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes("get-nba-injuries")) return jsonResponse(bodies.injuries)
+      if (url.includes("get-nba-depth-charts")) return jsonResponse(bodies.depth)
+      if (url.includes("get-nba-lineups")) return jsonResponse(bodies.lineups)
+      if (url.includes("get-nba-players")) return jsonResponse(bodies.players)
+      return new Response("missing", { status: 404 })
+    })
+    const espnPlayers = [{ id: "espn-trae", name: "Trae Young", teamAbbr: "ATL" }]
+
+    const first = await loadInjurySelectionInputs({
+      now,
+      espnPlayers,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    })
+
+    expect(first.lineups).toEqual([])
+
+    await loadInjurySelectionInputs({
+      now: new Date(now.getTime() + 6 * 60 * 1000),
+      espnPlayers,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    })
+
+    const lineupCalls = fetchImpl.mock.calls.filter((call) =>
+      String(call[0]).includes("get-nba-lineups"),
+    )
+    const injuryCalls = fetchImpl.mock.calls.filter((call) =>
+      String(call[0]).includes("get-nba-injuries"),
+    )
+    const depthCalls = fetchImpl.mock.calls.filter((call) =>
+      String(call[0]).includes("get-nba-depth-charts"),
+    )
+    expect(lineupCalls).toHaveLength(2)
+    expect(injuryCalls).toHaveLength(2)
+    expect(depthCalls).toHaveLength(1)
+  })
 })
