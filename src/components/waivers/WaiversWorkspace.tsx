@@ -9,6 +9,7 @@ import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { Banner } from "@/components/ui/Banner"
 import { AddDropBuilder } from "@/components/waivers/AddDropBuilder"
 import { AvailablePoolTable } from "@/components/waivers/AvailablePoolTable"
+import { BreakoutsPanel } from "@/components/waivers/BreakoutsPanel"
 import { InjuryPickupsPanel } from "@/components/waivers/InjuryPickupsPanel"
 import { MatchupStreamDelta } from "@/components/waivers/MatchupStreamDelta"
 import { MatchupStreamPanel } from "@/components/waivers/MatchupStreamPanel"
@@ -387,22 +388,16 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[22rem_1fr]">
           <div className="space-y-8">
+            <BreakoutsPanel
+              leagueId={leagueId}
+              onSelectAdd={handleSelectAdd}
+              playersById={poolData.playersById}
+              selectedAddId={selectedAddId}
+            />
             <InjuryPickupsPanel
               leagueId={leagueId}
               onSelectAdd={handleSelectAdd}
               selectedAddId={selectedAddId}
-            />
-            <MatchupStreamPanel
-              dayCount={streamDayCount}
-              leagueId={leagueId}
-              onDayCountChange={handleDayCountChange}
-              onOpponentChange={handleOpponentChange}
-              onSelectPair={handleSelectPair}
-              opponentTeamIndex={streamOpponent}
-              playersById={poolData.playersById}
-              selectedAddId={selectedAddId}
-              selectedDropId={selectedDropId}
-              state={state}
             />
             <section>
               <h2 className="mb-3 text-lg font-semibold">Season needs</h2>
@@ -416,6 +411,18 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
                 selectedAddId={selectedAddId}
               />
             </section>
+            <MatchupStreamPanel
+              dayCount={streamDayCount}
+              leagueId={leagueId}
+              onDayCountChange={handleDayCountChange}
+              onOpponentChange={handleOpponentChange}
+              onSelectPair={handleSelectPair}
+              opponentTeamIndex={streamOpponent}
+              playersById={poolData.playersById}
+              selectedAddId={selectedAddId}
+              selectedDropId={selectedDropId}
+              state={state}
+            />
             <section>
               <h2 className="mb-3 text-lg font-semibold">Available pool</h2>
               <AvailablePoolTable
