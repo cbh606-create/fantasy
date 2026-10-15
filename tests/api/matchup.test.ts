@@ -5,6 +5,8 @@ import { POST as applyMatchupLineup } from "@/app/api/matchup/apply-lineup/route
 import { GET as getMatchup } from "@/app/api/matchup/route"
 import { POST as createSeasonLeague } from "@/app/api/season-leagues/route"
 import { db } from "@/lib/db"
+import { getUserEspnCookies } from "@/lib/espn/credentials"
+import { fetchEspnFantasyMatchupWindow } from "@/lib/espn/fantasyMatchupSchedule"
 import type {
   ScheduleResponse,
   SeasonLeagueState,
@@ -26,6 +28,22 @@ vi.mock("@/lib/matchup/scheduleLive", async (importOriginal) => {
     ),
   }
 })
+
+vi.mock("@/lib/espn/fantasyMatchupSchedule", () => ({
+  fetchEspnFantasyMatchupWindow: vi.fn(),
+  clearEspnFantasyMatchupCache: vi.fn(),
+}))
+
+vi.mock("@/lib/espn/dayBoxScore", () => ({
+  fetchEspnDayActuals: vi.fn(async () => new Map()),
+}))
+
+vi.mock("@/lib/espn/credentials", () => ({
+  getUserEspnCookies: vi.fn(async () => ({
+    espnS2: "test-s2",
+    swid: "{TEST-SWID}",
+  })),
+}))
 
 const testUserPrefix = `matchup-api-${crypto.randomUUID()}`
 let currentUserId: string
@@ -227,6 +245,77 @@ describe("GET /api/matchup", () => {
       perspectiveTeamIndex: league.perspectiveTeamIndex,
       teams: expect.any(Array),
     })
+  })
+
+  it("uses ESPN fantasy matchup days and opponent when linked", async () => {
+    const manual = await createManualLeague()
+    const stored = await db.seasonLeague.findUniqueOrThrow({
+      where: { id: manual.id },
+    })
+    const state = JSON.parse(stored.stateJson) as SeasonLeagueState
+    const youTeam = state.teams.find(
+      (team) => team.teamIndex === state.perspectiveTeamIndex,
+    )
+    const oppTeam = state.teams.find(
+      (team) => team.teamIndex !== state.perspectiveTeamIndex,
+    )
+    expect(youTeam && oppTeam).toBeTruthy()
+
+    const espnState: SeasonLeagueState = {
+      ...state,
+      source: "espn",
+      espnTeamId: 11,
+      teams: state.teams.map((team) =>
+        team.teamIndex === state.perspectiveTeamIndex
+          ? { ...team, espnTeamId: 11 }
+          : team.teamIndex === oppTeam!.teamIndex
+            ? { ...team, espnTeamId: 12 }
+            : team,
+      ),
+    }
+
+    await db.seasonLeague.update({
+      where: { id: manual.id },
+      data: {
+        source: "espn",
+        espnLeagueId: "86031675",
+        stateJson: JSON.stringify(espnState),
+      },
+    })
+
+    vi.mocked(fetchEspnFantasyMatchupWindow).mockResolvedValueOnce({
+      matchupPeriodId: 1,
+      scoringPeriodIds: [1],
+      days: ["2026-10-20"],
+      opponentEspnTeamId: 12,
+      schedule: {
+        source: "live",
+        matchup: {
+          scoringPeriodId: 1,
+          matchupPeriodId: 1,
+          scoringPeriodIds: [1],
+          startDate: "2026-10-20",
+          endDate: "2026-10-20",
+          days: ["2026-10-20"],
+        },
+        games: [
+          { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "PHI" },
+        ],
+      },
+    })
+
+    const response = await getMatchup(
+      new Request(
+        `http://localhost/api/matchup?seasonLeagueId=${manual.id}&opponentTeamIndex=auto`,
+      ),
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(getUserEspnCookies).toHaveBeenCalled()
+    expect(fetchEspnFantasyMatchupWindow).toHaveBeenCalled()
+    expect(payload.schedule.matchup.days).toEqual(["2026-10-20"])
+    expect(payload.opponentTeamIndex).toBe(oppTeam!.teamIndex)
   })
 })
 

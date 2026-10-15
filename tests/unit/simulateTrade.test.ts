@@ -69,7 +69,7 @@ const leagueOf = (
 }
 
 describe("simulateTrade", () => {
-  it("ranks and reports the per-game sum instead of the season total", () => {
+  it("ranks the season total, so projected games do not change it", () => {
     const state = leagueOf(
       [createPlayer("you-scorer", { PTS: 820 }, 41)],
       [createPlayer("them-scorer", { PTS: 820 }, 82)],
@@ -83,9 +83,26 @@ describe("simulateTrade", () => {
     expect(result?.status).toBe("ready")
     if (result?.status !== "ready") return
     const points = result.you.categories.find((category) => category.categoryId === "PTS")
+    const theirPoints = result.them.categories.find((category) => category.categoryId === "PTS")
 
-    expect(points!.beforeTotal).toBeCloseTo(20)
+    expect(points!.beforeTotal).toBeCloseTo(820)
+    expect(theirPoints!.beforeTotal).toBeCloseTo(820)
     expect(points!.rankBefore).toBe(1)
+    expect(theirPoints!.rankBefore).toBe(2)
+  })
+
+  it("accepts a 3:3 package", () => {
+    const state = leagueOf(
+      [createPlayer("you-a"), createPlayer("you-b"), createPlayer("you-c")],
+      [createPlayer("them-a"), createPlayer("them-b"), createPlayer("them-c")],
+    )
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-a", "you-b", "you-c"],
+      themPlayerIds: ["them-a", "them-b", "them-c"],
+    })
+
+    expect(result?.status).toBe("ready")
   })
 
   it("improves the category rank when the received total is higher", () => {
@@ -179,6 +196,33 @@ describe("simulateTrade", () => {
     expect(result.theirDroppedPlayerId).toBe("them-scrub")
   })
 
+  it("drops one opponent player so a 3:2 package fits", () => {
+    const state = leagueOf(
+      [
+        createPlayer("you-a", { PTS: 20 }),
+        createPlayer("you-b", { PTS: 20 }),
+        createPlayer("you-c", { PTS: 20 }),
+      ],
+      [
+        createPlayer("them-send-a", { PTS: 18 }),
+        createPlayer("them-send-b", { PTS: 18 }),
+        createPlayer("them-scrub", { PTS: 1 }),
+        createPlayer("them-keep", { PTS: 30 }),
+      ],
+    )
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-a", "you-b", "you-c"],
+      themPlayerIds: ["them-send-a", "them-send-b"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.yourDroppedPlayerId).toBeUndefined()
+    expect(result.theirDroppedPlayerId).toBe("them-scrub")
+    expect(result.ruleSentence).not.toBe("Their roster cannot fit the extra player.")
+  })
+
   it("names your roster when the extra player has nowhere to go", () => {
     const state = leagueOf(
       [createPlayer("you-only", { PTS: 18 })],
@@ -214,9 +258,13 @@ describe("simulateTrade", () => {
   })
 
   it("returns ranks and only the value sentence when the band and the match both fail", () => {
+    const youStar = createPlayer("you-star", { PTS: 40 })
+    const themA = createPlayer("them-a", { PTS: 10 })
+    youStar.name = "Nikola Jokic"
+    themA.name = "Kevin Durant"
     const state = leagueOf(
-      [createPlayer("you-star", { PTS: 40 }), createPlayer("you-b", { PTS: 10 })],
-      [createPlayer("them-a", { PTS: 10 }), createPlayer("them-b", { PTS: 10 })],
+      [youStar, createPlayer("you-b", { PTS: 10 })],
+      [themA, createPlayer("them-b", { PTS: 10 })],
     )
     const result = simulateTrade(state, {
       counterpartyTeamIndex: 1,
@@ -248,10 +296,12 @@ describe("simulateTrade", () => {
   })
 
   it("names the overpay ratio when the two-player side is below 1.2x", () => {
+    const themSend = createPlayer("them-send", { PTS: 18 })
+    themSend.name = "Nikola Jokic"
     const state = leagueOf(
       [createPlayer("you-a", { PTS: 1 }), createPlayer("you-b", { PTS: 1 })],
       [
-        createPlayer("them-send", { PTS: 18 }),
+        themSend,
         createPlayer("them-scrub", { PTS: 1 }),
         createPlayer("them-keep", { PTS: 30 }),
       ],
@@ -334,5 +384,97 @@ describe("simulateTrade", () => {
     if (result?.status !== "ready") return
     expect(result.ruleSentence).toBeUndefined()
     expect(result.valueLine.length).toBeGreaterThan(0)
+  })
+
+  it("counts the top waiver player in your ranks when you drop a teammate", () => {
+    const wire = createPlayer("wire", { PTS: 400 })
+    wire.name = "Nikola Jokic"
+    const lesser = createPlayer("lesser-wire", { PTS: 1 })
+    const state = leagueOf(
+      [createPlayer("you-send", { PTS: 20 }), createPlayer("you-drop", { PTS: 5 })],
+      [
+        createPlayer("them-a", { PTS: 30 }),
+        createPlayer("them-b", { PTS: 30 }),
+        createPlayer("them-stay", { PTS: 10 }),
+      ],
+    )
+    state.players.push(wire, lesser)
+    state.availablePlayerIds = [lesser.id, wire.id]
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-send"],
+      themPlayerIds: ["them-a", "them-b"],
+      yourDropPlayerId: "you-drop",
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.yourDroppedPlayerId).toBe("you-drop")
+    expect(result.replacementPlayerId).toBe("wire")
+    expect(result.you.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
+      .toBe(460)
+  })
+
+  it("fills your open slot with the top free agent on a 2:1", () => {
+    const wire = createPlayer("wire", { PTS: 400 })
+    wire.name = "Nikola Jokic"
+    const state = leagueOf(
+      [createPlayer("you-a", { PTS: 20 }), createPlayer("you-b", { PTS: 20 })],
+      [
+        createPlayer("them-send", { PTS: 18 }),
+        createPlayer("them-scrub", { PTS: 1 }),
+        createPlayer("them-keep", { PTS: 30 }),
+      ],
+    )
+    state.players.push(wire)
+    state.availablePlayerIds = [wire.id]
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-a", "you-b"],
+      themPlayerIds: ["them-send"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.yourDroppedPlayerId).toBeUndefined()
+    expect(result.theirDroppedPlayerId).toBe("them-scrub")
+    expect(result.replacementPlayerId).toBe("wire")
+    expect(result.you.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
+      .toBe(418)
+    expect(result.them.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
+      .toBe(70)
+  })
+
+  it("fills your open slot with the top free agent when you send one more", () => {
+    const wire = createPlayer("wire", { PTS: 400 })
+    wire.name = "Nikola Jokic"
+    const state = leagueOf(
+      [
+        createPlayer("you-a", { PTS: 20 }),
+        createPlayer("you-b", { PTS: 20 }),
+        createPlayer("you-c", { PTS: 20 }),
+      ],
+      [
+        createPlayer("them-a", { PTS: 30 }),
+        createPlayer("them-b", { PTS: 30 }),
+        createPlayer("them-scrub", { PTS: 1 }),
+        createPlayer("them-keep", { PTS: 40 }),
+      ],
+    )
+    state.players.push(wire)
+    state.availablePlayerIds = [wire.id]
+    const result = simulateTrade(state, {
+      counterpartyTeamIndex: 1,
+      youPlayerIds: ["you-a", "you-b", "you-c"],
+      themPlayerIds: ["them-a", "them-b"],
+    })
+
+    expect(result?.status).toBe("ready")
+    if (result?.status !== "ready") return
+    expect(result.replacementPlayerId).toBe("wire")
+    expect(result.you.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
+      .toBe(460)
+    expect(result.them.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
+      .toBe(100)
   })
 })

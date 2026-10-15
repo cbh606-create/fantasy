@@ -8,8 +8,16 @@ import { defaultCategorySettings } from "@/lib/domain/categories"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import type { SeasonLeagueState } from "@/lib/season/types"
 
+const { updateLeague } = vi.hoisted(() => ({
+  updateLeague: vi.fn(),
+}))
+
 vi.mock("@/components/season/useSyncActiveSeasonLeague", () => ({
   useSyncActiveSeasonLeague: vi.fn(),
+}))
+
+vi.mock("@/components/season/ActiveSeasonLeagueProvider", () => ({
+  useActiveSeasonLeague: () => ({ updateLeague }),
 }))
 
 const categories = {
@@ -197,5 +205,45 @@ describe("SeasonRosterWorkspace", () => {
     expect(
       screen.getByRole("button", { name: /sort by ast, worst first/i }),
     ).toBeInTheDocument()
+  })
+
+  it("updates the nav league name after ESPN refresh", async () => {
+    const espnState = { ...state, source: "espn" as const, name: "Old League" }
+    const renamed = { ...espnState, name: "Renamed League" }
+    updateLeague.mockReset()
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          state: espnState,
+          analysis: analyzeSeasonLeague(espnState),
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          name: "Renamed League",
+          season: 2026,
+        }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          state: renamed,
+          analysis: analyzeSeasonLeague(renamed),
+        }),
+      } as Response)
+
+    render(<SeasonRosterWorkspace leagueId="season-1" />)
+
+    fireEvent.click(await screen.findByRole("button", { name: "Refresh ESPN" }))
+
+    await waitFor(() => {
+      expect(updateLeague).toHaveBeenCalledWith("season-1", {
+        name: "Renamed League",
+        season: 2026,
+      })
+    })
+    expect(await screen.findByRole("heading", { name: "Renamed League" })).toBeInTheDocument()
   })
 })

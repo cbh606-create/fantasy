@@ -118,7 +118,7 @@ describe("ActiveSeasonLeagueProvider with SiteNav", () => {
     expect(navigationState.push).toHaveBeenCalledWith("/roster/league-2")
   })
 
-  it("hydrates a stored selection on first paint for deep links", async () => {
+  it("hydrates a stored selection after mount for deep links", async () => {
     window.localStorage.setItem(
       ACTIVE_SEASON_LEAGUE_STORAGE_KEY,
       "league-2",
@@ -126,16 +126,15 @@ describe("ActiveSeasonLeagueProvider with SiteNav", () => {
 
     renderNavigation()
 
-    expect(screen.getByRole("link", { name: "Matchup" })).toHaveAttribute(
-      "href",
-      "/matchup/league-2",
-    )
-
     await waitFor(() => {
-      expect(
-        screen.getByRole("combobox", { name: "Active season roster" }),
-      ).toHaveValue("league-2")
+      expect(screen.getByRole("link", { name: "Matchup" })).toHaveAttribute(
+        "href",
+        "/matchup/league-2",
+      )
     })
+    expect(
+      screen.getByRole("combobox", { name: "Active season roster" }),
+    ).toHaveValue("league-2")
   })
 
   it("clears a stored selection that is missing from fetched leagues", async () => {
@@ -192,6 +191,41 @@ describe("ActiveSeasonLeagueProvider with SiteNav", () => {
 
     await waitFor(() => expect(observedSetters.length).toBeGreaterThan(1))
     expect(new Set(observedSetters).size).toBe(1)
+  })
+
+  it("renames the selected roster in the dropdown", async () => {
+    const RenameLeague = () => {
+      const { updateLeague } = useActiveSeasonLeague()
+
+      return (
+        <button
+          onClick={() =>
+            updateLeague("league-1", { name: "Renamed League", season: 2026 })
+          }
+          type="button"
+        >
+          Rename league
+        </button>
+      )
+    }
+
+    render(
+      <ActiveSeasonLeagueProvider>
+        <SiteNav />
+        <RenameLeague />
+      </ActiveSeasonLeagueProvider>,
+    )
+
+    const select = await screen.findByRole("combobox", {
+      name: "Active season roster",
+    })
+    fireEvent.change(select, { target: { value: "league-1" } })
+    fireEvent.click(screen.getByRole("button", { name: "Rename league" }))
+
+    expect(
+      screen.getByRole("option", { name: "Renamed League · 2026" }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("option", { name: "Downtown Hoops · 2026" })).not.toBeInTheDocument()
   })
 
   it("syncs the active league from a detail route", async () => {

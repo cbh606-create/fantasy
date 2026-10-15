@@ -49,6 +49,7 @@ describe("SeasonToolIndexPage", () => {
       isLoading: false,
       error: "",
       setActiveId: vi.fn(),
+      updateLeague: vi.fn(),
       removeLeague: vi.fn(),
     })
 
@@ -74,6 +75,7 @@ describe("SeasonToolIndexPage", () => {
       isLoading: false,
       error: "",
       setActiveId: vi.fn(),
+      updateLeague: vi.fn(),
       removeLeague: vi.fn(),
     })
 
@@ -103,6 +105,7 @@ describe("RosterListPage", () => {
       isLoading: false,
       error: "",
       setActiveId: vi.fn(),
+      updateLeague: vi.fn(),
       removeLeague: vi.fn(),
     })
     vi.stubGlobal(

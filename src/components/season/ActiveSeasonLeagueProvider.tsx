@@ -28,6 +28,7 @@ type ActiveSeasonLeagueContextValue = {
   isLoading: boolean
   error: string
   setActiveId: (id: string | null) => void
+  updateLeague: (id: string, patch: { name: string; season: number }) => void
   removeLeague: (id: string) => void
 }
 
@@ -39,10 +40,9 @@ export const ActiveSeasonLeagueProvider = ({
 }: {
   children: ReactNode
 }) => {
-  // Sync read so SiteNav deep-links on first paint (avoids /tool → /tool/id hop).
-  const [activeId, setActiveIdState] = useState<string | null>(() =>
-    readActiveSeasonLeagueId(),
-  )
+  // Storage is read after mount so the server and the first client render
+  // share the same links. Reading it here mismatches href on hydration.
+  const [activeId, setActiveIdState] = useState<string | null>(null)
   const [leagues, setLeagues] = useState<SeasonLeagueListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -59,6 +59,19 @@ export const ActiveSeasonLeagueProvider = ({
     clearActiveSeasonLeagueId()
   }, [])
 
+  const updateLeague = useCallback(
+    (id: string, patch: { name: string; season: number }) => {
+      setLeagues((current) =>
+        current.map((league) =>
+          league.id === id
+            ? { ...league, name: patch.name, season: patch.season }
+            : league,
+        ),
+      )
+    },
+    [],
+  )
+
   const removeLeague = useCallback((id: string) => {
     setLeagues((current) => current.filter((league) => league.id !== id))
     setActiveIdState((current) => {
@@ -66,6 +79,10 @@ export const ActiveSeasonLeagueProvider = ({
       clearActiveSeasonLeagueId()
       return null
     })
+  }, [])
+
+  useEffect(() => {
+    setActiveIdState(readActiveSeasonLeagueId())
   }, [])
 
   useEffect(() => {
@@ -112,8 +129,16 @@ export const ActiveSeasonLeagueProvider = ({
   }, [activeId, hasLoadedLeagues, leagues])
 
   const value = useMemo(
-    () => ({ activeId, leagues, isLoading, error, setActiveId, removeLeague }),
-    [activeId, error, isLoading, leagues, removeLeague, setActiveId],
+    () => ({
+      activeId,
+      leagues,
+      isLoading,
+      error,
+      setActiveId,
+      updateLeague,
+      removeLeague,
+    }),
+    [activeId, error, isLoading, leagues, removeLeague, setActiveId, updateLeague],
   )
 
   return (

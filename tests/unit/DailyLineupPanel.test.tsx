@@ -697,4 +697,40 @@ describe("DailyLineupPanel B2B badge", () => {
     expect(screen.queryByTitle(/~75% expected/i)).not.toBeInTheDocument()
     expect(screen.getByTitle(/60%/)).toBeInTheDocument()
   })
+
+  it("hides a cut recorded player on open focus days", () => {
+    const cut: SeasonPlayer = {
+      id: "cut-1",
+      name: "Already Dropped",
+      teamAbbr: "ATL",
+      positions: ["C"],
+      projections,
+      shooting,
+    }
+    const closedDaily: DailyLineups = {
+      "2025-11-03": [{ slot: "UTIL", playerId: "cut-1" }],
+      "2025-11-04": [{ slot: "UTIL", playerId: "you-1" }],
+    }
+    render(
+      <DailyLineupPanel
+        closedDates={["2025-11-03"]}
+        daily={closedDaily}
+        days={days}
+        extraPlayers={[cut]}
+        onReset={vi.fn()}
+        onTogglePlayerDay={vi.fn()}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+      />,
+    )
+
+    // Default focus is first day (closed) — cut player may appear there.
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `Highlight ${formatMatchupDayLabel("2025-11-04")}`,
+      }),
+    )
+    expect(screen.queryByText("Already Dropped")).not.toBeInTheDocument()
+  })
 })

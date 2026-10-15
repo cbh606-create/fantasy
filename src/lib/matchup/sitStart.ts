@@ -239,9 +239,11 @@ const benchCanEnterOnDate = (
 
   const dayEntries = daily?.[date]
   if (!dayEntries) return true
-  if (dayEntries.some((entry) => entry.playerId === suggestion.benchPlayerId)) {
-    return true
-  }
+  const benchDayEntry = dayEntries.find(
+    (entry) => entry.playerId === suggestion.benchPlayerId,
+  )
+  if (benchDayEntry && isActiveSlot(benchDayEntry.slot)) return false
+  if (benchDayEntry) return true
   return dayEntries.some((entry) => {
     if (!eligibleForSlot(bench, entry.slot)) return false
     if (entry.playerId === suggestion.activePlayerId) return true

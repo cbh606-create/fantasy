@@ -15,29 +15,29 @@ const youBarProps = {
 describe("MatchupPlanBar", () => {
   afterEach(() => cleanup())
 
-  it("marks the recommended You spot with Rec and team starts", () => {
+  it("marks the recommended You spot with Rec and expected wins", () => {
     render(
       <YouSpotToggle
         onYouSpotCountChange={vi.fn()}
         recommendedYouSpot={2}
         youSpotCount={2}
         youSpotScores={[
-          { spot: null, gameStarts: 40, addsUsed: 0 },
-          { spot: 1, gameStarts: 44, addsUsed: 3 },
-          { spot: 2, gameStarts: 48, addsUsed: 5 },
-          { spot: 3, gameStarts: 46, addsUsed: 6 },
+          { spot: null, gameStarts: 40, addsUsed: 0, projectedCatWins: 3.1 },
+          { spot: 1, gameStarts: 44, addsUsed: 3, projectedCatWins: 3.4 },
+          { spot: 2, gameStarts: 48, addsUsed: 5, projectedCatWins: 3.97 },
+          { spot: 3, gameStarts: 46, addsUsed: 6, projectedCatWins: 3.6 },
         ]}
       />,
     )
 
     expect(
-      screen.getByRole("button", { name: "You 2-spot recommended 48" }),
+      screen.getByRole("button", { name: "You 2-spot recommended 3.97" }),
     ).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByRole("button", { name: "You 2-spot recommended 48" })).toHaveTextContent(
-      "2-spot Rec · 48",
+    expect(screen.getByRole("button", { name: "You 2-spot recommended 3.97" })).toHaveTextContent(
+      "2-spot Rec · 3.97",
     )
-    expect(screen.getByRole("button", { name: "You none 40" })).toHaveTextContent(
-      "None · 40",
+    expect(screen.getByRole("button", { name: "You none 3.10" })).toHaveTextContent(
+      "None · 3.10",
     )
     expect(
       screen.queryByRole("button", { name: /You 1-spot recommended/ }),
@@ -49,21 +49,80 @@ describe("MatchupPlanBar", () => {
     render(
       <MatchupPlanBar
         {...youBarProps}
-        openSeatCount={1}
-        oppSpotChoice="auto"
+        oppSpotChoice={1}
         onOppSpotChoiceChange={onOppSpotChoiceChange}
         statWindow="season"
         onStatWindowChange={vi.fn()}
       />,
     )
 
-    expect(screen.getByRole("button", { name: /Auto · 1/i })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Opp 1-spot" })).toHaveAttribute(
       "aria-pressed",
       "true",
     )
+    expect(
+      screen.queryByRole("button", { name: /Auto/i }),
+    ).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "Opp 3-spot" }))
     expect(onOppSpotChoiceChange).toHaveBeenCalledWith(3)
     expect(screen.getByLabelText("Matchup plans")).toHaveClass("flex-row")
+  })
+
+  it("shows team starts on each Opp spot like You", () => {
+    render(
+      <MatchupPlanBar
+        {...youBarProps}
+        oppSpotChoice={2}
+        onOppSpotChoiceChange={vi.fn()}
+        oppSpotScores={[
+          { spot: 0, gameStarts: 36 },
+          { spot: 1, gameStarts: 40 },
+          { spot: 2, gameStarts: 42 },
+          { spot: 3, gameStarts: 42 },
+        ]}
+        statWindow="season"
+        onStatWindowChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole("button", { name: "Opp 0-spot 36" })).toHaveTextContent(
+      "0-spot · 36",
+    )
+    expect(screen.getByRole("button", { name: "Opp 2-spot 42" })).toHaveTextContent(
+      "2-spot · 42",
+    )
+    expect(screen.getByRole("button", { name: "Opp 2-spot 42" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    )
+  })
+
+  it("exposes an Opp 0-spot idle option", () => {
+    const onOppSpotChoiceChange = vi.fn()
+    render(
+      <MatchupPlanBar
+        {...youBarProps}
+        oppSpotChoice={0}
+        onOppSpotChoiceChange={onOppSpotChoiceChange}
+        resolvedOppSpotCount={0}
+        statWindow="season"
+        onStatWindowChange={vi.fn()}
+      />,
+    )
+
+    const idle = screen.getByRole("button", { name: "Opp 0-spot" })
+    expect(idle).toBeInTheDocument()
+    expect(idle).toHaveAttribute("aria-pressed", "true")
+    expect(idle).toHaveTextContent("0-spot")
+    fireEvent.click(idle)
+    expect(onOppSpotChoiceChange).toHaveBeenCalledWith(0)
+
+    const drop = screen.getByLabelText("Opp drop spot 1")
+    expect(drop).toBeDisabled()
+    expect(screen.getByText("Opp drop").parentElement).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    )
   })
 
   it("lets you pick a You spot", () => {
@@ -87,7 +146,6 @@ describe("MatchupPlanBar", () => {
     render(
       <MatchupPlanBar
         {...youBarProps}
-        openSeatCount={0}
         oppSpotChoice={2}
         onOppSpotChoiceChange={vi.fn()}
         statWindow="season"
@@ -173,8 +231,7 @@ describe("MatchupPlanBar", () => {
     render(
       <MatchupPlanBar
         {...youBarProps}
-        openSeatCount={1}
-        oppSpotChoice="auto"
+        oppSpotChoice={0}
         onOppSpotChoiceChange={vi.fn()}
         statWindow="season"
         onStatWindowChange={vi.fn()}
@@ -191,8 +248,7 @@ describe("MatchupPlanBar", () => {
     render(
       <MatchupPlanBar
         {...youBarProps}
-        openSeatCount={1}
-        oppSpotChoice="auto"
+        oppSpotChoice={0}
         onOppSpotChoiceChange={vi.fn()}
         statWindow="season"
         onStatWindowChange={onStatWindowChange}

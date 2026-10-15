@@ -97,7 +97,7 @@ describe("streamingDropExplain", () => {
     expect(isContestedCategoryRow(row("AST", "L", 0.75))).toBe(false)
   })
 
-  it("keeps AST and STL together when their winProb gap is within 0.08", () => {
+  it("chases close-to-win and close-to-flip before weak losses", () => {
     const board: MatchupBoard = {
       categories: ALL_CATEGORY_IDS.map((categoryId) => {
         if (categoryId === "REB") {
@@ -116,7 +116,30 @@ describe("streamingDropExplain", () => {
       ties: 0,
       projectedCatWins: 6,
     }
-    expect(chaseCategoryIds(board).sort()).toEqual(["AST", "STL"])
+    // STL/AST are closer to a flip than weak REB 0.36
+    expect(chaseCategoryIds(board)).toEqual(["STL", "AST"])
+  })
+
+  it("prefers a close-to-win loss over a weaker flip-band loss", () => {
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        if (categoryId === "AST") {
+          return { categoryId, you: 8, opp: 12, outcome: "L" as const, winProb: 0.46 }
+        }
+        if (categoryId === "STL") {
+          return { categoryId, you: 3, opp: 5, outcome: "L" as const, winProb: 0.4 }
+        }
+        if (categoryId === "REB") {
+          return { categoryId, you: 1, opp: 10, outcome: "L" as const, winProb: 0.32 }
+        }
+        return { categoryId, you: 10, opp: 8, outcome: "W" as const, winProb: 0.8 }
+      }),
+      wins: 6,
+      losses: 3,
+      ties: 0,
+      projectedCatWins: 6,
+    }
+    expect(chaseCategoryIds(board)).toEqual(["AST", "STL"])
   })
 
   it("treats a close L or T as a chase hole, not a blowout L", () => {
@@ -178,6 +201,34 @@ describe("streamingDropExplain", () => {
       ALL_CATEGORY_IDS,
     )
     expect(targetCategoryIdsFromBoards(before, after)).toEqual(["STL", "BLK"])
+    expect(targetCategoryIdsFromBoards(before, after, ["STL", "FG_PCT"])).toEqual(
+      ["STL"],
+    )
+    expect(targetCategoryIdsFromBoards(before, after, [])).toEqual([])
+  })
+
+  it("excludes punted cats from chaseCategoryIds", () => {
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        if (categoryId === "FT_PCT") {
+          return { categoryId, you: 0.7, opp: 0.8, outcome: "L" as const, winProb: 0.4 }
+        }
+        if (categoryId === "BLK") {
+          return { categoryId, you: 3, opp: 5, outcome: "L" as const, winProb: 0.42 }
+        }
+        if (categoryId === "STL") {
+          return { categoryId, you: 4, opp: 5, outcome: "L" as const, winProb: 0.46 }
+        }
+        return { categoryId, you: 10, opp: 8, outcome: "W" as const, winProb: 0.8 }
+      }),
+      wins: 6,
+      losses: 3,
+      ties: 0,
+      projectedCatWins: 6,
+    }
+    expect(chaseCategoryIds(board)).toEqual(["STL", "BLK"])
+    expect(chaseCategoryIds(board, new Set(["FT_PCT", "BLK"]))).toEqual(["STL"])
+    expect(chaseCategoryIds(board, new Set(["FT_PCT", "BLK", "STL"]))).toEqual([])
   })
 
   it("formats tooltip and helps line with short labels", () => {

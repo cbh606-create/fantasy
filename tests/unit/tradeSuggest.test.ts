@@ -7,12 +7,11 @@ import type {
   SeasonPlayer,
   SeasonTeamRoster,
 } from "@/lib/season/types"
-import { OVERPAY_RATIO } from "@/lib/trade/constants"
+import { BEST_PLAYER_GAP, OVERPAY_RATIO } from "@/lib/trade/constants"
 import { enumeratePackages } from "@/lib/trade/enumerate"
 import {
   offerSortScore,
   passesShapeRules,
-  replacementScaledValues,
 } from "@/lib/trade/score"
 import { suggestTrades } from "@/lib/trade/suggest"
 import type { TradePackage, TradeSuggestion } from "@/lib/trade/types"
@@ -38,7 +37,7 @@ const createPlayer = (
 
   return {
     id,
-    name: id,
+    name: "Ayo Dosunmu",
     projections,
     shooting: {
       FGM: projections.FG_PCT * 10,
@@ -196,24 +195,28 @@ const findSuggestion = (
   )
 
 const shapeCheckFor = (state: SeasonLeagueState, tradePackage: TradePackage) =>
-  passesShapeRules(
-    tradePackage,
-    replacementScaledValues(buildPlayerValueMap(state)),
-  )
+  passesShapeRules(tradePackage, buildPlayerValueMap(state))
 
-describe("replacementScaledValues", () => {
-  it("keeps every scaled value and ratio independent of the worst player", () => {
-    const values = new Map([["good", 2], ["average", 0]])
-    const scaled = replacementScaledValues(values)
-    const scaledWithScrub = replacementScaledValues(
-      new Map([...values, ["scrub", -8]]),
+describe("passesShapeRules", () => {
+  it("rejects a star packaged with a scrub when the sums are close", () => {
+    const values = new Map([
+      ["star", 0.6],
+      ["scrub", 0.05],
+      ["role-a", 0.32],
+      ["role-b", 0.32],
+    ])
+    const result = passesShapeRules(
+      {
+        shape: "2:2",
+        counterpartyTeamIndex: 1,
+        youPlayerIds: ["star", "scrub"],
+        themPlayerIds: ["role-a", "role-b"],
+      },
+      values,
     )
-    const ratio = (pool: Map<string, number>) =>
-      pool.get("good")! / pool.get("average")!
 
-    expect(scaledWithScrub.get("good")).toBe(scaled.get("good"))
-    expect(scaledWithScrub.get("scrub")).toBeGreaterThan(0)
-    expect(ratio(scaledWithScrub)).toBe(ratio(scaled))
+    expect(result.ok).toBe(false)
+    expect(result.bestPlayerGap).toBeGreaterThan(BEST_PLAYER_GAP)
   })
 })
 
@@ -285,8 +288,14 @@ describe("suggestTrades", () => {
       youPlayerIds: ["you-rebounder-1", "you-rebounder-2"],
       themPlayerIds: ["them-ace"],
     }
-    const shapeCheck = shapeCheckFor(starState, tradePackage)
-    const { suggestions } = suggestTrades(starState)
+    const valued = {
+      ...starState,
+      players: starState.players.map((player) =>
+        player.id === "them-ace" ? { ...player, name: "Nikola Jokic" } : player,
+      ),
+    }
+    const shapeCheck = shapeCheckFor(valued, tradePackage)
+    const { suggestions } = suggestTrades(valued)
 
     expect(shapeCheck.ok).toBe(false)
     expect(shapeCheck.overpayRatio).toBeLessThan(OVERPAY_RATIO)
@@ -326,8 +335,14 @@ describe("suggestTrades", () => {
       youPlayerIds: ["you-rebounder-1", "you-rebounder-2"],
       themPlayerIds: ["them-ace", "them-base-1"],
     }
-    const shapeCheck = shapeCheckFor(starState, tradePackage)
-    const { suggestions } = suggestTrades(starState)
+    const valued = {
+      ...starState,
+      players: starState.players.map((player) =>
+        player.id === "them-ace" ? { ...player, name: "Nikola Jokic" } : player,
+      ),
+    }
+    const shapeCheck = shapeCheckFor(valued, tradePackage)
+    const { suggestions } = suggestTrades(valued)
 
     expect(shapeCheck.ok).toBe(false)
     expect(shapeCheck.overpayRatio).toBeUndefined()

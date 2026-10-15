@@ -11,6 +11,12 @@ import { eligibleForSlot, isSpecificPositionSlot } from "./eligibility"
 import { teamHasGameOnDate } from "./games"
 import { blockFromDate } from "./streamingBlocks"
 import { densityTierRank } from "./streamingStrategy"
+import {
+  adjustedChaseWinProb,
+  priorityChaseCategoryId,
+  streamingChaseNote,
+} from "./chasePair"
+import type { StatPairRow } from "@/lib/players/statPairCorrelation"
 import type { MatchupBoard, StatWindow, WinnerStreamRecipe } from "./types"
 import { compareStreamerRank, winnerPriorHits } from "./winnerStreamPrior"
 import { weeklyPlayerStats } from "./weekly"
@@ -82,7 +88,10 @@ export const seatStreamerIfOpen = (
     index >= 0
       ? index
       : options?.allowFlexSlots
-        ? entries.findIndex((entry) => slotIsOpen(entry))
+        ? entries.findIndex(
+            (entry) =>
+              slotIsOpen(entry) && eligibleForSlot(player, entry.slot),
+          )
         : -1
   if (flexIndex < 0) return false
   const slot = entries[flexIndex]
@@ -112,39 +121,30 @@ export const applyStreamerMoveToDaily = (
   playersById: Map<string, SeasonPlayer> | Record<string, SeasonPlayer>,
   schedule: ScheduleResponse,
 ): { daily: DailyLineups; seatedGameDays: number } => {
-  const next = cloneDaily(daily)
-  const days = Object.keys(next).sort().filter((day) => day >= fromDate)
+  const days = Object.keys(daily).sort().filter((day) => day >= fromDate)
+  const addPlayer = resolvePlayer(playersById, addPlayerId)
+  if (!addPlayer?.teamAbbr) return { daily, seatedGameDays: 0 }
+
+  const draft = cloneDaily(daily)
 
   if (drop.kind === "player" && drop.playerId) {
     for (const day of days) {
-      clearPlayerFromDay(next[day], drop.playerId)
+      clearPlayerFromDay(draft[day], drop.playerId)
     }
   }
 
-  const addPlayer = resolvePlayer(playersById, addPlayerId)
-  if (!addPlayer?.teamAbbr) return { daily: next, seatedGameDays: 0 }
-
-  if (isDailyLineupFullForDate(next, fromDate, playersById, schedule)) {
-    return { daily: next, seatedGameDays: 0 }
-  }
-
-  if (!teamHasGameOnDate(addPlayer.teamAbbr, fromDate, schedule)) {
-    return { daily: next, seatedGameDays: 0 }
-  }
-  if (!seatStreamerIfOpen(next[fromDate], addPlayerId, fromDate, playersById, schedule)) {
-    return { daily: next, seatedGameDays: 0 }
-  }
-
-  let seatedGameDays = 1
+  let seatedGameDays = 0
   for (const day of days) {
-    if (day === fromDate) continue
     if (!teamHasGameOnDate(addPlayer.teamAbbr, day, schedule)) continue
-    if (seatStreamerIfOpen(next[day], addPlayerId, day, playersById, schedule)) {
+    if (isDailyLineupFullForDate(draft, day, playersById, schedule)) continue
+    if (seatStreamerIfOpen(draft[day], addPlayerId, day, playersById, schedule)) {
       seatedGameDays += 1
     }
   }
 
-  return { daily: next, seatedGameDays }
+  if (seatedGameDays === 0) return { daily, seatedGameDays: 0 }
+
+  return { daily: draft, seatedGameDays }
 }
 
 export const oppTotalsFromBoard = (
@@ -191,6 +191,9 @@ export const planningMatchupBoard = (
   )
 }
 
+const FG_PCT_REPLACEMENT = 0.47
+const FT_PCT_REPLACEMENT = 0.78
+
 export const contestedCategoryIds = (
   board: MatchupBoard,
   chaseIds?: CategoryId[],
@@ -201,6 +204,7 @@ export const contestedCategoryIds = (
     .map((row) => row.categoryId)
 }
 
+/** Volume-aware chase help — rates use FGA/FTA × vs replacement, not raw %. */
 const chaseScoreForPlayer = (
   player: SeasonPlayer,
   chaseIds: CategoryId[],
@@ -208,6 +212,22 @@ const chaseScoreForPlayer = (
 ): number =>
   chaseIds.reduce((sum, categoryId) => {
     const weekly = weeklyPlayerStats(player, 1, statWindow)
+    if (categoryId === "FG_PCT") {
+      return (
+        sum +
+        (weekly.shooting.FGA *
+          (weekly.projections.FG_PCT - FG_PCT_REPLACEMENT)) /
+          MATCHUP_CATEGORY_SIGMOID_SCALE.FG_PCT
+      )
+    }
+    if (categoryId === "FT_PCT") {
+      return (
+        sum +
+        (weekly.shooting.FTA *
+          (weekly.projections.FT_PCT - FT_PCT_REPLACEMENT)) /
+          MATCHUP_CATEGORY_SIGMOID_SCALE.FT_PCT
+      )
+    }
     const raw =
       categoryId === "TO"
         ? -weekly.projections.TO
@@ -264,6 +284,7 @@ const scoreStreamerMoveWithBefore = (
 ): {
   delta: number
   contestedDelta: number
+  categoryDeltas: { categoryId: CategoryId; delta: number }[]
   seatedGameDays: number
   nextDaily: DailyLineups
 } | null => {
@@ -285,9 +306,15 @@ const scoreStreamerMoveWithBefore = (
     oppDaily,
     statWindow,
   )
+  const winProbOf = (board: MatchupBoard, categoryId: CategoryId) =>
+    board.categories.find((row) => row.categoryId === categoryId)?.winProb ?? 0
   return {
     delta: afterBoard.projectedCatWins - beforeBoard.projectedCatWins,
     contestedDelta: contestedDeltaFromBoards(beforeBoard, afterBoard, chaseIds),
+    categoryDeltas: (chaseIds ?? []).map((categoryId) => ({
+      categoryId,
+      delta: winProbOf(afterBoard, categoryId) - winProbOf(beforeBoard, categoryId),
+    })),
     seatedGameDays: applied.seatedGameDays,
     nextDaily: applied.daily,
   }
@@ -306,6 +333,7 @@ export const scoreStreamerMove = (
 ): {
   delta: number
   contestedDelta: number
+  categoryDeltas: { categoryId: CategoryId; delta: number }[]
   seatedGameDays: number
   nextDaily: DailyLineups
 } | null => {
@@ -350,6 +378,8 @@ export const pickBestStreamerMove = (
     chaseCategoryIds?: CategoryId[]
     densityRankFor?: (playerId: string) => number
     startsFor?: (playerId: string) => number
+    statPairs?: readonly StatPairRow[]
+    leakCategoryIds?: ReadonlySet<CategoryId>
   },
 ): {
   playerId: string
@@ -361,6 +391,12 @@ export const pickBestStreamerMove = (
   const requirePositiveContestedDelta = options?.requirePositiveContestedDelta ?? false
   const recipes = options?.recipes ?? []
   const chaseIds = contestedCategoryIds(board, options?.chaseCategoryIds)
+  const chaseNote = streamingChaseNote(chaseIds, options?.statPairs ?? [])
+  const pairPenalty = chaseIds.length === 2 ? chaseNote.penalty : 0
+  const priorityId =
+    pairPenalty > 0
+      ? priorityChaseCategoryId(board, chaseIds, options?.leakCategoryIds)
+      : null
   const playersById = new Map(players.map((player) => [player.id, player]))
   const hitsFor = (playerId: string) => {
     const player = playersById.get(playerId)
@@ -419,12 +455,38 @@ export const pickBestStreamerMove = (
       options?.startsFor?.(right.playerId) ?? right.seatedGameDays
     const leftStarts =
       options?.startsFor?.(left.playerId) ?? left.seatedGameDays
+    // Prefer anyone who can start; among starters maximize expected category
+    // wins (projectedCatWins), then starts, then chase as a tiebreak.
+    const rightHasStarts = rightStarts > 0
+    const leftHasStarts = leftStarts > 0
+    if (rightHasStarts !== leftHasStarts) {
+      return rightHasStarts ? 1 : -1
+    }
+    // Among players who can start, maximize expected category wins first.
+    // Start count and chase cats break remaining ties.
+    const projDelta = right.delta - left.delta
+    if (Math.abs(projDelta) > 1e-6) return projDelta
     if (rightStarts !== leftStarts) return rightStarts - leftStarts
+    if (pairPenalty > 0 && priorityId) {
+      const adjusted = (row: (typeof scored)[number]) => {
+        const priorityDelta =
+          row.categoryDeltas.find((entry) => entry.categoryId === priorityId)?.delta ?? 0
+        const raisesBoth = row.categoryDeltas.every((entry) => entry.delta > 1e-6)
+        const raisesPriority = priorityDelta > 1e-6
+        return adjustedChaseWinProb(
+          row.contestedDelta,
+          raisesBoth && raisesPriority,
+          pairPenalty,
+        )
+      }
+      const penaltyDelta = adjusted(right) - adjusted(left)
+      if (penaltyDelta !== 0) return penaltyDelta
+    }
+    const chaseDelta = right.contestedDelta - left.contestedDelta
+    if (chaseDelta !== 0) return chaseDelta
     const projectionChaseDelta =
       chaseScoreFor(right.playerId) - chaseScoreFor(left.playerId)
     if (projectionChaseDelta !== 0) return projectionChaseDelta
-    const chaseDelta = right.contestedDelta - left.contestedDelta
-    if (chaseDelta !== 0) return chaseDelta
     const densityDelta =
       densityFor(right.playerId, right.seatedGameDays) -
       densityFor(left.playerId, left.seatedGameDays)

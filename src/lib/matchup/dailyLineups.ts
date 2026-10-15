@@ -10,7 +10,11 @@ import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import { isActiveSlot } from "./constants"
 import { activeSlotsFor, eligibleForSlot } from "./eligibility"
 import { normalizeNbaTeamAbbr } from "@/lib/nba/teamAbbr"
-import { gameWeightForTeamDate, teamHasGameOnDate } from "./games"
+import {
+  gameWeightForTeamDate,
+  playerHasGameOnDate,
+  teamHasGameOnDate,
+} from "./games"
 import type { StatWindow } from "./types"
 import { weeklyPlayerStats } from "./weekly"
 
@@ -75,7 +79,7 @@ const playerPlaysOnDay = (
   if (!playerId) return false
   const player = playersById.get(playerId)
   if (!player?.teamAbbr) return false
-  return teamHasGameOnDate(player.teamAbbr, day, schedule)
+  return playerHasGameOnDate(player, day, schedule)
 }
 
 /** Pack roster players who have a game into as many active slots as eligibility allows. */
@@ -89,10 +93,18 @@ export const buildDayLineupFromRoster = (
   const activeSlots = activeSlotsFor(rosterSlots)
   const playersById = new Map(players.map((player) => [player.id, player]))
   const nextEntries = extractActiveEntries(teamEntries, rosterSlots).map(
-    (entry) =>
-      playerPlaysOnDay(entry.playerId, day, playersById, schedule)
-        ? entry
-        : { ...entry, playerId: null },
+    (entry) => {
+      if (!playerPlaysOnDay(entry.playerId, day, playersById, schedule)) {
+        return { ...entry, playerId: null }
+      }
+      const player = entry.playerId
+        ? playersById.get(entry.playerId)
+        : undefined
+      if (!eligibleForSlot(player, entry.slot)) {
+        return { ...entry, playerId: null }
+      }
+      return entry
+    },
   )
   const started = new Set(
     nextEntries
@@ -106,7 +118,7 @@ export const buildDayLineupFromRoster = (
     .map((playerId) => playersById.get(playerId))
     .filter((player): player is SeasonPlayer => {
       if (!player?.teamAbbr) return false
-      return teamHasGameOnDate(player.teamAbbr, day, schedule)
+      return playerHasGameOnDate(player, day, schedule)
     })
     .sort(
       (left, right) =>
@@ -141,17 +153,6 @@ export const buildDayLineupFromRoster = (
           )
     if (openIndex < 0) continue
 
-    nextEntries[openIndex] = {
-      ...nextEntries[openIndex],
-      playerId: player.id,
-    }
-    started.add(player.id)
-  }
-
-  for (const player of available) {
-    if (started.has(player.id)) continue
-    const openIndex = nextEntries.findIndex((entry) => slotIsFillable(entry))
-    if (openIndex < 0) break
     nextEntries[openIndex] = {
       ...nextEntries[openIndex],
       playerId: player.id,
@@ -305,6 +306,54 @@ export const dailyLineupsMatchDays = (
   )
 }
 
+/** True when every seated daily player is still on the current non-IL roster. */
+export const dailyLineupsMatchRoster = (
+  daily: DailyLineups,
+  teamEntries: SeasonRosterEntry[],
+): boolean => {
+  const rosterIds = new Set(rosteredPlayerIds(teamEntries))
+  for (const entries of Object.values(daily)) {
+    for (const entry of entries) {
+      if (entry.playerId && !rosterIds.has(entry.playerId)) return false
+    }
+  }
+  return true
+}
+
+/**
+ * Clear seats for players no longer on the roster.
+ * `preserveDates` keeps historical closed-day seats (ESPN actuals pin those later).
+ * `keepIds` keeps preview streamers / other allowed non-roster seats.
+ */
+export const pruneDailyToRoster = (
+  daily: DailyLineups,
+  rosterIds: ReadonlySet<string>,
+  preserveDates?: ReadonlySet<string>,
+  keepIds?: ReadonlySet<string>,
+): DailyLineups => {
+  let changed = false
+  const next = Object.fromEntries(
+    Object.entries(daily).map(([date, entries]) => {
+      if (preserveDates?.has(date)) return [date, entries]
+      let dayChanged = false
+      const cleaned = entries.map((entry) => {
+        if (
+          entry.playerId &&
+          !rosterIds.has(entry.playerId) &&
+          !keepIds?.has(entry.playerId)
+        ) {
+          dayChanged = true
+          return { ...entry, playerId: null }
+        }
+        return entry
+      })
+      if (dayChanged) changed = true
+      return [date, cleaned]
+    }),
+  )
+  return changed ? next : daily
+}
+
 export const playerGameDays = (
   player: SeasonPlayer,
   schedule: ScheduleResponse,
@@ -437,6 +486,85 @@ export const youTotalsFromDaily = (
   return totals
 }
 
+export type DayLineupShooting = {
+  FGM: number
+  FGA: number
+  FTM: number
+  FTA: number
+}
+
+export type DayLineupProjection = {
+  totals: Record<CategoryId, number>
+  shooting: DayLineupShooting
+  games: number
+}
+
+const emptyShooting = (): DayLineupShooting => ({
+  FGM: 0,
+  FGA: 0,
+  FTM: 0,
+  FTA: 0,
+})
+
+export const projectLineupDay = (
+  entries: SeasonRosterEntry[] | undefined,
+  players: SeasonPlayer[],
+  date: string,
+  schedule: ScheduleResponse,
+  statWindow: StatWindow = "season",
+): DayLineupProjection => {
+  const playersById = new Map(players.map((player) => [player.id, player]))
+  const totals = emptyTotals()
+  const shooting = emptyShooting()
+  let games = 0
+
+  for (const entry of entries ?? []) {
+    if (!entry.playerId) continue
+    const player = playersById.get(entry.playerId)
+    if (!player?.teamAbbr) continue
+    const gameWeight = gameWeightForTeamDate(
+      player.teamAbbr,
+      date,
+      schedule,
+      undefined,
+      entry.playerId,
+    )
+    if (gameWeight === 0) continue
+    games += 1
+    const weekly = weeklyPlayerStats(player, gameWeight, statWindow)
+    for (const categoryId of COUNTING_CATEGORIES) {
+      totals[categoryId] += weekly.projections[categoryId]
+    }
+    shooting.FGM += weekly.shooting.FGM
+    shooting.FGA += weekly.shooting.FGA
+    shooting.FTM += weekly.shooting.FTM
+    shooting.FTA += weekly.shooting.FTA
+  }
+
+  totals.FG_PCT = shooting.FGA > 0 ? shooting.FGM / shooting.FGA : 0
+  totals.FT_PCT = shooting.FTA > 0 ? shooting.FTM / shooting.FTA : 0
+  return { totals, shooting, games }
+}
+
+export const sumDayLineupProjections = (
+  days: DayLineupProjection[],
+): Record<CategoryId, number> => {
+  const totals = emptyTotals()
+  const shooting = emptyShooting()
+  for (const day of days) {
+    for (const categoryId of COUNTING_CATEGORIES) {
+      totals[categoryId] += day.totals[categoryId]
+    }
+    shooting.FGM += day.shooting.FGM
+    shooting.FGA += day.shooting.FGA
+    shooting.FTM += day.shooting.FTM
+    shooting.FTA += day.shooting.FTA
+  }
+  totals.FG_PCT = shooting.FGA > 0 ? shooting.FGM / shooting.FGA : 0
+  totals.FT_PCT = shooting.FTA > 0 ? shooting.FTM / shooting.FTA : 0
+  return totals
+}
+
 export const setSlotPlayer = (
   daily: DailyLineups,
   day: string,
@@ -528,6 +656,90 @@ export type LineupDisplayFocus = {
   schedule?: ScheduleResponse
   playersById?: Record<string, SeasonPlayer>
   daily?: DailyLineups
+  /** Closed day: show that day's recorded seats, not the refreshed roster. */
+  restrictToDaily?: boolean
+}
+
+const seatPlayedIds = (
+  playedIds: string[],
+  players: SeasonPlayer[],
+  rosterSlots: SeasonSlot[],
+  previous: SeasonRosterEntry[],
+): SeasonRosterEntry[] => {
+  const playersById = new Map(players.map((player) => [player.id, player]))
+  const next: SeasonRosterEntry[] = activeSlotsFor(rosterSlots).map((slot) => ({
+    slot,
+    playerId: null,
+  }))
+  const wanted = new Set(playedIds)
+  const seated = new Set<string>()
+
+  previous.forEach((entry, index) => {
+    if (!entry.playerId || !wanted.has(entry.playerId) || seated.has(entry.playerId)) {
+      return
+    }
+    const sameSlot =
+      next[index]?.playerId === null && next[index]?.slot === entry.slot
+        ? index
+        : next.findIndex(
+            (candidate) =>
+              candidate.playerId === null && candidate.slot === entry.slot,
+          )
+    if (sameSlot < 0) return
+    next[sameSlot] = { ...next[sameSlot], playerId: entry.playerId }
+    seated.add(entry.playerId)
+  })
+
+  for (const playerId of playedIds) {
+    if (seated.has(playerId)) continue
+    const player = playersById.get(playerId)
+    const exactIndex = next.findIndex((entry) => {
+      if (entry.playerId !== null || !player) return false
+      if (entry.slot === "UTIL" || entry.slot === "G" || entry.slot === "F") {
+        return false
+      }
+      return Boolean(player.positions?.some((position) => position === entry.slot))
+    })
+    const eligibleIndex =
+      exactIndex >= 0
+        ? exactIndex
+        : next.findIndex(
+            (entry) =>
+              entry.playerId === null && eligibleForSlot(player, entry.slot),
+          )
+    const openIndex =
+      eligibleIndex >= 0
+        ? eligibleIndex
+        : -1
+    if (openIndex < 0) continue
+    next[openIndex] = { ...next[openIndex], playerId }
+    seated.add(playerId)
+  }
+
+  return next
+}
+
+/** Closed dates keep the players who recorded actuals. Later dates stay on the current roster. */
+export const applyPlayedDayLineups = (
+  daily: DailyLineups,
+  playedIdsByDate: Record<string, string[] | undefined>,
+  players: SeasonPlayer[],
+  rosterSlots: SeasonSlot[] = SEASON_ROSTER_SLOTS,
+  omitSeatKeys?: ReadonlySet<string>,
+): DailyLineups => {
+  let changed = false
+  const next: DailyLineups = { ...daily }
+
+  for (const [date, playedIds] of Object.entries(playedIdsByDate)) {
+    if (!playedIds || !next[date]) continue
+    const seatedIds = omitSeatKeys
+      ? playedIds.filter((playerId) => !omitSeatKeys.has(`${date}:${playerId}`))
+      : playedIds
+    next[date] = seatPlayedIds(seatedIds, players, rosterSlots, next[date])
+    changed = true
+  }
+
+  return changed ? next : daily
 }
 
 const isActiveDisplaySlot = (slot: LineupDisplaySlot) =>
@@ -686,7 +898,7 @@ export const buildLineupDisplayRows = (
       !entry.playerId ||
       placed.has(entry.playerId) ||
       !displayable.has(entry.playerId) ||
-      !playerHasGame(entry.playerId)
+      (!focus?.restrictToDaily && !playerHasGame(entry.playerId))
     ) {
       continue
     }
@@ -698,55 +910,58 @@ export const buildLineupDisplayRows = (
     if (placeOn(row, entry.playerId)) placed.add(entry.playerId)
   }
   for (const playerId of startedIds) {
-    if (placed.has(playerId) || !playerHasGame(playerId)) continue
+    if (placed.has(playerId)) continue
+    if (!focus?.restrictToDaily && !playerHasGame(playerId)) continue
     if (placePlayingStart(playerId) || placeOn(firstEmpty(() => true), playerId)) {
       placed.add(playerId)
     }
   }
 
-  for (const entry of rosterEntries) {
-    if (entry.slot === "IL" || !entry.playerId) continue
-    if (placed.has(entry.playerId) || !playerHasGame(entry.playerId)) continue
-    if (
-      placePlayingStart(entry.playerId) ||
-      placeOn(firstEmpty((row) => isActiveDisplaySlot(row.slot)), entry.playerId)
-    ) {
+  if (!focus?.restrictToDaily) {
+    for (const entry of rosterEntries) {
+      if (entry.slot === "IL" || !entry.playerId) continue
+      if (placed.has(entry.playerId) || !playerHasGame(entry.playerId)) continue
+      if (
+        placePlayingStart(entry.playerId) ||
+        placeOn(firstEmpty((row) => isActiveDisplaySlot(row.slot)), entry.playerId)
+      ) {
+        placed.add(entry.playerId)
+      }
+    }
+
+    const placeOffNight = (playerId: string) => {
+      const player = lookup(playerId)
+      const home = homeRowFor(playerId)
+      if (
+        home &&
+        isActiveDisplaySlot(home.slot) &&
+        eligibleForSlot(player, home.slot)
+      ) {
+        if (placeOn(home, playerId)) return true
+      }
+      return placeEligibleActive(playerId)
+    }
+
+    for (const entry of rosterEntries) {
+      if (entry.slot === "IL" || !entry.playerId) continue
+      if (placed.has(entry.playerId) || playerHasGame(entry.playerId)) continue
+      if (placeOffNight(entry.playerId)) placed.add(entry.playerId)
+    }
+
+    for (const entry of rosterEntries) {
+      if (entry.slot === "IL" || !entry.playerId) continue
+      if (placed.has(entry.playerId)) continue
+      if (placeOn(firstEmpty((row) => row.slot === "BE"), entry.playerId)) {
+        placed.add(entry.playerId)
+        continue
+      }
+      rows.push({
+        slot: "BE",
+        playerId: entry.playerId,
+        slotOccurrence: rows.filter((row) => row.slot === "BE").length,
+      })
       placed.add(entry.playerId)
     }
-  }
-
-  const placeOffNight = (playerId: string) => {
-    const player = lookup(playerId)
-    const home = homeRowFor(playerId)
-    if (
-      home &&
-      isActiveDisplaySlot(home.slot) &&
-      eligibleForSlot(player, home.slot)
-    ) {
-      if (placeOn(home, playerId)) return true
-    }
-    return placeEligibleActive(playerId)
-  }
-
-  for (const entry of rosterEntries) {
-    if (entry.slot === "IL" || !entry.playerId) continue
-    if (placed.has(entry.playerId) || playerHasGame(entry.playerId)) continue
-    if (placeOffNight(entry.playerId)) placed.add(entry.playerId)
-  }
-
-  for (const entry of rosterEntries) {
-    if (entry.slot === "IL" || !entry.playerId) continue
-    if (placed.has(entry.playerId)) continue
-    if (placeOn(firstEmpty((row) => row.slot === "BE"), entry.playerId)) {
-      placed.add(entry.playerId)
-      continue
-    }
-    rows.push({
-      slot: "BE",
-      playerId: entry.playerId,
-      slotOccurrence: rows.filter((row) => row.slot === "BE").length,
-    })
-    placed.add(entry.playerId)
   }
 
   return [...rows, ...ilRows, ...previewFromExtras(placed)]
@@ -781,24 +996,10 @@ export const togglePlayerDay = (
     return !teamHasGameOnDate(teamAbbr, day, schedule)
   }
 
-  const player = playersById[playerId]
-  const canStartInto = (dayEntries: SeasonRosterEntry[]) =>
-    dayEntries.some(
-      (entry) =>
-        slotIsOpenForStart(entry) &&
-        (!rosterSlots || rosterSlots.includes(entry.slot)) &&
-        eligibleForSlot(player, entry.slot),
-    )
-
   const existingIndex = findPlayerSlotIndex(daily, day, playerId)
   if (existingIndex >= 0) {
-    const sat = setSlotPlayer(daily, day, existingIndex, null)
-    const satEntries = sat[day] ?? []
-    if (canStartInto(satEntries)) {
-      return { daily, status: "started" }
-    }
     return {
-      daily: sat,
+      daily: setSlotPlayer(daily, day, existingIndex, null),
       status: "sat",
     }
   }
@@ -808,20 +1009,19 @@ export const togglePlayerDay = (
     return { daily, status: "full" }
   }
 
+  const player = playersById[playerId]
   const openIndex = entries.findIndex(
     (entry) =>
       slotIsOpenForStart(entry) &&
       (!rosterSlots || rosterSlots.includes(entry.slot)) &&
       eligibleForSlot(player, entry.slot),
   )
-  const startIndex =
-    openIndex >= 0 ? openIndex : entries.findIndex((entry) => slotIsOpenForStart(entry))
-  if (startIndex < 0) {
+  if (openIndex < 0) {
     return { daily, status: "ineligible" }
   }
 
   return {
-    daily: setSlotPlayer(daily, day, startIndex, playerId),
+    daily: setSlotPlayer(daily, day, openIndex, playerId),
     status: "started",
   }
 }
@@ -853,4 +1053,57 @@ export const isDailyLineupFullForDate = (
   }
 
   return !entries.some(slotIsOpenForStart)
+}
+
+export type OpponentSeatOverride = "sat" | "start"
+
+/** Reapply opponent sit/start choices on top of the latest simulated lineup. */
+export const applyOpponentSeatOverrides = (
+  daily: DailyLineups,
+  overrides: ReadonlyMap<string, OpponentSeatOverride>,
+  playersById: Record<string, SeasonPlayer>,
+  rosterSlots: SeasonSlot[] | undefined,
+  schedule: ScheduleResponse,
+  closedDates: ReadonlySet<string> = new Set(),
+): DailyLineups => {
+  let next = daily
+  for (const key of [...overrides.keys()].sort()) {
+    const action = overrides.get(key)
+    const splitAt = key.indexOf(":")
+    if (!action || splitAt <= 0) continue
+    const day = key.slice(0, splitAt)
+    const playerId = key.slice(splitAt + 1)
+    if (closedDates.has(day)) continue
+    const player = playersById[playerId]
+    const hasGame = player
+      ? playerHasGameOnDate(player, day, schedule)
+      : false
+    const started = findPlayerSlotIndex(next, day, playerId) >= 0
+    if (action === "sat") {
+      if (!started) continue
+      const toggled = togglePlayerDay(
+        next,
+        day,
+        playerId,
+        hasGame,
+        playersById,
+        rosterSlots,
+        schedule,
+      )
+      if (toggled.status === "sat") next = toggled.daily
+      continue
+    }
+    if (started) continue
+    const toggled = togglePlayerDay(
+      next,
+      day,
+      playerId,
+      hasGame,
+      playersById,
+      rosterSlots,
+      schedule,
+    )
+    if (toggled.status === "started") next = toggled.daily
+  }
+  return next
 }

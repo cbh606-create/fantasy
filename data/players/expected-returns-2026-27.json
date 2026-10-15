@@ -1,0 +1,36 @@
+{
+  "source": "ESPN injury estimated return dates, 2026-09-27",
+  "returns": [
+    {
+      "name": "Jimmy Butler III",
+      "espnId": "6430",
+      "returnDate": "2026-12-01"
+    },
+    {
+      "name": "Moses Moody",
+      "returnDate": "2026-12-01"
+    },
+    {
+      "name": "Johnny Furphy",
+      "returnDate": "2027-01-01"
+    },
+    {
+      "name": "Jayden Quaintance",
+      "returnDate": "2026-12-01"
+    },
+    {
+      "name": "Mark Williams",
+      "espnId": "4701232",
+      "returnDate": "2027-02-01"
+    },
+    {
+      "name": "Shaedon Sharpe",
+      "espnId": "4914336",
+      "returnDate": "2027-03-01"
+    },
+    {
+      "name": "Jordan Miller",
+      "returnDate": "2027-03-01"
+    }
+  ]
+}

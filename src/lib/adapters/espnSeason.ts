@@ -60,6 +60,24 @@ export const detectLineupConflict = (
   })
 }
 
+const perspectiveRosterCount = (state: SeasonLeagueState): number => {
+  const you = state.teams.find(
+    (team) => team.teamIndex === state.perspectiveTeamIndex,
+  )
+  return you?.entries.filter((entry) => Boolean(entry.playerId)).length ?? 0
+}
+
+/** Prefer season+1 when that year already has a drafted perspective roster. */
+export const pickPreferringNewerSeason = (
+  current: SeasonLeagueState,
+  newer: SeasonLeagueState | null,
+): SeasonLeagueState => {
+  if (newer && perspectiveRosterCount(newer) > 0) {
+    return newer
+  }
+  return current
+}
+
 export const espnImportToSeasonLeagueState = async (
   params: EspnSeasonParams & { forbidFixture?: boolean },
 ): Promise<SeasonLeagueState> => {
@@ -101,4 +119,26 @@ export const espnImportToSeasonLeagueState = async (
     source: "espn",
     espnTeamId: params.teamId,
   }
+}
+
+/**
+ * Prefer the newer ESPN season year when that year already has a drafted roster.
+ * Keeps the stored year when season+1 is empty (pre-draft) or unavailable.
+ */
+export const espnImportPreferringNewerSeason = async (
+  params: EspnSeasonParams & { forbidFixture?: boolean },
+): Promise<SeasonLeagueState> => {
+  const current = await espnImportToSeasonLeagueState(params)
+
+  let newer: SeasonLeagueState | null = null
+  try {
+    newer = await espnImportToSeasonLeagueState({
+      ...params,
+      season: params.season + 1,
+    })
+  } catch {
+    newer = null
+  }
+
+  return pickPreferringNewerSeason(current, newer)
 }

@@ -7,9 +7,12 @@ import { ConflictModal } from "@/components/season/ConflictModal"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { PlayerSchedulePanel } from "@/components/season/PlayerSchedulePanel"
 import { PlayerRosterTable } from "@/components/season/PlayerRosterTable"
+import { LeagueScoringLabel } from "@/components/season/LeagueScoringLabel"
 import { SeasonToolShell } from "@/components/season/SeasonToolShell"
+import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import {
+  analyzePerGameLeague,
   analyzeSeasonLeague,
   type SeasonAnalysis,
 } from "@/lib/season/analysis"
@@ -36,6 +39,8 @@ type WorkspaceTab = "stats" | "schedule"
 type RefreshResponse = {
   conflict?: boolean
   incomingState?: SeasonLeagueState
+  name?: string
+  season?: number
   errorCode?: string
   message?: string
 }
@@ -50,6 +55,7 @@ export const SeasonRosterWorkspace = ({
   leagueId,
 }: SeasonRosterWorkspaceProps) => {
   useSyncActiveSeasonLeague(leagueId)
+  const { updateLeague } = useActiveSeasonLeague()
 
   const [data, setData] = useState<SeasonLeagueResponse | null>(null)
   const [draftEntries, setDraftEntries] = useState<SeasonRosterEntry[] | null>(null)
@@ -152,14 +158,24 @@ export const SeasonRosterWorkspace = ({
   const draftFingerprint = draftEntries
     ? draftEntries.map((entry) => `${entry.slot}:${entry.playerId ?? ""}`).join("|")
     : null
-  const effectiveAnalysis = useMemo(() => {
+  const effectiveState = useMemo(() => {
     if (!data) return null
+    if (!draftFingerprint || !draftEntries) return data.state
+
+    return applyLocalLineup(data.state, draftEntries)
+  }, [data, draftEntries, draftFingerprint])
+  const effectiveAnalysis = useMemo(() => {
+    if (!data || !effectiveState) return null
     if (!draftFingerprint || !draftEntries) {
-      return data.analysis ?? analyzeSeasonLeague(data.state)
+      return data.analysis ?? analyzeSeasonLeague(effectiveState)
     }
 
-    return analyzeSeasonLeague(applyLocalLineup(data.state, draftEntries))
-  }, [data, draftEntries, draftFingerprint])
+    return analyzeSeasonLeague(effectiveState)
+  }, [data, draftEntries, draftFingerprint, effectiveState])
+  const perGameAnalysis = useMemo(
+    () => (effectiveState ? analyzePerGameLeague(effectiveState) : null),
+    [effectiveState],
+  )
   const perspectiveTeamIndex = data?.state.perspectiveTeamIndex
   const userLevels = effectiveAnalysis?.byTeam.find(
     (team) => team.teamIndex === perspectiveTeamIndex,
@@ -265,6 +281,10 @@ export const SeasonRosterWorkspace = ({
         return
       }
 
+      if (refresh.name && typeof refresh.season === "number") {
+        updateLeague(leagueId, { name: refresh.name, season: refresh.season })
+      }
+
       await loadLeague()
     } catch (requestError) {
       setError(
@@ -295,8 +315,16 @@ export const SeasonRosterWorkspace = ({
         },
       )
 
+      const resolved = (await response.json()) as RefreshResponse
+
       if (!response.ok) {
-        throw new Error(await responseMessage(response, "Unable to resolve refresh conflict"))
+        throw new Error(
+          resolved.message ?? resolved.errorCode ?? "Unable to resolve refresh conflict",
+        )
+      }
+
+      if (resolved.name && typeof resolved.season === "number") {
+        updateLeague(leagueId, { name: resolved.name, season: resolved.season })
       }
 
       setIncomingState(null)
@@ -357,9 +385,12 @@ export const SeasonRosterWorkspace = ({
               {data.state.season} season · YOU · {data.state.source}
               {data.state.lastSyncedAt ? ` · synced ${new Date(data.state.lastSyncedAt).toLocaleDateString()}` : ""}
             </p>
-            <h1 className="mt-1 font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
-              {data.state.name}
-            </h1>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h1 className="font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
+                {data.state.name}
+              </h1>
+              <LeagueScoringLabel mode={data.state.scoringMode} />
+            </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <button
@@ -464,6 +495,7 @@ export const SeasonRosterWorkspace = ({
           <CompactCategoryProfile levels={userLevels} />
           <LeagueRankMatrix
             analysis={effectiveAnalysis!}
+            perGameAnalysis={perGameAnalysis}
             perspectiveTeamIndex={data.state.perspectiveTeamIndex}
             teams={data.state.teams}
           />

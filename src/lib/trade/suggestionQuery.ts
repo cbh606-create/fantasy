@@ -1,5 +1,7 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
+import { TRADE_SHAPES } from "@/lib/trade/fairFill"
+import type { TradeShape } from "@/lib/trade/types"
 
 export type SuggestionQuery =
   | { mode: "preview" }
@@ -8,6 +10,7 @@ export type SuggestionQuery =
       mode: "generate"
       targetCategoryIds: CategoryId[]
       excludedPlayerIds: string[]
+      shapes?: TradeShape[]
     }
 
 const splitList = (value: string | null) =>
@@ -28,9 +31,17 @@ export const parseSuggestionQuery = (url: URL): SuggestionQuery => {
     return { mode: "invalid" }
   }
 
+  const requestedShapes = url.searchParams.getAll("shape")
+  if (requestedShapes.some((shape) => !TRADE_SHAPES.includes(shape as TradeShape))) {
+    return { mode: "invalid" }
+  }
+
+  const shapes = TRADE_SHAPES.filter((shape) => requestedShapes.includes(shape))
+
   return {
     mode: "generate",
     targetCategoryIds: [...new Set(categories)] as CategoryId[],
     excludedPlayerIds: splitList(url.searchParams.get("excludedPlayerIds")),
+    ...(shapes.length ? { shapes } : {}),
   }
 }

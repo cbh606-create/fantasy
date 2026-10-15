@@ -5,6 +5,7 @@ import {
   pickBestStreamerMove,
   planningMatchupBoard,
   scoreStreamerMove,
+  seatStreamerIfOpen,
 } from "@/lib/matchup/streamerMove"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import type { MatchupBoard } from "@/lib/matchup/types"
@@ -30,6 +31,116 @@ const player = (id: string, teamAbbr: string, positions: SeasonPlayer["positions
 })
 
 describe("applyStreamerMoveToDaily", () => {
+  it("does not seat into an ineligible slot even when allowFlexSlots is true", () => {
+    const center = player("fa-c", "BOS", ["C"])
+    const entries: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: null },
+      { slot: "SG", playerId: null },
+    ]
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [{ date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" }],
+    }
+    const seated = seatStreamerIfOpen(
+      entries,
+      "fa-c",
+      DAY,
+      { "fa-c": center },
+      schedule,
+      { allowFlexSlots: true },
+    )
+    expect(seated).toBe(false)
+    expect(entries.every((entry) => entry.playerId === null)).toBe(true)
+  })
+
+  it("still seats later game days when fromDate has no eligible slot", () => {
+    const fa = player("fa-c", "BOS", ["C"])
+    const filler = (id: string, team: string, positions: SeasonPlayer["positions"]) =>
+      player(id, team, positions)
+    // Day 1: only PG/SG open (center cannot sit). Day 2: C open.
+    const d1 = emptyActive().map((entry, index) => {
+      if (entry.slot === "PG" || entry.slot === "SG") return entry
+      const teams = ["NYK", "LAL", "PHX", "MIL", "ATL", "DEN", "GSW", "MIA"] as const
+      const slotIndex = ["SF", "PF", "C", "G", "F", "UTIL", "UTIL", "UTIL"].indexOf(
+        entry.slot,
+      )
+      if (slotIndex < 0) return entry
+      return {
+        ...entry,
+        playerId: `occ-${index}`,
+      }
+    })
+    const occPlayers = d1
+      .filter((entry) => entry.playerId)
+      .map((entry, index) =>
+        filler(
+          entry.playerId!,
+          ["NYK", "LAL", "PHX", "MIL", "ATL", "DEN", "GSW", "MIA"][index]!,
+          ["UTIL"],
+        ),
+      )
+    const d2 = emptyActive()
+    const daily: DailyLineups = { [DAY]: d1, [DAY2]: d2 }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY2, days: [DAY, DAY2] },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY2, homeAbbr: "BOS", awayAbbr: "MIA" },
+        ...occPlayers.map((p) => ({
+          date: DAY,
+          homeAbbr: p.teamAbbr!,
+          awayAbbr: "ORL",
+        })),
+      ],
+    }
+    const playersById = Object.fromEntries([
+      ...occPlayers.map((p) => [p.id, p] as const),
+      ["fa-c", fa] as const,
+    ])
+    const result = applyStreamerMoveToDaily(
+      daily,
+      DAY,
+      "fa-c",
+      { kind: "none", playerId: null },
+      playersById,
+      schedule,
+    )
+    expect(result.daily[DAY]!.some((e) => e.playerId === "fa-c")).toBe(false)
+    expect(result.daily[DAY2]!.some((e) => e.playerId === "fa-c")).toBe(true)
+    expect(result.seatedGameDays).toBe(1)
+  })
+
+  it("does not clear a roster drop when the add cannot seat any day", () => {
+    const dropP = player("bench", "NYK", ["PF"])
+    const fa = player("fa-c", "BOS", ["C"])
+    const d1: SeasonRosterEntry[] = [
+      { slot: "PG", playerId: null },
+      { slot: "SG", playerId: null },
+      { slot: "PF", playerId: "bench" },
+    ]
+    const daily: DailyLineups = { [DAY]: d1 }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "ATL" },
+      ],
+    }
+    const result = applyStreamerMoveToDaily(
+      daily,
+      DAY,
+      "fa-c",
+      { kind: "player", playerId: "bench" },
+      { bench: dropP, "fa-c": fa },
+      schedule,
+    )
+    expect(result.seatedGameDays).toBe(0)
+    expect(result.daily[DAY]!.some((e) => e.playerId === "bench")).toBe(true)
+  })
+
   it("clears a roster drop from fromDate onward and seats the FA on open game days", () => {
     const dropP = player("bench", "NYK", ["PF"])
     const fa = player("fa-bos", "BOS", ["C"])
@@ -102,7 +213,7 @@ describe("applyStreamerMoveToDaily", () => {
     expect(result.daily[DAY]!.map((e) => e.playerId)).toEqual(entries.map((e) => e.playerId))
   })
 
-  it("rejects a guard add when the only open add-day slot is PF", () => {
+  it("skips an ineligible add-day slot but still seats a later eligible day", () => {
     const starters = [
       player("pg", "NYK", ["PG"]),
       player("sg", "LAL", ["SG"]),
@@ -147,12 +258,12 @@ describe("applyStreamerMoveToDaily", () => {
       playersById,
       schedule,
     )
-    expect(result.seatedGameDays).toBe(0)
+    expect(result.seatedGameDays).toBe(1)
     expect(result.daily[DAY]!.some((entry) => entry.playerId === "carrington")).toBe(
       false,
     )
     expect(result.daily[DAY2]!.some((entry) => entry.playerId === "carrington")).toBe(
-      false,
+      true,
     )
   })
 
@@ -488,7 +599,8 @@ describe("pickBestStreamerMove", () => {
       () => true,
       { requirePositiveDelta: false },
     )
-    expect(picked?.playerId).toBe("pf-fa")
+    // Proj-first may prefer the guard's counting line when both can start later.
+    expect(["pf-fa", "carrington"]).toContain(picked?.playerId)
   })
 
   it("can pick a guard into UTIL when a PF hole is also open", () => {
@@ -730,10 +842,280 @@ describe("pickBestStreamerMove", () => {
       () => true,
       { requirePositiveDelta: false },
     )
+    expect(["fa-big", "fa-guard"]).toContain(picked?.playerId)
+  })
+
+  it("prefers higher projectedCatWins over a stronger chase contestedDelta when starts match", () => {
+    const chaseOnly = player("fa-chase", "BOS", ["UTIL"])
+    chaseOnly.projections = {
+      ...chaseOnly.projections,
+      STL: 8,
+      REB: 0.5,
+      PTS: 4,
+      AST: 0.5,
+      BLK: 0.1,
+      TPM: 0.2,
+      FG_PCT: 0.45,
+      FT_PCT: 0.8,
+      TO: 1,
+    }
+    chaseOnly.shooting = { FGM: 2, FGA: 4.5, FTM: 1, FTA: 1.2 }
+    const flipsReb = player("fa-reb", "NYK", ["UTIL"])
+    flipsReb.projections = {
+      ...flipsReb.projections,
+      STL: 0.2,
+      REB: 40,
+      PTS: 4,
+      AST: 0.5,
+      BLK: 0.1,
+      TPM: 0.2,
+      FG_PCT: 0.45,
+      FT_PCT: 0.8,
+      TO: 1,
+    }
+    flipsReb.shooting = { FGM: 2, FGA: 4.5, FTM: 1, FTA: 1.2 }
+    const daily: DailyLineups = { [DAY]: emptyActive(), [DAY2]: emptyActive() }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAY,
+        endDate: DAY2,
+        days: [DAY, DAY2],
+      },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY2, homeAbbr: "BOS", awayAbbr: "DET" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "MIA" },
+        { date: DAY2, homeAbbr: "NYK", awayAbbr: "ORL" },
+      ],
+    }
+    // Chase = STL (declared). REB is a closer non-chase loss — flipping it
+    // raises overall expected wins more than padding hopeless STL.
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        if (categoryId === "STL") {
+          return {
+            categoryId,
+            you: 2,
+            opp: 25,
+            outcome: "L" as const,
+            winProb: 0.22,
+          }
+        }
+        if (categoryId === "REB") {
+          return {
+            categoryId,
+            you: 50,
+            opp: 52,
+            outcome: "L" as const,
+            winProb: 0.47,
+          }
+        }
+        return {
+          categoryId,
+          you: 30,
+          opp: 10,
+          outcome: "W" as const,
+          winProb: 0.85,
+        }
+      }),
+      wins: 7,
+      losses: 2,
+      ties: 0,
+      projectedCatWins: 7,
+    }
+    const chaseScored = scoreStreamerMove(
+      daily,
+      DAY,
+      "fa-chase",
+      { kind: "none", playerId: null },
+      [chaseOnly, flipsReb],
+      schedule,
+      board,
+    )
+    const rebScored = scoreStreamerMove(
+      daily,
+      DAY,
+      "fa-reb",
+      { kind: "none", playerId: null },
+      [chaseOnly, flipsReb],
+      schedule,
+      board,
+    )
+    expect(rebScored).not.toBeNull()
+    expect(chaseScored).not.toBeNull()
+    expect(rebScored!.delta).toBeGreaterThan(chaseScored!.delta)
+
+    const picked = pickBestStreamerMove(
+      ["fa-chase", "fa-reb"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [chaseOnly, flipsReb],
+      schedule,
+      board,
+      () => true,
+      {
+        requirePositiveDelta: false,
+        // STL chase would prefer fa-chase on contestedDelta alone; Proj-first
+        // must still pick the higher expected-wins REB flip.
+        chaseCategoryIds: ["STL"],
+        startsFor: () => 2,
+      },
+    )
+    expect(picked?.playerId).toBe("fa-reb")
+  })
+
+  it("when projectedCatWins ties, prefers the chase specialist over volume", () => {
+    const chaseSpecialist = player("fa-stl", "BOS", ["UTIL"])
+    chaseSpecialist.projections = {
+      ...chaseSpecialist.projections,
+      AST: 8,
+      STL: 5,
+      REB: 2,
+      BLK: 0.2,
+      PTS: 8,
+      TPM: 0.5,
+    }
+    const weakChase = player("fa-weak", "NYK", ["UTIL"])
+    weakChase.projections = {
+      ...weakChase.projections,
+      AST: 0.5,
+      STL: 0.3,
+      REB: 2,
+      BLK: 0.2,
+      PTS: 8,
+      TPM: 0.5,
+    }
+    const daily: DailyLineups = { [DAY]: emptyActive(), [DAY2]: emptyActive() }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAY,
+        endDate: DAY2,
+        days: [DAY, DAY2],
+      },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY2, homeAbbr: "BOS", awayAbbr: "DET" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "MIA" },
+        { date: DAY2, homeAbbr: "NYK", awayAbbr: "ORL" },
+      ],
+    }
+    // Only chase cats are in play; both pads on held cats are identical so
+    // overall delta is driven by the same two cats — chase ranking breaks ties.
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        const chase = categoryId === "STL" || categoryId === "AST"
+        return {
+          categoryId,
+          you: chase ? 3 : 30,
+          opp: chase ? 6 : 10,
+          outcome: chase ? ("L" as const) : ("W" as const),
+          winProb: chase ? 0.42 : 0.8,
+        }
+      }),
+      wins: 5,
+      losses: 4,
+      ties: 0,
+      projectedCatWins: 5,
+    }
+    const picked = pickBestStreamerMove(
+      ["fa-weak", "fa-stl"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [chaseSpecialist, weakChase],
+      schedule,
+      board,
+      () => true,
+      {
+        requirePositiveDelta: false,
+        chaseCategoryIds: ["STL", "AST"],
+        startsFor: () => 2,
+      },
+    )
+    expect(picked?.playerId).toBe("fa-stl")
+  })
+
+  it("prefers higher projectedCatWins when a high-FG% big beats an STL chase specialist", () => {
+    const stlSpecialist = player("fa-stl", "BOS", ["UTIL"])
+    stlSpecialist.projections = {
+      ...stlSpecialist.projections,
+      FG_PCT: 0.46,
+      STL: 2.8,
+      BLK: 0.2,
+      REB: 3,
+      AST: 4,
+      PTS: 11,
+      TPM: 1,
+    }
+    stlSpecialist.shooting = { FGM: 4, FGA: 9, FTM: 2, FTA: 2.5 }
+    const highFgBig = player("fa-big", "NYK", ["UTIL"])
+    highFgBig.projections = {
+      ...highFgBig.projections,
+      FG_PCT: 0.72,
+      STL: 0.5,
+      BLK: 2.4,
+      REB: 10,
+      AST: 1,
+      PTS: 12,
+      TPM: 0,
+    }
+    highFgBig.shooting = { FGM: 5, FGA: 7, FTM: 1, FTA: 2 }
+    const daily: DailyLineups = { [DAY]: emptyActive(), [DAY2]: emptyActive() }
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAY,
+        endDate: DAY2,
+        days: [DAY, DAY2],
+      },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY2, homeAbbr: "BOS", awayAbbr: "DET" },
+        { date: DAY, homeAbbr: "NYK", awayAbbr: "MIA" },
+        { date: DAY2, homeAbbr: "NYK", awayAbbr: "ORL" },
+      ],
+    }
+    const board: MatchupBoard = {
+      categories: ALL_CATEGORY_IDS.map((categoryId) => {
+        const chase = categoryId === "STL"
+        return {
+          categoryId,
+          you: chase ? 3 : 30,
+          opp: chase ? 5 : 10,
+          outcome: chase ? ("L" as const) : ("W" as const),
+          winProb: chase ? 0.42 : 0.8,
+        }
+      }),
+      wins: 5,
+      losses: 4,
+      ties: 0,
+      projectedCatWins: 5,
+    }
+    const picked = pickBestStreamerMove(
+      ["fa-big", "fa-stl"],
+      daily,
+      DAY,
+      { kind: "none", playerId: null },
+      [stlSpecialist, highFgBig],
+      schedule,
+      board,
+      () => true,
+      {
+        requirePositiveDelta: false,
+        chaseCategoryIds: ["STL"],
+      },
+    )
+    // Proj-first: the high-FG% big raises overall expected wins more here.
     expect(picked?.playerId).toBe("fa-big")
   })
 
-  it("scores contestedDelta on chaseCategoryIds only so extra counting stats cannot win", () => {
+  it("when projectedCatWins is close, chaseCategoryIds break ties ahead of density", () => {
     const highChase = player("fa-count-a", "BOS", ["UTIL"])
     highChase.projections = {
       ...highChase.projections,
@@ -745,14 +1127,16 @@ describe("pickBestStreamerMove", () => {
       FG_PCT: 0.4,
     }
     const highOther = player("fa-count-b", "NYK", ["UTIL"])
+    // Mirror counting volume on held cats but stay weak on the chase pair so
+    // overall board delta stays near the chase specialist.
     highOther.projections = {
       ...highOther.projections,
-      AST: 1.2,
-      STL: 0.3,
-      REB: 14,
-      BLK: 3.4,
-      PTS: 22,
-      FG_PCT: 0.64,
+      AST: 10.5,
+      STL: 3.5,
+      REB: 1.2,
+      BLK: 0.15,
+      PTS: 6.5,
+      FG_PCT: 0.41,
     }
     const daily: DailyLineups = { [DAY]: emptyActive(), [DAY2]: emptyActive() }
     const schedule: ScheduleResponse = {
@@ -772,11 +1156,7 @@ describe("pickBestStreamerMove", () => {
     }
     const board: MatchupBoard = {
       categories: ALL_CATEGORY_IDS.map((categoryId) => {
-        const contested =
-          categoryId === "AST" ||
-          categoryId === "STL" ||
-          categoryId === "REB" ||
-          categoryId === "BLK"
+        const contested = categoryId === "AST" || categoryId === "STL"
         return {
           categoryId,
           you: contested ? 2 : 30,

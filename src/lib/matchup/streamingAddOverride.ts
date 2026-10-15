@@ -1,6 +1,6 @@
 import type { CategoryId } from "@/lib/domain/types"
 import type { MatchupBoard } from "@/lib/matchup/types"
-import { playerHasGameOnDate } from "@/lib/matchup/games"
+import { isStreamAddEligibleOnDate } from "@/lib/matchup/streamingAddEligibility"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 
 export type StreamingAddLock = {
@@ -34,7 +34,9 @@ export const addOverrideCandidates = (input: {
   return input.players.filter((player) => {
     if (!input.availableIds.has(player.id)) return false
     if (locked.has(player.id)) return false
-    if (!playerHasGameOnDate(player, input.date, input.schedule)) return false
+    if (!isStreamAddEligibleOnDate(player, input.date, input.schedule)) {
+      return false
+    }
     if (!needle) return true
     return player.name.toLowerCase().includes(needle)
   })
@@ -55,3 +57,22 @@ export const categoryTotalDeltas = (
   }
   return deltas
 }
+
+export const lockAfterPick = (
+  locks: readonly StreamingAddLock[],
+  pick: StreamingAddLock & { recommendedPlayerId: string | null },
+): StreamingAddLock[] => {
+  const rest = locks.filter(
+    (lock) => lock.date !== pick.date || lock.spotIndex !== pick.spotIndex,
+  );
+  if (pick.playerId === pick.recommendedPlayerId) return rest;
+  return [
+    ...rest,
+    {
+      date: pick.date,
+      spotIndex: pick.spotIndex,
+      playerId: pick.playerId,
+      holdUntil: pick.holdUntil,
+    },
+  ];
+};

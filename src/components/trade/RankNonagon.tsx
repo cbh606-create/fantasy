@@ -71,6 +71,7 @@ export const RankNonagon = ({ teamCount, categories }: RankNonagonProps) => {
         fill="var(--color-ink)"
         fillOpacity="0.2"
         points={afterPoints}
+        stroke="none"
       />
       {categories.map((category, index) => {
         const { x, y } = vertexPoint(labelRadius, index)

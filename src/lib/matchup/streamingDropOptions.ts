@@ -94,6 +94,82 @@ export const collectEarlierRosterDropIds = (
   return dropped
 }
 
+/**
+ * Streamers still held on the plan before this add/drop cell.
+ * Dropdown can cut these even though they are not on the season roster snapshot.
+ */
+export const collectEarlierAddedStreamerIds = (
+  plan: StreamingPlan,
+  date: string,
+  spotIndex: number,
+): string[] => {
+  const targetKey = streamingAddDropKey(date, spotIndex)
+  const held = new Set<string>()
+
+  for (const day of plan.days) {
+    const cells = [...day.cells].sort(
+      (left, right) => left.spotIndex - right.spotIndex,
+    )
+    for (const cell of cells) {
+      const key = streamingAddDropKey(day.date, cell.spotIndex)
+      if (key === targetKey) return [...held]
+
+      if (cell.action === "drop_add" && cell.droppedPlayerId) {
+        held.delete(cell.droppedPlayerId)
+      }
+      if (
+        (cell.action === "add" ||
+          cell.action === "drop_add" ||
+          cell.action === "hold") &&
+        cell.playerId
+      ) {
+        held.add(cell.playerId)
+      }
+      if (cell.action === "empty" && cell.playerId == null) {
+        // Spot cleared; nothing to add. Occupant tracking is per-cell walk.
+      }
+      if (cell.rosterDropKind === "player" && cell.rosterDropPlayerId) {
+        held.delete(cell.rosterDropPlayerId)
+      }
+    }
+  }
+
+  return [...held]
+}
+
+/**
+ * Full dropdown list: every non-IL roster player plus earlier stream adds.
+ * Suggested-drop ranking still uses eligibleRosterDropPlayerIds separately.
+ */
+export const rosterDropSelectPlayerIds = (
+  entries: SeasonRosterEntry[],
+  playersById: Record<string, SeasonPlayer>,
+  earlierDroppedIds: string[],
+  earlierAddedStreamerIds: readonly string[] = [],
+): string[] => {
+  const dropped = new Set(earlierDroppedIds)
+  const ids = new Set<string>()
+
+  for (const entry of entries) {
+    if (isIlSlot(entry.slot) || !entry.playerId) continue
+    if (dropped.has(entry.playerId)) continue
+    if (!playersById[entry.playerId]) continue
+    ids.add(entry.playerId)
+  }
+
+  for (const playerId of earlierAddedStreamerIds) {
+    if (dropped.has(playerId)) continue
+    if (!playersById[playerId]) continue
+    ids.add(playerId)
+  }
+
+  return [...ids].sort((left, right) =>
+    (playersById[left]?.name ?? left).localeCompare(
+      playersById[right]?.name ?? right,
+    ),
+  )
+}
+
 export const rosterDropSelectOptions = (input: {
   eligiblePlayerIds: string[]
   earlierDroppedIds: string[]

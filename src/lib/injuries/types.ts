@@ -41,5 +41,8 @@ export type InjuryPickupRecommendation = {
 export type InjuryPickupsResult = {
   events: InjuryEvent[]
   recommendations: InjuryPickupRecommendation[]
-  source: { depth: "fixture"; injuries: "fixture" }
+  source: {
+    depth: "fixture" | "rotowire" | "empty"
+    injuries: "fixture" | "rotowire" | "empty"
+  }
 }

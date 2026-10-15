@@ -95,6 +95,59 @@ describe("enumeratePackages", () => {
     expect(oneForOnes).toHaveLength(5)
   })
 
+  it("limits packages to the requested shape", () => {
+    const packages = enumeratePackages(state(), undefined, [], ["2:1"])
+
+    expect(packages).toHaveLength(15)
+    expect(packages.every((tradePackage) => tradePackage.shape === "2:1")).toBe(true)
+  })
+
+  it("builds one 3:3 package from two three-player sides", () => {
+    const specialist = { REB: 20, AST: 1 }
+    const opposite = { REB: 1, AST: 20 }
+    const you = ["a", "b", "c"].map((id) => player(id, specialist))
+    const them = ["d", "e", "f"].map((id) => player(id, opposite))
+    const league = state()
+    league.teams = [you, them].map((teamPlayers, teamIndex) => ({
+      teamIndex,
+      name: `Team ${teamIndex}`,
+      entries: teamPlayers.map((rosterPlayer) => ({
+        slot: "UTIL" as const,
+        playerId: rosterPlayer.id,
+      })),
+    }))
+    league.players = [...you, ...them]
+
+    const packages = enumeratePackages(league, undefined, [], ["3:3"])
+
+    expect(packages).toHaveLength(1)
+    expect(packages[0]?.youPlayerIds).toEqual(["a", "b", "c"])
+    expect(packages[0]?.themPlayerIds).toEqual(["d", "e", "f"])
+  })
+
+  it("keeps only the selected shapes when more than one is requested", () => {
+    const specialist = { REB: 20, AST: 1 }
+    const opposite = { REB: 1, AST: 20 }
+    const you = ["a", "b", "c"].map((id) => player(id, specialist))
+    const them = ["d", "e", "f"].map((id) => player(id, opposite))
+    const league = state()
+    league.teams = [you, them].map((teamPlayers, teamIndex) => ({
+      teamIndex,
+      name: `Team ${teamIndex}`,
+      entries: teamPlayers.map((rosterPlayer) => ({
+        slot: "UTIL" as const,
+        playerId: rosterPlayer.id,
+      })),
+    }))
+    league.players = [...you, ...them]
+
+    const packages = enumeratePackages(league, undefined, [], ["1:1", "3:3"])
+    const shapes = packages.map((tradePackage) => tradePackage.shape)
+
+    expect(packages).toHaveLength(10)
+    expect(new Set(shapes)).toEqual(new Set(["1:1", "3:3"]))
+  })
+
   it("skips a team that is weak and strong in the same categories", () => {
     const league = state()
     league.players = league.players.map((rosterPlayer) =>

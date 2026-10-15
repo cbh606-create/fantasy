@@ -1,4 +1,5 @@
 import type { CategoryId } from "@/lib/domain/types"
+import { capnightPlayerZ } from "@/lib/players/capnightZ"
 import {
   analyzeSeasonLeague,
   type SeasonAnalysis,
@@ -11,27 +12,11 @@ import type { PickupRecommendation } from "./types"
 const needCategoryZ = (
   player: SeasonPlayer,
   categoryId: CategoryId,
-  leaguePlayers: SeasonPlayer[],
-): number => {
-  const values = leaguePlayers.map((candidate) => candidate.projections[categoryId])
-  const mean = values.reduce((sum, value) => sum + value, 0) / values.length
-  const deviation = Math.sqrt(
-    values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length,
-  )
-
-  if (deviation === 0) {
-    return 0
-  }
-
-  const z = (player.projections[categoryId] - mean) / deviation
-
-  return categoryId === "TO" ? -z : z
-}
+): number => capnightPlayerZ(player.name).z[categoryId]
 
 const scorePlayerForNeeds = (
   player: SeasonPlayer,
   needCategories: CategoryId[],
-  leaguePlayers: SeasonPlayer[],
 ): { score: number; helpedCategories: CategoryId[] } => {
   if (needCategories.length === 0) {
     return { score: 0, helpedCategories: [] }
@@ -39,7 +24,7 @@ const scorePlayerForNeeds = (
 
   const contributions = needCategories.map((categoryId) => ({
     categoryId,
-    z: needCategoryZ(player, categoryId, leaguePlayers),
+    z: needCategoryZ(player, categoryId),
   }))
 
   const helpedCategories = contributions
@@ -84,7 +69,6 @@ export const recommendPickups = (
       const { score, helpedCategories } = scorePlayerForNeeds(
         player,
         needCategories,
-        state.players,
       )
 
       return [{

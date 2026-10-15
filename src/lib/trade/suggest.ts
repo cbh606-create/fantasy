@@ -17,7 +17,6 @@ import {
   evenValueGap,
   offerSortScore,
   passesShapeRules,
-  replacementScaledValues,
 } from "./score"
 import {
   applyTradePackage,
@@ -81,7 +80,7 @@ export const suggestTrades = (
     context.totalsByTeam,
     state.perspectiveTeamIndex,
   )
-  const values = replacementScaledValues(buildPlayerValueMap(state))
+  const values = buildPlayerValueMap(state)
   const theirSidesByTeamIndex = new Map<number, typeof yourSides>()
   const theirSidesFor = (teamIndex: number) => {
     const cached = theirSidesByTeamIndex.get(teamIndex)
@@ -102,6 +101,7 @@ export const suggestTrades = (
     state,
     context.totalsByTeam,
     excludedPlayerIds,
+    options.shapes,
   ).flatMap(
     (tradePackage): TradeSuggestion[] => {
       const { ok, overpayRatio } = passesShapeRules(tradePackage, values)

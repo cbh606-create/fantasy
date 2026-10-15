@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { mapEspnDayBoxScore, pairClosedScoringPeriods } from "@/lib/espn/dayBoxScore"
+import {
+  mapEspnDayBoxScore,
+  matchupPeriodIdForScoringPeriod,
+  pairClosedScoringPeriods,
+} from "@/lib/espn/dayBoxScore"
 
 describe("pairClosedScoringPeriods", () => {
   const matchupDates = ["2026-10-20", "2026-10-21", "2026-10-22"];
@@ -100,6 +104,39 @@ describe("mapEspnDayBoxScore", () => {
     expect(line?.youPlayedIds).toEqual(["101"])
     expect(line?.oppPlayedIds).toEqual(["201"])
     expect(line?.youShooting).toEqual({ FGM: 8, FGA: 16, FTM: 4, FTA: 5 })
+  })
+
+  it("records a player whose only stat is a block", () => {
+    const line = mapEspnDayBoxScore({
+      date: "2026-10-20",
+      youTeamId: 9,
+      oppTeamId: 4,
+      payload: {
+        schedule: [
+          {
+            home: {
+              teamId: 9,
+              rosterForCurrentScoringPeriod: {
+                entries: [
+                  {
+                    playerPoolEntry: {
+                      player: {
+                        id: 301,
+                        stats: [{ stats: { "1": 2 } }],
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+            away: { teamId: 4, rosterForCurrentScoringPeriod: { entries: [] } },
+          },
+        ],
+      },
+    })
+
+    expect(line?.you.BLK).toBe(2)
+    expect(line?.youPlayedIds).toEqual(["301"])
   })
 
   it("returns null when neither team id is present", () => {

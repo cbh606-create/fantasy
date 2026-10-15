@@ -85,7 +85,7 @@ const fetchEspnFreeAgents = async (
   cookies: EspnCookies,
 ) => {
   const faUrl = new URL(
-    `https://fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
+    `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
   )
   faUrl.searchParams.append("view", "kona_player_info")
 
@@ -131,7 +131,7 @@ export const fetchEspnSeasonLeague = async (params: {
 }): Promise<SeasonLeagueState> => {
   const cookies = resolveCookies(params.cookies)
   const url = new URL(
-    `https://fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
+    `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
   )
   url.searchParams.append("view", "mTeam")
   url.searchParams.append("view", "mRoster")

@@ -41,7 +41,8 @@ type ProjAdpPlayer = {
 }
 
 export type MorningAdviceInput = {
-  today: string
+  /** Clock date for debug / legacy; closing uses ESPN actuals only. */
+  today?: string
   actualsByDate: Map<string, DayActuals>
   previous: MorningCheckRecord | null
   outPlayerIds: string[]
@@ -52,6 +53,8 @@ export type MorningMatchupAdvice = MatchupAdvice & {
   morningSummary?: MorningSummary
   dayComparison?: DayComparisonRow[]
   nextMorningCheck?: MorningCheckRecord
+  /** First matchup day still open after settled closes; null if week fully settled. */
+  frontierDate?: string | null
 }
 
 let cachedProjAdpPlayers: ProjAdpPlayer[] | undefined
@@ -75,14 +78,25 @@ const enabledCategoryIds = (state: SeasonLeagueState): CategoryId[] => {
 
 const scheduleFromDate = (
   schedule: ScheduleResponse,
-  today: string,
+  fromDate: string,
 ): ScheduleResponse => ({
   ...schedule,
   matchup: {
     ...schedule.matchup,
-    days: schedule.matchup.days.filter((date) => date >= today),
+    days: schedule.matchup.days.filter((date) => date >= fromDate),
   },
-  games: schedule.games.filter((game) => game.date >= today),
+  games: schedule.games.filter((game) => game.date >= fromDate),
+})
+
+const emptyRemainingSchedule = (
+  schedule: ScheduleResponse,
+): ScheduleResponse => ({
+  ...schedule,
+  matchup: {
+    ...schedule.matchup,
+    days: [],
+  },
+  games: [],
 })
 
 export const adviseMatchup = (
@@ -111,20 +125,12 @@ export const adviseMatchup = (
 
   const statWindow = options.statWindow ?? "season"
   const morning = options.morning
-  const planSchedule = morning ? scheduleFromDate(schedule, morning.today) : schedule
-  const gamesMap = weightedGamesThisWeekByPlayerId(state.players, schedule)
-  const planGamesMap = morning
-    ? weightedGamesThisWeekByPlayerId(state.players, planSchedule)
-    : gamesMap
-  const streamerGamesMap = gamesThisWeekByPlayerId(state.players, schedule)
-  const streamerB2bMap = b2bSecondNightsThisWeekByPlayerId(state.players, schedule)
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const categoryIds = enabledCategoryIds(state)
 
   const finished = morning
     ? closeFinishedDays({
         matchupDays: schedule.matchup.days,
-        today: morning.today,
         previousClosed: morning.previous?.closedDays ?? [],
         actualsByDate: morning.actualsByDate,
         schedule,
@@ -134,13 +140,30 @@ export const adviseMatchup = (
       })
     : null
 
+  const frontierDate = finished?.frontierDate ?? null
+  const planSchedule = !morning
+    ? schedule
+    : frontierDate
+      ? scheduleFromDate(schedule, frontierDate)
+      : emptyRemainingSchedule(schedule)
+  const gamesMap = weightedGamesThisWeekByPlayerId(state.players, schedule)
+  const planGamesMap = morning
+    ? weightedGamesThisWeekByPlayerId(state.players, planSchedule)
+    : gamesMap
+  const streamerGamesMap = gamesThisWeekByPlayerId(state.players, schedule)
+  const streamerB2bMap = b2bSecondNightsThisWeekByPlayerId(state.players, schedule)
+
+  const remainingDates = frontierDate
+    ? schedule.matchup.days.filter((date) => date >= frontierDate)
+    : morning
+      ? []
+      : schedule.matchup.days
+
   const board = morning && finished
     ? blendedMatchupBoard(
         blendWeekTotals({
           closedDays: finished.closedDays,
-          remainingDates: schedule.matchup.days.filter(
-            (date) => date >= morning.today,
-          ),
+          remainingDates,
           youEntries: youTeam.entries,
           oppEntries: oppTeam.entries,
           playersById,
@@ -188,12 +211,23 @@ export const adviseMatchup = (
       adpByPlayerId,
       winnerStreamRecipes: options.winnerStreamRecipes,
       statWindow,
+      ...(frontierDate ? { today: frontierDate } : {}),
     })
   } catch {
     streamingPlans = []
   }
 
-  const advice: MatchupAdvice = {
+  const dayComparison = dayComparisonRows(
+    schedule.matchup.days,
+    finished?.closedDays ?? [],
+    youTeam.entries,
+    oppTeam.entries,
+    playersById,
+    schedule,
+    statWindow,
+  )
+
+  const advice: MorningMatchupAdvice = {
     opponentTeamIndex,
     scoringPeriod: schedule.matchup,
     board,
@@ -202,10 +236,18 @@ export const adviseMatchup = (
     streamingPlans,
     adpByPlayerId,
     winnerStreamRecipes: options.winnerStreamRecipes ?? [],
+    dayComparison,
+    ...(morning ? { frontierDate } : {}),
   }
 
   if (!morning || !finished) return advice
 
+  const summaryToday =
+    frontierDate ??
+    finished.closedDays[finished.closedDays.length - 1]?.date ??
+    morning.today ??
+    schedule.matchup.days[0] ??
+    ""
   const chosenPlan = streamingPlans.find(
     (plan) => plan.spotCount === (morning.spotCount ?? 1),
   )
@@ -223,24 +265,18 @@ export const adviseMatchup = (
     opponentDays,
     sitStart,
     outPlayerIds: morning.outPlayerIds,
-    today: morning.today,
+    today: summaryToday,
     actualsPending: finished.actualsPending,
   })
-  const dayComparison = dayComparisonRows(
-    finished.closedDays,
-    playersById,
-    schedule,
-    statWindow,
-  )
-
   return {
     ...advice,
     morningSummary,
     dayComparison,
+    frontierDate,
     nextMorningCheck: {
       matchupStartDate: schedule.matchup.startDate,
       opponentTeamIndex,
-      checkedOn: morning.today,
+      checkedOn: summaryToday,
       closedDays: finished.closedDays,
       plan: {
         outcomes: outcomesFromBoard(board),

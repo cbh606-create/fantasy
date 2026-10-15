@@ -166,6 +166,42 @@ describe("live matchup schedule", () => {
     expect(schedule.source).toBe("fixture")
   })
 
+  it("drops preseason games and uses the published regular-season week", async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-09-30T16:00:00Z"))
+    const fetchImpl = async (input: RequestInfo | URL) => {
+      const url = String(input)
+      const payload = url.includes("dates=20261003")
+        ? {
+            events: [
+              {
+                date: "2026-10-03T23:30Z",
+                season: { year: 2027, type: 1, slug: "preseason" },
+                competitions: [
+                  {
+                    date: "2026-10-03T23:30Z",
+                    competitors: [
+                      { homeAway: "home", team: { abbreviation: "TOR" } },
+                      { homeAway: "away", team: { abbreviation: "MIA" } },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }
+        : { events: [] }
+      return new Response(JSON.stringify(payload), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      })
+    }
+
+    const schedule = await getMatchupSchedule({ fetchImpl })
+    expect(schedule.source).toBe("season")
+    expect(schedule.matchup.startDate).toBe("2026-10-19")
+    expect(schedule.games.some((game) => game.date < "2026-10-20")).toBe(false)
+  })
+
   it("keeps live when ESPN returns games for the current week", async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2026-08-26T12:00:00Z"))

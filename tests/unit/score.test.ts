@@ -152,17 +152,14 @@ describe("categoryWinExpectancies", () => {
 })
 
 describe("weightedPlayerZScore", () => {
-  it("ranks the higher-PTS player above a weaker peer in the same pool", () => {
-    const pool = [
-      player("high", { PTS: 30 }),
-      player("low", { PTS: 10 }),
-      player("mid", { PTS: 20 }),
-    ]
-    const stats = playerPoolStats(pool)
-    const weights = { PTS: 1 } as Record<CategoryId, number>
+  it("uses the capnight category z and scores an unknown player at zero", () => {
+    const jokic = player("Nikola Jokic", { PTS: 30 })
+    const unknown = player("not-on-the-sheet", { PTS: 30 })
+    const stats = playerPoolStats([jokic, unknown])
+    const ptsOnly = { PTS: 1 } as Record<CategoryId, number>
 
-    expect(
-      weightedPlayerZScore(pool[0], stats, weights),
-    ).toBeGreaterThan(weightedPlayerZScore(pool[1], stats, weights))
+    expect(weightedPlayerZScore(jokic, stats, ptsOnly)).toBeCloseTo(2.594638, 5)
+    expect(weightedPlayerZScore(unknown, stats, ptsOnly)).toBe(0)
+    expect(weightedPlayerZScore(jokic, stats, { PTS: 0 } as Record<CategoryId, number>)).toBe(0)
   })
 })

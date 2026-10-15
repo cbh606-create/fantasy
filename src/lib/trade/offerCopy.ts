@@ -28,3 +28,10 @@ export const formatValueLine = ({
     ? `Your package is larger by ${gapPercent}%`
     : `Their package is larger by ${gapPercent}%`
 }
+
+export const formatAdvantageLine = (leader: string, valueGap: number) => {
+  const gapPercent = Math.round(valueGap * 100)
+  if (gapPercent === 0) return "Packages are even"
+
+  return `Advantage ${leader} by ${gapPercent}%`
+}

@@ -38,6 +38,10 @@ type EspnCompetition = {
 type EspnEvent = {
   date?: unknown
   competitions?: unknown
+  season?: {
+    slug?: unknown
+    type?: unknown
+  }
 }
 
 type CachedSchedule = {
@@ -76,6 +80,12 @@ const getTeamAbbreviation = (
     : null
 }
 
+const isPreseasonEvent = (event: EspnEvent): boolean => {
+  const slug = event.season?.slug
+  const type = event.season?.type
+  return slug === "preseason" || type === 1
+}
+
 const normalizeCompetition = (
   competition: EspnCompetition,
   eventDate: unknown,
@@ -109,7 +119,7 @@ export const normalizeEspnScoreboard = (
     Array.isArray(payload.events)
       ? (payload.events as EspnEvent[])
       : []
-  const games = events.flatMap((event) => {
+  const games = events.filter((event) => !isPreseasonEvent(event)).flatMap((event) => {
     if (!Array.isArray(event.competitions)) return []
 
     return (event.competitions as EspnCompetition[])
@@ -150,7 +160,7 @@ export const getMatchupSchedule = async (
   // Matchup weeks use the America/New_York local calendar date and run Monday-Sunday.
   const nowDate = options.now ?? new Date()
   const { endIso, startIso } = getNewYorkWeek(nowDate)
-  const cacheKey = `${startIso}:${endIso}:v2`
+  const cacheKey = `${startIso}:${endIso}:v3`
   const now = Date.now()
   if (
     cachedSchedule &&

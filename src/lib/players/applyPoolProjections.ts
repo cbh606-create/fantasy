@@ -7,6 +7,7 @@ export type PoolProjectionPlayer = {
   name: string
   espnId?: string
   teamAbbr?: string
+  status?: "active" | "out" | "gtd"
   projections: Record<CategoryId, number>
   projectedGames?: number
   shooting?: {
@@ -23,6 +24,7 @@ export type SeasonProjectionTarget = {
   teamAbbr?: string
   projections: Record<CategoryId, number>
   projectedGames?: number
+  injuryStatus?: "out" | "gtd"
   shooting?: {
     FGM: number
     FGA: number
@@ -54,10 +56,7 @@ const idKeysFor = (player: {
   return [...keys]
 }
 
-export const applyPoolProjections = <T extends SeasonProjectionTarget>(
-  targets: T[],
-  poolPlayers: PoolProjectionPlayer[],
-): { players: T[]; report: ApplyPoolProjectionsReport } => {
+const poolIndexes = (poolPlayers: PoolProjectionPlayer[]) => {
   const byId = new Map<string, PoolProjectionPlayer>()
   for (const poolPlayer of poolPlayers) {
     for (const key of idKeysFor(poolPlayer)) {
@@ -73,26 +72,57 @@ export const applyPoolProjections = <T extends SeasonProjectionTarget>(
     byName.set(key, list)
   }
 
+  return { byId, byName }
+}
+
+const findPoolPlayer = (
+  target: { id: string; name: string; teamAbbr?: string; espnId?: string },
+  byId: Map<string, PoolProjectionPlayer>,
+  byName: Map<string, PoolProjectionPlayer[]>,
+): PoolProjectionPlayer | undefined => {
+  for (const key of idKeysFor(target)) {
+    const byKey = byId.get(key)
+    if (byKey) return byKey
+  }
+
+  const nameMatches = byName.get(normalizePlayerName(target.name)) ?? []
+  if (nameMatches.length === 1) return nameMatches[0]
+  if (nameMatches.length > 1 && target.teamAbbr) {
+    return nameMatches.find((candidate) => candidate.teamAbbr === target.teamAbbr)
+  }
+  return undefined
+}
+
+const injuryStatusFromPool = (
+  status: PoolProjectionPlayer["status"],
+): "out" | "gtd" | undefined =>
+  status === "out" || status === "gtd" ? status : undefined
+
+export const applyPoolInjuryStatus = <T extends SeasonProjectionTarget>(
+  targets: T[],
+  poolPlayers: PoolProjectionPlayer[],
+): T[] => {
+  const { byId, byName } = poolIndexes(poolPlayers)
+  return targets.map((target) => {
+    const poolPlayer = findPoolPlayer(target, byId, byName)
+    if (!poolPlayer) return target
+    const injuryStatus = injuryStatusFromPool(poolPlayer.status)
+    if (target.injuryStatus === injuryStatus) return target
+    return { ...target, injuryStatus }
+  })
+}
+
+export const applyPoolProjections = <T extends SeasonProjectionTarget>(
+  targets: T[],
+  poolPlayers: PoolProjectionPlayer[],
+): { players: T[]; report: ApplyPoolProjectionsReport } => {
+  const { byId, byName } = poolIndexes(poolPlayers)
+
   const matched: ApplyPoolProjectionsReport["matched"] = []
   const unmatched: ApplyPoolProjectionsReport["unmatched"] = []
 
   const players = targets.map((target) => {
-    let poolPlayer: PoolProjectionPlayer | undefined
-    for (const key of idKeysFor(target)) {
-      poolPlayer = byId.get(key)
-      if (poolPlayer) break
-    }
-
-    if (!poolPlayer) {
-      const nameMatches = byName.get(normalizePlayerName(target.name)) ?? []
-      if (nameMatches.length === 1) {
-        poolPlayer = nameMatches[0]
-      } else if (nameMatches.length > 1 && target.teamAbbr) {
-        poolPlayer = nameMatches.find(
-          (candidate) => candidate.teamAbbr === target.teamAbbr,
-        )
-      }
-    }
+    const poolPlayer = findPoolPlayer(target, byId, byName)
 
     if (!poolPlayer) {
       unmatched.push({ playerId: target.id, name: target.name })
@@ -104,18 +134,26 @@ export const applyPoolProjections = <T extends SeasonProjectionTarget>(
       ...target,
       projections: { ...poolPlayer.projections },
     }
-    if (!target.teamAbbr && poolPlayer.teamAbbr) {
-      next.teamAbbr = normalizeNbaTeamAbbr(poolPlayer.teamAbbr)
-    }
-    if (
-      typeof poolPlayer.projectedGames === "number" &&
-      poolPlayer.projectedGames > 0
-    ) {
-      next.projectedGames = poolPlayer.projectedGames
+    if (poolPlayer.teamAbbr) {
+      if (!target.teamAbbr) {
+        next.teamAbbr = normalizeNbaTeamAbbr(poolPlayer.teamAbbr)
+      }
+      if (
+        typeof poolPlayer.projectedGames === "number" &&
+        poolPlayer.projectedGames > 0
+      ) {
+        next.projectedGames = poolPlayer.projectedGames
+      }
+    } else {
+      // Unsigned in the pool (retired / no club). Do not attach a season
+      // games footprint that would pass stream-add gates while ESPN still
+      // carries a stale last-team abbr.
+      next.projectedGames = undefined
     }
     if (poolPlayer.shooting) {
       next.shooting = { ...poolPlayer.shooting }
     }
+    next.injuryStatus = injuryStatusFromPool(poolPlayer.status)
     return next
   })
 

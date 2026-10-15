@@ -138,6 +138,24 @@ describe("mapEspnLeagueToSeasonState", () => {
     })
   })
 
+  it("uses the ESPN team name instead of the abbreviation", () => {
+    const payload = structuredClone(sample) as EspnLeaguePayload
+    const you = payload.teams?.find((team) => team.id === 9)
+    if (!you) throw new Error("missing sample team")
+    you.name = "Busan Hawks"
+    you.abbrev = "BH"
+    you.location = "My"
+    you.nickname = "Roster"
+
+    const state = mapEspnLeagueToSeasonState(payload, {
+      leagueId: "120853513",
+      season: 2026,
+      teamId: 9,
+    })
+
+    expect(state.teams[1].name).toBe("Busan Hawks")
+  })
+
   it("attaches per-game last-7 rates and skips empty splits", () => {
     const state = mapEspnLeagueToSeasonState(
       sample as EspnLeaguePayload,
@@ -150,6 +168,37 @@ describe("mapEspnLeagueToSeasonState", () => {
     expect(star?.recentRates?.l30?.projections.PTS).toBe(26)
     expect(star?.projections.PTS).toBeCloseTo(24.1 * 82)
     expect(rim?.recentRates?.l7).toBeUndefined()
+  })
+
+  it("stores each category and most categories from ESPN scoringType", () => {
+    const eachCategory = structuredClone(sample) as EspnLeaguePayload
+    eachCategory.settings!.scoringSettings = { scoringType: "H2H_CATEGORY" }
+    const mostCategories = structuredClone(sample) as EspnLeaguePayload
+    mostCategories.settings!.scoringSettings = {
+      scoringType: "H2H_MOST_CATEGORIES",
+    }
+
+    expect(
+      mapEspnLeagueToSeasonState(eachCategory, {
+        leagueId: "120853513",
+        season: 2026,
+        teamId: 9,
+      }).scoringMode,
+    ).toBe("each_category")
+    expect(
+      mapEspnLeagueToSeasonState(mostCategories, {
+        leagueId: "86031675",
+        season: 2026,
+        teamId: 9,
+      }).scoringMode,
+    ).toBe("most_categories")
+    expect(
+      mapEspnLeagueToSeasonState(sample as EspnLeaguePayload, {
+        leagueId: "120853513",
+        season: 2026,
+        teamId: 9,
+      }).scoringMode,
+    ).toBeUndefined()
   })
 
   it("packs team entries using custom ESPN roster slot counts", () => {

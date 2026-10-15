@@ -18,5 +18,23 @@ describe("parseSuggestionQuery", () => {
         targetCategoryIds: ["PTS", "AST"],
         excludedPlayerIds: ["a", "b"],
       })
+    expect(parseSuggestionQuery(new URL("http://localhost/api/trade/suggestions?categories=PTS&shape=3:2")))
+      .toEqual({
+        mode: "generate",
+        targetCategoryIds: ["PTS"],
+        excludedPlayerIds: [],
+        shapes: ["3:2"],
+      })
+    expect(parseSuggestionQuery(new URL("http://localhost/api/trade/suggestions?categories=PTS&shape=1:1&shape=2:2")))
+      .toEqual({
+        mode: "generate",
+        targetCategoryIds: ["PTS"],
+        excludedPlayerIds: [],
+        shapes: ["1:1", "2:2"],
+      })
+    expect(parseSuggestionQuery(new URL("http://localhost/api/trade/suggestions?categories=PTS&shape=4:4")))
+      .toEqual({ mode: "invalid" })
+    expect(parseSuggestionQuery(new URL("http://localhost/api/trade/suggestions?categories=PTS&shape=1:1&shape=4:4")))
+      .toEqual({ mode: "invalid" })
   })
 })

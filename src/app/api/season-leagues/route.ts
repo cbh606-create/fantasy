@@ -5,6 +5,7 @@ import {
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { loadManualSeasonFixture } from "@/lib/season/loadManualSeasonFixture"
+import { dedupeSeasonLeagues } from "@/lib/season/uniqueSeasonLeagues"
 
 type CreateSeasonLeagueBody = {
   name?: unknown
@@ -39,7 +40,7 @@ export const GET = async (): Promise<Response> => {
     },
   })
 
-  return NextResponse.json(leagues)
+  return NextResponse.json(dedupeSeasonLeagues(leagues))
 }
 
 export const POST = async (request: Request): Promise<Response> => {

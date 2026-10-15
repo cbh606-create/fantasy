@@ -4,7 +4,7 @@ import type { CategoryId } from "@/lib/domain/types"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { needsScore, teamNeedsAndSurplus } from "@/lib/trade/needs"
-import { buildPlayerValueMap, playerValue } from "@/lib/trade/value"
+import { playerValue } from "@/lib/trade/value"
 
 const createPlayer = (
   id: string,
@@ -87,26 +87,13 @@ describe("trade value and needs", () => {
     expect(result.surplus).toContain("STL")
   })
 
-  it("assigns higher value to stronger projection profiles", () => {
-    const values = buildPlayerValueMap(state)
+  it("reads capnight value and treats an unknown player as zero", () => {
+    const jokic = createPlayer("jokic", fillerProjections)
+    jokic.name = "Nikola Jokić"
+    const unknown = createPlayer("unknown", fillerProjections)
 
-    expect(values.get("star")).toBeGreaterThan(values.get("scrub")!)
-  })
-
-  it("treats lower turnovers as more valuable", () => {
-    const lowTurnovers = createPlayer("low-turnovers", {
-      ...fillerProjections,
-      TO: 2,
-    })
-    const highTurnovers = createPlayer("high-turnovers", {
-      ...fillerProjections,
-      TO: 6,
-    })
-    const leaguePlayers = [lowTurnovers, highTurnovers]
-
-    expect(playerValue(lowTurnovers, leaguePlayers)).toBeGreaterThan(
-      playerValue(highTurnovers, leaguePlayers),
-    )
+    expect(playerValue(jokic, [])).toBeCloseTo(1.578332, 5)
+    expect(playerValue(unknown, [])).toBe(0)
   })
 
   it("averages inverse ranks for requested needs and scores an empty set as zero", () => {

@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest"
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, describe, expect, it } from "vitest"
+import { CategoryZScale } from "@/components/season/CategoryZScale"
 import { LeagueRankMatrix } from "@/components/season/LeagueRankMatrix"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
@@ -138,6 +139,28 @@ describe("LeagueRankMatrix z row", () => {
 
     expect(close).toHaveFocus()
   })
+
+  it("places a lower dot's name below the dot", () => {
+    render(
+      <CategoryZScale
+        categoryId="REB"
+        dots={[
+          { teamIndex: 1, name: "Alpha", raw: 40, z: 0, isYou: false },
+          { teamIndex: 2, name: "Beta", raw: 30, z: 0, isYou: false },
+          { teamIndex: 3, name: "Gamma", raw: 20, z: 0, isYou: false },
+        ]}
+        mode="expanded"
+      />,
+    )
+
+    const lower = screen.getByTestId("z-dot-3")
+    const upper = screen.getByTestId("z-dot-2")
+
+    expect(Number(lower.getAttribute("data-y"))).toBeGreaterThan(64)
+    expect(lower.querySelector("span")?.className).toContain("top-full")
+    expect(Number(upper.getAttribute("data-y"))).toBeLessThan(64)
+    expect(upper.querySelector("span")?.className).toContain("bottom-full")
+  })
 })
 
 const teamsOverallFixture: SeasonTeamRoster[] = [
@@ -203,5 +226,56 @@ describe("LeagueRankMatrix overall column", () => {
     expect(
       screen.getByTitle("Rank sum 20 (lower is better)"),
     ).toBeInTheDocument()
+  })
+})
+
+describe("LeagueRankMatrix rank basis", () => {
+  afterEach(() => {
+    document.body.style.overflow = ""
+    cleanup()
+  })
+
+  it("switches ranks, sort totals, and the z row to per game", () => {
+    const perGame = analysisWith(true)
+    const pts = perGame.byCategory.find((category) => category.categoryId === "PTS")
+    if (!pts) throw new Error("missing PTS")
+    pts.rows = [
+      { teamIndex: 1, rank: 1, z: 1.5, raw: 30 },
+      { teamIndex: 2, rank: 2, z: 0, raw: 20 },
+      { teamIndex: 0, rank: 3, z: -1.5, raw: 10 },
+    ]
+    perGame.overall = {
+      rows: [
+        { teamIndex: 1, rank: 1, rankSum: 12 },
+        { teamIndex: 2, rank: 2, rankSum: 18 },
+        { teamIndex: 0, rank: 3, rankSum: 24 },
+      ],
+    }
+
+    render(
+      <LeagueRankMatrix
+        analysis={analysisWith(true)}
+        perGameAnalysis={perGame}
+        perspectiveTeamIndex={0}
+        teams={teams}
+      />,
+    )
+
+    const youPts = () => {
+      const row = screen.getByRole("rowheader", { name: "YOU" }).closest("tr")
+      if (!row) throw new Error("missing you row")
+      return within(row).getAllByRole("cell").at(-1)
+    }
+
+    expect(youPts()).toHaveTextContent("#1")
+    fireEvent.click(screen.getByRole("radio", { name: "Per game" }))
+    expect(youPts()).toHaveTextContent("#3")
+    expect(screen.getByTitle("Rank sum 24 (lower is better)")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("radio", { name: "Total" }))
+    expect(youPts()).toHaveTextContent("#1")
+
+    fireEvent.click(screen.getByRole("radio", { name: "Per game" }))
+    fireEvent.click(screen.getByRole("button", { name: "Show PTS league z" }))
+    expect(screen.getByText("YOU · 10.0 · -1.50")).toBeInTheDocument()
   })
 })

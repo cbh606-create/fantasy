@@ -98,60 +98,61 @@ const assignAsymmetricPlayers = (
   forcedDropPlayerId?: string,
   skipEmptyIlSlots = false,
 ): { droppedPlayerId?: string, unplaceable: boolean } => {
-  receivingEntries[receivingIndexes[0]].playerId = incomingPlayerIds[0]
-
-  if (incomingPlayerIds.length === 1) {
-    return { unplaceable: false }
+  const slotCount = Math.min(incomingPlayerIds.length, receivingIndexes.length)
+  for (let index = 0; index < slotCount; index += 1) {
+    receivingEntries[receivingIndexes[index]].playerId = incomingPlayerIds[index]
   }
 
-  const openIndex = findOpenIndex(
-    receivingEntries,
-    receivingIndexes,
-    skipEmptyIlSlots,
-  )
+  let droppedPlayerId: string | undefined
+  let usedForcedDrop = false
+  const protectedIds = new Set(protectedPlayerIds)
 
-  if (openIndex >= 0) {
-    receivingEntries[openIndex].playerId = incomingPlayerIds[1]
-    return { unplaceable: false }
-  }
+  for (const incomingPlayerId of incomingPlayerIds.slice(slotCount)) {
+    const openIndex = findOpenIndex(
+      receivingEntries,
+      receivingIndexes,
+      skipEmptyIlSlots,
+    )
+    if (openIndex >= 0) {
+      receivingEntries[openIndex].playerId = incomingPlayerId
+      continue
+    }
 
-  if (forcedDropPlayerId) {
-    const forcedIndex = receivingEntries.findIndex(
-      (entry, index) =>
-        !receivingIndexes.includes(index)
-        && entry.playerId === forcedDropPlayerId
-        && entry.slot !== "IL",
+    if (forcedDropPlayerId && !usedForcedDrop) {
+      const forcedIndex = receivingEntries.findIndex(
+        (entry, index) =>
+          !receivingIndexes.includes(index)
+          && entry.playerId === forcedDropPlayerId
+          && entry.slot !== "IL",
+      )
+      if (forcedIndex < 0) return { unplaceable: true }
+
+      receivingEntries[forcedIndex].playerId = incomingPlayerId
+      droppedPlayerId = forcedDropPlayerId
+      usedForcedDrop = true
+      continue
+    }
+
+    const { index: dropIndex, blockedByProtection } = findLowestValueIndex(
+      receivingEntries,
+      receivingIndexes,
+      values,
+      protectedIds,
     )
 
-    if (forcedIndex < 0) {
-      return { unplaceable: true }
+    // A miss means no legal cut: either the roster is only the traded slots and
+    // IL players (the extra incoming player cannot fit), or every other
+    // non-IL player is protected (the package is rejected).
+    if (dropIndex < 0) {
+      if (blockedByProtection) return { unplaceable: true }
+
+      return { droppedPlayerId: incomingPlayerId, unplaceable: false }
     }
 
-    receivingEntries[forcedIndex].playerId = incomingPlayerIds[1]
-
-    return { droppedPlayerId: forcedDropPlayerId, unplaceable: false }
+    const cutId = receivingEntries[dropIndex].playerId ?? undefined
+    receivingEntries[dropIndex].playerId = incomingPlayerId
+    if (!droppedPlayerId) droppedPlayerId = cutId
   }
-
-  const { index: dropIndex, blockedByProtection } = findLowestValueIndex(
-    receivingEntries,
-    receivingIndexes,
-    values,
-    new Set(protectedPlayerIds),
-  )
-
-  // A miss means no legal cut: either the roster is only the traded slots and
-  // IL players (the extra incoming player cannot fit), or every other
-  // non-IL player is protected (the package is rejected).
-  if (dropIndex < 0) {
-    if (blockedByProtection) {
-      return { unplaceable: true }
-    }
-
-    return { droppedPlayerId: incomingPlayerIds[1], unplaceable: false }
-  }
-
-  const droppedPlayerId = receivingEntries[dropIndex].playerId ?? undefined
-  receivingEntries[dropIndex].playerId = incomingPlayerIds[1]
 
   return { droppedPlayerId, unplaceable: false }
 }
@@ -193,9 +194,9 @@ export const applyTradePackage = (
     return { state: { ...state, teams } }
   }
 
-  // MVP strategy: equal packages swap pairwise. Asymmetric packages use the
-  // first cleared slot, then an open slot for the extra incoming player, and
-  // drop the receiver's lowest-value untouched player when the roster is full.
+  // Equal packages swap pairwise. Asymmetric packages fill the cleared slots
+  // first. Each extra incoming player takes an open non-IL slot, or the
+  // receiver drops their lowest-value untouched player when the roster is full.
   if (yourIndexes.length === theirIndexes.length) {
     yourIndexes.forEach((entryIndex, index) => {
       yourTeam.entries[entryIndex].playerId = tradePackage.themPlayerIds[index]
@@ -323,6 +324,7 @@ export const totalsAfterTrade = (
   afterState: SeasonLeagueState,
   tradePackage: TradePackage,
   context: TradeAnalysisContext,
+  replacementPlayer?: SeasonPlayer | null,
 ): TeamCategoryTotals[] => {
   const tradedTeamIndexes = [
     afterState.perspectiveTeamIndex,
@@ -337,10 +339,15 @@ export const totalsAfterTrade = (
     const team = afterState.teams.find(
       ({ teamIndex }) => teamIndex === entry.teamIndex,
     )!
+    const roster = rosterPlayers(team, context.playersById)
+    const withReplacement = replacementPlayer
+      && entry.teamIndex === afterState.perspectiveTeamIndex
+      ? [...roster, replacementPlayer]
+      : roster
 
     return {
       teamIndex: entry.teamIndex,
-      totals: teamTotals(rosterPlayers(team, context.playersById)),
+      totals: teamTotals(withReplacement),
     }
   })
 }

@@ -1,40 +1,34 @@
-import { FAIRNESS_BAND, OVERPAY_RATIO } from "./constants"
+import { BEST_PLAYER_GAP, FAIRNESS_BAND, OVERPAY_RATIO } from "./constants"
 import type { TradePackage } from "./types"
 
 const EPSILON = 1e-6
 
-/**
- * Raw player values are z-sums and can be negative, which makes value ratios
- * meaningless. Softplus maps each z-sum to a positive number using only that
- * player's own score, so ordering survives and no single scrub can rescale the
- * pool — a min-based shift would let the worst player in the league decide how
- * generous every fairness and overpay ratio looks.
- */
-export const replacementScaledValues = (
-  values: Map<string, number>,
-): Map<string, number> =>
-  new Map(
-    [...values].map(([playerId, value]) => [
-      playerId,
-      Math.log1p(Math.exp(value)),
-    ]),
-  )
-
 const totalValue = (playerIds: string[], values: Map<string, number>) =>
   playerIds.reduce((sum, playerId) => sum + (values.get(playerId) ?? 0), 0)
+
+const peakValue = (playerIds: string[], values: Map<string, number>) =>
+  playerIds.reduce(
+    (peak, playerId) => Math.max(peak, values.get(playerId) ?? 0),
+    Number.NEGATIVE_INFINITY,
+  )
 
 export const passesShapeRules = (
   tradePackage: TradePackage,
   values: Map<string, number>,
-): { ok: boolean; overpayRatio?: number } => {
+): { ok: boolean; overpayRatio?: number; bestPlayerGap?: number } => {
   const giveValue = totalValue(tradePackage.youPlayerIds, values)
   const getValue = totalValue(tradePackage.themPlayerIds, values)
+  const bestPlayerGap = Math.abs(
+    peakValue(tradePackage.youPlayerIds, values) - peakValue(tradePackage.themPlayerIds, values),
+  )
+  const bestOk = bestPlayerGap <= BEST_PLAYER_GAP
+  const bestFields = bestOk ? {} : { bestPlayerGap }
 
   if (tradePackage.youPlayerIds.length === tradePackage.themPlayerIds.length) {
     const spread = Math.abs(giveValue - getValue)
       / Math.max(giveValue, getValue, EPSILON)
 
-    return { ok: spread <= FAIRNESS_BAND }
+    return { ok: spread <= FAIRNESS_BAND && bestOk, ...bestFields }
   }
 
   const sendsMorePlayers =
@@ -43,7 +37,11 @@ export const passesShapeRules = (
   const singleValue = sendsMorePlayers ? getValue : giveValue
   const overpayRatio = multiValue / Math.max(singleValue, EPSILON)
 
-  return { ok: overpayRatio >= OVERPAY_RATIO, overpayRatio }
+  return {
+    ok: singleValue > 0 && multiValue > 0 && overpayRatio >= OVERPAY_RATIO && bestOk,
+    overpayRatio,
+    ...bestFields,
+  }
 }
 
 /** Relative spread between the two sides of an equal-size package. */

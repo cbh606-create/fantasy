@@ -1,5 +1,6 @@
-import type { CategoryId } from "@/lib/domain/types"
 import type { DailyLineups } from "./dailyLineups"
+import type { CategoryId } from "@/lib/domain/types"
+import type { StreamingAddLock } from "./streamingAddOverride"
 
 export type StatWindow = "season" | "l7" | "l15" | "l30"
 
@@ -68,7 +69,7 @@ export type StreamingDensityTier = "elite" | "strong" | "ok" | "thin"
 
 export type StreamingPlanSpotCount = 1 | 2 | 3
 
-export type OppSpotChoice = "auto" | 1 | 2 | 3
+export type OppSpotChoice = 0 | 1 | 2 | 3
 
 export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
 
@@ -108,6 +109,12 @@ export type OpponentStreamDay = {
   cells: OpponentStreamDayCell[]
 }
 
+export type StreamingChaseNote = {
+  categoryIds: CategoryId[]
+  r: number | null
+  penalty: number
+}
+
 export type StreamingPlan = {
   spotCount: StreamingPlanSpotCount
   addLimit: number
@@ -118,6 +125,8 @@ export type StreamingPlan = {
   days: StreamingPlanDay[]
   opponentDays: OpponentStreamDay[]
   opponentDaily: DailyLineups
+  chaseNote?: StreamingChaseNote
+  rejectedAddLocks: StreamingAddLock[]
 }
 
 export type SlotGroup = "G" | "F" | "C"
@@ -143,4 +152,6 @@ export type MatchupAdvice = {
   streamingPlans: StreamingPlan[]
   adpByPlayerId?: Record<string, number>
   winnerStreamRecipes?: WinnerStreamRecipe[]
+  /** First still-open matchup day after settled closes; null if fully settled. */
+  frontierDate?: string | null
 }

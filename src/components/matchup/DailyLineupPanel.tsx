@@ -54,6 +54,8 @@ type DailyLineupPanelProps = {
   sitStartBadgesByPlayerDay?: Record<string, string>
   /** Players currently on the IL/IR roster slot — shade game cells only. */
   ilPlayerIds?: Set<string> | string[]
+  /** Dates whose actuals are saved. Those seats stay on the players who recorded them. */
+  closedDates?: string[]
   /** Weekly roster seats (PG→IR). Empty slots stay as empty rows. */
   rosterEntries?: SeasonRosterEntry[]
   /** Rendered inside the same week scroller so day columns stay aligned. */
@@ -90,6 +92,7 @@ export const DailyLineupPanel = ({
   extraPlayers,
   sitStartBadgesByPlayerDay = {},
   ilPlayerIds,
+  closedDates = [],
   rosterEntries = [],
   weekFooter,
 }: DailyLineupPanelProps) => {
@@ -98,6 +101,7 @@ export const DailyLineupPanel = ({
   const previewIds = toIdSet(previewPlayerIds)
   const onIlIds = toIdSet(ilPlayerIds)
   const rowPlayers = [...rosterPlayers]
+  const closedDateSet = new Set(closedDates)
   const seenIds = new Set(rosterPlayers.map((player) => player.id))
   for (const extra of extraPlayers ?? []) {
     if (seenIds.has(extra.id)) continue
@@ -107,15 +111,26 @@ export const DailyLineupPanel = ({
 
   const playersById = new Map(rowPlayers.map((player) => [player.id, player]))
   const activeFocusDay = days.includes(focusDay) ? focusDay : (days[0] ?? "")
+  const recordedExtraIds = closedDateSet.has(activeFocusDay)
+    ? (daily[activeFocusDay] ?? []).flatMap((entry) => {
+        if (!entry.playerId) return []
+        const onRoster = rosterEntries.some(
+          (rosterEntry) =>
+            rosterEntry.playerId === entry.playerId && rosterEntry.slot !== "IL",
+        )
+        return onRoster || previewIds.has(entry.playerId) ? [] : [entry.playerId]
+      })
+    : []
   const slotRows = buildLineupDisplayRows(
     rosterEntries,
-    [...previewIds],
-    [...onIlIds],
+    [...previewIds, ...recordedExtraIds],
+    [],
     {
       focusDay: activeFocusDay,
       schedule,
       playersById: Object.fromEntries(playersById),
       daily,
+      restrictToDaily: closedDateSet.has(activeFocusDay),
     },
   )
   const dayColClassName = (day: string, extras: string) =>
@@ -191,16 +206,16 @@ export const DailyLineupPanel = ({
     const isPlanDroppedOnDay = Boolean(
       !isPreview && droppedFrom && day >= droppedFrom,
     )
-    const isLocked = isOutsideStreamerWindow || isPlanDroppedOnDay
+    const isClosedDay = closedDateSet.has(day)
     const teamAbbr = player.teamAbbr ?? ""
-    const hasGame = teamAbbr
-      ? teamHasGameOnDate(teamAbbr, day, schedule)
-      : false
-    const isB2b = teamAbbr
-      ? isB2bSecondNight(teamAbbr, day, schedule)
-      : false
     const startedIndex = findPlayerSlotIndex(daily, day, player.id)
     const started = startedIndex >= 0
+    const isLocked =
+      isOutsideStreamerWindow || (isPlanDroppedOnDay && !started)
+    const hasGame =
+      (isClosedDay && started) ||
+      (teamAbbr ? teamHasGameOnDate(teamAbbr, day, schedule) : false)
+    const isB2b = teamAbbr ? isB2bSecondNight(teamAbbr, day, schedule) : false
     const startedSlot =
       startedIndex >= 0 ? daily[day]?.[startedIndex]?.slot : null
     const weeklyHome = rosterEntries.find(
@@ -213,10 +228,12 @@ export const DailyLineupPanel = ({
     const ariaLabel = startedSlot
       ? `${action} ${player.name} on ${formatMatchupDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
       : `${action} ${player.name} on ${formatMatchupDayLabel(day)}`
-    const lockedAriaLabel = isPlanDroppedOnDay
-      ? `${player.name} dropped from streaming plan on ${formatMatchupDayLabel(day)}`
-      : `${player.name} not on streaming plan on ${formatMatchupDayLabel(day)}`
     const irAriaLabel = `${player.name} on IR ${formatMatchupDayLabel(day)}`
+    const lockedAriaLabel = isClosedDay
+      ? `${player.name} recorded on ${formatMatchupDayLabel(day)}`
+      : isPlanDroppedOnDay
+        ? `${player.name} dropped from streaming plan on ${formatMatchupDayLabel(day)}`
+        : `${player.name} not on streaming plan on ${formatMatchupDayLabel(day)}`
 
     if (!hasGame) {
       return (
@@ -248,16 +265,16 @@ export const DailyLineupPanel = ({
             className={`inline-flex h-8 min-w-[3.5rem] items-center justify-center whitespace-nowrap rounded-md px-1 text-[0.625rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
               onIl
                 ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-80"
-                : isLocked
-                  ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
-                  : started
-                    ? "bg-[var(--color-ink)] text-white hover:opacity-90"
-                    : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
+                : isClosedDay && started
+                  ? "bg-[var(--color-ink)] text-white"
+                  : isLocked
+                    ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-70"
+                    : started
+                      ? "bg-[var(--color-ink)] text-white hover:opacity-90"
+                      : "border border-[var(--color-hairline)] bg-white text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)]"
             }`}
             disabled={isLocked}
-            onClick={() =>
-              handleToggle(player, day, hasGame, isLocked, onIl)
-            }
+            onClick={() => handleToggle(player, day, hasGame, isLocked, onIl)}
             type="button"
           >
             {onIl ? (
@@ -463,7 +480,11 @@ export const DailyLineupPanel = ({
             })}
           </tbody>
         </table>
-        {weekFooter}
+        {weekFooter ? (
+          <div className="mt-5 border-t border-[var(--color-hairline)]">
+            {weekFooter}
+          </div>
+        ) : null}
       </div>
     </section>
   )

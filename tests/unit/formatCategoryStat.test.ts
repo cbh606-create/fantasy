@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   categoryStatLead,
+  fantasyCategoryDelta,
   formatCategoryStatDelta,
 } from "@/lib/season/formatCategoryStat"
 
@@ -20,5 +21,11 @@ describe("formatCategoryStatDelta", () => {
     expect(formatCategoryStatDelta("STL", 0)).toBe("0.0")
     expect(formatCategoryStatDelta("FG_PCT", 0.01)).toBe("+1.00%")
     expect(formatCategoryStatDelta("FT_PCT", -0.02)).toBe("-2.00%")
+  })
+
+  it("shows a turnover increase as a loss", () => {
+    expect(formatCategoryStatDelta("TO", fantasyCategoryDelta("TO", 10))).toBe("-10.0")
+    expect(formatCategoryStatDelta("TO", fantasyCategoryDelta("TO", -4))).toBe("+4.0")
+    expect(formatCategoryStatDelta("PTS", fantasyCategoryDelta("PTS", 10))).toBe("+10.0")
   })
 })

@@ -1,6 +1,7 @@
 import type { CategoryId } from "@/lib/domain/types"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { MAX_STREAMERS, MIN_STREAMER_GAMES } from "./constants"
+import { filterStreamAddPool } from "./streamingAddEligibility"
 import type {
   MatchupBoard,
   StatWindow,
@@ -8,6 +9,7 @@ import type {
   WinnerStreamRecipe,
 } from "./types"
 import { weeklyPlayerStats } from "./weekly"
+import { expectedWinsAdded } from "./streamingDropPolicy"
 import { winnerPriorHits } from "./winnerStreamPrior"
 
 const STREAMER_COUNTING_CATEGORIES: CategoryId[] = [
@@ -118,19 +120,28 @@ export const suggestStreamers = ({
     }
     const hitDelta = rankHits(right.playerId) - rankHits(left.playerId)
     if (hitDelta !== 0) return hitDelta
-    return left.playerId.localeCompare(right.playerId)
+    const leftPlayer = playersById.get(left.playerId)
+    const rightPlayer = playersById.get(right.playerId)
+    const leftWins = leftPlayer
+      ? expectedWinsAdded(leftPlayer, left.gamesThisWeek, board, statWindow)
+      : 0
+    const rightWins = rightPlayer
+      ? expectedWinsAdded(rightPlayer, right.gamesThisWeek, board, statWindow)
+      : 0
+    return rightWins - leftWins
   }
 
   const buildCandidates = (minGames: number): StreamerSuggestion[] =>
-    state.availablePlayerIds
-      .flatMap((playerId) => {
-        const player = playersById.get(playerId)
-        if (!player) return []
-
-        const gamesThisWeek = gamesMap.get(playerId) ?? 0
+    filterStreamAddPool(
+      state.availablePlayerIds
+        .map((playerId) => playersById.get(playerId))
+        .filter((player): player is SeasonPlayer => Boolean(player)),
+    )
+      .flatMap((player) => {
+        const gamesThisWeek = gamesMap.get(player.id) ?? 0
         if (gamesThisWeek < minGames) return []
 
-        const b2bNights = b2bMap.get(playerId) ?? 0
+        const b2bNights = b2bMap.get(player.id) ?? 0
         const score = streamerScore(player, gamesThisWeek, weakCats, statWindow)
         const helped = helpedCategories(
           player,
@@ -141,7 +152,7 @@ export const suggestStreamers = ({
 
         return [
           {
-            playerId,
+            playerId: player.id,
             score,
             gamesThisWeek,
             b2bNights,

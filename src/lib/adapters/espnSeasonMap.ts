@@ -1,5 +1,6 @@
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import { ASSUMED_SEASON_GAMES } from "@/lib/matchup/constants"
+import { scoringModeFromEspn } from "@/lib/season/scoringMode"
 import { SEASON_ROSTER_SLOTS } from "@/lib/season/slots"
 import type {
   SeasonLeagueState,
@@ -156,6 +157,7 @@ type EspnRosterEntry = {
 type EspnTeam = {
   id: number
   abbrev?: string
+  name?: string
   location?: string
   nickname?: string
   roster?: {
@@ -170,6 +172,9 @@ export type EspnLeaguePayload = {
     name?: string
     rosterSettings?: {
       lineupSlotCounts?: Record<string, number>
+    }
+    scoringSettings?: {
+      scoringType?: string
     }
   }
   teams?: EspnTeam[]
@@ -333,6 +338,7 @@ const packEntries = (
 }
 
 const teamName = (team: EspnTeam): string => {
+  if (team.name?.trim()) return team.name.trim()
   const combined = [team.location, team.nickname].filter(Boolean).join(" ").trim()
   if (combined) return combined
   if (team.abbrev?.trim()) return team.abbrev.trim()
@@ -381,10 +387,14 @@ export const mapEspnLeagueToSeasonState = (
 
   const season = payload.seasonId ?? params.season
   const name = payload.settings?.name?.trim() || `ESPN League ${params.leagueId}`
+  const scoringMode = scoringModeFromEspn(
+    payload.settings?.scoringSettings?.scoringType,
+  )
   return {
     id: params.leagueId,
     name,
     season,
+    ...(scoringMode ? { scoringMode } : {}),
     categories: defaultCategorySettings(),
     perspectiveTeamIndex: perspectiveIndex,
     espnTeamId: params.teamId,

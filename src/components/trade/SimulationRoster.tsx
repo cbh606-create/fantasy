@@ -5,6 +5,7 @@ import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 export type SimulationRosterPlayer = {
   id: string
   name: string
+  value: number
 }
 
 export type SimulationRosterProps = {
@@ -22,6 +23,7 @@ export type SimulationRosterProps = {
 
 const pressedClass = "bg-[var(--color-ink)] text-white"
 const quietClass = "border border-[var(--color-hairline)]"
+const headerClass = "flex h-9 w-full items-center rounded px-2 text-sm font-semibold"
 
 export const SimulationRoster = ({
   label,
@@ -41,12 +43,11 @@ export const SimulationRoster = ({
   }
 
   return (
-    <section className="flex min-h-0 flex-col">
-      <h3 className="text-sm font-semibold">{label}</h3>
+    <section>
       {teamOptions ? (
         <select
           aria-label="Team"
-          className="mt-2 rounded border border-[var(--color-hairline)] px-2 py-1 text-sm"
+          className={`${headerClass} border border-[var(--color-hairline)]`}
           onChange={(event) => handleTeamChange(event.target.value)}
           value={teamIndex ?? ""}
         >
@@ -57,8 +58,10 @@ export const SimulationRoster = ({
             </option>
           ))}
         </select>
-      ) : null}
-      <div aria-label={label} className="mt-2 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" role="group">
+      ) : (
+        <h3 className={headerClass}>{label}</h3>
+      )}
+      <div aria-label={label} className="mt-2 flex flex-col gap-1" role="group">
         {players.map((player) => {
           const pressed = pressedIds.includes(player.id)
           const showDrop = droppableIds.includes(player.id) && !pressed
@@ -66,6 +69,7 @@ export const SimulationRoster = ({
           return (
             <div className="flex items-center gap-1" key={player.id}>
               <button
+                aria-label={player.name}
                 aria-pressed={pressed}
                 className={`flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1 text-left text-sm ${pressed ? pressedClass : quietClass}`}
                 onClick={() => onPress(player.id)}
@@ -73,6 +77,9 @@ export const SimulationRoster = ({
               >
                 <PlayerAvatar nameShown player={{ id: player.id, name: player.name }} size="sm" />
                 <span className="truncate">{player.name}</span>
+                <span className="shrink-0 text-xs tabular-nums opacity-70">
+                  {player.value.toFixed(3)}
+                </span>
               </button>
               {showDrop ? (
                 <button

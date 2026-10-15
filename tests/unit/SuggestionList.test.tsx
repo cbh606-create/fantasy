@@ -89,6 +89,7 @@ describe("SuggestionList", () => {
     )
 
     expect(screen.getAllByRole("button", { name: /trade/i })).toHaveLength(20)
+    expect(screen.getAllByText("0.000").length).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByRole("button", { name: "Show 20 more" }))
 
@@ -114,5 +115,45 @@ describe("SuggestionList", () => {
     expect(screen.queryByRole("button", { name: "Show 5 more" })).toBeNull()
     expect(screen.getAllByRole("button", { name: /trade/i })).toHaveLength(25)
     expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it("keeps the selected detail beside the deal list", () => {
+    render(
+      <SuggestionList
+        onSelect={vi.fn()}
+        selectedDetail={<p>Deal detail body</p>}
+        selectedId="offer-0"
+        state={buildState(2)}
+        suggestions={buildSuggestions(2)}
+      />,
+    )
+
+    expect(screen.getByRole("list", { name: "Trade suggestions" })).not.toHaveTextContent(
+      "Deal detail body",
+    )
+    expect(screen.getByText("Deal detail body")).toBeInTheDocument()
+  })
+
+  it("filters the list to one opponent team", () => {
+    const state = buildState(2)
+    state.teams.push({ teamIndex: 2, name: "Other", entries: [] })
+    const suggestions = buildSuggestions(2)
+    suggestions[1] = { ...suggestions[1], counterpartyTeamIndex: 2 }
+    const onSelect = vi.fn()
+
+    render(
+      <SuggestionList
+        onSelect={onSelect}
+        selectedId="offer-0"
+        state={state}
+        suggestions={suggestions}
+      />,
+    )
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Team" }), { target: { value: "2" } })
+
+    expect(screen.queryByRole("button", { name: /for get 0$/i })).toBeNull()
+    expect(screen.getByRole("button", { name: /for get 1$/i })).toBeInTheDocument()
+    expect(onSelect).toHaveBeenCalledWith("offer-1")
   })
 })

@@ -1,11 +1,12 @@
 import {
   B2B_NIGHT2_MIN_OPPORTUNITIES,
   B2B_SECOND_NIGHT_PLAY_RATE,
-  WEEKLY_ADD_LIMIT,
 } from "@/lib/matchup/constants"
 import { normalizeNbaTeamAbbr } from "@/lib/nba/teamAbbr"
+import { normalizePlayerName } from "@/lib/players/hashtagImport"
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
 import night2File from "../../../data/players/b2b_night2_2025_26.json"
+import expectedReturnsFile from "../../../data/players/expected-returns-2026-27.json"
 
 export type B2bNight2RateRow = {
   appearances: number
@@ -37,6 +38,51 @@ export const night2PlayRateFromLogs = (
   return appearances / opportunities
 }
 
+export type ExpectedReturnRow = {
+  espnId?: string
+  name: string
+  returnDate: string
+}
+
+type ExpectedReturnsFile = {
+  returns?: ExpectedReturnRow[]
+}
+
+const loadedExpectedReturns = (): ExpectedReturnRow[] =>
+  (expectedReturnsFile as ExpectedReturnsFile).returns ?? []
+
+let expectedReturnRows: ExpectedReturnRow[] = loadedExpectedReturns()
+
+export const setExpectedReturnsForTests = (
+  rows: ExpectedReturnRow[] | null,
+) => {
+  expectedReturnRows = rows ?? loadedExpectedReturns()
+}
+
+const idsMatch = (playerId: string, espnId: string): boolean =>
+  playerId === espnId || playerId === `espn-${espnId}`
+
+export const expectedReturnDateFor = (
+  player: Pick<SeasonPlayer, "id" | "name">,
+): string | undefined => {
+  for (const row of expectedReturnRows) {
+    if (row.espnId && idsMatch(player.id, row.espnId)) return row.returnDate
+  }
+  const name = normalizePlayerName(player.name)
+  return expectedReturnRows.find(
+    (row) => normalizePlayerName(row.name) === name,
+  )?.returnDate
+}
+
+const unavailableOnDate = (
+  player: Pick<SeasonPlayer, "id" | "name" | "injuryStatus">,
+  date: string,
+): boolean => {
+  const returnDate = expectedReturnDateFor(player)
+  if (returnDate) return date < returnDate
+  return player.injuryStatus === "out"
+}
+
 export const b2bNight2PlayRateForPlayer = (playerId: string): number => {
   const row = night2RateTable[playerId]
   if (!row) return B2B_SECOND_NIGHT_PLAY_RATE
@@ -61,21 +107,42 @@ export const teamHasGameOnDate = (
 
 const teamOnGame = teamHasGameOnDate
 
-/**
- * ESPN weekly acquisition limit (7), not NBA game-day count.
- * Normal matchups stay at 7. All-Star / NBA Cup scoring periods that
- * span extra days scale up (10-day → 10, two full weeks → 14).
- */
+export const playerHasGameOnDate = (
+  player: Pick<SeasonPlayer, "id" | "name" | "teamAbbr" | "injuryStatus">,
+  date: string,
+  schedule: ScheduleResponse,
+): boolean => {
+  if (unavailableOnDate(player, date)) return false
+  if (!player.teamAbbr) return false
+  return teamHasGameOnDate(player.teamAbbr, date, schedule)
+}
+
+export const gameWeightForPlayerDate = (
+  player: Pick<SeasonPlayer, "id" | "name" | "teamAbbr" | "injuryStatus">,
+  date: string,
+  schedule: ScheduleResponse,
+  lookbackDates?: string[],
+): number => {
+  if (!playerHasGameOnDate(player, date, schedule)) return 0
+  return gameWeightForTeamDate(
+    player.teamAbbr ?? "",
+    date,
+    schedule,
+    lookbackDates,
+    player.id,
+  )
+}
+
+/** Matchup days that have at least one NBA game, not days the user's teams play. */
 export const streamingAddLimitForSchedule = (
   schedule: ScheduleResponse,
 ): number => {
-  const days = schedule.matchup.days.length
-  if (days <= 0) return WEEKLY_ADD_LIMIT
-  if (days <= 8) return WEEKLY_ADD_LIMIT
-  return Math.max(
-    WEEKLY_ADD_LIMIT,
-    Math.round((WEEKLY_ADD_LIMIT * days) / 7),
-  )
+  const week = new Set(schedule.matchup.days)
+  const nbaDays = new Set<string>()
+  for (const game of schedule.games) {
+    if (week.has(game.date)) nbaDays.add(game.date)
+  }
+  return nbaDays.size
 }
 
 export const previousIsoDate = (iso: string): string => {
@@ -161,6 +228,7 @@ export const weightedGamesInDaysByPlayerId = (
 
     let total = 0
     for (const day of daySet) {
+      if (unavailableOnDate(player, day)) continue
       total += gameWeightForTeamDate(teamAbbr, day, schedule, undefined, player.id)
     }
     map.set(player.id, total)
@@ -194,6 +262,7 @@ export const gamesInDaysByPlayerId = (
 
     const gameDays = new Set<string>()
     for (const day of daySet) {
+      if (unavailableOnDate(player, day)) continue
       if (teamOnGame(teamAbbr, day, schedule)) gameDays.add(day)
     }
     map.set(player.id, gameDays.size)
@@ -228,6 +297,7 @@ export const b2bSecondNightsInDaysByPlayerId = (
 
     let count = 0
     for (const day of daySet) {
+      if (unavailableOnDate(player, day)) continue
       if (!teamOnGame(teamAbbr, day, schedule)) continue
       if (isB2bSecondNight(teamAbbr, day, schedule)) count += 1
     }

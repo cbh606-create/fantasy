@@ -28,7 +28,12 @@ export type SuggestedStreamingDrop = {
 }
 
 export const CONTESTED_WIN_PROB_MIN = 0.28
-const CONTESTED_WIN_PROB_MAX = 0.72
+export const CONTESTED_WIN_PROB_MAX = 0.72
+
+/** Losing/tied cats at or above this are "close to a win" for chase priority. */
+export const CLOSE_TO_WIN_MIN_WIN_PROB = 0.45
+/** Contested cats within this distance of 0.5 are "close to a flip". */
+export const CLOSE_TO_FLIP_MAX_ABS = 0.12
 
 export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean => {
   if (row.winProb < CONTESTED_WIN_PROB_MIN) return false
@@ -38,9 +43,35 @@ export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean => {
 }
 
 const RANK_WIN_PROB_CAP = 0.7
-const AST_STL_CLUSTER_GAP = 0.08
 
-/** Chase cats used by ranking and pickBestStreamerMove. Max 2, except AST+STL cluster. */
+const chaseTier = (row: MatchupCategoryRow): 0 | 1 | 2 => {
+  if (
+    (row.outcome === "L" || row.outcome === "T") &&
+    row.winProb >= CLOSE_TO_WIN_MIN_WIN_PROB
+  ) {
+    return 0
+  }
+  if (Math.abs(row.winProb - 0.5) <= CLOSE_TO_FLIP_MAX_ABS) {
+    return 1
+  }
+  return 2
+}
+
+const compareChaseRows = (
+  left: MatchupCategoryRow,
+  right: MatchupCategoryRow,
+): number => {
+  const tierDelta = chaseTier(left) - chaseTier(right)
+  if (tierDelta !== 0) return tierDelta
+  const tier = chaseTier(left)
+  if (tier === 0) return right.winProb - left.winProb
+  if (tier === 1) {
+    return Math.abs(left.winProb - 0.5) - Math.abs(right.winProb - 0.5)
+  }
+  return left.winProb - right.winProb
+}
+
+/** Chase cats used by ranking and pickBestStreamerMove. Close-to-win, then flip, then weak. */
 export const chaseCategoryIds = (
   board: MatchupBoard,
   puntCategoryIds: ReadonlySet<CategoryId> = new Set(),
@@ -51,17 +82,8 @@ export const chaseCategoryIds = (
       row.winProb < RANK_WIN_PROB_CAP &&
       !puntCategoryIds.has(row.categoryId),
   )
-  const ast = contested.find((row) => row.categoryId === "AST")
-  const stl = contested.find((row) => row.categoryId === "STL")
-  if (
-    ast &&
-    stl &&
-    Math.abs(ast.winProb - stl.winProb) <= AST_STL_CLUSTER_GAP
-  ) {
-    return ["AST", "STL"]
-  }
   return [...contested]
-    .sort((left, right) => left.winProb - right.winProb)
+    .sort(compareChaseRows)
     .slice(0, 2)
     .map((row) => row.categoryId)
 }
@@ -87,13 +109,22 @@ export const formatHelpsCatsLine = (categoryIds: CategoryId[]): string =>
 export const targetCategoryIdsFromBoards = (
   before: MatchupBoard,
   after: MatchupBoard,
+  allowedCategoryIds?: readonly CategoryId[],
 ): CategoryId[] => {
   const afterById = new Map(
     after.categories.map((row) => [row.categoryId, row]),
   )
+  // undefined = no allowlist; [] = allow none (e.g. every chase cat was punted).
+  // Do not treat [] as "unrestricted" — that resurfaces punted cats on Add chips.
+  if (allowedCategoryIds !== undefined && allowedCategoryIds.length === 0) {
+    return []
+  }
+  const allowed =
+    allowedCategoryIds === undefined ? null : new Set(allowedCategoryIds)
 
   return before.categories
     .flatMap((beforeRow) => {
+      if (allowed && !allowed.has(beforeRow.categoryId)) return []
       if (beforeRow.outcome === "W" && beforeRow.winProb >= 0.65) return []
       const afterRow = afterById.get(beforeRow.categoryId)
       if (!afterRow) return []

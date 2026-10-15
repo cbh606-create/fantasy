@@ -1,4 +1,5 @@
 import type { ScheduleResponse, SeasonPlayer } from "@/lib/season/types"
+import { playerHasGameOnDate } from "./games"
 import type { StreamingDensityTier } from "./types"
 import { densityTierRank } from "./streamingStrategy"
 
@@ -16,16 +17,7 @@ const playsOn = (
   player: SeasonPlayer,
   date: string,
   schedule: ScheduleResponse,
-): boolean => {
-  const team = player.teamAbbr?.toUpperCase()
-  if (!team) return false
-  return schedule.games.some((game) => {
-    if (game.date !== date) return false
-    const home = game.homeAbbr.toUpperCase()
-    const away = game.awayAbbr.toUpperCase()
-    return home === team || away === team
-  })
-}
+): boolean => playerHasGameOnDate(player, date, schedule)
 
 const hasB2B = (gameDates: string[], days: string[]): boolean => {
   const indices = gameDates

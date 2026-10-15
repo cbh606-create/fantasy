@@ -2,8 +2,11 @@ import { PrismaLibSql } from "@prisma/adapter-libsql"
 import { PrismaClient } from "@prisma/client"
 import path from "node:path"
 
+const PRISMA_REVISION = 2
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
+  prismaRevision?: number
 }
 
 const resolveSqliteUrl = () => {
@@ -34,13 +37,18 @@ const hasEspnCredentialDelegate = (client: PrismaClient) => {
 
 const resolveClient = () => {
   const cached = globalForPrisma.prisma
-  if (cached && hasEspnCredentialDelegate(cached)) {
+  if (
+    cached &&
+    globalForPrisma.prismaRevision === PRISMA_REVISION &&
+    hasEspnCredentialDelegate(cached)
+  ) {
     return cached
   }
 
   const created = createPrismaClient()
   if (process.env.NODE_ENV !== "production") {
     globalForPrisma.prisma = created
+    globalForPrisma.prismaRevision = PRISMA_REVISION
   }
   return created
 }

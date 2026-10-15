@@ -4,8 +4,12 @@ import { db } from "@/lib/db"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { getUserEspnCookies } from "@/lib/espn/credentials"
 import { fetchEspnDayActuals } from "@/lib/espn/dayBoxScore"
+import { fetchEspnFantasyMatchupWindow } from "@/lib/espn/fantasyMatchupSchedule"
 import { loadWinnerStreamRecipes } from "@/lib/espn/winnerStreamHistory"
+import { readEnvEspnCookies } from "@/lib/espn/cookies"
 import { adviseMatchup } from "@/lib/matchup/advise"
+import { applyPoolInjuryStatus } from "@/lib/players/applyPoolProjections"
+import { loadProjPoolPlayers } from "@/lib/players/loadProjPool"
 import { loadStatPairs } from "@/lib/players/loadStatPairs"
 import type { StatPairRow } from "@/lib/players/statPairCorrelation"
 import type { DayActuals } from "@/lib/matchup/morningCheck"
@@ -13,6 +17,7 @@ import {
   actualsFromClosedDays,
   morningCheckForOpponent,
   parseMorningCheck,
+  savedClosedCoversEspnDates,
 } from "@/lib/matchup/morningCheckStore"
 import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
 import {
@@ -20,7 +25,7 @@ import {
   type MatchupAdvice,
   type WinnerStreamRecipe,
 } from "@/lib/matchup/types"
-import type { SeasonLeagueState } from "@/lib/season/types"
+import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
 import {
   loadOwnedSeasonLeague,
   type LoadedSeasonLeague,
@@ -40,6 +45,60 @@ const defaultOpponentIndex = (state: SeasonLeagueState): number | null => {
     (team) => team.teamIndex !== state.perspectiveTeamIndex,
   )
   return opponent?.teamIndex ?? null
+}
+
+const teamIndexForEspnId = (
+  state: SeasonLeagueState,
+  espnTeamId: number,
+): number | null => {
+  const team = state.teams.find((entry) => entry.espnTeamId === espnTeamId)
+  return team?.teamIndex ?? null
+}
+
+const resolveMatchupSchedule = async (input: {
+  loaded: LoadedSeasonLeague
+  userId: string
+}): Promise<{
+  schedule: ScheduleResponse
+  espnOpponentTeamIndex: number | null
+}> => {
+  const { loaded } = input
+  if (loaded.state.source !== "espn" || !loaded.espnLeagueId) {
+    return { schedule: await getMatchupSchedule(), espnOpponentTeamIndex: null }
+  }
+
+  const youTeamId = loaded.state.espnTeamId
+  if (youTeamId == null) {
+    return { schedule: await getMatchupSchedule(), espnOpponentTeamIndex: null }
+  }
+
+  const userCookies = await getUserEspnCookies(input.userId)
+  const envCookies =
+    process.env.ESPN_LIVE === "true" ? readEnvEspnCookies() : null
+  const cookies = userCookies ?? envCookies
+  if (!cookies) {
+    return { schedule: await getMatchupSchedule(), espnOpponentTeamIndex: null }
+  }
+
+  try {
+    const window = await fetchEspnFantasyMatchupWindow({
+      leagueId: loaded.espnLeagueId,
+      season: loaded.state.season,
+      youEspnTeamId: youTeamId,
+      cookies,
+    })
+    const espnOpponentTeamIndex =
+      window.opponentEspnTeamId == null
+        ? null
+        : teamIndexForEspnId(loaded.state, window.opponentEspnTeamId)
+    return { schedule: window.schedule, espnOpponentTeamIndex }
+  } catch (error) {
+    console.warn(
+      "ESPN fantasy matchup schedule unavailable; falling back to calendar week",
+      error instanceof Error ? error.message : "error",
+    )
+    return { schedule: await getMatchupSchedule(), espnOpponentTeamIndex: null }
+  }
 }
 
 const loadMatchupWinnerRecipes = async (
@@ -71,6 +130,7 @@ const loadMatchupDayActuals = async (input: {
   opponentTeamIndex: number
   dates: string[]
   matchupDates: string[]
+  scoringPeriodIds?: number[]
 }): Promise<Map<string, DayActuals>> => {
   const { loaded } = input
   const oppTeam = loaded.state.teams.find(
@@ -89,6 +149,7 @@ const loadMatchupDayActuals = async (input: {
     cookies,
     dates: input.dates,
     matchupDates: input.matchupDates,
+    scoringPeriodIds: input.scoringPeriodIds,
     youTeamId,
     oppTeamId,
   })
@@ -169,8 +230,14 @@ export const GET = async (request: Request): Promise<Response> => {
 
   let opponentTeamIndex: number | null
 
+  const { schedule, espnOpponentTeamIndex } = await resolveMatchupSchedule({
+    loaded,
+    userId,
+  })
+
   if (opponentRaw === "auto") {
-    opponentTeamIndex = defaultOpponentIndex(loaded.state)
+    opponentTeamIndex =
+      espnOpponentTeamIndex ?? defaultOpponentIndex(loaded.state)
     if (opponentTeamIndex === null) {
       return NextResponse.json({ error: "no_opponent" }, { status: 400 })
     }
@@ -181,31 +248,33 @@ export const GET = async (request: Request): Promise<Response> => {
     }
   }
 
-  const schedule = await getMatchupSchedule()
+  let state = loaded.state
+  try {
+    const poolPlayers = await loadProjPoolPlayers()
+    state = {
+      ...loaded.state,
+      players: applyPoolInjuryStatus(loaded.state.players, poolPlayers),
+    }
+  } catch {
+    state = loaded.state
+  }
+
   const winnerStreamRecipes = await loadMatchupWinnerRecipes(loaded, userId)
   const baseOptions = { winnerStreamRecipes, statWindow }
-  const today = new Date().toISOString().slice(0, 10)
   const previous = morningCheckForOpponent(
     parseMorningCheck(loaded.morningCheckJson),
     schedule.matchup.startDate,
     opponentTeamIndex,
   )
   const morningFor = (actualsByDate: Map<string, DayActuals>) => ({
-    today,
     actualsByDate,
     previous,
-    outPlayerIds: [],
+    outPlayerIds: [] as string[],
   })
 
   const loadMorningAdvice = async () => {
     if (loaded.state.source !== "espn") {
-      return adviseMatchup(loaded.state, schedule, opponentTeamIndex, baseOptions)
-    }
-    if (previous?.checkedOn === today && !previous.actualsPending) {
-      return adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
-        ...baseOptions,
-        morning: morningFor(actualsFromClosedDays(previous.closedDays)),
-      })
+      return adviseMatchup(state, schedule, opponentTeamIndex, baseOptions)
     }
 
     let actualsByDate: Map<string, DayActuals>
@@ -214,29 +283,44 @@ export const GET = async (request: Request): Promise<Response> => {
         loaded,
         userId,
         opponentTeamIndex,
-        dates: schedule.matchup.days.filter((date) => date < today),
+        dates: schedule.matchup.days,
         matchupDates: schedule.matchup.days,
+        scoringPeriodIds: schedule.matchup.scoringPeriodIds,
       })
     } catch {
       const fallback = previous
-        ? adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
+        ? adviseMatchup(state, schedule, opponentTeamIndex, {
             ...baseOptions,
             morning: morningFor(actualsFromClosedDays(previous.closedDays)),
           })
-        : adviseMatchup(loaded.state, schedule, opponentTeamIndex, baseOptions)
+        : adviseMatchup(state, schedule, opponentTeamIndex, baseOptions)
       if ("error" in fallback) return fallback
       return { ...fallback, morningStale: true }
     }
 
-    const blended = adviseMatchup(loaded.state, schedule, opponentTeamIndex, {
+    if (savedClosedCoversEspnDates(previous, actualsByDate.keys())) {
+      return adviseMatchup(state, schedule, opponentTeamIndex, {
+        ...baseOptions,
+        morning: morningFor(actualsFromClosedDays(previous!.closedDays)),
+      })
+    }
+
+    const blended = adviseMatchup(state, schedule, opponentTeamIndex, {
       ...baseOptions,
       morning: morningFor(actualsByDate),
     })
     if (!("error" in blended) && blended.nextMorningCheck) {
-      await db.seasonLeague.update({
-        where: { id: loaded.id },
-        data: { morningCheckJson: JSON.stringify(blended.nextMorningCheck) },
-      })
+      try {
+        await db.seasonLeague.update({
+          where: { id: loaded.id },
+          data: { morningCheckJson: JSON.stringify(blended.nextMorningCheck) },
+        })
+      } catch (error) {
+        console.error(
+          "Morning check was not saved",
+          error instanceof Error ? error.name : "error",
+        )
+      }
     }
     return blended
   }
@@ -249,14 +333,14 @@ export const GET = async (request: Request): Promise<Response> => {
 
   let statPairs: StatPairRow[] = []
   try {
-    statPairs = await loadStatPairs(loaded.state.players)
+    statPairs = await loadStatPairs(state.players)
   } catch {
     statPairs = []
   }
 
-  const referencedPlayerIds = collectReferencedPlayerIds(loaded.state, advice)
+  const referencedPlayerIds = collectReferencedPlayerIds(state, advice)
   const playersById = Object.fromEntries(
-    loaded.state.players.flatMap((player) =>
+    state.players.flatMap((player) =>
       referencedPlayerIds.has(player.id) ? [[player.id, player] as const] : [],
     ),
   )
@@ -271,6 +355,6 @@ export const GET = async (request: Request): Promise<Response> => {
     playersById,
     teams,
     statPairs,
-    ...(includeState ? { state: loaded.state } : {}),
+    ...(includeState ? { state } : {}),
   })
 }

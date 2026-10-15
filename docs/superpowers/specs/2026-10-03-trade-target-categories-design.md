@@ -7,7 +7,7 @@
 
 ## Goal
 
-The trade workspace waits for a category choice and an explicit generate click. Suggestions are the fair offers from the fair-offer spec that also raise at least one selected category, and that do not send or drop a player the user marked Do Not Include.
+The trade workspace waits for a category choice and an explicit generate click. Suggestions are the fair offers from the fair-offer spec that also raise at least one selected category, and that do not send or drop a player the user marked Hold.
 
 Acceptance, value bands, sort, paging, and the deal card stay as in the fair-offer spec except where this document names a change.
 
@@ -43,13 +43,13 @@ A selected category “rises” when your post-trade team total moves strictly t
 
 One rising selected category is enough. The other selected categories may stay flat or get worse.
 
-### Include and Do Not Include
+### Include and Hold
 
-Under the toggles, **Your roster** splits your non-IL players who have an id into two groups, labeled `Include` and `Do Not Include`. Every such player starts in `Include`. Empty slots and IL players appear in neither group.
+Under the toggles, **Your roster** is one wrapped group of compact name chips. Empty slots and IL players are absent. Every listed player starts as `Hold`.
 
-Each row shows the player name and one control that moves them to the other group. On an `Include` row the control reads `Do Not Include`. On a `Do Not Include` row it reads `Include`. The control is keyboard reachable.
+One key above the chips shows `Include` and `Hold` together. Each chip shows only the player name. Pressed, `aria-pressed` is true and the chip uses the Include style. Released, it uses the Hold style. The control is keyboard reachable.
 
-A Do Not Include player is absent from every package you generate:
+A Hold player is absent from every package you generate:
 
 - They are not in `givePlayerIds`.
 - When your side must drop someone to open a roster spot, they are not that drop. The drop is the lowest-value `Include` player who is not already leaving in the package. If no such player and no empty slot exists, that asymmetric package is not offered.
@@ -108,7 +108,7 @@ Unit:
 Component:
 
 - The generate button is disabled until a category is pressed.
-- Pressing it requests suggestions with the on categories and the Do Not Include ids.
+- Pressing it requests suggestions with the on categories and the Hold player ids.
 - Changing a toggle after a response does not send another request.
 - Before generate, the list reads `Select a category, then generate trade suggestions.`
 - Category text in the summary, a suggestion reason, and the deal card shows `3PM`.

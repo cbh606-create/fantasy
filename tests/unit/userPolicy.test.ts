@@ -125,6 +125,7 @@ describe("greedyUserPick softmax", () => {
       },
       50, // deliberately poor ADP — talent score should still win
     )
+    jokic.name = "Nikola Jokic"
     const durant = player(
       "durant",
       {
@@ -140,6 +141,7 @@ describe("greedyUserPick softmax", () => {
       },
       1,
     )
+    durant.name = "Kevin Durant"
     const filler = Array.from({ length: 20 }, (_, index) =>
       player(`filler-${index}`, {
         FG_PCT: 0.45,
@@ -206,7 +208,9 @@ describe("greedyUserPick position need", () => {
 describe("greedyUserPick punt", () => {
   it("ignores punt category when ranking specialists", () => {
     const rebGod = player("reb-god", { REB: 900, PTS: 800, STL: 40 }, 20)
+    rebGod.name = "Nikola Jokic"
     const stlGod = player("stl-god", { REB: 300, PTS: 800, STL: 120 }, 20)
+    stlGod.name = "Shai Gilgeous-Alexander"
     const fillers = Array.from({ length: 15 }, (_, i) =>
       player(`f${i}`, { REB: 300, PTS: 700, STL: 50 }, 40 + i),
     )
