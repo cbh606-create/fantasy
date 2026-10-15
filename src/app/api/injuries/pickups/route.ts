@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
 import { loadInjurySelectionInputs } from "@/lib/injuries/rotowireCache"
-import { selectInjuryReplacements } from "@/lib/injuries/selection"
+import { selectInjuryReplacements, type InjuryReplacement } from "@/lib/injuries/selection"
 import type { InjuryEvent, InjuryPickupRecommendation, InjuryPickupsResult } from "@/lib/injuries/types"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { loadOwnedSeasonLeague } from "@/lib/waivers/loadSeasonLeague"
@@ -32,11 +32,21 @@ const toPickups = (
     cached.lineups.length > 0 ||
     cached.crosswalk.size > 0
 
-  const events: InjuryEvent[] = rows.map((row) => ({
-    playerId: row.injuredPlayerId,
-    teamAbbr: names.get(row.injuredPlayerId)?.teamAbbr ?? "",
-    status: row.status,
-  }))
+  const events: InjuryEvent[] = rows.flatMap((row) => {
+    if (row.status === "traded") return []
+    return [
+      {
+        playerId: row.injuredPlayerId,
+        teamAbbr: names.get(row.injuredPlayerId)?.teamAbbr ?? "",
+        status: row.status,
+      },
+    ]
+  })
+
+  const reasonsFor = (row: InjuryReplacement): string[] => {
+    const source = row.source === "lineup" ? "Confirmed lineup" : "Depth chart"
+    return row.status === "traded" ? ["Trade", source] : [source]
+  }
 
   const recommendations: InjuryPickupRecommendation[] = rows.map((row) => {
     const injured = names.get(row.injuredPlayerId)
@@ -51,7 +61,7 @@ const toPickups = (
       depthRank: row.source === "depth" ? 1 : 0,
       urgency: rosterIds.has(row.injuredPlayerId) ? "roster" : "league",
       score: 0,
-      reasons: [row.source === "lineup" ? "Confirmed lineup" : "Depth chart"],
+      reasons: reasonsFor(row),
     }
   })
 

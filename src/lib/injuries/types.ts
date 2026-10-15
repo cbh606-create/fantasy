@@ -31,7 +31,7 @@ export type InjuryPickupRecommendation = {
   addPlayerId: string
   addPlayerName: string
   teamAbbr: string
-  status: InjuryStatus
+  status: "out" | "gtd" | "traded"
   depthRank: number
   urgency: "roster" | "league"
   score: number

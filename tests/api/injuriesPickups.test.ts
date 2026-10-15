@@ -226,4 +226,50 @@ describe("GET /api/injuries/pickups", () => {
       score: 0,
     })
   })
+
+  it("returns a traded player on the same pickup list", async () => {
+    vi.mocked(loadInjurySelectionInputs).mockResolvedValue({
+      updates: [],
+      news: [
+        {
+          rotowirePlayerId: "rw-trae",
+          teamAbbr: "ATL",
+          headline: "Traded to the Lakers",
+          notes: "",
+          position: "PG",
+          at: new Date().toISOString(),
+        },
+      ],
+      depth: {
+        teams: [
+          {
+            teamAbbr: "ATL",
+            positions: [{ position: "PG", playerIds: ["rw-trae", "rw-naw"] }],
+          },
+        ],
+      },
+      lineups: [],
+      crosswalk: new Map([
+        ["rw-trae", "trae-young"],
+        ["rw-naw", "nickeil-alexander-walker"],
+      ]),
+    })
+    const league = await seedInjuryPickupLeague()
+
+    const response = await getInjuryPickups(
+      new Request(`http://localhost/api/injuries/pickups?seasonLeagueId=${league.id}`),
+    )
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.events).toEqual([])
+    expect(payload.recommendations).toEqual([
+      expect.objectContaining({
+        injuredPlayerName: "Trae Young",
+        addPlayerName: "Nickeil Alexander-Walker",
+        status: "traded",
+        reasons: ["Trade", "Depth chart"],
+      }),
+    ])
+  })
 })
