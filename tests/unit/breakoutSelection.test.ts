@@ -305,4 +305,58 @@ describe("selectBreakouts lineup", () => {
 
     expect(unmapped).toEqual([])
   })
+
+  it("drops an OUT unexpected starter who also beats the projection in minutes", () => {
+    const breakout = player({
+      id: "espn-new",
+      seasonGames: 2,
+      season: line(2, 30, 20),
+      projection: line(70, 20, 10),
+    })
+    const picks = selectBreakouts({
+      players: [breakout],
+      availablePlayerIds: ["espn-new"],
+      lineups,
+      depth,
+      updates: [
+        {
+          rotowirePlayerId: "rw-new",
+          teamAbbr: "ATL",
+          status: "out",
+          at: "2026-01-15T11:00:00.000Z",
+        },
+      ],
+      crosswalk,
+      now,
+    })
+
+    expect(picks).toEqual([])
+  })
+
+  it("keeps a GTD unexpected starter with rates and lineup reasons", () => {
+    const breakout = player({
+      id: "espn-new",
+      seasonGames: 2,
+      season: line(2, 30, 20),
+      projection: line(70, 20, 10),
+    })
+    const picks = selectBreakouts({
+      players: [breakout],
+      availablePlayerIds: ["espn-new"],
+      lineups,
+      depth,
+      updates: [
+        {
+          rotowirePlayerId: "rw-new",
+          teamAbbr: "ATL",
+          status: "gtd",
+          at: "2026-01-15T11:00:00.000Z",
+        },
+      ],
+      crosswalk,
+      now,
+    })
+
+    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["rates", "lineup"] }])
+  })
 })
