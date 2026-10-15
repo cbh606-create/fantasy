@@ -203,6 +203,16 @@ describe("WaiversWorkspace", () => {
         return new Response(JSON.stringify(poolResponse), { status: 200 })
       }
 
+      if (url === "/api/injuries/breakouts?seasonLeagueId=season-1") {
+        return new Response(
+          JSON.stringify({
+            source: "espn",
+            recommendations: [{ playerId: "fa-1", reasons: ["rates", "lineup"] }],
+          }),
+          { status: 200 },
+        )
+      }
+
       if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
         return new Response(JSON.stringify(injuryPickupsResponse), { status: 200 })
       }
@@ -335,6 +345,16 @@ describe("WaiversWorkspace", () => {
         return new Response(JSON.stringify(poolResponse), { status: 200 })
       }
 
+      if (url === "/api/injuries/breakouts?seasonLeagueId=season-1") {
+        return new Response(
+          JSON.stringify({
+            source: "espn",
+            recommendations: [{ playerId: "fa-1", reasons: ["rates", "lineup"] }],
+          }),
+          { status: 200 },
+        )
+      }
+
       if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
         return new Response(
           JSON.stringify({
@@ -366,5 +386,67 @@ describe("WaiversWorkspace", () => {
     expect(
       await screen.findByText("No injury-driven pickups right now."),
     ).toBeInTheDocument()
+  })
+
+  it("selects a breakout and keeps the other recommendation lists", async () => {
+    render(<WaiversWorkspace leagueId="season-1" />)
+
+    const breakouts = await screen.findByRole("heading", { name: "Breakouts" })
+    const injury = await screen.findByRole("heading", { name: "Injury pickups" })
+    const needs = await screen.findByRole("heading", { name: "Season needs" })
+    const stream = await screen.findByRole("heading", { name: "Matchup stream" })
+    const pool = await screen.findByRole("heading", { name: "Available pool" })
+
+    expect(breakouts.compareDocumentPosition(injury) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(injury.compareDocumentPosition(needs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(needs.compareDocumentPosition(stream) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(stream.compareDocumentPosition(pool) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    expect(screen.getAllByRole("heading", { name: "Injury pickups" })).toHaveLength(1)
+    expect(screen.getAllByRole("heading", { name: "Season needs" })).toHaveLength(1)
+
+    const button = screen.getByRole("button", { name: "Add Free Agent Guard, rates, lineup" })
+    fireEvent.click(button)
+    expect(button).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByRole("button", { name: "Add Free Agent Guard" })).toBeInTheDocument()
+  })
+
+  it("shows breakouts error without hiding other recommendation lists", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input, init) => {
+      const url = String(input)
+      const method = init?.method ?? "GET"
+
+      if (url === "/api/waivers/pool?seasonLeagueId=season-1") {
+        return new Response(JSON.stringify(poolResponse), { status: 200 })
+      }
+
+      if (url === "/api/injuries/breakouts?seasonLeagueId=season-1") {
+        return new Response("error", { status: 500 })
+      }
+
+      if (url === "/api/injuries/pickups?seasonLeagueId=season-1") {
+        return new Response(JSON.stringify(injuryPickupsResponse), { status: 200 })
+      }
+
+      if (url.includes("/api/waivers/matchup-stream/preview") && method === "POST") {
+        return new Response(JSON.stringify(streamPreviewResponse), { status: 200 })
+      }
+
+      if (url.includes("/api/waivers/matchup-stream") && method === "GET") {
+        return new Response(JSON.stringify(streamResponse), { status: 200 })
+      }
+
+      if (url === "/api/waivers/preview" && method === "POST") {
+        return new Response(JSON.stringify(previewResponse), { status: 200 })
+      }
+
+      return new Response("missing", { status: 404 })
+    }))
+
+    render(<WaiversWorkspace leagueId="season-1" />)
+
+    expect(await screen.findByText("Unable to load breakouts")).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Injury pickups" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Season needs" })).toBeInTheDocument()
   })
 })
