@@ -2,6 +2,7 @@ import type { BreakoutPlayer } from "./breakout"
 import { readBreakoutStatLines, type EspnStatRow } from "./breakoutStats"
 
 const SIX_HOURS = 6 * 60 * 60 * 1000
+const FETCH_TIMEOUT_MS = 15_000
 
 const fantasyFilter = {
   players: {
@@ -57,12 +58,16 @@ export const loadEspnBreakoutPlayers = async (options: {
   const fetchImpl = options.fetchImpl ?? fetch
   const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${options.seasonId}/players?scoringPeriodId=0&view=kona_player_info`
 
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
   try {
     const response = await fetchImpl(url, {
       headers: {
         "x-fantasy-filter": JSON.stringify(fantasyFilter),
         Accept: "application/json",
       },
+      signal: controller.signal,
     })
     if (!response.ok) throw new Error("espn stat request failed")
     const players = playersFromPayload(await response.json(), options.seasonId)
@@ -73,5 +78,7 @@ export const loadEspnBreakoutPlayers = async (options: {
       return { players: memory.players, source: "espn" }
     }
     return { players: [], source: "empty" }
+  } finally {
+    clearTimeout(timeout)
   }
 }

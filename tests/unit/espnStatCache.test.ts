@@ -43,6 +43,7 @@ const fetchOk = vi.fn(async () => new Response(JSON.stringify(payload), { status
 
 describe("loadEspnBreakoutPlayers", () => {
   afterEach(() => {
+    fetchOk.mockClear()
     clearEspnStatCache()
   })
 

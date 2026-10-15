@@ -1,9 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import type { BreakoutReason } from "@/lib/injuries/breakout"
 import type { SeasonPlayer } from "@/lib/season/types"
-
-type BreakoutReason = "rates" | "lineup"
 
 type BreakoutsPanelProps = {
   leagueId: string

@@ -124,7 +124,7 @@ const seedLeague = async () => {
 }
 
 beforeEach(() => {
-  vi.useFakeTimers()
+  vi.useFakeTimers({ toFake: ["Date"] })
   vi.setSystemTime(new Date("2026-10-15T12:00:00.000Z"))
   currentUserId = `${testUserPrefix}-${crypto.randomUUID()}`
   authenticateAs(currentUserId)
