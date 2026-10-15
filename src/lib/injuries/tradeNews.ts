@@ -81,7 +81,7 @@ const spansOf = (
     if (start === -1) break
     const before = fragment[start - 1] ?? " "
     const after = fragment[start + needle.length] ?? " "
-    if (/[^a-z0-9]/.test(before) && /[^a-z0-9]/.test(after)) {
+    if (/[^a-z0-9]/i.test(before) && /[^a-z0-9]/i.test(after)) {
       found.push({ start, end: start + needle.length })
     }
     from = start + needle.length
@@ -89,39 +89,51 @@ const spansOf = (
   return found
 }
 
-const uniqueTeamsIn = (fragment: string): string[] => {
+const earliestTeam = (clause: string): string[] => {
+  const lowered = clause.toLowerCase()
   const hits: Array<{ code: string; start: number; end: number }> = []
+
   for (const team of NBA_TEAM_NAMES) {
     const code = canonicalTeam(team.code)
     for (const name of team.names) {
-      for (const span of spansOf(fragment, name)) hits.push({ code, ...span })
+      const spans =
+        name.toLowerCase() === code.toLowerCase()
+          ? spansOf(clause, code)
+          : spansOf(lowered, name)
+      for (const span of spans) hits.push({ code, ...span })
     }
   }
-  const kept = hits.filter(
-    (hit) =>
-      !hits.some(
-        (other) =>
-          other.code !== hit.code &&
-          other.start <= hit.start &&
-          other.end >= hit.end &&
-          other.end - other.start > hit.end - hit.start,
-      ),
-  )
-  return [...new Set(kept.map((hit) => hit.code))]
+
+  if (hits.length === 0) return []
+
+  const earliest = Math.min(...hits.map((hit) => hit.start))
+  const atEarliest = hits.filter((hit) => hit.start === earliest)
+  const longest = Math.max(...atEarliest.map((hit) => hit.end - hit.start))
+  const teams = [
+    ...new Set(
+      atEarliest
+        .filter((hit) => hit.end - hit.start === longest)
+        .map((hit) => hit.code),
+    ),
+  ]
+  return teams.length === 1 ? teams : []
 }
 
 export const isCompletedTrade = (headline: string, notes: string): boolean => {
-  const body = `${headline}\n${notes}`.toLowerCase()
+  void notes
+  const body = headline.toLowerCase()
   if (REJECTED.some((phrase) => body.includes(phrase))) return false
   return COMPLETED.some((phrase) => body.includes(phrase))
 }
 
 export const teamsMentionedAfter = (value: string, marker: string): string[] => {
-  const body = value.toLowerCase()
-  const index = body.indexOf(marker)
+  const markerLower = marker.toLowerCase()
+  const index = value.toLowerCase().indexOf(markerLower)
   if (index === -1) return []
-  const teams = uniqueTeamsIn(body.slice(index + marker.length))
-  return teams.length === 1 ? teams : []
+  const rest = value.slice(index + markerLower.length)
+  const end = rest.search(/[.;\n]/)
+  const clause = end === -1 ? rest : rest.slice(0, end)
+  return earliestTeam(clause)
 }
 
 export const parseTradeNews = (payload: unknown): TradeNewsItem[] => {

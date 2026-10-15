@@ -10,6 +10,9 @@ describe("isCompletedTrade", () => {
     expect(isCompletedTrade("Traded to the Lakers", "")).toBe(true)
     expect(isCompletedTrade("Could be traded to the Lakers", "")).toBe(false)
     expect(isCompletedTrade("Trade talks continue", "He was traded last year")).toBe(false)
+    expect(
+      isCompletedTrade("Could see a bigger role", "Holiday was traded to the Lakers"),
+    ).toBe(false)
   })
 })
 
@@ -18,6 +21,17 @@ describe("teamsMentionedAfter", () => {
     expect(teamsMentionedAfter("Traded to the Lakers", "traded to")).toEqual(["LAL"])
     expect(teamsMentionedAfter("Traded to the Los Angeles Lakers", "traded to")).toEqual(["LAL"])
     expect(teamsMentionedAfter("Traded to Los Angeles", "traded to")).toEqual([])
+  })
+
+  it("stops at the clause end so a later sentence cannot add a team", () => {
+    const note = "Holiday was traded to the Lakers. Holiday was averaging 12 points"
+    expect(teamsMentionedAfter(note, "traded to")).toEqual(["LAL"])
+    expect(
+      teamsMentionedAfter(
+        "Holiday was traded to the Lakers. Sent to the Celtics",
+        "traded to",
+      ),
+    ).toEqual(["LAL"])
   })
 })
 

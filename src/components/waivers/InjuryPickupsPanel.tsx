@@ -106,7 +106,7 @@ export const InjuryPickupsPanel = ({
             const statusLabel = recommendation.status.toUpperCase()
 
             return (
-              <li key={`${recommendation.injuredPlayerId}-${recommendation.addPlayerId}`}>
+              <li key={`${recommendation.injuredPlayerId}-${recommendation.status}-${recommendation.addPlayerId}`}>
                 <button
                   aria-label={`Add ${recommendation.addPlayerName}`}
                   aria-pressed={isSelected}

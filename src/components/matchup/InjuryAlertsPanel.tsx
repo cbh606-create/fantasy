@@ -69,7 +69,7 @@ export const InjuryAlertsPanel = ({ leagueId }: InjuryAlertsPanelProps) => {
 
           return (
             <li
-              key={`${recommendation.injuredPlayerId}-${recommendation.addPlayerId}`}
+              key={`${recommendation.injuredPlayerId}-${recommendation.status}-${recommendation.addPlayerId}`}
             >
               <Link
                 aria-label={`Add ${recommendation.addPlayerName}`}

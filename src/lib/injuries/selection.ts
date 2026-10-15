@@ -186,7 +186,7 @@ const teamsListing = (depth: DepthChart, rotowirePlayerId: string): string[] =>
     .map((team) => team.teamAbbr)
 
 const vacatedTeam = (item: TradeNewsItem, depth: DepthChart): string | null => {
-  const text = `${item.headline} ${item.notes}`
+  const text = `${item.headline}\n${item.notes}`
   const destination = teamsMentionedAfter(text, "traded to")[0] ?? null
   const listed = teamsListing(depth, item.rotowirePlayerId)
   if (listed.length === 1 && canonicalTeam(listed[0]!) !== destination) return listed[0]!

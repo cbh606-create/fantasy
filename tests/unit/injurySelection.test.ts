@@ -344,4 +344,100 @@ describe("selectInjuryReplacements trades", () => {
       },
     ])
   })
+
+  it("replaces a player still on the Celtics chart from Boston", () => {
+    const inputs = traded()
+    const note = "Holiday was traded to the Lakers. Holiday was averaging 12 points"
+    inputs.news[0]!.headline = "Holiday was traded to the Lakers"
+    inputs.news[0]!.notes = note
+    inputs.depth.teams.push({
+      teamAbbr: "LAL",
+      positions: [{ position: "PG", playerIds: ["rw-reaves"] }],
+    })
+    inputs.crosswalk.set("rw-reaves", "espn-reaves")
+    inputs.availablePlayerIds = ["espn-white", "espn-reaves"]
+
+    expect(selectInjuryReplacements(inputs)).toEqual([
+      {
+        injuredPlayerId: "espn-jrue",
+        status: "traded",
+        addPlayerId: "espn-white",
+        source: "depth",
+      },
+    ])
+  })
+
+  it("emits no row when he is already only on the destination chart", () => {
+    const inputs = traded()
+    const note = "Holiday was traded to the Lakers. Holiday was averaging 12 points"
+    inputs.depth = {
+      teams: [
+        {
+          teamAbbr: "LAL",
+          positions: [{ position: "PG", playerIds: ["rw-jrue", "rw-reaves"] }],
+        },
+      ],
+    }
+    inputs.crosswalk.set("rw-reaves", "espn-reaves")
+    inputs.availablePlayerIds = ["espn-reaves"]
+    inputs.news[0]!.teamAbbr = "LAL"
+    inputs.news[0]!.headline = "Holiday was traded to the Lakers"
+    inputs.news[0]!.notes = note
+
+    expect(selectInjuryReplacements(inputs)).toEqual([])
+  })
+
+  it("ignores a bigger-role note and still replaces Holiday from Boston", () => {
+    const inputs = traded()
+    inputs.depth = {
+      teams: [
+        {
+          teamAbbr: "BOS",
+          positions: [
+            { position: "PG", playerIds: ["rw-holiday", "rw-white"] },
+            { position: "SG", playerIds: ["rw-pritchard", "rw-hauss"] },
+          ],
+        },
+        {
+          teamAbbr: "LAL",
+          positions: [{ position: "PG", playerIds: ["rw-reaves"] }],
+        },
+      ],
+    }
+    inputs.crosswalk = new Map([
+      ["rw-holiday", "espn-holiday"],
+      ["rw-white", "espn-white"],
+      ["rw-pritchard", "espn-pritchard"],
+      ["rw-hauss", "espn-hauss"],
+      ["rw-reaves", "espn-reaves"],
+    ])
+    inputs.availablePlayerIds = ["espn-white", "espn-hauss", "espn-reaves"]
+    inputs.news = [
+      {
+        rotowirePlayerId: "rw-pritchard",
+        teamAbbr: "BOS",
+        headline: "Could see a bigger role",
+        notes: "Holiday was traded to the Lakers",
+        position: "SG",
+        at: "2026-01-14T12:00:00.000Z",
+      },
+      {
+        rotowirePlayerId: "rw-holiday",
+        teamAbbr: "BOS",
+        headline: "Traded to the Lakers",
+        notes: "Holiday was traded to the Lakers. Holiday was averaging 12 points",
+        position: "PG",
+        at: "2026-01-14T12:00:00.000Z",
+      },
+    ]
+
+    expect(selectInjuryReplacements(inputs)).toEqual([
+      {
+        injuredPlayerId: "espn-holiday",
+        status: "traded",
+        addPlayerId: "espn-white",
+        source: "depth",
+      },
+    ])
+  })
 })
