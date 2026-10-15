@@ -70,8 +70,11 @@ describe("loadEspnBreakoutPlayers", () => {
       fetchImpl: fetchOk,
     })
 
-    expect(fetchOk).toHaveBeenCalledTimes(1)
+    expect(fetchOk).toHaveBeenCalledTimes(2)
+    expect(String(fetchOk.mock.calls[0]?.[0])).toContain("/seasons/2026/")
+    expect(String(fetchOk.mock.calls[1]?.[0])).toContain("/seasons/2025/")
     expect(second.players[0]?.id).toBe("44")
+    expect(second.players[0]?.prior).toBeNull()
   })
 
   it("keeps the previous snapshot when the refresh fails", async () => {
@@ -103,5 +106,51 @@ describe("loadEspnBreakoutPlayers", () => {
     })
 
     expect(result).toEqual({ players: [], source: "empty" })
+  })
+
+  it("merges last year's team and minutes and keeps this season if that fetch fails", async () => {
+    const priorPayload = [
+      {
+        id: 44,
+        proTeamId: 3,
+        stats: [
+          {
+            ...row("002025", 0, 0, 12, 60),
+            seasonId: 2025,
+          },
+        ],
+      },
+    ]
+    const fetchBoth = vi.fn(async (url: string) => {
+      const body = String(url).includes("/seasons/2025/") ? priorPayload : payload
+      return new Response(JSON.stringify(body), { status: 200 })
+    })
+
+    const merged = await loadEspnBreakoutPlayers({
+      seasonId: 2026,
+      now: new Date("2026-10-15T12:00:00.000Z"),
+      fetchImpl: fetchBoth,
+    })
+
+    expect(merged.players[0]?.teamAbbr).toBeNull()
+    expect(merged.players[0]?.prior).toEqual({
+      teamAbbr: "NOP",
+      line: expect.objectContaining({ minutesPerGame: 12, fgaPerGame: 10 }),
+    })
+
+    clearEspnStatCache()
+    const fetchPriorDown = vi.fn(async (url: string) => {
+      if (String(url).includes("/seasons/2025/")) throw new Error("prior down")
+      return new Response(JSON.stringify([{ ...payload[0], proTeamId: 1 }]), { status: 200 })
+    })
+    const currentOnly = await loadEspnBreakoutPlayers({
+      seasonId: 2026,
+      now: new Date("2026-10-15T12:00:00.000Z"),
+      fetchImpl: fetchPriorDown,
+    })
+
+    expect(currentOnly.source).toBe("espn")
+    expect(currentOnly.players[0]?.teamAbbr).toBe("ATL")
+    expect(currentOnly.players[0]?.prior).toBeNull()
   })
 })

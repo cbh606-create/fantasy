@@ -1435,6 +1435,156 @@ describe("forcedRosterDrops", () => {
     })
   })
 
+  it("seats a swapped add by sliding a starter into the open hole", () => {
+    const days = ["2025-11-03"]
+    const packed = packedRosterPlayers()
+    packed[7] = player("r7", "MIA", { positions: ["PF"] })
+    const faWing = player("fa-wing", "POR", { positions: ["PF"] })
+    const faCenter = player("fa-center", "OKC", { positions: ["C"] })
+    const state = tinyState(
+      [...packed, faWing, faCenter],
+      ["fa-wing", "fa-center"],
+    )
+    state.teams[0]!.entries = [
+      ...packed.map((entry, index) => ({
+        slot: packedActiveSlots[index]!,
+        playerId: entry.id,
+      })),
+      { slot: "BE", playerId: null },
+    ]
+    const pfOpen = emptyActive().map((entry, index) => ({
+      ...entry,
+      playerId: entry.slot === "PF" ? null : packed[index]!.id,
+    }))
+    const schedule = tinySchedule(days, [
+      ...packedTeamAbbrs.map((homeAbbr) => ({
+        date: "2025-11-03",
+        homeAbbr,
+        awayAbbr: "SAC",
+      })),
+      { date: "2025-11-03", homeAbbr: "POR", awayAbbr: "CHI" },
+      { date: "2025-11-03", homeAbbr: "OKC", awayAbbr: "WAS" },
+    ])
+    const forcedAdd = {
+      date: "2025-11-03",
+      spotIndex: 0,
+      playerId: "fa-center",
+      holdUntil: "2025-11-03",
+    }
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      daily: { "2025-11-03": pfOpen },
+      today: "2025-11-03",
+      forcedAdds: [forcedAdd],
+    })
+    expect(plan.rejectedAddLocks).toEqual([])
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      playerId: "fa-center",
+      action: "add",
+    })
+  })
+
+  it("seats a swapped add by dropping a droppable player in a usable slot", () => {
+    const days = ["2025-11-03"]
+    const packed = packedRosterPlayers()
+    const faGuard = player("fa-guard", "POR", { positions: ["PG"] })
+    const state = tinyState([...packed, faGuard], ["fa-guard"])
+    state.teams[0]!.entries = [
+      ...packed.map((entry, index) => ({
+        slot: packedActiveSlots[index]!,
+        playerId: entry.id,
+      })),
+      { slot: "BE", playerId: null },
+    ]
+    const cOpen = emptyActive().map((entry, index) => ({
+      ...entry,
+      playerId: entry.slot === "C" ? null : packed[index]!.id,
+    }))
+    const schedule = tinySchedule(days, [
+      ...packedTeamAbbrs.map((homeAbbr) => ({
+        date: "2025-11-03",
+        homeAbbr,
+        awayAbbr: "SAC",
+      })),
+      { date: "2025-11-03", homeAbbr: "POR", awayAbbr: "CHI" },
+    ])
+    const forcedAdd = {
+      date: "2025-11-03",
+      spotIndex: 0,
+      playerId: "fa-guard",
+      holdUntil: "2025-11-03",
+    }
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      daily: { "2025-11-03": cOpen },
+      today: "2025-11-03",
+      droppablePlayerIds: new Set(["r9"]),
+      forcedAdds: [forcedAdd],
+    })
+    expect(plan.rejectedAddLocks).toEqual([])
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      playerId: "fa-guard",
+      action: "add",
+      rosterDropKind: "player",
+      rosterDropPlayerId: "r9",
+    })
+  })
+
+  it("seats a swapped add into an open hole without dropping a protected starter", () => {
+    const days = ["2025-11-03"]
+    const packed = packedRosterPlayers()
+    const faCenter = player("fa-center", "POR", { positions: ["C"] })
+    const state = tinyState([...packed, faCenter], ["fa-center"])
+    state.rosterSlots = [...packedActiveSlots]
+    state.teams[0]!.entries = packed.map((entry, index) => ({
+      slot: packedActiveSlots[index]!,
+      playerId: entry.id,
+    }))
+    const cOpen = emptyActive().map((entry, index) => ({
+      ...entry,
+      playerId: entry.slot === "C" ? null : packed[index]!.id,
+    }))
+    const schedule = tinySchedule(days, [
+      ...packedTeamAbbrs
+        .filter((homeAbbr) => homeAbbr !== "ATL")
+        .map((homeAbbr) => ({
+          date: "2025-11-03",
+          homeAbbr,
+          awayAbbr: "SAC",
+        })),
+      { date: "2025-11-03", homeAbbr: "POR", awayAbbr: "CHI" },
+    ])
+    const forcedAdd = {
+      date: "2025-11-03",
+      spotIndex: 0,
+      playerId: "fa-center",
+      holdUntil: "2025-11-03",
+    }
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      daily: { "2025-11-03": cOpen },
+      today: "2025-11-03",
+      adpByPlayerId: Object.fromEntries(packed.map((entry) => [entry.id, 20])),
+      forcedAdds: [forcedAdd],
+    })
+    expect(plan.rejectedAddLocks).toEqual([])
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      playerId: "fa-center",
+      action: "add",
+      rosterDropKind: "none",
+      rosterDropPlayerId: null,
+    })
+  })
+
   it("today hold keeps a seated streamer and skips early-swap", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06"]
     const held = player("fa-held", "NYK", {
@@ -8470,6 +8620,7 @@ describe("forced streaming adds", () => {
     })
     const anchor = player("anchor", "CHI")
     const state = tinyState([locked, anchor], ["wire-lock"])
+    state.rosterSlots = ["UTIL"]
     state.teams[0]!.entries = [{ slot: "UTIL", playerId: "anchor" }]
     const schedule = tinySchedule(week.slice(0, 2), [
       { date: week[0]!, homeAbbr: "BOS", awayAbbr: "DET" },
@@ -8514,6 +8665,7 @@ describe("forced streaming adds", () => {
     })
     const anchor = player("anchor", "CHI")
     const state = tinyState([locked, anchor], ["wire-lock"])
+    state.rosterSlots = ["UTIL"]
     state.teams[0]!.entries = [{ slot: "UTIL", playerId: "anchor" }]
     const schedule = tinySchedule(week.slice(0, 3), [
       { date: week[0]!, homeAbbr: "BOS", awayAbbr: "DET" },

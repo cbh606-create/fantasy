@@ -84,6 +84,7 @@ export const GET = async (request: Request): Promise<Response> => {
     targetCategoryIds: query.targetCategoryIds,
     excludedPlayerIds: query.excludedPlayerIds,
     shapes: query.shapes,
+    basis: query.basis,
   })
 
   return NextResponse.json({

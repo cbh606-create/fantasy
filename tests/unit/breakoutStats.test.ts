@@ -34,6 +34,7 @@ describe("readBreakoutStatLines", () => {
 
     expect(lines.seasonGames).toBe(10)
     expect(lines.season?.minutesPerGame).toBe(30)
+    expect(lines.season?.fgaPerGame).toBe(16)
     expect(lines.season?.rates?.PTS).toBe(20)
     expect(lines.last7?.gamesPlayed).toBe(7)
     expect(lines.last7?.minutesPerGame).toBe(36)
@@ -141,6 +142,7 @@ describe("readBreakoutStatLines", () => {
 
     expect(lines.seasonGames).toBe(64)
     expect(lines.season?.minutesPerGame).toBeCloseTo(1853 / 64)
+    expect(lines.season?.fgaPerGame).toBeCloseTo(839 / 64)
     expect(lines.season?.rates?.PTS).toBeCloseTo(971 / 64)
     expect(lines.last7?.minutesPerGame).toBe(27)
     expect(lines.projection?.minutesPerGame).toBeCloseTo(1668.3 / 67)

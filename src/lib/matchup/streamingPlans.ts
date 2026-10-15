@@ -19,7 +19,7 @@ import {
   type DailyLineups,
   youTotalsFromDaily,
 } from "./dailyLineups"
-import { rosterSlotsFor } from "./eligibility"
+import { eligibleForSlot, rosterSlotsFor } from "./eligibility"
 import {
   categoryIdsFromBoard,
   matchupBoardFromDaily,
@@ -1747,13 +1747,15 @@ export const buildStreamingPlan = ({
         drop = { kind: "none", playerId: null }
         rosterDropKind = "open_slot"
       } else if (typeof forcedDrop === "string" && forcedDrop !== "hold") {
+        const droppableStreamerIds = new Set(rosteredStreamerIds)
+        if (plannedId) droppableStreamerIds.add(plannedId)
         if (
           !isValidForcedPlayerDrop(
             forcedDrop,
             youTeam?.entries ?? [],
             playersById,
             weekDroppedPlayers,
-            rosteredStreamerIds,
+            droppableStreamerIds,
           ) ||
           forcedDrop === lock.playerId
         ) {
@@ -1795,24 +1797,70 @@ export const buildStreamingPlan = ({
               droppablePlayerIds,
             ).find((id) => cutAllowed(id))
         if (!dropId) {
-          undoPlannedClear()
-          rejectedAddLocks.push(lock)
-          continue
+          const nightFull = isDailyLineupFullForDate(
+            workingDaily,
+            date,
+            playersById,
+            schedule,
+          )
+          if (nightFull || dailyFullAfterEarlierLock) {
+            undoPlannedClear()
+            rejectedAddLocks.push(lock)
+            continue
+          }
+        } else {
+          drop = { kind: "player", playerId: dropId }
+          rosterDropKind = "player"
         }
-        drop = { kind: "player", playerId: dropId }
-        rosterDropKind = "player"
       }
-      const moved = pickBestStreamerMove(
-        [lock.playerId],
-        workingDaily,
-        date,
-        drop,
-        state.players,
-        schedule,
-        board,
-        isCompatibleAlternative,
-        ourPickOptions(false),
-      )
+      const seatForced = (nextDrop: StreamerMoveDrop) =>
+        pickBestStreamerMove(
+          [lock.playerId],
+          workingDaily,
+          date,
+          nextDrop,
+          state.players,
+          schedule,
+          board,
+          isCompatibleAlternative,
+          { ...ourPickOptions(false), allowFlexSlots: true },
+        )
+      let moved = seatForced(drop)
+      if (!moved) {
+        const exceptId = drop.kind === "player" ? drop.playerId : null
+        const eligibleSlots = new Set(
+          (workingDaily[date] ?? [])
+            .filter(
+              (entry) =>
+                entry.playerId &&
+                entry.playerId !== lock.playerId &&
+                entry.playerId !== exceptId &&
+                eligibleForSlot(added, entry.slot),
+            )
+            .map((entry) => entry.playerId as string),
+        )
+        const cutId = rankRosterDropPlayerIds(
+          youTeam?.entries ?? [],
+          playersById,
+          date,
+          schedule,
+          weakCats,
+          new Set([lock.playerId, ...(exceptId ? [exceptId] : [])]),
+          adpByPlayerId,
+          injuryOutDaysByPlayerId,
+          board,
+          false,
+          false,
+          window,
+          true,
+          droppablePlayerIds,
+        ).find((id) => eligibleSlots.has(id) && cutAllowed(id))
+        if (cutId) {
+          drop = { kind: "player", playerId: cutId }
+          rosterDropKind = "player"
+          moved = seatForced(drop)
+        }
+      }
       if (!moved) {
         undoPlannedClear()
         rejectedAddLocks.push(lock)

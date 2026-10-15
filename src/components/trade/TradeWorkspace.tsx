@@ -16,7 +16,9 @@ import { TradeSimulation } from "@/components/trade/TradeSimulation"
 import { WeakCategoriesPanel } from "@/components/trade/WeakCategoriesPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
+import { leagueTotalsForBasis, type StatBasis } from "@/lib/season/analysis"
 import type { SeasonLeagueState } from "@/lib/season/types"
+import { classifyTeam } from "@/lib/trade/classify"
 import { TRADE_SHAPES, type SimShape } from "@/lib/trade/fairFill"
 import type { TradeSuggestion } from "@/lib/trade/types"
 
@@ -46,6 +48,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   const [isGenerating, setIsGenerating] = useState(false)
   const [tab, setTab] = useState<"suggestions" | "simulation">("suggestions")
   const [shapes, setShapes] = useState<SimShape[]>(["2:2"])
+  const [basis, setBasis] = useState<StatBasis>("total")
 
   useEffect(() => {
     const controller = new AbortController()
@@ -109,6 +112,10 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
   }
 
   const { state } = tradeData
+  const categorySides = classifyTeam(
+    leagueTotalsForBasis(state, basis),
+    state.perspectiveTeamIndex,
+  )
   const selectedSuggestion = generatedSuggestions.find(
     (suggestion) => suggestion.id === selectedId,
   ) ?? null
@@ -131,7 +138,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
         ? current.filter((selected) => selected !== option)
         : [...current, option])
 
-  const handleGenerate = async () => {
+  const requestSuggestions = async (statBasis: StatBasis) => {
     const categories = ALL_CATEGORY_IDS.filter((categoryId) =>
       selectedIds.includes(categoryId))
     const params = new URLSearchParams({
@@ -142,6 +149,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
     for (const option of TRADE_SHAPES) {
       if (shapes.includes(option)) params.append("shape", option)
     }
+    params.set("basis", statBasis)
 
     setIsGenerating(true)
     setError("")
@@ -165,6 +173,11 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
     }
   }
 
+  const handleBasis = (next: StatBasis) => {
+    setBasis(next)
+    if (hasGenerated) void requestSuggestions(next)
+  }
+
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
       <div className="mx-auto w-full max-w-7xl">
@@ -184,9 +197,10 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
             {state.name}
           </h1>
         </header>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div
           aria-label="Trade workspace view"
-          className="mb-6 flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"
+          className="flex w-fit rounded-full bg-[var(--color-soft-cloud)] p-1"
           role="tablist"
         >
           {([
@@ -212,14 +226,40 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
           ))}
         </div>
         <div
+          aria-label="Stat basis"
+          className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
+          role="radiogroup"
+        >
+          {([
+            ["total", "Total"],
+            ["perGame", "Per game"],
+          ] as const).map(([value, label]) => (
+            <button
+              aria-checked={basis === value}
+              className={`rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                basis === value
+                  ? "bg-[var(--color-ink)] text-white"
+                  : "text-[var(--color-mute)] hover:text-[var(--color-ink)]"
+              }`}
+              key={value}
+              onClick={() => handleBasis(value)}
+              role="radio"
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        </div>
+        <div
           aria-labelledby="suggestions-tab"
           hidden={tab !== "suggestions"}
           id="suggestions-panel"
           role="tabpanel"
         >
           <WeakCategoriesPanel
-            weak={tradeData.youWeak}
-            strong={tradeData.youStrong}
+            weak={categorySides.weak}
+            strong={categorySides.strong}
           />
           <CategoryTargetToggles
             onToggle={handleToggleCategory}
@@ -247,7 +287,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
           <button
             className="mt-4 rounded-full bg-[var(--color-ink)] px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
             disabled={selectedIds.length === 0 || shapes.length === 0 || isGenerating}
-            onClick={handleGenerate}
+            onClick={() => void requestSuggestions(basis)}
             type="button"
           >
             {isGenerating ? "Generating trade suggestions…" : "Generate trade suggestions"}
@@ -266,6 +306,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
                   onSelect={setSelectedId}
                   selectedDetail={selectedSuggestion ? (
                     <DealDetail
+                      basis={basis}
                       requestedCategoryIds={requestedCategoryIds}
                       state={state}
                       suggestion={selectedSuggestion}
@@ -276,7 +317,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
                   suggestions={generatedSuggestions}
                 />
                 {selectedSuggestion ? (
-                  <TradePackageStats state={state} suggestion={selectedSuggestion} />
+                  <TradePackageStats basis={basis} state={state} suggestion={selectedSuggestion} />
                 ) : null}
               </>
             ) : (
@@ -292,7 +333,7 @@ export const TradeWorkspace = ({ leagueId }: TradeWorkspaceProps) => {
           id="simulation-panel"
           role="tabpanel"
         >
-          <TradeSimulation state={state} />
+          <TradeSimulation basis={basis} state={state} />
         </div>
       </div>
     </main>

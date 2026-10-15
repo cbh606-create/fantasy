@@ -2,10 +2,11 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import {
   analyzeTeamTotals,
+  leagueTotalsForBasis,
   rosterPlayers,
-  seasonTeamTotals,
-  teamTotals,
+  teamTotalsForBasis,
   type SeasonAnalysis,
+  type StatBasis,
   type TeamCategoryTotals,
 } from "@/lib/season/analysis"
 import type {
@@ -305,18 +306,21 @@ export type TradeAnalysisContext = {
   totalsByTeam: TeamCategoryTotals[]
   playersById: Map<string, SeasonPlayer>
   values: Map<string, number>
+  basis: StatBasis
 }
 
 export const createTradeAnalysisContext = (
   state: SeasonLeagueState,
+  basis: StatBasis = "total",
 ): TradeAnalysisContext => {
-  const totalsByTeam = seasonTeamTotals(state)
+  const totalsByTeam = leagueTotalsForBasis(state, basis)
 
   return {
     before: analyzeTeamTotals(totalsByTeam),
     totalsByTeam,
     playersById: new Map(state.players.map((player) => [player.id, player])),
     values: buildPlayerValueMap(state),
+    basis,
   }
 }
 
@@ -347,7 +351,7 @@ export const totalsAfterTrade = (
 
     return {
       teamIndex: entry.teamIndex,
-      totals: teamTotals(withReplacement),
+      totals: teamTotalsForBasis(withReplacement, context.basis),
     }
   })
 }

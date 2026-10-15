@@ -1,5 +1,10 @@
 import type { CategoryDelta } from "@/lib/trade/types"
 
+export type AddDropCategoryDelta = CategoryDelta & {
+  beforeTotal: number
+  afterTotal: number
+}
+
 export type AddDropInput = {
   addPlayerId: string
   dropPlayerId: string | null
@@ -24,5 +29,11 @@ export type AddDropPreview = {
   after: {
     needsScore: number
   }
-  categoryDeltas: CategoryDelta[]
+  overall: {
+    rankBefore: number
+    rankAfter: number
+    rankSumBefore: number
+    rankSumAfter: number
+  }
+  categoryDeltas: AddDropCategoryDelta[]
 }

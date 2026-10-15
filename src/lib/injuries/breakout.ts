@@ -3,9 +3,21 @@ import { canonicalTeam } from "./crosswalk"
 import type { BreakoutStatLines, RateLine } from "./breakoutStats"
 import type { ConfirmedLineup, DepthChart, InjuryUpdate } from "./selection"
 
-export type BreakoutReason = "rates" | "lineup"
+export const PRIOR_ROLE_MINUTES_GAP = 8
+export const PROJECTION_MINUTES_GAP = 5
 
-export type BreakoutPlayer = BreakoutStatLines & { id: string }
+export type BreakoutReason = "rates" | "attempts" | "lineup"
+
+export type PriorRole = {
+  teamAbbr: string | null
+  line: RateLine | null
+}
+
+export type BreakoutPlayer = BreakoutStatLines & {
+  id: string
+  teamAbbr?: string | null
+  prior?: PriorRole | null
+}
 
 export type BreakoutSelectionInputs = {
   players: readonly BreakoutPlayer[]
@@ -44,20 +56,23 @@ const zSum = (
   }, 0)
 }
 
-const sideUp = (
+const zDidNotFall = (
   recent: RateLine | null,
   baseline: RateLine | null,
   recentPool: readonly RateLine[],
   baselinePool: readonly RateLine[],
-): { minutes: boolean | null; value: boolean | null } => {
-  const minutes =
-    recent?.minutesPerGame != null && baseline?.minutesPerGame != null
-      ? recent.minutesPerGame > baseline.minutesPerGame
-      : null
+): boolean => {
   const recentZ = zSum(recent, recentPool)
   const baselineZ = zSum(baseline, baselinePool)
-  const value = recentZ !== null && baselineZ !== null ? recentZ > baselineZ : null
-  return { minutes, value }
+  if (recentZ === null || baselineZ === null) return false
+  return recentZ >= baselineZ
+}
+
+const changedTeam = (player: BreakoutPlayer): boolean => {
+  const current = player.teamAbbr
+  const prior = player.prior?.teamAbbr
+  if (!current || !prior) return false
+  return canonicalTeam(current) !== canonicalTeam(prior)
 }
 
 const ratesReason = (
@@ -65,19 +80,39 @@ const ratesReason = (
   players: readonly BreakoutPlayer[],
 ): boolean => {
   const games = player.seasonGames
-  if (games === null || !(games > 0)) return false
-  const projectionPool = players.flatMap((item) => (item.projection ? [item.projection] : []))
-  const seasonPool = players.flatMap((item) => (item.season ? [item.season] : []))
+  const season = player.season
+  const seasonMinutes = season?.minutesPerGame
+  if (games === null || !(games > 0) || !season || seasonMinutes == null) return false
 
-  if (games <= 7) {
-    const sides = sideUp(player.season, player.projection, projectionPool, projectionPool)
-    if (games <= 3) return sides.minutes === true || sides.value === true
-    return sides.minutes === true && sides.value === true
+  const priorLine = player.prior?.line ?? null
+  const priorMinutes = priorLine?.minutesPerGame ?? null
+  if (priorMinutes != null) {
+    if (changedTeam(player) && seasonMinutes > priorMinutes) return true
+    const priorPool = players.flatMap((item) => (item.prior?.line ? [item.prior.line] : []))
+    const seasonPool = players.flatMap((item) => (item.season ? [item.season] : []))
+    return (
+      seasonMinutes - priorMinutes >= PRIOR_ROLE_MINUTES_GAP &&
+      zDidNotFall(season, priorLine, seasonPool, priorPool)
+    )
   }
 
-  if (!player.last7 || player.last7.gamesPlayed < 4) return false
-  const sides = sideUp(player.last7, player.season, seasonPool, seasonPool)
-  return sides.minutes === true && sides.value === true
+  const projectionMinutes = player.projection?.minutesPerGame
+  if (projectionMinutes == null) return false
+  const projectionPool = players.flatMap((item) => (item.projection ? [item.projection] : []))
+  const seasonPool = players.flatMap((item) => (item.season ? [item.season] : []))
+  return (
+    seasonMinutes - projectionMinutes >= PROJECTION_MINUTES_GAP &&
+    zDidNotFall(season, player.projection, seasonPool, projectionPool)
+  )
+}
+
+const attemptsUp = (player: BreakoutPlayer): boolean => {
+  const current = player.season?.fgaPerGame
+  if (current == null) return false
+  const baseline = player.prior?.line
+    ? player.prior.line.fgaPerGame
+    : player.projection?.fgaPerGame
+  return baseline != null && current > baseline
 }
 
 const WINDOW_MS = 24 * 60 * 60 * 1000
@@ -142,7 +177,9 @@ export const selectBreakouts = (inputs: BreakoutSelectionInputs): BreakoutPick[]
   }
 
   for (const player of inputs.players) {
-    if (ratesReason(player, inputs.players)) add(player.id, "rates")
+    if (!ratesReason(player, inputs.players)) continue
+    add(player.id, "rates")
+    if (attemptsUp(player)) add(player.id, "attempts")
   }
   for (const playerId of lineupIds(inputs)) add(playerId, "lineup")
 

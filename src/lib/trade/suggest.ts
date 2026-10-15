@@ -74,7 +74,7 @@ export const suggestTrades = (
 } => {
   const excludedPlayerIds = options.excludedPlayerIds ?? []
   const targetCategoryIds = options.targetCategoryIds ?? []
-  const context = createTradeAnalysisContext(state)
+  const context = createTradeAnalysisContext(state, options.basis ?? "total")
   const beforeMean = leagueMeans(context.totalsByTeam)
   const yourSides = classifyTeam(
     context.totalsByTeam,

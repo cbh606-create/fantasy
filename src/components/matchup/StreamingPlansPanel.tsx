@@ -1061,6 +1061,22 @@ export const StreamingPlansPanel = ({
       return false
     }
 
+    const plannedDrop = plannedDropValue(cell)
+    if (
+      explicitDrop == null &&
+      plannedDrop !== "hold" &&
+      playerId !== (cell?.playerId ?? null)
+    ) {
+      setForcedRosterDropsBySpotCount((prev) => {
+        const current = prev[spotCount] ?? {}
+        if (current[dropKey] === plannedDrop) return prev
+        return {
+          ...prev,
+          [spotCount]: { ...current, [dropKey]: plannedDrop },
+        }
+      })
+    }
+
     setStreamingMoveError(null)
     const baseline = plans.find((item) => item.spotCount === spotCount)
     const recommendedPlayerId = baseline

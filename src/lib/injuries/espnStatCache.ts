@@ -1,4 +1,5 @@
-import type { BreakoutPlayer } from "./breakout"
+import { proTeamAbbr } from "@/lib/adapters/espnSeasonMap"
+import type { BreakoutPlayer, PriorRole } from "./breakout"
 import { readBreakoutStatLines, type EspnStatRow } from "./breakoutStats"
 
 const SIX_HOURS = 6 * 60 * 60 * 1000
@@ -37,10 +38,45 @@ const playersFromPayload = (payload: unknown, seasonId: number): BreakoutPlayer[
     if (!isStatRow(player)) return []
     const rawId = (player as { id?: unknown }).id
     if (typeof rawId !== "string" && typeof rawId !== "number") return []
+    const rawTeam = (player as { proTeamId?: unknown }).proTeamId
     const stats = (player as { stats?: unknown }).stats
     const rows = Array.isArray(stats) ? stats.filter(isStatRow) : []
-    return [{ id: String(rawId), ...readBreakoutStatLines(rows, seasonId) }]
+    return [{
+      id: String(rawId),
+      teamAbbr: typeof rawTeam === "number" ? proTeamAbbr(rawTeam) : null,
+      prior: null,
+      ...readBreakoutStatLines(rows, seasonId),
+    }]
   })
+}
+
+const priorRole = (player: BreakoutPlayer | undefined): PriorRole | null => {
+  if (!player || (!player.teamAbbr && !player.season)) return null
+  return { teamAbbr: player.teamAbbr ?? null, line: player.season }
+}
+
+const seasonUrl = (seasonId: number) =>
+  `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${seasonId}/players?scoringPeriodId=0&view=kona_player_info`
+
+const fetchSeasonPlayers = async (
+  seasonId: number,
+  fetchImpl: typeof fetch,
+): Promise<BreakoutPlayer[] | null> => {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  try {
+    const response = await fetchImpl(seasonUrl(seasonId), {
+      headers: {
+        "x-fantasy-filter": JSON.stringify(fantasyFilter),
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    })
+    if (!response.ok) return null
+    return playersFromPayload(await response.json(), seasonId)
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 export const loadEspnBreakoutPlayers = async (options: {
@@ -56,21 +92,21 @@ export const loadEspnBreakoutPlayers = async (options: {
   if (fresh && memory) return { players: memory.players, source: "espn" }
 
   const fetchImpl = options.fetchImpl ?? fetch
-  const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${options.seasonId}/players?scoringPeriodId=0&view=kona_player_info`
-
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
 
   try {
-    const response = await fetchImpl(url, {
-      headers: {
-        "x-fantasy-filter": JSON.stringify(fantasyFilter),
-        Accept: "application/json",
-      },
-      signal: controller.signal,
-    })
-    if (!response.ok) throw new Error("espn stat request failed")
-    const players = playersFromPayload(await response.json(), options.seasonId)
+    const current = await fetchSeasonPlayers(options.seasonId, fetchImpl)
+    if (!current) throw new Error("espn stat request failed")
+    let priorPlayers: BreakoutPlayer[] | null = null
+    try {
+      priorPlayers = await fetchSeasonPlayers(options.seasonId - 1, fetchImpl)
+    } catch {
+      priorPlayers = null
+    }
+    const priorById = new Map((priorPlayers ?? []).map((player) => [player.id, player]))
+    const players = current.map((player) => ({
+      ...player,
+      prior: priorRole(priorById.get(player.id)),
+    }))
     memory = { seasonId: options.seasonId, players, fetchedAt: nowMs }
     return { players, source: "espn" }
   } catch {
@@ -78,7 +114,5 @@ export const loadEspnBreakoutPlayers = async (options: {
       return { players: memory.players, source: "espn" }
     }
     return { players: [], source: "empty" }
-  } finally {
-    clearTimeout(timeout)
   }
 }

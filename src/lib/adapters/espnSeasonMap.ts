@@ -45,6 +45,9 @@ const PRO_TEAM_ABBR: Record<number, string> = {
   30: "CHA",
 }
 
+export const proTeamAbbr = (proTeamId: number | undefined): string | null =>
+  PRO_TEAM_ABBR[proTeamId ?? -1] ?? null
+
 type EspnAverageStats = Record<string, number>
 
 type EspnPlayerStats = {

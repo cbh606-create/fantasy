@@ -158,8 +158,12 @@ describe("previewAddDrop", () => {
     )
 
     expect(result.before.needsScore).toBeLessThan(result.after.needsScore)
+    expect(result.overall.rankBefore).toBeGreaterThan(0)
+    expect(result.overall.rankSumBefore).toBeGreaterThan(0)
     expect(astDelta!.rankAfter).toBeLessThan(astDelta!.rankBefore)
+    expect(astDelta!.afterTotal).toBeGreaterThan(astDelta!.beforeTotal)
     expect(rebDelta!.rankAfter).toBeLessThan(rebDelta!.rankBefore)
+    expect(rebDelta!.afterTotal).toBeGreaterThan(rebDelta!.beforeTotal)
     expect(result.requiresAssumeSuccess).toBe(false)
   })
 

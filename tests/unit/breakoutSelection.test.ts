@@ -19,9 +19,11 @@ const line = (
   minutesPerGame: number | null,
   pts: number,
   to = 2,
+  fgaPerGame: number | null = null,
 ): RateLine => ({
   gamesPlayed,
   minutesPerGame,
+  fgaPerGame,
   rates: rates(pts, to),
 })
 
@@ -31,6 +33,8 @@ const player = (overrides: Partial<BreakoutPlayer> & { id: string }): BreakoutPl
   season: overrides.season ?? null,
   last7: overrides.last7 ?? null,
   projection: overrides.projection ?? null,
+  teamAbbr: overrides.teamAbbr ?? null,
+  prior: overrides.prior ?? null,
 })
 
 const select = (players: BreakoutPlayer[]) =>
@@ -53,14 +57,8 @@ const projectionPtsFoil = (id: string, pts: number) =>
   })
 
 describe("selectBreakouts rates", () => {
-  it("accepts one higher side during games 1 through 3", () => {
+  it("requires a five-minute projection gap and a z-sum that did not fall", () => {
     const foil = projectionPtsFoil("foil", 40)
-    const pool = player({
-      id: "pool",
-      seasonGames: 2,
-      season: line(2, 20, 10),
-      projection: line(70, 24, 12),
-    })
     const minutesOnly = player({
       id: "minutes",
       seasonGames: 1,
@@ -73,71 +71,123 @@ describe("selectBreakouts rates", () => {
       season: line(2, 20, 18),
       projection: line(70, 24, 12),
     })
-    const neither = player({
-      id: "flat",
-      seasonGames: 2,
-      season: line(2, 20, 10),
+    const shortGap = player({
+      id: "short-gap",
+      seasonGames: 4,
+      season: line(4, 28, 18),
+      projection: line(70, 24, 12),
+    })
+    const exact = player({
+      id: "exact",
+      seasonGames: 4,
+      season: line(4, 29, 18),
       projection: line(70, 24, 12),
     })
     const both = player({
       id: "both",
-      seasonGames: 3,
-      season: line(3, 30, 18),
+      seasonGames: 5,
+      season: line(5, 30, 18),
       projection: line(70, 24, 12),
     })
 
-    const picks = select([foil, pool, minutesOnly, statsOnly, neither, both])
+    const picks = select([foil, minutesOnly, statsOnly, shortGap, exact, both])
 
-    expect(picks.find((pick) => pick.playerId === "minutes")?.reasons).toEqual(["rates"])
-    expect(picks.find((pick) => pick.playerId === "stats")?.reasons).toEqual(["rates"])
-    expect(picks.find((pick) => pick.playerId === "both")?.reasons).toEqual(["rates"])
-    expect(picks.find((pick) => pick.playerId === "flat")).toBeUndefined()
+    expect(picks.map((pick) => pick.playerId)).toEqual(["exact", "both"])
   })
 
-  it("requires both sides against the projection for games 4 through 7", () => {
-    const foil = projectionPtsFoil("foil", 40)
-    const both = player({
-      id: "both",
-      seasonGames: 5,
-      season: line(5, 30, 20),
-      projection: line(70, 24, 12),
+  it("passes a team change when minutes are higher than last year", () => {
+    const moved = player({
+      id: "moved",
+      teamAbbr: "ATL",
+      seasonGames: 8,
+      season: line(8, 22, 8),
+      prior: { teamAbbr: "NOP", line: line(70, 20, 14) },
     })
-    const minutesOnly = player({
-      id: "minutes",
-      seasonGames: 5,
-      season: line(5, 30, 10),
-      projection: line(70, 24, 12),
+    const sameTeam = player({
+      id: "same",
+      teamAbbr: "PHX",
+      seasonGames: 8,
+      season: line(8, 22, 8),
+      prior: { teamAbbr: "PHO", line: line(70, 20, 14) },
+    })
+    const fewerMinutes = player({
+      id: "fewer",
+      teamAbbr: "ATL",
+      seasonGames: 8,
+      season: line(8, 18, 20),
+      prior: { teamAbbr: "NOP", line: line(70, 20, 10) },
     })
 
-    const picks = select([foil, both, minutesOnly])
+    const picks = select([moved, sameTeam, fewerMinutes])
 
-    expect(picks.map((pick) => pick.playerId)).toEqual(["both"])
+    expect(picks.map((pick) => pick.playerId)).toEqual(["moved"])
   })
 
-  it("uses last-7 against the season line after 8 games", () => {
+  it("requires an eight-minute jump and a z-sum that did not fall on the same team", () => {
+    const foil = player({
+      id: "foil",
+      teamAbbr: "BOS",
+      seasonGames: 40,
+      season: line(40, 24, 10),
+      prior: { teamAbbr: "BOS", line: line(70, 24, 10) },
+    })
+    const held = player({
+      id: "held",
+      teamAbbr: "ATL",
+      seasonGames: 12,
+      season: line(12, 32, 18),
+      prior: { teamAbbr: "ATL", line: line(70, 22, 12) },
+    })
+    const shortGap = player({
+      id: "short-gap",
+      teamAbbr: "CHI",
+      seasonGames: 12,
+      season: line(12, 29, 18),
+      prior: { teamAbbr: "CHI", line: line(70, 22, 12) },
+    })
+    const worse = player({
+      id: "worse",
+      teamAbbr: "DAL",
+      seasonGames: 12,
+      season: line(12, 34, 8),
+      prior: { teamAbbr: "DAL", line: line(70, 22, 30) },
+    })
+    const projectionOnly = player({
+      id: "projection-only",
+      teamAbbr: "MIA",
+      seasonGames: 12,
+      season: line(12, 30, 20),
+      projection: line(70, 18, 10),
+      prior: { teamAbbr: "MIA", line: line(70, 26, 12) },
+    })
+
+    const picks = select([foil, held, shortGap, worse, projectionOnly])
+
+    expect(picks.map((pick) => pick.playerId)).toEqual(["held"])
+  })
+
+  it("tags a scoring breakout when attempts rise and still keeps a defensive jump", () => {
     const foil = projectionPtsFoil("foil", 40)
-    const breakout = player({
-      id: "breakout",
-      seasonGames: 10,
-      season: line(10, 24, 12, 3),
-      last7: line(7, 32, 12, 1),
+    const scoring = player({
+      id: "scoring",
+      seasonGames: 6,
+      season: line(6, 30, 18, 2, 16),
+      projection: line(70, 22, 12, 2, 10),
     })
-    const shortWindow = player({
-      id: "short",
-      seasonGames: 10,
-      season: line(10, 24, 12),
-      last7: line(3, 40, 30),
-    })
-    const oneSide = player({
-      id: "minutes-only",
-      seasonGames: 10,
-      season: line(10, 24, 12),
-      last7: line(7, 32, 12),
+    const defense = player({
+      id: "defense",
+      seasonGames: 6,
+      season: line(6, 30, 18, 2, 8),
+      projection: line(70, 22, 12, 2, 10),
     })
 
-    const picks = select([foil, breakout, shortWindow, oneSide])
+    const picks = select([foil, scoring, defense])
 
-    expect(picks.map((pick) => pick.playerId)).toEqual(["breakout"])
+    expect(picks.find((pick) => pick.playerId === "scoring")?.reasons).toEqual([
+      "rates",
+      "attempts",
+    ])
+    expect(picks.find((pick) => pick.playerId === "defense")?.reasons).toEqual(["rates"])
   })
 
   it("drops a missing projection, zero games, and an unavailable id", () => {

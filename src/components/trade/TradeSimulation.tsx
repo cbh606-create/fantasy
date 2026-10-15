@@ -4,6 +4,7 @@ import { useState } from "react"
 import { SideRankColumn } from "@/components/trade/SideRankColumn"
 import { SimulationRoster } from "@/components/trade/SimulationRoster"
 import { TradePackageStats } from "@/components/trade/TradePackageStats"
+import type { StatBasis } from "@/lib/season/analysis"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import { fairFills, formatFairFill, shapeLimits, TRADE_SHAPES, type SimShape } from "@/lib/trade/fairFill"
 import { formatAdvantageLine } from "@/lib/trade/offerCopy"
@@ -13,6 +14,7 @@ import { buildPlayerValueMap } from "@/lib/trade/value"
 
 type TradeSimulationProps = {
   state: SeasonLeagueState
+  basis?: StatBasis
 }
 
 type PlayerOption = {
@@ -49,7 +51,7 @@ const advantageLine = (
   return formatAdvantageLine(get > give ? yourName : theirName, gap)
 }
 
-export const TradeSimulation = ({ state }: TradeSimulationProps) => {
+export const TradeSimulation = ({ state, basis = "total" }: TradeSimulationProps) => {
   const [shape, setShape] = useState<SimShape>("2:2")
   const [teamIndex, setTeamIndex] = useState<number | null>(null)
   const [receiveIds, setReceiveIds] = useState<string[]>([])
@@ -148,13 +150,14 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
       youPlayerIds: sendIds,
       themPlayerIds: receiveIds,
       yourDropPlayerId: dropId ?? undefined,
+      basis,
     })
     : null
   const readyTrade = completedTrade?.status === "ready" ? completedTrade : null
 
   const standingColumns = () => {
     if (teamIndex === null) return null
-    const standing = standingReports(state, teamIndex)
+    const standing = standingReports(state, teamIndex, basis)
     if (!standing) return null
 
     return (
@@ -269,6 +272,7 @@ export const TradeSimulation = ({ state }: TradeSimulationProps) => {
       </div>
       {readyTrade && teamIndex !== null ? (
         <TradePackageStats
+          basis={basis}
           state={state}
           suggestion={{
             counterpartyTeamIndex: teamIndex,

@@ -109,9 +109,10 @@ const suggestions = [
 ]
 
 const previewUrl = "/api/trade/suggestions?seasonLeagueId=season-1"
-const generateUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=&shape=2%3A2"
-const excludedUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1&shape=2%3A2"
-const multiShapeUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1&shape=1%3A1&shape=2%3A2"
+const generateUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=&shape=2%3A2&basis=total"
+const excludedUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1&shape=2%3A2&basis=total"
+const multiShapeUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1&shape=1%3A1&shape=2%3A2&basis=total"
+const perGameUrl = "/api/trade/suggestions?seasonLeagueId=season-1&categories=TPM&excludedPlayerIds=give-1&shape=2%3A2&basis=perGame"
 const generatedBody = {
   suggestions,
   youWeak: ["AST", "TPM"],
@@ -132,7 +133,7 @@ describe("TradeWorkspace", () => {
         }), { status: 200 })
       }
 
-      if (url === generateUrl || url === excludedUrl || url === multiShapeUrl) {
+      if (url === generateUrl || url === excludedUrl || url === multiShapeUrl || url === perGameUrl) {
         return new Response(JSON.stringify(generatedBody), { status: 200 })
       }
 
@@ -217,6 +218,21 @@ describe("TradeWorkspace", () => {
 
     await screen.findByRole("heading", { name: "Their Center" })
     expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(multiShapeUrl)
+  })
+
+  it("regenerates the current list on the per-game basis", async () => {
+    render(<TradeWorkspace leagueId="season-1" />)
+    await screen.findByText("Select a category, then generate trade suggestions.")
+
+    fireEvent.click(screen.getByRole("button", { name: "3PM" }))
+    fireEvent.click(screen.getByRole("button", { name: "Generate trade suggestions" }))
+    await screen.findByRole("heading", { name: "Their Center" })
+
+    fireEvent.click(screen.getByRole("radio", { name: "Per game" }))
+
+    await screen.findByRole("heading", { name: "Their Center" })
+    expect(vi.mocked(fetch).mock.calls.map(([input]) => String(input))).toContain(perGameUrl)
+    expect(screen.getByRole("radio", { name: "Per game" })).toHaveAttribute("aria-checked", "true")
   })
 
   it("omits a player switched to Include", async () => {

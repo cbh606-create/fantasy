@@ -13,6 +13,7 @@ export type EspnStatRow = {
 export type RateLine = {
   gamesPlayed: number
   minutesPerGame: number | null
+  fgaPerGame: number | null
   rates: Record<CategoryId, number> | null
 }
 
@@ -113,6 +114,7 @@ const lineFromRow = (row: EspnStatRow | undefined): RateLine | null => {
   return {
     gamesPlayed,
     minutesPerGame: minutesPerGame(row, gamesPlayed),
+    fgaPerGame: rateNumber(row, "14", gamesPlayed, true),
     rates: ratesFromRow(row, gamesPlayed),
   }
 }

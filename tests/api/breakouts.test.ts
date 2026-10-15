@@ -36,6 +36,7 @@ const rates = (pts: number) => ({
 const line = (games: number, minutes: number, pts: number) => ({
   gamesPlayed: games,
   minutesPerGame: minutes,
+  fgaPerGame: null,
   rates: rates(pts),
 })
 

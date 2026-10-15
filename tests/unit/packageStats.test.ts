@@ -161,4 +161,18 @@ describe("tradeStatRows", () => {
     expect(you?.side).toBe("you")
     expect(you?.values.PTS).toBe(-34)
   })
+
+  it("divides counting stats by projected games and keeps the shooting percentage", () => {
+    const paced = {
+      ...give,
+      projectedGames: 10,
+    }
+    const rows = tradeStatRows(stateOf([paced, keep, get]), suggestion(), "perGame")
+    const send = rows.find((row) => row.id === "send-give")
+
+    expect(send?.values.PTS).toBeCloseTo(3)
+    expect(send?.values.FG_PCT).toBeCloseTo(0.5)
+    expect(send?.value).toBeCloseTo(tradeStatRows(stateOf([paced, keep, get]), suggestion())
+      .find((row) => row.id === "send-give")?.value ?? 0)
+  })
 })

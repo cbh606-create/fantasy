@@ -46,6 +46,8 @@ export type SeasonAnalysis = {
   }
 }
 
+export type StatBasis = "total" | "perGame"
+
 const COUNTING_CATEGORY_IDS = ALL_CATEGORY_IDS.filter(
   (categoryId) => categoryId !== "FG_PCT" && categoryId !== "FT_PCT",
 )
@@ -106,6 +108,28 @@ export const teamTotals = (players: SeasonPlayer[]): CategoryTotals => {
   for (const player of players) {
     for (const categoryId of ALL_CATEGORY_IDS) {
       totals[categoryId] += player.projections[categoryId]
+    }
+  }
+
+  totals.FG_PCT = percentageTotal(players, "FG_PCT")
+  totals.FT_PCT = percentageTotal(players, "FT_PCT")
+
+  return totals
+}
+
+export const teamTotalsForBasis = (
+  players: SeasonPlayer[],
+  basis: StatBasis,
+): CategoryTotals => {
+  if (basis === "total") return teamTotals(players)
+
+  const totals = emptyTotals()
+
+  for (const player of players) {
+    const games = gamesForPerGameRate(player)
+
+    for (const categoryId of COUNTING_CATEGORY_IDS) {
+      totals[categoryId] += player.projections[categoryId] / games
     }
   }
 
@@ -187,24 +211,17 @@ export const perGameTeamTotals = (
 ): TeamCategoryTotals[] => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
 
-  return state.teams.map((team) => {
-    const players = rosterPlayers(team, playersById)
-    const totals = emptyTotals()
-
-    for (const player of players) {
-      const games = gamesForPerGameRate(player)
-
-      for (const categoryId of COUNTING_CATEGORY_IDS) {
-        totals[categoryId] += player.projections[categoryId] / games
-      }
-    }
-
-    totals.FG_PCT = percentageTotal(players, "FG_PCT")
-    totals.FT_PCT = percentageTotal(players, "FT_PCT")
-
-    return { teamIndex: team.teamIndex, totals }
-  })
+  return state.teams.map((team) => ({
+    teamIndex: team.teamIndex,
+    totals: teamTotalsForBasis(rosterPlayers(team, playersById), "perGame"),
+  }))
 }
+
+export const leagueTotalsForBasis = (
+  state: SeasonLeagueState,
+  basis: StatBasis,
+): TeamCategoryTotals[] =>
+  basis === "perGame" ? perGameTeamTotals(state) : seasonTeamTotals(state)
 
 export const analyzeTeamTotals = (
   totalsByTeam: TeamCategoryTotals[],
