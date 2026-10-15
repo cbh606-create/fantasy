@@ -1,4 +1,5 @@
 import { canonicalTeam } from "./crosswalk"
+import { isCompletedTrade, teamsMentionedAfter, type TradeNewsItem } from "./tradeNews"
 
 export type DepthPosition = "PG" | "SG" | "SF" | "PF" | "C"
 
@@ -29,11 +30,12 @@ export type InjurySelectionInputs = {
   crosswalk: ReadonlyMap<string, string>
   availablePlayerIds: readonly string[]
   now: Date
+  news: TradeNewsItem[]
 }
 
 export type InjuryReplacement = {
   injuredPlayerId: string
-  status: "out" | "gtd"
+  status: "out" | "gtd" | "traded"
   addPlayerId: string
   source: "lineup" | "depth"
 }
@@ -120,6 +122,95 @@ const starterPosition = (
   return positionListFor(depth, teamAbbr, starter.playerId)?.position ?? null
 }
 
+const SINGLE_POSITIONS = new Set<DepthPosition>(["PG", "SG", "SF", "PF", "C"])
+
+const pickReplacement = (
+  inputs: InjurySelectionInputs,
+  rotowirePlayerId: string,
+  teamAbbr: string,
+  available: Set<string>,
+): { addPlayerId: string; source: "lineup" | "depth" } | null => {
+  const position = positionListFor(inputs.depth, teamAbbr, rotowirePlayerId)
+  if (!position) return null
+
+  const lineup = nextLineup(inputs.lineups, teamAbbr, inputs.now)
+  const isStarting =
+    lineup?.starters.some((starter) => starter.playerId === rotowirePlayerId) ?? false
+
+  if (lineup && !isStarting) {
+    const matches = lineup.starters.filter((starter) => {
+      if (starter.playerId === rotowirePlayerId) return false
+      return starterPosition(starter, inputs.depth, teamAbbr) === position.position
+    })
+    const matched = matches[0]
+    const addPlayerId = matched ? inputs.crosswalk.get(matched.playerId) : undefined
+    if (matches.length === 1 && addPlayerId && available.has(addPlayerId)) {
+      return { addPlayerId, source: "lineup" }
+    }
+  }
+
+  const backupId = position.playerIds.slice(position.index + 1).find((playerId) => {
+    const espnId = inputs.crosswalk.get(playerId)
+    return espnId !== undefined && available.has(espnId)
+  })
+  const addPlayerId = backupId ? inputs.crosswalk.get(backupId) : undefined
+  if (!addPlayerId) return null
+  return { addPlayerId, source: "depth" }
+}
+
+const pickOpenPosition = (
+  inputs: InjurySelectionInputs,
+  teamAbbr: string,
+  position: string,
+  available: Set<string>,
+): { addPlayerId: string; source: "depth" } | null => {
+  if (!SINGLE_POSITIONS.has(position as DepthPosition)) return null
+  const team = inputs.depth.teams.find(
+    (entry) => canonicalTeam(entry.teamAbbr) === canonicalTeam(teamAbbr),
+  )
+  const group = team?.positions.find((entry) => entry.position === position)
+  const backupId = group?.playerIds.find((playerId) => {
+    const espnId = inputs.crosswalk.get(playerId)
+    return espnId !== undefined && available.has(espnId)
+  })
+  const addPlayerId = backupId ? inputs.crosswalk.get(backupId) : undefined
+  if (!addPlayerId) return null
+  return { addPlayerId, source: "depth" }
+}
+
+const teamsListing = (depth: DepthChart, rotowirePlayerId: string): string[] =>
+  depth.teams
+    .filter((team) =>
+      team.positions.some((group) => group.playerIds.includes(rotowirePlayerId)),
+    )
+    .map((team) => team.teamAbbr)
+
+const vacatedTeam = (item: TradeNewsItem, depth: DepthChart): string | null => {
+  const text = `${item.headline} ${item.notes}`
+  const destination = teamsMentionedAfter(text, "traded to")[0] ?? null
+  const listed = teamsListing(depth, item.rotowirePlayerId)
+  if (listed.length === 1 && canonicalTeam(listed[0]!) !== destination) return listed[0]!
+
+  const origin = teamsMentionedAfter(text, "traded from")[0] ?? null
+  if (origin && origin !== destination) return origin
+
+  if (item.teamAbbr.length > 0 && canonicalTeam(item.teamAbbr) !== destination) {
+    return item.teamAbbr
+  }
+  return null
+}
+
+const latestCompletedTrades = (items: TradeNewsItem[], now: Date): TradeNewsItem[] => {
+  const byPlayer = new Map<string, TradeNewsItem>()
+  for (const item of items) {
+    const at = new Date(item.at).getTime()
+    if (Number.isNaN(at) || at > now.getTime() || now.getTime() - at > WINDOW_MS) continue
+    const current = byPlayer.get(item.rotowirePlayerId)
+    if (!current || at >= new Date(current.at).getTime()) byPlayer.set(item.rotowirePlayerId, item)
+  }
+  return [...byPlayer.values()].filter((item) => isCompletedTrade(item.headline, item.notes))
+}
+
 export const selectInjuryReplacements = (
   inputs: InjurySelectionInputs,
 ): InjuryReplacement[] => {
@@ -130,52 +221,38 @@ export const selectInjuryReplacements = (
     const injuredEspnId = inputs.crosswalk.get(update.rotowirePlayerId)
     if (!injuredEspnId) continue
 
-    const position = positionListFor(
-      inputs.depth,
-      update.teamAbbr,
+    const pick = pickReplacement(
+      inputs,
       update.rotowirePlayerId,
+      update.teamAbbr,
+      available,
     )
-    if (!position) continue
-
-    const lineup = nextLineup(inputs.lineups, update.teamAbbr, inputs.now)
-    const injuredIsStarting =
-      lineup?.starters.some((starter) => starter.playerId === update.rotowirePlayerId) ??
-      false
-
-    if (lineup && !injuredIsStarting) {
-      const matches = lineup.starters.filter((starter) => {
-        if (starter.playerId === update.rotowirePlayerId) return false
-        return starterPosition(starter, inputs.depth, update.teamAbbr) === position.position
-      })
-      const matched = matches[0]
-      const addEspnId = matched ? inputs.crosswalk.get(matched.playerId) : undefined
-      if (matches.length === 1 && addEspnId && available.has(addEspnId)) {
-        rows.push({
-          injuredPlayerId: injuredEspnId,
-          status: update.status,
-          addPlayerId: addEspnId,
-          source: "lineup",
-        })
-        continue
-      }
-    }
-
-    const backupRotowireId = position.playerIds
-      .slice(position.index + 1)
-      .find((playerId) => {
-        const espnId = inputs.crosswalk.get(playerId)
-        return espnId !== undefined && available.has(espnId)
-      })
-    const addEspnId = backupRotowireId
-      ? inputs.crosswalk.get(backupRotowireId)
-      : undefined
-    if (!addEspnId) continue
+    if (!pick) continue
 
     rows.push({
       injuredPlayerId: injuredEspnId,
       status: update.status,
-      addPlayerId: addEspnId,
-      source: "depth",
+      addPlayerId: pick.addPlayerId,
+      source: pick.source,
+    })
+  }
+
+  for (const item of latestCompletedTrades(inputs.news, inputs.now)) {
+    const injuredPlayerId = inputs.crosswalk.get(item.rotowirePlayerId)
+    const teamAbbr = vacatedTeam(item, inputs.depth)
+    if (!injuredPlayerId || !teamAbbr) continue
+
+    const onChart = positionListFor(inputs.depth, teamAbbr, item.rotowirePlayerId)
+    const pick = onChart
+      ? pickReplacement(inputs, item.rotowirePlayerId, teamAbbr, available)
+      : pickOpenPosition(inputs, teamAbbr, item.position, available)
+    if (!pick) continue
+
+    rows.push({
+      injuredPlayerId,
+      status: "traded",
+      addPlayerId: pick.addPlayerId,
+      source: pick.source,
     })
   }
 
