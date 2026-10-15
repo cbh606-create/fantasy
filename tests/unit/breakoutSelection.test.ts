@@ -44,8 +44,17 @@ const select = (players: BreakoutPlayer[]) =>
     now: new Date("2026-01-15T00:00:00.000Z"),
   })
 
+const projectionPtsFoil = (id: string, pts: number) =>
+  player({
+    id,
+    seasonGames: 50,
+    season: line(50, 24, pts),
+    projection: line(70, 24, pts),
+  })
+
 describe("selectBreakouts rates", () => {
   it("accepts one higher side during games 1 through 3", () => {
+    const foil = projectionPtsFoil("foil", 40)
     const pool = player({
       id: "pool",
       seasonGames: 2,
@@ -77,7 +86,7 @@ describe("selectBreakouts rates", () => {
       projection: line(70, 24, 12),
     })
 
-    const picks = select([pool, minutesOnly, statsOnly, neither, both])
+    const picks = select([foil, pool, minutesOnly, statsOnly, neither, both])
 
     expect(picks.find((pick) => pick.playerId === "minutes")?.reasons).toEqual(["rates"])
     expect(picks.find((pick) => pick.playerId === "stats")?.reasons).toEqual(["rates"])
@@ -86,6 +95,7 @@ describe("selectBreakouts rates", () => {
   })
 
   it("requires both sides against the projection for games 4 through 7", () => {
+    const foil = projectionPtsFoil("foil", 40)
     const both = player({
       id: "both",
       seasonGames: 5,
@@ -99,12 +109,13 @@ describe("selectBreakouts rates", () => {
       projection: line(70, 24, 12),
     })
 
-    const picks = select([both, minutesOnly])
+    const picks = select([foil, both, minutesOnly])
 
     expect(picks.map((pick) => pick.playerId)).toEqual(["both"])
   })
 
   it("uses last-7 against the season line after 8 games", () => {
+    const foil = projectionPtsFoil("foil", 40)
     const breakout = player({
       id: "breakout",
       seasonGames: 10,
@@ -124,7 +135,7 @@ describe("selectBreakouts rates", () => {
       last7: line(7, 32, 12),
     })
 
-    const picks = select([breakout, shortWindow, oneSide])
+    const picks = select([foil, breakout, shortWindow, oneSide])
 
     expect(picks.map((pick) => pick.playerId)).toEqual(["breakout"])
   })

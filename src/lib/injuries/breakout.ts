@@ -35,15 +35,10 @@ const zSum = (
     const deviation = Math.sqrt(
       values.reduce((total, value) => total + (value - mean) ** 2, 0) / values.length,
     )
+    if (deviation === 0) return sum
     const value = line.rates?.[categoryId] ?? mean
     const z =
-      deviation === 0
-        ? categoryId === "TO"
-          ? mean - value
-          : value - mean
-        : categoryId === "TO"
-          ? (mean - value) / deviation
-          : (value - mean) / deviation
+      categoryId === "TO" ? (mean - value) / deviation : (value - mean) / deviation
     return sum + z
   }, 0)
 }
