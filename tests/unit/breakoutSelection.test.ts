@@ -168,3 +168,141 @@ describe("selectBreakouts rates", () => {
     expect(picks).toEqual([])
   })
 })
+
+describe("selectBreakouts lineup", () => {
+  const now = new Date("2026-01-15T12:00:00.000Z")
+  const depth = {
+    teams: [
+      {
+        teamAbbr: "ATL",
+        positions: [{ position: "PG" as const, playerIds: ["rw-starter", "rw-new"] }],
+      },
+    ],
+  }
+  const lineups = [
+    {
+      teamAbbr: "ATL",
+      startsAt: "2026-01-15T00:00:00.000Z",
+      starters: [{ playerId: "rw-new", position: "PG" as const }],
+    },
+  ]
+  const crosswalk = new Map([
+    ["rw-starter", "espn-starter"],
+    ["rw-new", "espn-new"],
+  ])
+
+  it("selects a confirmed starter when rank 1 is healthy", () => {
+    const picks = selectBreakouts({
+      players: [],
+      availablePlayerIds: ["espn-new"],
+      lineups,
+      depth,
+      updates: [],
+      crosswalk,
+      now,
+    })
+
+    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["lineup"] }])
+  })
+
+  it("skips rank 1 when that player is OUT or GTD", () => {
+    for (const status of ["out", "gtd"] as const) {
+      const picks = selectBreakouts({
+        players: [],
+        availablePlayerIds: ["espn-new"],
+        lineups,
+        depth,
+        updates: [
+          {
+            rotowirePlayerId: "rw-starter",
+            teamAbbr: "ATL",
+            status,
+            at: "2026-01-15T11:00:00.000Z",
+          },
+        ],
+        crosswalk,
+        now,
+      })
+
+      expect(picks).toEqual([])
+    }
+  })
+
+  it("drops an OUT candidate and keeps a GTD rates breakout", () => {
+    const gtd = player({
+      id: "espn-new",
+      seasonGames: 2,
+      season: line(2, 30, 20),
+      projection: line(70, 20, 10),
+    })
+    const picks = selectBreakouts({
+      players: [gtd],
+      availablePlayerIds: ["espn-new"],
+      lineups: [],
+      depth: { teams: [] },
+      updates: [
+        {
+          rotowirePlayerId: "rw-new",
+          teamAbbr: "ATL",
+          status: "gtd",
+          at: "2026-01-15T11:00:00.000Z",
+        },
+      ],
+      crosswalk,
+      now,
+    })
+
+    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["rates"] }])
+
+    const outPicks = selectBreakouts({
+      players: [],
+      availablePlayerIds: ["espn-new"],
+      lineups,
+      depth,
+      updates: [
+        {
+          rotowirePlayerId: "rw-new",
+          teamAbbr: "ATL",
+          status: "out",
+          at: "2026-01-15T11:00:00.000Z",
+        },
+      ],
+      crosswalk,
+      now,
+    })
+
+    expect(outPicks).toEqual([])
+  })
+
+  it("keeps both reasons on one row and skips an unmapped rank 1", () => {
+    const both = player({
+      id: "espn-new",
+      seasonGames: 2,
+      season: line(2, 30, 20),
+      projection: line(70, 20, 10),
+    })
+    const picks = selectBreakouts({
+      players: [both],
+      availablePlayerIds: ["espn-new"],
+      lineups,
+      depth,
+      updates: [],
+      crosswalk,
+      now,
+    })
+
+    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["rates", "lineup"] }])
+
+    const unmapped = selectBreakouts({
+      players: [],
+      availablePlayerIds: ["espn-new"],
+      lineups,
+      depth,
+      updates: [],
+      crosswalk: new Map([["rw-new", "espn-new"]]),
+      now,
+    })
+
+    expect(unmapped).toEqual([])
+  })
+})

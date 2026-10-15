@@ -1,4 +1,5 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import { canonicalTeam } from "./crosswalk"
 import type { BreakoutStatLines, RateLine } from "./breakoutStats"
 import type { ConfirmedLineup, DepthChart, InjuryUpdate } from "./selection"
 
@@ -79,10 +80,74 @@ const ratesReason = (
   return sides.minutes === true && sides.value === true
 }
 
+const WINDOW_MS = 24 * 60 * 60 * 1000
+
+const latestStatus = (
+  updates: readonly InjuryUpdate[],
+  rotowireId: string,
+  now: Date,
+): "out" | "gtd" | "other" | null => {
+  let bestAt = Number.NEGATIVE_INFINITY
+  let status: "out" | "gtd" | "other" | null = null
+  for (const update of updates) {
+    if (update.rotowirePlayerId !== rotowireId) continue
+    const at = new Date(update.at).getTime()
+    if (Number.isNaN(at) || at > now.getTime() || now.getTime() - at > WINDOW_MS) continue
+    if (at >= bestAt) {
+      bestAt = at
+      status = update.status
+    }
+  }
+  return status
+}
+
+const espnIsOut = (
+  espnId: string,
+  inputs: BreakoutSelectionInputs,
+): boolean =>
+  [...inputs.crosswalk.entries()].some(
+    ([rotowireId, mappedEspnId]) =>
+      mappedEspnId === espnId && latestStatus(inputs.updates, rotowireId, inputs.now) === "out",
+  )
+
+const lineupIds = (inputs: BreakoutSelectionInputs): string[] => {
+  const ids: string[] = []
+  for (const lineup of inputs.lineups) {
+    const depthTeam = inputs.depth.teams.find(
+      (team) => canonicalTeam(team.teamAbbr) === canonicalTeam(lineup.teamAbbr),
+    )
+    for (const starter of lineup.starters) {
+      if (!starter.position) continue
+      const starterEspn = inputs.crosswalk.get(starter.playerId)
+      const rank1 = depthTeam?.positions.find((slot) => slot.position === starter.position)
+        ?.playerIds[0]
+      const rank1Espn = rank1 ? inputs.crosswalk.get(rank1) : undefined
+      if (!starterEspn || !rank1Espn || starterEspn === rank1Espn) continue
+      const rank1Status = latestStatus(inputs.updates, rank1 ?? "", inputs.now)
+      if (rank1Status === "out" || rank1Status === "gtd") continue
+      ids.push(starterEspn)
+    }
+  }
+  return ids
+}
+
 export const selectBreakouts = (inputs: BreakoutSelectionInputs): BreakoutPick[] => {
   const available = new Set(inputs.availablePlayerIds)
-  return inputs.players.flatMap((player) => {
-    if (!available.has(player.id) || !ratesReason(player, inputs.players)) return []
-    return [{ playerId: player.id, reasons: ["rates"] as BreakoutReason[] }]
-  })
+  const reasons = new Map<string, BreakoutReason[]>()
+  const add = (playerId: string, reason: BreakoutReason) => {
+    if (!available.has(playerId) || espnIsOut(playerId, inputs)) return
+    const current = reasons.get(playerId) ?? []
+    if (!current.includes(reason)) current.push(reason)
+    reasons.set(playerId, current)
+  }
+
+  for (const player of inputs.players) {
+    if (ratesReason(player, inputs.players)) add(player.id, "rates")
+  }
+  for (const playerId of lineupIds(inputs)) add(playerId, "lineup")
+
+  return [...reasons.entries()].map(([playerId, rowReasons]) => ({
+    playerId,
+    reasons: rowReasons,
+  }))
 }
