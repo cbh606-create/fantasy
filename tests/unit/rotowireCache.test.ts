@@ -76,6 +76,7 @@ describe("loadInjurySelectionInputs", () => {
     })
 
     expect(inputs.updates).toEqual([])
+    expect(inputs.news).toEqual([])
     expect(fetchImpl).not.toHaveBeenCalled()
   })
 
@@ -332,5 +333,49 @@ describe("loadInjurySelectionInputs", () => {
 
     expect(second.updates[0]?.status).toBe("gtd")
     expect(second.depth.teams[0]?.positions[0]?.playerIds).toEqual(["rw-trae", "rw-naw"])
+  })
+
+  it("parses trade news from the last 24 hours", async () => {
+    vi.stubEnv("ROTOWIRE_API_KEY", "test-key")
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes("get-nba-news")) {
+        expect(url).toContain("hours=24")
+        expect(url).toContain("with_analysis=0")
+        return jsonResponse({
+          Updates: [
+            {
+              DateTime: "2026-01-14T12:00:00.000Z",
+              Headline: "Traded to the Lakers",
+              Notes: "",
+              Player: { Id: "rw-jrue", Position: "PG" },
+              Team: { Code: "BOS" },
+            },
+          ],
+        })
+      }
+      if (url.includes("get-nba-injuries")) return jsonResponse(payloads().injuries)
+      if (url.includes("get-nba-depth-charts")) return jsonResponse(payloads().depth)
+      if (url.includes("get-nba-lineups")) return jsonResponse(payloads().lineups)
+      if (url.includes("get-nba-players")) return jsonResponse(payloads().players)
+      return new Response("missing", { status: 404 })
+    })
+
+    const inputs = await loadInjurySelectionInputs({
+      now: new Date("2026-01-15T00:00:00.000Z"),
+      espnPlayers: [],
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    })
+
+    expect(inputs.news).toEqual([
+      {
+        rotowirePlayerId: "rw-jrue",
+        teamAbbr: "BOS",
+        headline: "Traded to the Lakers",
+        notes: "",
+        position: "PG",
+        at: "2026-01-14T12:00:00.000Z",
+      },
+    ])
   })
 })

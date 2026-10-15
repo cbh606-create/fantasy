@@ -55,6 +55,7 @@ const emptyInjury = {
   depth: { teams: [] },
   lineups: [],
   crosswalk: new Map<string, string>(),
+  news: [],
 }
 
 const testUserPrefix = `breakouts-api-${crypto.randomUUID()}`
@@ -182,6 +183,7 @@ describe("GET /api/injuries/breakouts", () => {
         ["rw-lineup", "lineup-guy"],
         ["rw-out", "out-guy"],
       ]),
+      news: [],
     })
 
     const league = await seedLeague()

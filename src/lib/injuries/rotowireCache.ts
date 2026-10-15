@@ -6,12 +6,14 @@ import {
   parseRotoPlayers,
 } from "./rotowireParse"
 import type { ConfirmedLineup, DepthChart, InjuryUpdate } from "./selection"
+import { parseTradeNews, type TradeNewsItem } from "./tradeNews"
 
 export type CachedInjuryInputs = {
   updates: InjuryUpdate[]
   depth: DepthChart
   lineups: ConfirmedLineup[]
   crosswalk: Map<string, string>
+  news: TradeNewsItem[]
 }
 
 const EMPTY_INPUTS = (): CachedInjuryInputs => ({
@@ -19,6 +21,7 @@ const EMPTY_INPUTS = (): CachedInjuryInputs => ({
   depth: { teams: [] },
   lineups: [],
   crosswalk: new Map(),
+  news: [],
 })
 
 const FIVE_MINUTES = 5 * 60 * 1000
@@ -39,6 +42,7 @@ type Memory = {
   depth: Stamp<DepthChart>
   lineups: Stamp<LineupCache>
   players: Stamp<ReturnType<typeof parseRotoPlayers>>
+  news: Stamp<TradeNewsItem[]>
 }
 
 const emptyLineupCache = (): LineupCache => ({ lineups: [], gameStartTimes: [] })
@@ -139,6 +143,7 @@ export const loadInjurySelectionInputs = async (options: {
     depth: memory?.depth ?? { value: { teams: [] }, fetchedAt: 0 },
     lineups: memory?.lineups ?? { value: emptyLineupCache(), fetchedAt: 0 },
     players: memory?.players ?? { value: [], fetchedAt: 0 },
+    news: memory?.news ?? { value: [], fetchedAt: 0 },
   }
 
   if (stale(memory?.updates, nowMs, gameDay ? FIVE_MINUTES : THIRTY_MINUTES)) {
@@ -146,6 +151,19 @@ export const loadInjurySelectionInputs = async (options: {
       next.updates = {
         value: parseInjuryUpdates(
           await readJson(fetchImpl, endpoint("/Basketball/get-nba-injuries.php", key, 24)),
+        ),
+        fetchedAt: nowMs,
+      }
+    } catch {
+      // keep previous stamp for this input
+    }
+    try {
+      next.news = {
+        value: parseTradeNews(
+          await readJson(
+            fetchImpl,
+            endpoint("/Basketball/get-nba-news.php", key, 24) + "&with_analysis=0",
+          ),
         ),
         fetchedAt: nowMs,
       }
@@ -204,4 +222,5 @@ const snapshot = (cached: Memory, espnPlayers: CrosswalkEspnPlayer[]): CachedInj
   depth: cached.depth.value,
   lineups: cached.lineups.value.lineups,
   crosswalk: buildCrosswalk(espnPlayers, cached.players.value),
+  news: cached.news.value,
 })

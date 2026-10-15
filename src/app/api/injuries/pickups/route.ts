@@ -23,7 +23,6 @@ const toPickups = (
   const rosterIds = youRosterIds(state)
   const rows = selectInjuryReplacements({
     ...cached,
-    news: [],
     availablePlayerIds: state.availablePlayerIds,
     now: new Date(),
   })

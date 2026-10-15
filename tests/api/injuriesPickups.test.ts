@@ -20,6 +20,7 @@ const emptyCache = {
   depth: { teams: [] },
   lineups: [],
   crosswalk: new Map<string, string>(),
+  news: [],
 }
 
 const testUserPrefix = `injuries-pickups-api-${crypto.randomUUID()}`
@@ -203,6 +204,7 @@ describe("GET /api/injuries/pickups", () => {
         ["rw-trae", "trae-young"],
         ["rw-naw", "nickeil-alexander-walker"],
       ]),
+      news: [],
     })
     const league = await seedInjuryPickupLeague()
 
