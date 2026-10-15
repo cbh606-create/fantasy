@@ -62,4 +62,89 @@ describe("readBreakoutStatLines", () => {
     expect(lines.projection).toBeNull()
     expect(lines.last7).toBeNull()
   })
+
+  it("derives per-game minutes and counting rates from totals when averageStats is absent", () => {
+    const lines = readBreakoutStatLines(
+      [
+        {
+          id: "002026",
+          seasonId: 2026,
+          statSourceId: 0,
+          statSplitTypeId: 0,
+          stats: {
+            "0": 971,
+            "1": 12,
+            "2": 83,
+            "3": 426,
+            "6": 348,
+            "11": 209,
+            "13": 358,
+            "14": 839,
+            "15": 127,
+            "16": 183,
+            "17": 128,
+            "19": 0.42669845,
+            "20": 0.69398907,
+            "40": 1853,
+            "42": 64,
+          },
+        },
+        {
+          id: "012026",
+          seasonId: 2026,
+          statSourceId: 0,
+          statSplitTypeId: 1,
+          stats: {
+            "0": 11,
+            "1": 2,
+            "2": 1,
+            "3": 8,
+            "6": 3,
+            "11": 4,
+            "13": 4,
+            "14": 10,
+            "15": 1,
+            "16": 4,
+            "17": 2,
+            "19": 0.4,
+            "20": 0.25,
+            "40": 27,
+            "42": 1,
+          },
+        },
+        {
+          id: "102026",
+          seasonId: 2026,
+          statSourceId: 1,
+          statSplitTypeId: 0,
+          stats: {
+            "0": 807,
+            "1": 27,
+            "2": 80,
+            "3": 369,
+            "6": 308,
+            "11": 188,
+            "13": 306,
+            "14": 683,
+            "15": 125,
+            "16": 188,
+            "17": 70,
+            "19": 0.448,
+            "20": 0.664,
+            "40": 1668.3,
+            "42": 67,
+          },
+        },
+      ],
+      2026,
+    )
+
+    expect(lines.seasonGames).toBe(64)
+    expect(lines.season?.minutesPerGame).toBeCloseTo(1853 / 64)
+    expect(lines.season?.rates?.PTS).toBeCloseTo(971 / 64)
+    expect(lines.last7?.minutesPerGame).toBe(27)
+    expect(lines.projection?.minutesPerGame).toBeCloseTo(1668.3 / 67)
+    expect(lines.projection?.minutesPerGame).not.toBeCloseTo(1853 / 64)
+    expect(lines.projection?.rates?.PTS).toBeCloseTo(807 / 67)
+  })
 })
