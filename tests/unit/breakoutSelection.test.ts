@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest"
-import { selectBreakouts, type BreakoutPlayer } from "@/lib/injuries/breakout"
+import {
+  formatBreakoutEvidence,
+  selectBreakouts,
+  type BreakoutPlayer,
+} from "@/lib/injuries/breakout"
 import type { RateLine } from "@/lib/injuries/breakoutStats"
 
-const rates = (pts: number, to: number): RateLine["rates"] => ({
+const rates = (pts: number, to: number): NonNullable<RateLine["rates"]> => ({
   FG_PCT: 0.5,
   FT_PCT: 0.8,
   TPM: 1,
   REB: 4,
   AST: 3,
-  STL: 1,
-  BLK: 1,
+  STL: 0.4,
+  BLK: 0.3,
   TO: to,
   PTS: pts,
 })
@@ -20,11 +24,12 @@ const line = (
   pts: number,
   to = 2,
   fgaPerGame: number | null = null,
+  rateOverrides: Partial<NonNullable<RateLine["rates"]>> = {},
 ): RateLine => ({
   gamesPlayed,
   minutesPerGame,
   fgaPerGame,
-  rates: rates(pts, to),
+  rates: { ...rates(pts, to), ...rateOverrides },
 })
 
 const player = (overrides: Partial<BreakoutPlayer> & { id: string }): BreakoutPlayer => ({
@@ -57,7 +62,7 @@ const projectionPtsFoil = (id: string, pts: number) =>
   })
 
 describe("selectBreakouts rates", () => {
-  it("requires a five-minute projection gap and a z-sum that did not fall", () => {
+  it("keeps an early 28-minute role without last year and still checks z after eight games", () => {
     const foil = projectionPtsFoil("foil", 40)
     const minutesOnly = player({
       id: "minutes",
@@ -92,7 +97,31 @@ describe("selectBreakouts rates", () => {
 
     const picks = select([foil, minutesOnly, statsOnly, shortGap, exact, both])
 
-    expect(picks.map((pick) => pick.playerId)).toEqual(["exact", "both"])
+    expect(picks.map((pick) => pick.playerId)).toEqual(["minutes", "short-gap", "exact", "both"])
+
+    const settledFoil = projectionPtsFoil("settled-foil", 40)
+    const heldLater = player({
+      id: "held-later",
+      seasonGames: 10,
+      season: line(10, 26, 18),
+      projection: line(70, 20, 12),
+    })
+    const fadedLater = player({
+      id: "faded-later",
+      seasonGames: 10,
+      season: line(10, 30, 8),
+      projection: line(70, 20, 20),
+    })
+    const modestLater = player({
+      id: "modest-later",
+      seasonGames: 10,
+      season: line(10, 26, 18),
+      projection: line(70, 24, 12),
+    })
+
+    expect(select([settledFoil, heldLater, fadedLater, modestLater]).map((pick) => pick.playerId)).toEqual([
+      "held-later",
+    ])
   })
 
   it("passes a team change when minutes are higher than last year", () => {
@@ -166,6 +195,191 @@ describe("selectBreakouts rates", () => {
     expect(picks.map((pick) => pick.playerId)).toEqual(["held"])
   })
 
+  it("catches an early same-team minutes jump before the z-sum is stable", () => {
+    const foil = player({
+      id: "foil",
+      teamAbbr: "BOS",
+      seasonGames: 3,
+      season: line(3, 24, 20),
+      prior: { teamAbbr: "BOS", line: line(70, 24, 10) },
+    })
+    const hart = player({
+      id: "hart",
+      teamAbbr: "NYK",
+      seasonGames: 3,
+      season: line(3, 36, 8),
+      prior: { teamAbbr: "NYK", line: line(70, 28, 30) },
+    })
+    const short = player({
+      id: "short",
+      teamAbbr: "CHI",
+      seasonGames: 3,
+      season: line(3, 34, 18),
+      prior: { teamAbbr: "CHI", line: line(70, 28, 12) },
+    })
+    const settled = player({
+      id: "settled",
+      teamAbbr: "DAL",
+      seasonGames: 8,
+      season: line(8, 36, 8),
+      prior: { teamAbbr: "DAL", line: line(70, 28, 30) },
+    })
+
+    const early = select([foil, hart])
+    expect(early.map((pick) => pick.playerId)).toEqual(["hart"])
+    expect(early[0]?.reasons).toEqual(["rates"])
+    expect(early[0]?.evidence).toMatchObject({
+      games: 3,
+      baseline: "prior",
+      baselineMinutes: 28,
+      seasonMinutes: 36,
+      zHeld: false,
+      attempts: null,
+    })
+    expect(formatBreakoutEvidence(early[0].evidence)).toBe(
+      "28.0 → 36.0 mpg · 3 GP · z down · FGA n/a",
+    )
+    expect(select([foil, short])).toEqual([])
+    expect(select([foil, settled])).toEqual([])
+  })
+
+  it("catches a one-game team change when minutes rise and attempts do not", () => {
+    const foil = player({
+      id: "foil",
+      teamAbbr: "BOS",
+      seasonGames: 1,
+      season: line(1, 24, 20),
+      prior: { teamAbbr: "BOS", line: line(70, 24, 10) },
+    })
+    const daniels = player({
+      id: "daniels",
+      teamAbbr: "ATL",
+      seasonGames: 1,
+      season: line(1, 35, 8, 2, 8),
+      prior: { teamAbbr: "NOP", line: line(70, 22, 14, 2, 9) },
+    })
+
+    const picks = select([foil, daniels])
+
+    expect(picks.map((pick) => pick.playerId)).toEqual(["daniels"])
+    expect(picks[0]?.reasons).toEqual(["rates"])
+    expect(picks[0]?.evidence).toMatchObject({
+      games: 1,
+      baseline: "prior",
+      baselineMinutes: 22,
+      seasonMinutes: 35,
+      zHeld: false,
+      attempts: "down",
+    })
+    expect(formatBreakoutEvidence(picks[0].evidence)).toBe(
+      "22.0 → 35.0 mpg · 1 GP · z down · FGA down",
+    )
+  })
+
+  it("keeps a same-team shot vacancy when attempts jump and minutes stay under eight", () => {
+    const powell = player({
+      id: "powell",
+      teamAbbr: "LAC",
+      seasonGames: 4,
+      season: line(4, 32, 8, 2, 16),
+      prior: { teamAbbr: "LAC", line: line(70, 26, 20, 2, 11) },
+    })
+    const smallAttemptJump = player({
+      id: "small",
+      teamAbbr: "LAC",
+      seasonGames: 4,
+      season: line(4, 32, 20, 2, 14),
+      prior: { teamAbbr: "LAC", line: line(70, 26, 12, 2, 11) },
+    })
+
+    const foil = player({
+      id: "foil",
+      teamAbbr: "BOS",
+      seasonGames: 40,
+      season: line(40, 24, 10, 2, 8),
+      prior: { teamAbbr: "BOS", line: line(70, 24, 10, 2, 8) },
+    })
+    const cooled = player({
+      id: "cooled",
+      teamAbbr: "DAL",
+      seasonGames: 10,
+      season: line(10, 32, 8, 2, 16),
+      prior: { teamAbbr: "DAL", line: line(70, 26, 30, 2, 11) },
+    })
+
+    expect(select([powell]).map((pick) => pick.playerId)).toEqual(["powell"])
+    expect(select([smallAttemptJump])).toEqual([])
+    expect(select([foil, cooled])).toEqual([])
+  })
+
+  it("keeps a 20-to-28 minute specialist without a minute jump", () => {
+    const kessler = player({
+      id: "kessler",
+      seasonGames: 6,
+      season: line(6, 23, 9, 2, 6, { BLK: 2.3, STL: 0.4 }),
+      projection: line(70, 22, 8),
+    })
+    const shortSample = player({
+      id: "two-games",
+      seasonGames: 2,
+      season: line(2, 23, 9, 2, 6, { BLK: 2.3, STL: 0.4 }),
+      projection: line(70, 22, 8),
+    })
+
+    const fadedMinutes = player({
+      id: "faded-minutes",
+      seasonGames: 12,
+      season: line(12, 23, 9, 2, 6, { BLK: 2.3, STL: 0.4 }),
+      last7: line(7, 18, 7, 2, 5, { BLK: 2.3, STL: 0.4 }),
+      projection: line(70, 22, 8),
+    })
+
+    expect(select([kessler]).map((pick) => pick.playerId)).toEqual(["kessler"])
+    expect(select([shortSample])).toEqual([])
+    expect(select([fadedMinutes])).toEqual([])
+  })
+
+  it("uses the last seven games when the season average has not caught up", () => {
+    const hartenstein = player({
+      id: "hartenstein",
+      teamAbbr: "NYK",
+      seasonGames: 24,
+      season: line(24, 20, 6),
+      last7: line(7, 30, 10),
+      prior: { teamAbbr: "NYK", line: line(70, 19, 5) },
+    })
+
+    const bona = player({
+      id: "bona",
+      seasonGames: 20,
+      season: line(20, 16, 6),
+      last7: line(7, 29, 12),
+    })
+
+    expect(select([hartenstein]).map((pick) => pick.playerId)).toEqual(["hartenstein"])
+    expect(select([bona]).map((pick) => pick.playerId)).toEqual(["bona"])
+  })
+
+  it("drops a scorer whose recent points fell while the minutes stayed", () => {
+    const jaquez = player({
+      id: "jaquez",
+      seasonGames: 12,
+      season: line(12, 32, 16),
+      last7: line(7, 28, 10),
+      projection: line(70, 20, 10),
+    })
+    const specialist = player({
+      id: "specialist",
+      seasonGames: 12,
+      season: line(12, 24, 10, 2, null, { REB: 8.3, STL: 1.2, BLK: 1.1 }),
+      last7: line(7, 25, 5, 2, null, { REB: 8, STL: 1.2, BLK: 1.1 }),
+      projection: line(70, 18, 8),
+    })
+
+    expect(select([jaquez])).toEqual([])
+    expect(select([specialist]).map((pick) => pick.playerId)).toEqual(["specialist"])
+  })
+
   it("tags a scoring breakout when attempts rise and still keeps a defensive jump", () => {
     const foil = projectionPtsFoil("foil", 40)
     const scoring = player({
@@ -194,7 +408,7 @@ describe("selectBreakouts rates", () => {
     const missing = player({
       id: "missing",
       seasonGames: 5,
-      season: line(5, 30, 20),
+      season: line(5, 22, 20),
       projection: null,
     })
     const zero = player({ id: "zero", seasonGames: 0 })
@@ -252,7 +466,7 @@ describe("selectBreakouts lineup", () => {
       now,
     })
 
-    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["lineup"] }])
+    expect(picks).toMatchObject([{ playerId: "espn-new", reasons: ["lineup"] }])
   })
 
   it("skips rank 1 when that player is OUT or GTD", () => {
@@ -302,7 +516,7 @@ describe("selectBreakouts lineup", () => {
       now,
     })
 
-    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["rates"] }])
+    expect(picks).toMatchObject([{ playerId: "espn-new", reasons: ["rates"] }])
 
     const outPicks = selectBreakouts({
       players: [],
@@ -341,7 +555,7 @@ describe("selectBreakouts lineup", () => {
       now,
     })
 
-    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["rates", "lineup"] }])
+    expect(picks).toMatchObject([{ playerId: "espn-new", reasons: ["rates", "lineup"] }])
 
     const unmapped = selectBreakouts({
       players: [],
@@ -407,6 +621,6 @@ describe("selectBreakouts lineup", () => {
       now,
     })
 
-    expect(picks).toEqual([{ playerId: "espn-new", reasons: ["rates", "lineup"] }])
+    expect(picks).toMatchObject([{ playerId: "espn-new", reasons: ["rates", "lineup"] }])
   })
 })

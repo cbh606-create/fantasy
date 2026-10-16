@@ -172,7 +172,20 @@ describe("WaiversWorkspace", () => {
         return new Response(
           JSON.stringify({
             source: "espn",
-            recommendations: [{ playerId: "fa-1", reasons: ["rates", "lineup"] }],
+            recommendations: [
+              {
+                playerId: "fa-1",
+                reasons: ["rates", "lineup"],
+                evidence: {
+                  games: 3,
+                  baselineMinutes: 28,
+                  seasonMinutes: 36,
+                  baseline: "prior",
+                  zHeld: false,
+                  attempts: "down",
+                },
+              },
+            ],
           }),
           { status: 200 },
         )
@@ -373,7 +386,10 @@ describe("WaiversWorkspace", () => {
     expect(screen.getAllByRole("heading", { name: "Injury pickups" })).toHaveLength(1)
     expect(screen.getAllByRole("heading", { name: "Season needs" })).toHaveLength(1)
 
-    const button = screen.getByRole("button", { name: "Add Free Agent Guard, rates, lineup" })
+    const button = screen.getByRole("button", {
+      name: "Add Free Agent Guard, rates, lineup, 28.0 → 36.0 mpg · 3 GP · z down · FGA down",
+    })
+    expect(screen.getByText("28.0 → 36.0 mpg · 3 GP · z down · FGA down")).toBeInTheDocument()
     fireEvent.click(button)
     expect(button).toHaveAttribute("aria-pressed", "true")
     expect(screen.getByRole("button", { name: "Add Free Agent Guard" })).toBeInTheDocument()

@@ -213,7 +213,11 @@ export const TradeSimulation = ({ state, basis = "total" }: TradeSimulationProps
           <p>{`Drops ${playerName(result.yourDroppedPlayerId)} to open a roster spot`}</p>
         ) : null}
         {result.replacementPlayerId ? (
-          <p>{`Ranks include ${playerName(result.replacementPlayerId)}, the top waiver add.`}</p>
+          <p>
+            {result.replacementTeamIndex === state.perspectiveTeamIndex
+              ? `Ranks include ${playerName(result.replacementPlayerId)}, the top waiver add.`
+              : `Their ranks include ${playerName(result.replacementPlayerId)}, the top waiver add.`}
+          </p>
         ) : null}
         {result.theirDroppedPlayerId ? (
           <p>{`They drop ${playerName(result.theirDroppedPlayerId)} to open a roster spot`}</p>
@@ -279,7 +283,9 @@ export const TradeSimulation = ({ state, basis = "total" }: TradeSimulationProps
             givePlayerIds: sendIds,
             getPlayerIds: receiveIds,
             droppedPlayerId: readyTrade.yourDroppedPlayerId ?? readyTrade.theirDroppedPlayerId,
-            addedPlayerId: readyTrade.replacementPlayerId,
+            addedPlayerId: readyTrade.replacementTeamIndex === state.perspectiveTeamIndex
+              ? readyTrade.replacementPlayerId
+              : undefined,
           }}
         />
       ) : null}

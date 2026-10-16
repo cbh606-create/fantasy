@@ -386,7 +386,7 @@ describe("simulateTrade", () => {
     expect(result.valueLine.length).toBeGreaterThan(0)
   })
 
-  it("counts the top waiver player in your ranks when you drop a teammate", () => {
+  it("adds the top waiver player to the team that sent one more", () => {
     const wire = createPlayer("wire", { PTS: 400 })
     wire.name = "Nikola Jokic"
     const lesser = createPlayer("lesser-wire", { PTS: 1 })
@@ -411,8 +411,11 @@ describe("simulateTrade", () => {
     if (result?.status !== "ready") return
     expect(result.yourDroppedPlayerId).toBe("you-drop")
     expect(result.replacementPlayerId).toBe("wire")
+    expect(result.replacementTeamIndex).toBe(1)
     expect(result.you.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
-      .toBe(460)
+      .toBe(60)
+    expect(result.them.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
+      .toBe(430)
   })
 
   it("fills your open slot with the top free agent on a 2:1", () => {
@@ -439,6 +442,7 @@ describe("simulateTrade", () => {
     expect(result.yourDroppedPlayerId).toBeUndefined()
     expect(result.theirDroppedPlayerId).toBe("them-scrub")
     expect(result.replacementPlayerId).toBe("wire")
+    expect(result.replacementTeamIndex).toBe(0)
     expect(result.you.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
       .toBe(418)
     expect(result.them.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
@@ -472,6 +476,7 @@ describe("simulateTrade", () => {
     expect(result?.status).toBe("ready")
     if (result?.status !== "ready") return
     expect(result.replacementPlayerId).toBe("wire")
+    expect(result.replacementTeamIndex).toBe(0)
     expect(result.you.categories.find((category) => category.categoryId === "PTS")?.afterTotal)
       .toBe(460)
     expect(result.them.categories.find((category) => category.categoryId === "PTS")?.afterTotal)

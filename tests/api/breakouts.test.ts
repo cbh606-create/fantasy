@@ -194,12 +194,23 @@ describe("GET /api/injuries/breakouts", () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(payload).toEqual({
-      source: "espn",
-      recommendations: [
-        { playerId: "rates-guy", reasons: ["rates"] },
-        { playerId: "lineup-guy", reasons: ["lineup"] },
-      ],
+    expect(payload.source).toBe("espn")
+    expect(
+      payload.recommendations.map((row: { playerId: string; reasons: string[] }) => ({
+        playerId: row.playerId,
+        reasons: row.reasons,
+      })),
+    ).toEqual([
+      { playerId: "rates-guy", reasons: ["rates"] },
+      { playerId: "lineup-guy", reasons: ["lineup"] },
+    ])
+    expect(payload.recommendations[0].evidence).toEqual({
+      games: 2,
+      baselineMinutes: 20,
+      seasonMinutes: 30,
+      baseline: "projection",
+      zHeld: true,
+      attempts: null,
     })
   })
 

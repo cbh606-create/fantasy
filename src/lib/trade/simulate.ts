@@ -329,6 +329,7 @@ export const totalsAfterTrade = (
   tradePackage: TradePackage,
   context: TradeAnalysisContext,
   replacementPlayer?: SeasonPlayer | null,
+  replacementTeamIndex?: number,
 ): TeamCategoryTotals[] => {
   const tradedTeamIndexes = [
     afterState.perspectiveTeamIndex,
@@ -345,7 +346,7 @@ export const totalsAfterTrade = (
     )!
     const roster = rosterPlayers(team, context.playersById)
     const withReplacement = replacementPlayer
-      && entry.teamIndex === afterState.perspectiveTeamIndex
+      && entry.teamIndex === replacementTeamIndex
       ? [...roster, replacementPlayer]
       : roster
 

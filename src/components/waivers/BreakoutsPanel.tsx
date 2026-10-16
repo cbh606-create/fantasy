@@ -1,7 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import type { BreakoutReason } from "@/lib/injuries/breakout"
+import {
+  formatBreakoutEvidence,
+  type BreakoutEvidence,
+  type BreakoutReason,
+} from "@/lib/injuries/breakout"
 import type { SeasonPlayer } from "@/lib/season/types"
 
 type BreakoutsPanelProps = {
@@ -17,7 +21,9 @@ export const BreakoutsPanel = ({
   selectedAddId,
   onSelectAdd,
 }: BreakoutsPanelProps) => {
-  const [rows, setRows] = useState<Array<{ playerId: string; reasons: BreakoutReason[] }>>([])
+  const [rows, setRows] = useState<
+    Array<{ playerId: string; reasons: BreakoutReason[]; evidence?: BreakoutEvidence }>
+  >([])
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -35,7 +41,11 @@ export const BreakoutsPanel = ({
         )
         if (!response.ok) throw new Error("Unable to load breakouts")
         const payload = (await response.json()) as {
-          recommendations?: Array<{ playerId: string; reasons: BreakoutReason[] }>
+          recommendations?: Array<{
+            playerId: string
+            reasons: BreakoutReason[]
+            evidence?: BreakoutEvidence
+          }>
         }
         setRows(payload.recommendations ?? [])
       } catch (requestError) {
@@ -76,10 +86,14 @@ export const BreakoutsPanel = ({
         <ul aria-label="Breakouts" className="mt-4 divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)]">
           {visible.map((row) => {
             const isSelected = selectedAddId === row.playerId
+            const evidence = row.evidence ? formatBreakoutEvidence(row.evidence) : ""
+            const label = evidence
+              ? `Add ${row.name}, ${row.reasons.join(", ")}, ${evidence}`
+              : `Add ${row.name}, ${row.reasons.join(", ")}`
             return (
               <li key={row.playerId}>
                 <button
-                  aria-label={`Add ${row.name}, ${row.reasons.join(", ")}`}
+                  aria-label={label}
                   aria-pressed={isSelected}
                   className={`w-full px-3 py-3 text-left text-[0.8125rem] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${isSelected ? "bg-white" : "hover:bg-white"}`}
                   onClick={() => onSelectAdd(row.playerId)}
@@ -87,6 +101,9 @@ export const BreakoutsPanel = ({
                 >
                   <span className="font-semibold">{row.name}</span>
                   <span className="mt-1 block text-xs text-[var(--color-info)]">{row.reasons.join(", ")}</span>
+                  {evidence ? (
+                    <span className="mt-1 block text-xs text-[var(--color-mute)]">{evidence}</span>
+                  ) : null}
                 </button>
               </li>
             )

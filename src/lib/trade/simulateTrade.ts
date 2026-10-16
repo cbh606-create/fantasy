@@ -63,6 +63,7 @@ export type TradeSimulationResult =
     yourDroppedPlayerId?: string
     theirDroppedPlayerId?: string
     replacementPlayerId?: string
+    replacementTeamIndex?: number
     ruleSentence?: string
   }
 
@@ -309,15 +310,20 @@ export const simulateTrade = (
   const context = createTradeAnalysisContext(state, input.basis ?? "total")
   const beforeTotals = context.totalsByTeam
   const values = buildPlayerValueMap(state)
-  const youSendOneMore = youCount === themCount + 1
-  const replacement = application.yourDroppedPlayerId || youSendOneMore
-    ? topAvailablePlayer(state, values)
-    : null
+  const openSlotTeamIndex = youCount === themCount + 1
+    ? state.perspectiveTeamIndex
+    : themCount === youCount + 1
+      ? input.counterpartyTeamIndex
+      : null
+  const replacement = openSlotTeamIndex === null
+    ? null
+    : topAvailablePlayer(state, values)
   const afterTotals = totalsAfterTrade(
     application.state,
     tradePackage,
     context,
     replacement,
+    openSlotTeamIndex ?? undefined,
   )
   const before = context.before
   const after = analyzeTeamTotals(afterTotals)
@@ -370,7 +376,9 @@ export const simulateTrade = (
     ...(application.theirDroppedPlayerId
       ? { theirDroppedPlayerId: application.theirDroppedPlayerId }
       : {}),
-    ...(replacement ? { replacementPlayerId: replacement.id } : {}),
+    ...(replacement && openSlotTeamIndex !== null
+      ? { replacementPlayerId: replacement.id, replacementTeamIndex: openSlotTeamIndex }
+      : {}),
     ...ruleFields(state, tradePackage, beforeTotals, afterTotals, values, shapeCheck),
   }
 }
