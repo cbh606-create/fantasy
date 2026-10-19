@@ -12,8 +12,10 @@ import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import {
+  analyzeFormLeague,
   analyzePerGameLeague,
   analyzeSeasonLeague,
+  type FormWindow,
   type SeasonAnalysis,
 } from "@/lib/season/analysis"
 import { eligibleForSlot } from "@/lib/matchup/eligibility"
@@ -176,6 +178,20 @@ export const SeasonRosterWorkspace = ({
     () => (effectiveState ? analyzePerGameLeague(effectiveState) : null),
     [effectiveState],
   )
+  const formAnalyses = useMemo(() => {
+    if (!effectiveState) return null
+    const windows = ["l7", "l15", "l30"] as const satisfies readonly Exclude<FormWindow, "season">[]
+
+    return Object.fromEntries(
+      windows.map((window) => [
+        window,
+        {
+          total: analyzeFormLeague(effectiveState, window, "total"),
+          perGame: analyzeFormLeague(effectiveState, window, "perGame"),
+        },
+      ]),
+    ) as Record<Exclude<FormWindow, "season">, { total: SeasonAnalysis, perGame: SeasonAnalysis }>
+  }, [effectiveState])
   const perspectiveTeamIndex = data?.state.perspectiveTeamIndex
   const userLevels = effectiveAnalysis?.byTeam.find(
     (team) => team.teamIndex === perspectiveTeamIndex,
@@ -495,6 +511,7 @@ export const SeasonRosterWorkspace = ({
           <CompactCategoryProfile levels={userLevels} />
           <LeagueRankMatrix
             analysis={effectiveAnalysis!}
+            formAnalyses={formAnalyses ?? undefined}
             perGameAnalysis={perGameAnalysis}
             perspectiveTeamIndex={data.state.perspectiveTeamIndex}
             teams={data.state.teams}

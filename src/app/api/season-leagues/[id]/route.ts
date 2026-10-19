@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { overlaySeasonProjections } from "@/lib/players/loadProjPool"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
@@ -49,7 +50,9 @@ export const GET = async (
     return NextResponse.json({ error: "invalid_state" }, { status: 500 })
   }
 
-  const effectiveState = applyLocalLineup(state, localLineup)
+  const effectiveState = await overlaySeasonProjections(
+    applyLocalLineup(state, localLineup),
+  )
 
   return NextResponse.json({
     state: effectiveState,

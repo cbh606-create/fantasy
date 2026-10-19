@@ -14,7 +14,9 @@ import { RecommendedPickups } from "@/components/waivers/RecommendedPickups"
 import { WaiverAssumeModal } from "@/components/waivers/WaiverAssumeModal"
 import type { CategoryId } from "@/lib/domain/types"
 import type { StatBasis } from "@/lib/season/analysis"
+import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
+import { teamStanding } from "@/lib/waivers/standing"
 import type { AddDropPreview, PickupRecommendation } from "@/lib/waivers/types"
 
 type WaiversWorkspaceProps = {
@@ -117,6 +119,12 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
 
   const handleDropChange = (playerId: string | null) => {
     setSelectedDropId(playerId)
+    setPreview(null)
+    setPreviewError("")
+  }
+
+  const handleBasisChange = (basis: StatBasis) => {
+    setStatBasis(basis)
     setPreview(null)
     setPreviewError("")
   }
@@ -255,6 +263,8 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
       state.players.find((player) => player.id === selectedAddId)?.name ??
       "Selected player"
     : "Selected player"
+  const standing = teamStanding(state, statBasis)
+  const basisLabel = statBasis === "perGame" ? "per game" : "total"
 
   return (
     <main className="min-h-screen bg-[var(--color-canvas)] px-6 py-10 sm:px-10 lg:px-14">
@@ -269,8 +279,18 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
         </div>
         <header className="mb-8">
           <p className="text-sm text-[var(--color-mute)]">
-            {state.season} season · waivers · rank #{poolData.youWaiverRank}
+            {state.season} season · {basisLabel} · overall #{standing.overallRank} · rank sum {standing.rankSum}
           </p>
+          <ul aria-label="Category ranks" className="mt-3 flex flex-wrap gap-2">
+            {standing.categories.map((category) => (
+              <li
+                className="rounded-full border border-[var(--color-hairline)] px-2.5 py-1 text-xs font-medium"
+                key={category.categoryId}
+              >
+                {CATEGORY_SHORT_LABELS[category.categoryId]} #{category.rank}
+              </li>
+            ))}
+          </ul>
           <h1 className="mt-1 font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
             {state.name}
           </h1>
@@ -331,7 +351,7 @@ export const WaiversWorkspace = ({ leagueId }: WaiversWorkspaceProps) => {
               isClaiming={isClaiming}
               isPreviewing={isPreviewing}
               onAddChange={handleSelectAdd}
-              onBasisChange={setStatBasis}
+              onBasisChange={handleBasisChange}
               onConfirm={handleConfirm}
               onDropChange={handleDropChange}
               onPreview={() => void handlePreview()}

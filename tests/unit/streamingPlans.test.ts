@@ -6646,7 +6646,7 @@ describe("block-first add pacing", () => {
     })
   })
 
-  it("opponent 2-spot is not a weaker threat than opponent 1-spot", () => {
+  it("keeps a 2-spot opponent plan when 1-spot would stream more often", () => {
     const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
     const faA = player("fa-a", "BOS", {
       projections: { ...baseProjections(), STL: 40, PTS: 20 },
@@ -6677,36 +6677,34 @@ describe("block-first add pacing", () => {
       { date: "2025-11-04", homeAbbr: "NYK", awayAbbr: "PHI" },
       { date: "2025-11-05", homeAbbr: "BOS", awayAbbr: "CHA" },
     ])
-    const shared = {
-      spotCount: 1 as const,
+    const plan = buildStreamingPlan({
+      spotCount: 1,
       state,
       schedule,
       board: emptyBoardLosingStl(),
       youIdle: true,
       opponentTeamIndex: 1,
       waiverPeriodDays: 0,
-    }
-    const one = buildStreamingPlan({ ...shared, oppSpotCount: 1 })
-    const two = buildStreamingPlan({ ...shared, oppSpotCount: 2 })
-    const score = (daily: typeof one.opponentDaily) => {
-      const oppTotals = youTotalsFromDaily(
-        daily,
-        state.players,
-        schedule,
-        "season",
-      )
-      const youTotals = Object.fromEntries(
-        emptyBoardLosingStl().categories.map((row) => [row.categoryId, row.you]),
-      )
-      return buildMatchupBoard(
-        oppTotals,
-        youTotals as never,
-        emptyBoardLosingStl().categories.map((row) => row.categoryId),
-      ).projectedCatWins
-    }
-    expect(score(two.opponentDaily)).toBeGreaterThanOrEqual(
-      score(one.opponentDaily) - 1e-6,
+      oppSpotCount: 2,
+    })
+    expect(plan.opponentDays.every((day) => day.cells.length === 2)).toBe(true)
+    const adds = plan.opponentDays.flatMap((day) =>
+      day.cells.filter(
+        (cell) => cell.action === "add" || cell.action === "drop_add",
+      ),
     )
+    expect(new Set(adds.map((cell) => cell.spotIndex)).size).toBe(2)
+    for (const day of plan.opponentDays) {
+      for (const cell of day.cells) {
+        if (cell.action !== "add" && cell.action !== "drop_add") continue
+        if (!cell.playerId) continue
+        expect(
+          (plan.opponentDaily[day.date] ?? []).some(
+            (entry) => entry.playerId === cell.playerId,
+          ),
+        ).toBe(true)
+      }
+    }
   })
 
   it("opponent 2-spot spreads 6 adds so at least two start after Thursday", () => {

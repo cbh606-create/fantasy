@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   applyPoolInjuryStatus,
+  applyPoolProjectionStats,
   applyPoolProjections,
 } from "@/lib/players/applyPoolProjections"
 import type { SeasonPlayer } from "@/lib/season/types"
@@ -145,5 +146,53 @@ describe("applyPoolProjections", () => {
     )
     expect(players[0]?.teamAbbr).toBe("LAC")
     expect(players[0]?.projectedGames).toBeUndefined()
+  })
+
+  it("copies a real pool line without changing injury", () => {
+    const target = seasonPlayer({ injuryStatus: "out" })
+    const [player] = applyPoolProjectionStats([target], pool)
+    expect(player?.projections.PTS).toBe(2144)
+    expect(player?.projectedGames).toBe(74)
+    expect(player?.injuryStatus).toBe("out")
+  })
+
+  it("leaves a saved line in place when the pool row is an empty stub", () => {
+    const stub = [
+      {
+        id: "espn-3907387",
+        espnId: "3907387",
+        name: "Ben Simmons",
+        teamAbbr: "SAC",
+        status: "active" as const,
+        projections: {
+          FG_PCT: 0,
+          FT_PCT: 0,
+          TPM: 0,
+          REB: 0,
+          AST: 0,
+          STL: 0,
+          BLK: 0,
+          TO: 0,
+          PTS: 0,
+        },
+      },
+    ]
+    const target = seasonPlayer({
+      id: "3907387",
+      name: "Ben Simmons",
+      projections: {
+        FG_PCT: 0.5,
+        FT_PCT: 0.7,
+        TPM: 0,
+        REB: 5,
+        AST: 5,
+        STL: 1,
+        BLK: 1,
+        TO: 2,
+        PTS: 12,
+      },
+    })
+    const [player] = applyPoolProjectionStats([target], stub)
+    expect(player?.projections.PTS).toBe(12)
   })
 })

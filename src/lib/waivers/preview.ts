@@ -1,8 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import {
-  analyzePerGameLeague,
-  analyzeSeasonLeague,
   type SeasonAnalysis,
   type StatBasis,
 } from "@/lib/season/analysis"
@@ -10,6 +8,7 @@ import type { SeasonLeagueState } from "@/lib/season/types"
 import { needsScore, teamNeedsAndSurplus } from "@/lib/trade/needs"
 import { applyAddDrop } from "./apply"
 import { youWaiverRank } from "./rank"
+import { analyzeForBasis } from "./standing"
 import type { AddDropError, AddDropInput, AddDropPreview } from "./types"
 
 const overallPlace = (analysis: SeasonAnalysis, teamIndex: number) => {
@@ -35,8 +34,7 @@ export const previewAddDrop = (
   input: AddDropInput,
   basis: StatBasis = "total",
 ): AddDropPreview | AddDropError => {
-  const analyze = basis === "perGame" ? analyzePerGameLeague : analyzeSeasonLeague
-  const before = analyze(state)
+  const before = analyzeForBasis(state, basis)
   const youIndex = state.perspectiveTeamIndex
   const needCategories = teamNeedsAndSurplus(before, youIndex).need
   const rank = youWaiverRank(state)
@@ -49,7 +47,7 @@ export const previewAddDrop = (
     return applied
   }
 
-  const after = analyze(applied)
+  const after = analyzeForBasis(applied, basis)
   const beforeOverall = overallPlace(before, youIndex)
   const afterOverall = overallPlace(after, youIndex)
 

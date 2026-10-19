@@ -98,6 +98,63 @@ const injuryStatusFromPool = (
 ): "out" | "gtd" | undefined =>
   status === "out" || status === "gtd" ? status : undefined
 
+const hasSeasonProjection = (player: PoolProjectionPlayer): boolean => {
+  const stats = player.projections
+  return (
+    stats.PTS > 0 ||
+    stats.REB > 0 ||
+    stats.AST > 0 ||
+    stats.TPM > 0 ||
+    stats.STL > 0 ||
+    stats.BLK > 0 ||
+    stats.TO > 0 ||
+    (typeof player.projectedGames === "number" && player.projectedGames > 0)
+  )
+}
+
+const copyProjectionStats = <T extends SeasonProjectionTarget>(
+  target: T,
+  poolPlayer: PoolProjectionPlayer,
+): T => {
+  const next: T = {
+    ...target,
+    projections: { ...poolPlayer.projections },
+  }
+  if (poolPlayer.teamAbbr) {
+    if (!target.teamAbbr) {
+      next.teamAbbr = normalizeNbaTeamAbbr(poolPlayer.teamAbbr)
+    }
+    if (
+      typeof poolPlayer.projectedGames === "number" &&
+      poolPlayer.projectedGames > 0
+    ) {
+      next.projectedGames = poolPlayer.projectedGames
+    }
+  } else {
+    // Unsigned in the pool (retired / no club). Do not attach a season
+    // games footprint that would pass stream-add gates while ESPN still
+    // carries a stale last-team abbr.
+    next.projectedGames = undefined
+  }
+  if (poolPlayer.shooting) {
+    next.shooting = { ...poolPlayer.shooting }
+  }
+  return next
+}
+
+/** Copy pool season totals onto saved players. Skips empty rank stubs and injuries. */
+export const applyPoolProjectionStats = <T extends SeasonProjectionTarget>(
+  targets: T[],
+  poolPlayers: PoolProjectionPlayer[],
+): T[] => {
+  const { byId, byName } = poolIndexes(poolPlayers)
+  return targets.map((target) => {
+    const poolPlayer = findPoolPlayer(target, byId, byName)
+    if (!poolPlayer || !hasSeasonProjection(poolPlayer)) return target
+    return copyProjectionStats(target, poolPlayer)
+  })
+}
+
 export const applyPoolInjuryStatus = <T extends SeasonProjectionTarget>(
   targets: T[],
   poolPlayers: PoolProjectionPlayer[],
@@ -130,29 +187,7 @@ export const applyPoolProjections = <T extends SeasonProjectionTarget>(
     }
 
     matched.push({ playerId: target.id, poolId: poolPlayer.id })
-    const next: T = {
-      ...target,
-      projections: { ...poolPlayer.projections },
-    }
-    if (poolPlayer.teamAbbr) {
-      if (!target.teamAbbr) {
-        next.teamAbbr = normalizeNbaTeamAbbr(poolPlayer.teamAbbr)
-      }
-      if (
-        typeof poolPlayer.projectedGames === "number" &&
-        poolPlayer.projectedGames > 0
-      ) {
-        next.projectedGames = poolPlayer.projectedGames
-      }
-    } else {
-      // Unsigned in the pool (retired / no club). Do not attach a season
-      // games footprint that would pass stream-add gates while ESPN still
-      // carries a stale last-team abbr.
-      next.projectedGames = undefined
-    }
-    if (poolPlayer.shooting) {
-      next.shooting = { ...poolPlayer.shooting }
-    }
+    const next = copyProjectionStats(target, poolPlayer)
     next.injuryStatus = injuryStatusFromPool(poolPlayer.status)
     return next
   })

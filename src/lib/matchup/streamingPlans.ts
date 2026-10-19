@@ -1171,38 +1171,9 @@ const buildOpponentSelfPlan = ({
     return { days, daily }
   }
 
-  const threatScore = (daily: DailyLineups) => {
-    const oppTotals = youTotalsFromDaily(
-      daily,
-      state.players,
-      schedule,
-      statWindow ?? "season",
-    )
-    const youTotals = Object.fromEntries(
-      board.categories.map((row) => [row.categoryId, row.you]),
-    ) as Record<CategoryId, number>
-    return buildMatchupBoard(
-      oppTotals,
-      youTotals,
-      categoryIdsFromBoard(board),
-    ).projectedCatWins
-  }
-
-  // More spots must not model a weaker opponent (roster cuts without upside).
-  let best = buildOne(oppSpotCount)
-  let bestScore = threatScore(best.daily)
-  if (oppSpotCount > 1) {
-    for (let spots = 1; spots < oppSpotCount; spots += 1) {
-      const candidate = buildOne(spots as 1 | 2 | 3)
-      const score = threatScore(candidate.daily)
-      if (score > bestScore + 1e-6) {
-        best = candidate
-        bestScore = score
-      }
-    }
-  }
-
-  const { days, daily } = best
+  // The selected spot count is the plan. A higher score at 1 spot must not
+  // replace a 2- or 3-spot week with a single add.
+  const { days, daily } = buildOne(oppSpotCount)
   if (forceDate && forcedOpponentRosterDrops) {
     for (const day of days) {
       if (day.date !== forceDate) continue

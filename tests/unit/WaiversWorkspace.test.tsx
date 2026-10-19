@@ -59,6 +59,23 @@ const state: SeasonLeagueState = {
       projections,
       shooting: { FGM: 5, FGA: 10, FTM: 4, FTA: 5 },
     },
+    {
+      id: "rival-1",
+      name: "Rival Star",
+      projections: {
+        ...projections,
+        PTS: 2000,
+        REB: 800,
+        AST: 800,
+        STL: 100,
+        BLK: 100,
+        TPM: 200,
+        TO: 1,
+        FG_PCT: 0.6,
+        FT_PCT: 0.9,
+      },
+      shooting: { FGM: 800, FGA: 1200, FTM: 400, FTA: 450 },
+    },
   ],
   teams: [
     {
@@ -72,7 +89,7 @@ const state: SeasonLeagueState = {
     {
       teamIndex: 1,
       name: "Rivals",
-      entries: [{ slot: "C", playerId: null }],
+      entries: [{ slot: "C", playerId: "rival-1" }],
     },
   ],
   availablePlayerIds: ["fa-1"],
@@ -210,6 +227,9 @@ describe("WaiversWorkspace", () => {
 
   it("shows recommendations, selects an add, and renders preview deltas", async () => {
     render(<WaiversWorkspace leagueId="season-1" />)
+
+    expect(await screen.findByText(/overall #2/)).toBeInTheDocument()
+    expect(screen.queryByText(/waivers · rank #1/)).not.toBeInTheDocument()
 
     const recommendationsHeading = await screen.findByRole("heading", {
       name: "Season needs",

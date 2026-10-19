@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest"
 import { ALL_CATEGORY_IDS, defaultCategorySettings } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import { analyzePerGameLeague, analyzeSeasonLeague } from "@/lib/season/analysis"
+import {
+  analyzeFormLeague,
+  analyzePerGameLeague,
+  analyzeSeasonLeague,
+} from "@/lib/season/analysis"
 import type {
   SeasonLeagueState,
   SeasonPlayer,
@@ -267,6 +271,58 @@ describe("analyzePerGameLeague", () => {
       expect.arrayContaining([
         expect.objectContaining({ teamIndex: 0, raw: 8 }),
         expect.objectContaining({ teamIndex: 1, raw: 8 }),
+      ]),
+    )
+  })
+})
+
+describe("season actuals and recent form", () => {
+  it("fills the games already played with actuals and the rest with the projection", () => {
+    const hot = {
+      ...player("hot", { PTS: 1640 }),
+      projectedGames: 82,
+      seasonRates: {
+        gamesPlayed: 10,
+        projections: projections({ PTS: 30 }),
+        shooting: { FGM: 0, FGA: 0, FTM: 0, FTA: 0 },
+      },
+    }
+    const pace = {
+      ...player("pace", { PTS: 1640 }),
+      projectedGames: 82,
+    }
+    const league = state([hot, pace], [["hot"], ["pace"]])
+
+    expect(categoryRows(analyzeSeasonLeague(league), "PTS")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ teamIndex: 0, rank: 1, raw: 1740 }),
+        expect.objectContaining({ teamIndex: 1, rank: 2, raw: 1640 }),
+      ]),
+    )
+  })
+
+  it("ranks a recent window by that form and keeps a missing window on season pace", () => {
+    const hot = {
+      ...player("hot", { PTS: 1640 }),
+      projectedGames: 82,
+      recentRates: {
+        l7: {
+          projections: projections({ PTS: 30 }),
+          shooting: { FGM: 0, FGA: 0, FTM: 0, FTA: 0 },
+        },
+      },
+    }
+    const quiet = {
+      ...player("quiet", { PTS: 1640 }),
+      projectedGames: 82,
+    }
+    const league = state([hot, quiet], [["hot"], ["quiet"]])
+    const recent = analyzeFormLeague(league, "l7", "total")
+
+    expect(categoryRows(recent, "PTS")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ teamIndex: 0, rank: 1, raw: 210 }),
+        expect.objectContaining({ teamIndex: 1, rank: 2, raw: 140 }),
       ]),
     )
   })

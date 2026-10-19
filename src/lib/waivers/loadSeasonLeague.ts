@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { overlaySeasonProjections } from "@/lib/players/loadProjPool"
 import { normalizeSeasonAvailability } from "@/lib/season/availability"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
@@ -38,6 +39,8 @@ export const loadOwnedSeasonLeague = async (
     id: league.id,
     espnLeagueId: league.espnLeagueId,
     morningCheckJson: league.morningCheckJson,
-    state: normalizeSeasonAvailability(applyLocalLineup(state, localLineup)),
+    state: await overlaySeasonProjections(
+      normalizeSeasonAvailability(applyLocalLineup(state, localLineup)),
+    ),
   }
 }

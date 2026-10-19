@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from "react"
 import { eligibleForSlot } from "@/lib/matchup/eligibility"
-import { playerLineForBasis } from "@/lib/season/analysis"
+import { playerLineForBasis, type FormWindow } from "@/lib/season/analysis"
 import {
   formatPlayerPositions,
   slotDisplayLabel,
@@ -50,6 +50,7 @@ export const PlayerRosterTable = ({
   subtitle = "Full roster",
   compact = false,
 }: PlayerRosterTableProps) => {
+  const [formWindow, setFormWindow] = useState<FormWindow>("season")
   const [basis, setBasis] = useState<StatBasis>("total")
   const playersById = new Map(players.map((player) => [player.id, player]))
   const headingId = compact ? "matchup-weekly-roster-heading" : "roster-heading"
@@ -73,6 +74,37 @@ export const PlayerRosterTable = ({
           </h2>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
+          <div
+            aria-label="Stat window"
+            className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
+            role="radiogroup"
+          >
+            {([
+              ["season", "Season"],
+              ["l7", "7"],
+              ["l15", "15"],
+              ["l30", "30"],
+            ] as const).map(([value, label]) => {
+              const selected = formWindow === value
+
+              return (
+                <button
+                  aria-checked={selected}
+                  className={`rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                    selected
+                      ? "bg-[var(--color-ink)] text-white"
+                      : "text-[var(--color-mute)] hover:text-[var(--color-ink)]"
+                  }`}
+                  key={value}
+                  onClick={() => setFormWindow(value)}
+                  role="radio"
+                  type="button"
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
           <div
             aria-label="Stat basis"
             className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
@@ -142,7 +174,7 @@ export const PlayerRosterTable = ({
                 index > 0 ? groupForSlot(entries[index - 1].slot) : null
               const currentGroup = groupForSlot(entry.slot)
               const slotLabel = slotDisplayLabel(entry.slot)
-              const line = player ? playerLineForBasis(player, basis) : null
+              const line = player ? playerLineForBasis(player, basis, formWindow) : null
 
               return (
                 <Fragment key={`${entry.slot}-${index}`}>

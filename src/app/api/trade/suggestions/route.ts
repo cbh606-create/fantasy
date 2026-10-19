@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireUserId } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { rateLimit } from "@/lib/rateLimit"
+import { overlaySeasonProjections } from "@/lib/players/loadProjPool"
 import { applyLocalLineup } from "@/lib/season/lineup"
 import type { SeasonLeagueState, SeasonRosterEntry } from "@/lib/season/types"
 import { classifyTeam } from "@/lib/trade/classify"
@@ -57,7 +58,9 @@ export const GET = async (request: Request): Promise<Response> => {
     return NextResponse.json({ error: "invalid_state" }, { status: 500 })
   }
 
-  const effectiveState = applyLocalLineup(state, localLineup)
+  const effectiveState = await overlaySeasonProjections(
+    applyLocalLineup(state, localLineup),
+  )
   const query = parseSuggestionQuery(new URL(request.url))
 
   if (query.mode === "invalid") {
