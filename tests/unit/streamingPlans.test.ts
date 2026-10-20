@@ -879,6 +879,48 @@ describe("buildStreamingPlan", () => {
     expect(plan.days[1]!.cells[0]!.playerId).toBeNull()
   })
 
+  it("does not cut an IR-parked player on a later forced drop", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const sit = player("sit", "BOS", { positions: ["SG"] })
+    const add = player("fa-add", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const addLater = player("fa-later", "BOS", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 190 },
+    })
+    const state = tinyState([sit, add, addLater], ["fa-add", "fa-later"])
+    state.teams[0]!.entries = [
+      { slot: "SG", playerId: "sit" },
+      { slot: "IL", playerId: null },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2026-10-21", homeAbbr: "BOS", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 3,
+      forcedRosterDrops: {
+        "2026-10-20:0": "ir:sit",
+        "2026-10-21:0": "sit",
+      },
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      rosterDropKind: "ir",
+      rosterDropPlayerId: "sit",
+    })
+    const cutSit = plan.days.flatMap((day) => day.cells).filter(
+      (cell) => cell.rosterDropKind === "player" && cell.rosterDropPlayerId === "sit",
+    )
+    expect(cutSit).toEqual([])
+  })
+
   it("holds a later IR park when an earlier add already parked someone", () => {
     const days = ["2026-10-20", "2026-10-21"]
     const sitFirst = player("sit-first", "BOS", { positions: ["SG"] })

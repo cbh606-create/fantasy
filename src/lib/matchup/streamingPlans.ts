@@ -108,7 +108,7 @@ export type BuildStreamingPlanInput = {
   injuryOutDaysByPlayerId?: Record<string, number>
   forcedRosterDrops?: Record<string, string | "open_slot" | "hold">
   /**
-   * Opp spotIndex → roster player id to cut the first time that spot
+   * Opp spotIndex ??roster player id to cut the first time that spot
    * needs a roster drop. `null` / omitted = Auto. Mapped onto the same
    * planner `forcedRosterDrops` the user plan uses.
    */
@@ -257,7 +257,7 @@ const remainingGameDays = (
 
 /**
  * True while the next hole start is tomorrow or the day after.
- * A packed next game does not count — that is not a 2-in-3 worth holding.
+ * A packed next game does not count ??that is not a 2-in-3 worth holding.
  */
 const isInsideHeldStreamingWindow = (
   player: SeasonPlayer,
@@ -750,7 +750,7 @@ const buildSummaryReasons = (didProtectDrops: boolean): string[] => {
     "Fills empty stream spots for the week",
   ]
   if (didProtectDrops) {
-    summaryReasons.push(`Protected ADP ≤ ${STREAMING_PROTECTED_ADP_MAX}`)
+    summaryReasons.push(`Protected ADP ??${STREAMING_PROTECTED_ADP_MAX}`)
   }
   return summaryReasons.slice(0, 3)
 }
@@ -1338,6 +1338,9 @@ export const buildStreamingPlan = ({
   const days: StreamingPlanDay[] = []
   const weekDroppedPlayers = new Set<string>()
   const irParkedPlayerIds = new Set<string>()
+  /** Cut-ineligible ids: waived this week or parked on IR (parking is not a waiver). */
+  const noCutPlayerIds = () =>
+    new Set([...weekDroppedPlayers, ...irParkedPlayerIds])
   const releasedStreamerIds = new Set<string>()
   const youTeam = state.teams[state.perspectiveTeamIndex]
   const rosterSlots = rosterSlotsFor(state)
@@ -1728,6 +1731,7 @@ export const buildStreamingPlan = ({
           playerId &&
             playerId !== lock.playerId &&
             !weekDroppedPlayers.has(playerId) &&
+            !irParkedPlayerIds.has(playerId) &&
             !dropProtected(playerId),
         )
       const rosterOpen = hasOpenNonIlSlot(youTeam?.entries ?? [])
@@ -1776,7 +1780,7 @@ export const buildStreamingPlan = ({
             forcedDrop,
             youTeam?.entries ?? [],
             playersById,
-            weekDroppedPlayers,
+            noCutPlayerIds(),
             droppableStreamerIds,
           ) ||
           forcedDrop === lock.playerId
@@ -2218,7 +2222,7 @@ export const buildStreamingPlan = ({
       if (!wireToday) return false
       const dropEntries = entriesWithDroppedOpen(
         youTeam?.entries ?? [],
-        weekDroppedPlayers,
+        noCutPlayerIds(),
       ).map((entry) =>
         entry.playerId === heldId ? { ...entry, playerId: null } : entry,
       )
@@ -2242,7 +2246,7 @@ export const buildStreamingPlan = ({
           date,
           schedule,
           weakCats,
-          new Set([...weekDroppedPlayers, heldId]),
+          new Set([...noCutPlayerIds(), heldId]),
           adpByPlayerId,
           injuryOutDaysByPlayerId,
           board,
@@ -2516,7 +2520,7 @@ export const buildStreamingPlan = ({
           forced,
           youTeam?.entries ?? [],
           playersById,
-          new Set([...weekDroppedPlayers, ...reservedForcedDrops]),
+          new Set([...noCutPlayerIds(), ...reservedForcedDrops]),
           rosteredStreamerIds,
         )
       ) {
@@ -2711,7 +2715,7 @@ export const buildStreamingPlan = ({
           }
           if (!picked) {
             const unavailableDropIds = new Set([
-              ...weekDroppedPlayers,
+              ...noCutPlayerIds(),
               ...reservedForcedDrops,
               previousId,
             ])
@@ -2786,6 +2790,10 @@ export const buildStreamingPlan = ({
           ) {
             rosterDrop = { kind: "ir", playerId: parkedId, didProtect: false }
             picked = tryMove({ kind: "none", playerId: null }, false)
+            if (!picked) {
+              action = "hold"
+              playerId = previousId
+            }
           } else {
             action = "hold"
             playerId = previousId
@@ -2824,7 +2832,7 @@ export const buildStreamingPlan = ({
           picked = tryMove({ kind: "none", playerId: null }, false)
         } else {
           const unavailableDropIds = new Set([
-            ...weekDroppedPlayers,
+            ...noCutPlayerIds(),
             ...reservedForcedDrops,
           ])
           const dropId = pickAutoRosterCut({
@@ -2882,7 +2890,12 @@ export const buildStreamingPlan = ({
           }
         }
 
-        if (!picked && spotCount >= 2 && !previousId) {
+        if (
+          !picked &&
+          spotCount >= 2 &&
+          !previousId &&
+          rosterDrop?.kind !== "ir"
+        ) {
           const heldTodayIds = new Set(
             cells.flatMap((cell) =>
               cell?.action === "hold" && cell.playerId ? [cell.playerId] : [],
@@ -2890,7 +2903,7 @@ export const buildStreamingPlan = ({
           )
           if (heldTodayIds.size > 0) {
             const unavailableDropIds = new Set([
-              ...weekDroppedPlayers,
+              ...noCutPlayerIds(),
               ...reservedForcedDrops,
               ...heldTodayIds,
             ])
@@ -2949,13 +2962,15 @@ export const buildStreamingPlan = ({
             : 0
           if (pickedGames <= 1) {
             const denseDrop: StreamerMoveDrop =
-              rosterDrop?.kind === "player" && rosterDrop.playerId
-                ? { kind: "player", playerId: rosterDrop.playerId }
-                : pendingDropId
-                  ? { kind: "player", playerId: pendingDropId }
-                  : previousId && !streamerStays && !protectedPrevious
-                    ? { kind: "player", playerId: previousId }
-                    : { kind: "none", playerId: null }
+              rosterDrop?.kind === "ir"
+                ? { kind: "none", playerId: null }
+                : rosterDrop?.kind === "player" && rosterDrop.playerId
+                  ? { kind: "player", playerId: rosterDrop.playerId }
+                  : pendingDropId
+                    ? { kind: "player", playerId: pendingDropId }
+                    : previousId && !streamerStays && !protectedPrevious
+                      ? { kind: "player", playerId: previousId }
+                      : { kind: "none", playerId: null }
             const denseFull =
               denseDrop.kind === "none" &&
               isDailyLineupFullForDate(
@@ -3008,7 +3023,7 @@ export const buildStreamingPlan = ({
             droppedPlayerId = releasedWithoutAdd
           } else {
             action = "add"
-            if (pendingDropId) {
+            if (pendingDropId && rosterDrop?.kind !== "ir") {
               rosterDropKind = "player"
               rosterDropPlayerId = pendingDropId
             } else if (rosterDrop) {
@@ -3165,7 +3180,7 @@ export const buildStreamingPlan = ({
       if (hasOpenNonIlSlot(youTeam?.entries ?? [])) {
         return { kind: "none", playerId: null }
       }
-      const unavailableDropIds = new Set([...weekDroppedPlayers, occupantId])
+      const unavailableDropIds = new Set([...noCutPlayerIds(), occupantId])
       const dropId = pickAutoRosterCut({
         date,
         days: schedule.matchup.days,
@@ -3641,7 +3656,7 @@ export const buildStreamingPlan = ({
           .flatMap((entry) => {
             const id = entry.playerId
             if (!id || entry.slot === "IL") return []
-            if (weekDroppedPlayers.has(id)) return []
+            if (weekDroppedPlayers.has(id) || irParkedPlayerIds.has(id)) return []
             if (lockedIds.has(id) || twoInThreeHeld.has(id)) return []
             if (dropProtected(id)) return []
             const rostered = playersById.get(id)
