@@ -398,6 +398,96 @@ const tinySchedule = (
 })
 
 describe("buildStreamingPlan", () => {
+  it("leaves past days empty unless an actual swap was recorded", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const sit = player("sit", "BOS", { positions: ["SG"] })
+    const add = player("fa-add", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const state = tinyState([sit, add], ["fa-add"])
+    state.teams[0]!.entries = [
+      { slot: "SG", playerId: "sit" },
+      { slot: "IL", playerId: null },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2026-10-21", homeAbbr: "BOS", awayAbbr: "CHI" },
+    ])
+    const blank = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      today: "2026-10-21",
+      pastActualSwaps: [],
+    })
+
+    expect(blank.days[0]!.cells[0]).toMatchObject({
+      playerId: null,
+      action: "empty",
+    })
+
+    const recorded = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      today: "2026-10-21",
+      pastActualSwaps: [
+        {
+          date: "2026-10-20",
+          spotIndex: 0,
+          addedPlayerId: "fa-out",
+          drop: "sit",
+        },
+      ],
+    })
+
+    expect(recorded.days[0]!.cells[0]).toMatchObject({
+      playerId: "fa-out",
+      action: "drop_add",
+      rosterDropPlayerId: "sit",
+      addIndex: 1,
+    })
+    expect(recorded.addsUsed).toBeGreaterThanOrEqual(1)
+  })
+
+  it("counts a past swap stored on a higher spot", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const sit = player("sit", "BOS", { positions: ["SG"] })
+    const add = player("fa-add", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const state = tinyState([sit, add], ["fa-add"])
+    state.teams[0]!.entries = [{ slot: "SG", playerId: "sit" }]
+    const schedule = tinySchedule(days, [
+      { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      today: "2026-10-21",
+      pastActualSwaps: [
+        {
+          date: "2026-10-20",
+          spotIndex: 1,
+          addedPlayerId: "fa-add",
+          drop: "hold",
+        },
+      ],
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({ playerId: null, action: "empty" })
+    expect(plan.addsUsed).toBeGreaterThanOrEqual(1)
+  })
+
   it("excludes no-game, out, and retired free agents from adds and alternatives", () => {
     const days = ["2025-11-03", "2025-11-04"]
     const active = player("fa-active", "BOS", {

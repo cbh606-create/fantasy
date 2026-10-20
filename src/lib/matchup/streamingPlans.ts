@@ -94,6 +94,11 @@ import {
   nextHoleStartDate,
 } from "./streamingHoleCalendar"
 import { applyStreamingPlanPreview } from "./applyStreamingPlanPreview"
+import {
+  applyPastSwapToDaily,
+  pastActualCell,
+  type PastActualSwap,
+} from "./pastActualSwaps"
 import type { StreamingAddLock } from "./streamingAddOverride"
 
 const FG_PCT_REPLACEMENT = 0.47
@@ -121,6 +126,11 @@ export type BuildStreamingPlanInput = {
   winnerStreamRecipes?: WinnerStreamRecipe[]
   today?: string
   oppSpotCount?: 1 | 2 | 3
+  /**
+   * Actual swaps made on dates before `today`. When passed, past days write
+   * only these records. Omitted = past days keep planner output.
+   */
+  pastActualSwaps?: readonly PastActualSwap[]
   opponentTeamIndex?: number
   /** Skip you adds/holds so opponent streaming uses the same planner on the full FA pool. */
   youIdle?: boolean
@@ -1261,6 +1271,7 @@ export const buildStreamingPlan = ({
   daily,
   waiverPeriodDays: waiverPeriodDaysInput,
   winnerStreamRecipes = [],
+  pastActualSwaps,
   today,
   oppSpotCount,
   opponentTeamIndex,
@@ -2388,6 +2399,27 @@ export const buildStreamingPlan = ({
       return true
     }
     for (let spotIndex = 0; spotIndex < spotCount; spotIndex++) {
+      if (pastActualSwaps && today && date < today) {
+        const swap = pastActualSwaps.find(
+          (item) => item.date === date && item.spotIndex === spotIndex,
+        )
+        const cell = pastActualCell(swap, spotIndex, addsUsed)
+        if (swap?.addedPlayerId) {
+          addsUsed += 1
+          addsBySpot[spotIndex]! += 1
+        }
+        if (swap) {
+          workingDaily = applyPastSwapToDaily(
+            workingDaily,
+            swap,
+            date,
+            schedule.matchup.days,
+          )
+        }
+        occupants[spotIndex] = null
+        cells[spotIndex] = cell
+        continue
+      }
       if (forcedToday.has(spotIndex)) continue
       const activeLock = lockForSpotOnDate(spotIndex, date)
       if (
@@ -2548,6 +2580,19 @@ export const buildStreamingPlan = ({
           continue
         }
         needFill.push(spotIndex)
+      }
+    }
+
+    if (pastActualSwaps && today && date < today) {
+      for (const swap of pastActualSwaps) {
+        if (swap.date !== date || swap.spotIndex < spotCount) continue
+        if (swap.addedPlayerId) addsUsed += 1
+        workingDaily = applyPastSwapToDaily(
+          workingDaily,
+          swap,
+          date,
+          schedule.matchup.days,
+        )
       }
     }
 
