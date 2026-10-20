@@ -108,7 +108,7 @@ export type BuildStreamingPlanInput = {
   injuryOutDaysByPlayerId?: Record<string, number>
   forcedRosterDrops?: Record<string, string | "open_slot" | "hold">
   /**
-   * Opp spotIndex ??roster player id to cut the first time that spot
+   * Opp spotIndex → roster player id to cut the first time that spot
    * needs a roster drop. `null` / omitted = Auto. Mapped onto the same
    * planner `forcedRosterDrops` the user plan uses.
    */
@@ -257,7 +257,7 @@ const remainingGameDays = (
 
 /**
  * True while the next hole start is tomorrow or the day after.
- * A packed next game does not count ??that is not a 2-in-3 worth holding.
+ * A packed next game does not count — that is not a 2-in-3 worth holding.
  */
 const isInsideHeldStreamingWindow = (
   player: SeasonPlayer,
@@ -750,7 +750,7 @@ const buildSummaryReasons = (didProtectDrops: boolean): string[] => {
     "Fills empty stream spots for the week",
   ]
   if (didProtectDrops) {
-    summaryReasons.push(`Protected ADP ??${STREAMING_PROTECTED_ADP_MAX}`)
+    summaryReasons.push(`Protected ADP ≤ ${STREAMING_PROTECTED_ADP_MAX}`)
   }
   return summaryReasons.slice(0, 3)
 }
