@@ -1942,6 +1942,7 @@ export const buildStreamingPlan = ({
         if (previousId) {
           markDropped(previousId, date)
           clearPlannedOccupant(previousId, date)
+          lastReleasedBySpot[spotIndex] = previousId
         }
         occupants[spotIndex] = null
         cells[spotIndex] = {
@@ -2920,9 +2921,18 @@ export const buildStreamingPlan = ({
               isCompatibleAlternative(picked.playerId, candidateId),
             )
             .slice(0, 3)
+          const releasedWithoutAdd = lastReleasedBySpot[spotIndex]
           if (previousId && !forceFill && !protectedPrevious && !streamerStays) {
             action = "drop_add"
             droppedPlayerId = previousId
+          } else if (
+            releasedWithoutAdd &&
+            releasedWithoutAdd !== picked.playerId &&
+            !forceFill &&
+            !streamerStays
+          ) {
+            action = "drop_add"
+            droppedPlayerId = releasedWithoutAdd
           } else {
             action = "add"
             if (pendingDropId) {
@@ -2953,8 +2963,12 @@ export const buildStreamingPlan = ({
             playersById,
             schedule,
           )
-          if (previousId && !forceFill && !protectedPrevious && !streamerStays) {
-            markDropped(previousId, date)
+          if (
+            droppedPlayerId &&
+            droppedPlayerId !== rosterDrop?.playerId &&
+            !droppedOnByPlayerId.has(droppedPlayerId)
+          ) {
+            markDropped(droppedPlayerId, date)
           }
           if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
             weekDroppedPlayers.add(rosterDrop.playerId)

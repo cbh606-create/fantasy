@@ -20,12 +20,12 @@ const board = (winProbById: [CategoryId, number][]): MatchupBoard => ({
 })
 
 describe("mostCategoriesSeedPuntIds", () => {
-  it("includes only categories strictly below 0.4", () => {
+  it("includes only categories strictly below 0.38", () => {
     expect(
       mostCategoriesSeedPuntIds(
         board([
-          ["STL", 0.39],
-          ["REB", 0.4],
+          ["STL", 0.37],
+          ["REB", 0.38],
           ["PTS", 0.5],
         ]),
       ),

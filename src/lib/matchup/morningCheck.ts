@@ -264,6 +264,41 @@ export const closeFinishedDays = (input: {
   }
 }
 
+export const dayActualsHaveStats = (actuals: DayActuals): boolean => {
+  if (actuals.youPlayedIds.length > 0 || actuals.oppPlayedIds.length > 0) {
+    return true
+  }
+  const counting = ["PTS", "REB", "AST", "STL", "BLK", "TO", "TPM"] as const
+  return counting.some((id) => actuals.you[id] > 0 || actuals.opp[id] > 0)
+}
+
+/**
+ * Paint a live box onto the comparison row. Played ids stay off so an
+ * in-progress day does not lock the lineup.
+ */
+export const overlayLiveActuals = (
+  rows: DayComparisonRow[],
+  live: Iterable<DayActuals>,
+): DayComparisonRow[] => {
+  const byDate = new Map<string, DayActuals>()
+  for (const actuals of live) {
+    if (!dayActualsHaveStats(actuals)) continue
+    byDate.set(actuals.date, actuals)
+  }
+  if (byDate.size === 0) return rows
+  return rows.map((row) => {
+    const actuals = byDate.get(row.date)
+    if (!actuals) return row
+    return {
+      ...row,
+      youActual: actuals.you,
+      oppActual: actuals.opp,
+      youActualShooting: actuals.youShooting,
+      oppActualShooting: actuals.oppShooting,
+    }
+  })
+}
+
 export const dayComparisonRows = (
   matchupDays: string[],
   closedDays: ClosedDayRecord[],

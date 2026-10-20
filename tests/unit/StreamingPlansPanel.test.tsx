@@ -1024,7 +1024,7 @@ describe("StreamingPlansPanel", () => {
     expect(dropSelect).not.toHaveDisplayValue("Hold")
   })
 
-  it("seeds punts under 0.4 only for most categories", () => {
+  it("seeds punts under 0.38 only for most categories", () => {
     const { rerender } = render(
       <StreamingPlansPanel
         board={board}

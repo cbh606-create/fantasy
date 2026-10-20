@@ -1,8 +1,8 @@
 import type { CategoryId } from "@/lib/domain/types"
 import type { MatchupBoard } from "./types"
 
-/** Most Categories auto-punts cats below this winProb. */
-export const MOST_CATEGORIES_PUNT_SEED_MAX = 0.4
+/** Most Categories auto-punts cats below the flip band (0.5 − 0.12). */
+export const MOST_CATEGORIES_PUNT_SEED_MAX = 0.38
 
 export const mostCategoriesSeedPuntIds = (board: MatchupBoard): CategoryId[] =>
   board.categories

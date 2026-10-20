@@ -100,7 +100,41 @@ it("StreamingPlanDayCell requires drop fields", () => {
   expect(cell.addIndex).toBe(1)
 })
 
-it("stamps chronological addIndex on add and drop_add cells", () => {
+  it("names the streamer released on an empty night when a different player is added later", () => {
+    const days = ["2025-11-03", "2025-11-04", "2025-11-05"]
+    const first = player("fa-first", "BOS", {
+      projections: { ...baseProjections(), STL: 180 },
+    })
+    const second = player("fa-second", "NYK", {
+      projections: { ...baseProjections(), STL: 160 },
+    })
+    const state = tinyState([first, second], ["fa-first", "fa-second"])
+    const schedule = tinySchedule(days, [
+      { date: "2025-11-03", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2025-11-04", homeAbbr: "MIA", awayAbbr: "ATL" },
+      { date: "2025-11-05", homeAbbr: "NYK", awayAbbr: "ORL" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 3,
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-first",
+    })
+    expect(plan.days[1]!.cells[0]!.action).toBe("empty")
+    expect(plan.days[2]!.cells[0]).toMatchObject({
+      action: "drop_add",
+      playerId: "fa-second",
+      droppedPlayerId: "fa-first",
+    })
+  })
+
+  it("stamps chronological addIndex on add and drop_add cells", () => {
   const days = ["2025-11-03", "2025-11-04"]
   const faA = player("fa-a", "BOS", {
     projections: { ...baseProjections(), STL: 180 },

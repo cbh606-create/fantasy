@@ -181,6 +181,8 @@ const resolveDailyLineups = (
   return fresh
 }
 
+const LIVE_ACTUALS_POLL_MS = 30_000
+
 const isAbortError = (error: unknown, signal?: AbortSignal) => {
   if (signal?.aborted) return true
   if (error instanceof DOMException && error.name === "AbortError") return true
@@ -539,6 +541,71 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       opponentFetchRef.current?.abort()
     }
   }, [fetchMatchup, leagueId])
+
+  useEffect(() => {
+    if (isLoading || opponentTeamIndex == null) return
+    const controller = new AbortController()
+    let timer = 0
+
+    const pullLiveActuals = async () => {
+      if (document.visibilityState === "hidden") return
+      try {
+        const params = new URLSearchParams({
+          seasonLeagueId: leagueId,
+          opponentTeamIndex: String(opponentTeamIndex),
+          liveActuals: "1",
+        })
+        const response = await fetch(`/api/matchup?${params}`, {
+          signal: controller.signal,
+        })
+        if (!response.ok) return
+        const payload = (await response.json()) as {
+          liveActuals?: Array<{
+            date: string
+            you: DayComparisonRow["youProjection"]
+            opp: DayComparisonRow["oppProjection"]
+            youShooting: NonNullable<DayComparisonRow["youActualShooting"]>
+            oppShooting: NonNullable<DayComparisonRow["oppActualShooting"]>
+          }>
+        }
+        if (!payload.liveActuals?.length) return
+        const byDate = new Map(payload.liveActuals.map((row) => [row.date, row]))
+        setMatchupData((current) => {
+          if (!current?.dayComparison) return current
+          let changed = false
+          const dayComparison = current.dayComparison.map((row) => {
+            const live = byDate.get(row.date)
+            if (!live) return row
+            changed = true
+            return {
+              ...row,
+              youActual: live.you,
+              oppActual: live.opp,
+              youActualShooting: live.youShooting,
+              oppActualShooting: live.oppShooting,
+            }
+          })
+          return changed ? { ...current, dayComparison } : current
+        })
+      } catch (error) {
+        if (isAbortError(error, controller.signal)) return
+      }
+    }
+
+    timer = window.setInterval(() => {
+      void pullLiveActuals()
+    }, LIVE_ACTUALS_POLL_MS)
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") void pullLiveActuals()
+    }
+    document.addEventListener("visibilitychange", handleVisibility)
+
+    return () => {
+      controller.abort()
+      window.clearInterval(timer)
+      document.removeEventListener("visibilitychange", handleVisibility)
+    }
+  }, [isLoading, leagueId, opponentTeamIndex])
 
   const handleOpponentChange = async (teamIndex: number) => {
     setForcedOpponentRosterDrops([])

@@ -12,7 +12,11 @@ import { applyPoolInjuryStatus } from "@/lib/players/applyPoolProjections"
 import { loadProjPoolPlayers } from "@/lib/players/loadProjPool"
 import { loadStatPairs } from "@/lib/players/loadStatPairs"
 import type { StatPairRow } from "@/lib/players/statPairCorrelation"
-import type { DayActuals } from "@/lib/matchup/morningCheck"
+import {
+  dayActualsHaveStats,
+  overlayLiveActuals,
+  type DayActuals,
+} from "@/lib/matchup/morningCheck"
 import {
   actualsFromClosedDays,
   morningCheckForOpponent,
@@ -131,6 +135,7 @@ const loadMatchupDayActuals = async (input: {
   dates: string[]
   matchupDates: string[]
   scoringPeriodIds?: number[]
+  period?: "closed" | "current"
 }): Promise<Map<string, DayActuals>> => {
   const { loaded } = input
   const oppTeam = loaded.state.teams.find(
@@ -152,7 +157,25 @@ const loadMatchupDayActuals = async (input: {
     scoringPeriodIds: input.scoringPeriodIds,
     youTeamId,
     oppTeamId,
+    period: input.period,
   })
+}
+
+const loadLiveActualRows = async (input: {
+  loaded: LoadedSeasonLeague
+  userId: string
+  opponentTeamIndex: number
+  dates: string[]
+  matchupDates: string[]
+  scoringPeriodIds?: number[]
+}): Promise<DayActuals[]> => {
+  if (input.loaded.state.source !== "espn") return []
+  try {
+    const live = await loadMatchupDayActuals({ ...input, period: "current" })
+    return [...live.values()].filter(dayActualsHaveStats)
+  } catch {
+    return []
+  }
 }
 
 const collectReferencedPlayerIds = (
@@ -266,6 +289,26 @@ export const GET = async (request: Request): Promise<Response> => {
     schedule.matchup.startDate,
     opponentTeamIndex,
   )
+  if (params.get("liveActuals") === "1") {
+    const liveActuals = await loadLiveActualRows({
+      loaded,
+      userId,
+      opponentTeamIndex,
+      dates: schedule.matchup.days,
+      matchupDates: schedule.matchup.days,
+      scoringPeriodIds: schedule.matchup.scoringPeriodIds,
+    })
+    return NextResponse.json({
+      liveActuals: liveActuals.map((row) => ({
+        date: row.date,
+        you: row.you,
+        opp: row.opp,
+        youShooting: row.youShooting,
+        oppShooting: row.oppShooting,
+      })),
+    })
+  }
+
   const morningFor = (actualsByDate: Map<string, DayActuals>) => ({
     actualsByDate,
     previous,
@@ -348,9 +391,22 @@ export const GET = async (request: Request): Promise<Response> => {
     teamIndex: team.teamIndex,
     name: team.name,
   }))
-
+  const liveActuals = await loadLiveActualRows({
+    loaded,
+    userId,
+    opponentTeamIndex,
+    dates: schedule.matchup.days,
+    matchupDates: schedule.matchup.days,
+    scoringPeriodIds: schedule.matchup.scoringPeriodIds,
+  })
+  const responseAdvice = advice.dayComparison
+    ? {
+        ...advice,
+        dayComparison: overlayLiveActuals(advice.dayComparison, liveActuals),
+      }
+    : advice
   return NextResponse.json({
-    ...advice,
+    ...responseAdvice,
     schedule,
     playersById,
     teams,

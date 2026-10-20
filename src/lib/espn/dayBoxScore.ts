@@ -185,6 +185,31 @@ export const pairClosedScoringPeriods = (input: {
   return paired
 }
 
+/** The fantasy day ESPN still has open. Its box score moves during games. */
+export const pairCurrentScoringPeriod = (input: {
+  dates: string[]
+  matchupDates: string[]
+  matchupPeriodDays: number[]
+  currentScoringPeriod: number
+}): Map<string, number> => {
+  if (
+    input.matchupPeriodDays.length > 0 &&
+    input.matchupDates.length !== input.matchupPeriodDays.length
+  ) {
+    throw new Error("espn_matchup_period_length_mismatch")
+  }
+  const paired = new Map<string, number>()
+  for (const date of input.dates) {
+    const index = input.matchupDates.indexOf(date)
+    if (index < 0) continue
+    const scoringPeriodId = input.matchupPeriodDays[index]
+    if (typeof scoringPeriodId !== "number") continue
+    if (scoringPeriodId !== input.currentScoringPeriod) continue
+    paired.set(date, scoringPeriodId)
+  }
+  return paired
+}
+
 const leagueUrl = (season: number, leagueId: string): URL =>
   new URL(
     `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/${leagueId}`,
@@ -229,6 +254,7 @@ export const fetchEspnDayActuals = async (params: {
   scoringPeriodIds?: number[]
   youTeamId: number
   oppTeamId: number
+  period?: "closed" | "current"
   fetchImpl?: typeof fetch
 }): Promise<Map<string, DayActuals>> => {
   const fetchImpl = params.fetchImpl ?? fetch
@@ -256,12 +282,16 @@ export const fetchEspnDayActuals = async (params: {
       ? params.scoringPeriodIds
       : (matchupPeriods[String(currentMatchupPeriod)] ?? [])
 
-  const scoringPeriodByDate = pairClosedScoringPeriods({
+  const periodInput = {
     dates: params.dates,
     matchupDates: params.matchupDates,
     matchupPeriodDays,
     currentScoringPeriod,
-  })
+  }
+  const scoringPeriodByDate =
+    params.period === "current"
+      ? pairCurrentScoringPeriod(periodInput)
+      : pairClosedScoringPeriods(periodInput)
 
   const payloads = await Promise.all(
     [...scoringPeriodByDate].map(async ([date, scoringPeriodId]) => {
