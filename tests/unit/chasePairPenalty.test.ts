@@ -87,6 +87,14 @@ describe("streamingChaseNote", () => {
     expect(streamingChaseNote(["AST", "TO"], pairs).penalty).toBeCloseTo(0.075)
   })
 
+  it("returns every id and no penalty when three cats are chased", () => {
+    expect(streamingChaseNote(["AST", "STL", "REB"], pairs)).toEqual({
+      categoryIds: ["AST", "STL", "REB"],
+      r: null,
+      penalty: 0,
+    })
+  })
+
   it("charges nothing when the pair is unmeasured", () => {
     expect(streamingChaseNote(["REB", "BLK"], [pair("BLK", "REB", -0.4, false)]).penalty).toBe(0)
   })
