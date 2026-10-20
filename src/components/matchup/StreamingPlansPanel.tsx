@@ -47,9 +47,12 @@ import {
   collectEarlierAddedStreamerIds,
   collectEarlierRosterDropIds,
   hasOpenNonIlRosterSlot,
+  irParkDropOptions,
   isAfterStreamingAddDropKey,
+  parkedPlayerIdFromDropValue,
   parseStreamingAddDropKey,
   perspectiveRosterEntries,
+  resolveStoredIrParkValue,
   rosterDropSelectOptions,
   rosterDropSelectPlayerIds,
 } from "@/lib/matchup/streamingDropOptions"
@@ -199,6 +202,11 @@ const dropPlanLabel = (
 ): string => {
   if (!cell) return "—"
   if (cell.rosterDropKind === "open_slot") return "Open slot"
+  if (cell.rosterDropKind === "ir" && cell.rosterDropPlayerId) {
+    const player = playersById[cell.rosterDropPlayerId]
+    const note = player?.injuryStatus === "out" ? "" : " (after OUT)"
+    return `To IR · ${playerName(cell.rosterDropPlayerId, playersById)}${note}`
+  }
   if (cell.rosterDropPlayerId) {
     return playerName(cell.rosterDropPlayerId, playersById)
   }
@@ -226,6 +234,7 @@ const DropCell = ({
   plan,
   playersById,
   rosterEntries,
+  schedule,
   spotIndex,
   today,
   forcedDropValue,
@@ -236,6 +245,7 @@ const DropCell = ({
   plan: StreamingPlan
   playersById: Record<string, SeasonPlayer>
   rosterEntries: SeasonLeagueState["teams"][number]["entries"]
+  schedule: ScheduleResponse
   spotIndex: number
   today: string
   forcedDropValue: ForcedRosterDropValue
@@ -246,10 +256,21 @@ const DropCell = ({
 
   const key = streamingAddDropKey(date, spotIndex)
   const value = forcedDropValue
+  const irOptions = irParkDropOptions({
+    entries: rosterEntries,
+    playersById,
+    date,
+    schedule,
+  })
 
   useEffect(() => {
     setLazyOptions(null)
   }, [value, date, spotIndex])
+
+  useEffect(() => {
+    if (resolveStoredIrParkValue(value, irOptions) === value) return
+    onForcedRosterDropChange(key, "hold")
+  }, [irOptions, key, onForcedRosterDropChange, value])
 
   if (isPastStreamingDate(date, today)) {
     return (
@@ -267,8 +288,10 @@ const DropCell = ({
     )
   }
 
-  const closedLabel =
-    value === "hold"
+  const closedLabel = parkedPlayerIdFromDropValue(value)
+    ? (irOptions.find((option) => option.value === value)?.label ??
+      `To IR · ${playerName(parkedPlayerIdFromDropValue(value) ?? "", playersById)}`)
+    : value === "hold"
       ? "Hold"
       : value === "open_slot"
         ? "Open slot"
@@ -293,13 +316,16 @@ const DropCell = ({
         earlierDroppedIds,
         earlierAddedStreamerIds,
       )
-      return rosterDropSelectOptions({
-        eligiblePlayerIds: selectPlayerIds,
-        earlierDroppedIds,
-        allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
-        includeHold: true,
-        playersById,
-      })
+      return [
+        ...rosterDropSelectOptions({
+          eligiblePlayerIds: selectPlayerIds,
+          earlierDroppedIds,
+          allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
+          includeHold: true,
+          playersById,
+        }),
+        ...irOptions,
+      ]
     })
   }
 
@@ -1507,6 +1533,7 @@ export const StreamingPlansPanel = ({
                                       plan={plan}
                                       playersById={resolvedPlayers}
                                       rosterEntries={rosterEntries}
+                                      schedule={schedule}
                                       spotIndex={spotIndex}
                                       today={today}
                                     />
