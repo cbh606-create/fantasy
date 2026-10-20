@@ -268,9 +268,10 @@ const DropCell = ({
   }, [value, date, spotIndex])
 
   useEffect(() => {
+    if (!canEditStreamingDate(date, today)) return
     if (resolveStoredIrParkValue(value, irOptions) === value) return
     onForcedRosterDropChange(key, "hold")
-  }, [irOptions, key, onForcedRosterDropChange, value])
+  }, [date, irOptions, key, onForcedRosterDropChange, today, value])
 
   if (isPastStreamingDate(date, today)) {
     return (
