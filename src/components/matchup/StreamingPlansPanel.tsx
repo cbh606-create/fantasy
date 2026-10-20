@@ -58,6 +58,13 @@ import {
   rosterDropSelectPlayerIds,
 } from "@/lib/matchup/streamingDropOptions"
 import { isAdpProtected } from "@/lib/matchup/streamingDropPolicy"
+import {
+  clearPastActualSpot,
+  readPastActualSwaps,
+  upsertPastActualSwap,
+  writePastActualSwaps,
+  type PastActualSwap,
+} from "@/lib/matchup/pastActualSwaps"
 import { winnerStreamHint } from "@/lib/matchup/winnerStreamPrior"
 import type {
   MatchupBoard,
@@ -69,6 +76,8 @@ import type {
 } from "@/lib/matchup/types"
 import type { StatPairRow } from "@/lib/players/statPairCorrelation"
 import type { CategoryId } from "@/lib/domain/types"
+
+type RecordingPast = { spotCount: 1 | 2 | 3; date: string } | null
 
 const MIN_ADD_BUDGET = 1
 const MAX_ADD_BUDGET = 14
@@ -240,6 +249,7 @@ const DropCell = ({
   spotIndex,
   today,
   forcedDropValue,
+  recordingPast,
 }: {
   cell: StreamingPlanDayCell | undefined
   date: string
@@ -253,6 +263,7 @@ const DropCell = ({
   spotIndex: number
   today: string
   forcedDropValue: ForcedRosterDropValue
+  recordingPast: boolean
 }) => {
   const [lazyOptions, setLazyOptions] = useState<
     { value: string; label: string }[] | null
@@ -283,15 +294,7 @@ const DropCell = ({
     onStaleIrReset(key)
   }, [date, irOptions, key, onStaleIrReset, today, value])
 
-  if (isPastStreamingDate(date, today)) {
-    return (
-      <span className="text-[var(--color-mute)]">
-        {dropPlanLabel(cell, playersById)}
-      </span>
-    )
-  }
-
-  if (!canEditStreamingDate(date, today)) {
+  if (isPastStreamingDate(date, today) && !recordingPast) {
     return (
       <span className="text-[var(--color-mute)]">
         {dropPlanLabel(cell, playersById)}
@@ -308,35 +311,36 @@ const DropCell = ({
         ? "Open slot"
         : playerName(value, playersById)
 
-  const ensureOptions = () => {
-    setLazyOptions((current) => {
-      if (current) return current
-      const earlierDroppedIds = [
-        ...collectEarlierRosterDropIds(plan, date, spotIndex),
-        ...earlierParkedIds,
-      ]
-      const earlierAddedStreamerIds = collectEarlierAddedStreamerIds(
-        plan,
-        date,
-        spotIndex,
-      )
-      const selectPlayerIds = rosterDropSelectPlayerIds(
-        rosterEntries,
-        playersById,
+  const buildOptions = () => {
+    const earlierDroppedIds = [
+      ...collectEarlierRosterDropIds(plan, date, spotIndex),
+      ...earlierParkedIds,
+    ]
+    const earlierAddedStreamerIds = collectEarlierAddedStreamerIds(
+      plan,
+      date,
+      spotIndex,
+    )
+    const selectPlayerIds = rosterDropSelectPlayerIds(
+      rosterEntries,
+      playersById,
+      earlierDroppedIds,
+      earlierAddedStreamerIds,
+    )
+    return [
+      ...rosterDropSelectOptions({
+        eligiblePlayerIds: selectPlayerIds,
         earlierDroppedIds,
-        earlierAddedStreamerIds,
-      )
-      return [
-        ...rosterDropSelectOptions({
-          eligiblePlayerIds: selectPlayerIds,
-          earlierDroppedIds,
-          allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
-          includeHold: true,
-          playersById,
-        }),
-        ...irOptions,
-      ]
-    })
+        allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
+        includeHold: true,
+        playersById,
+      }),
+      ...irOptions,
+    ]
+  }
+
+  const ensureOptions = () => {
+    setLazyOptions((current) => current ?? buildOptions())
   }
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -352,7 +356,9 @@ const DropCell = ({
     onForcedRosterDropChange(key, next)
   }
 
-  const options = lazyOptions ?? [{ value, label: closedLabel }]
+  const options =
+    lazyOptions ??
+    (recordingPast ? buildOptions() : [{ value, label: closedLabel }])
 
   return (
     <select
@@ -411,6 +417,7 @@ const AddCell = ({
   onAddSelect,
   onHoldThrough,
   selectEpoch = 0,
+  recordingPast,
 }: {
   cell: StreamingPlanDayCell | undefined
   date: string
@@ -427,6 +434,7 @@ const AddCell = ({
   onAddSelect?: (playerId: string) => boolean
   onHoldThrough?: () => void
   selectEpoch?: number
+  recordingPast: boolean
 }) => {
   const selectValue = cell?.playerId ?? ""
   const shownPlayerId = cell?.playerId ?? displayPlayerId
@@ -454,7 +462,7 @@ const AddCell = ({
     </span>
   ) : null
 
-  if (isPastStreamingDate(date, today)) {
+  if (isPastStreamingDate(date, today) && !recordingPast) {
     if (!shownPlayerId) {
       return (
         <>
@@ -485,7 +493,7 @@ const AddCell = ({
     )
   }
 
-  if (canEditStreamingDate(date, today) && onAddSelect) {
+  if ((canEditStreamingDate(date, today) || recordingPast) && onAddSelect) {
     const value = selectValue
     const closedLabel = value
       ? playerName(value, playersById)
@@ -698,6 +706,19 @@ export const StreamingPlansPanel = ({
     null,
   )
   const [addSelectEpoch, setAddSelectEpoch] = useState(0)
+  const matchupStart = schedule.matchup.startDate
+  const [pastActualSwaps, setPastActualSwaps] = useState<PastActualSwap[]>(
+    () => readPastActualSwaps(leagueId, matchupStart),
+  )
+  const [recording, setRecording] = useState<RecordingPast>(null)
+  const pastSwapsKey = `${leagueId}:${matchupStart}`
+  const loadedPastSwapsKeyRef = useRef(pastSwapsKey)
+  useEffect(() => {
+    if (loadedPastSwapsKeyRef.current === pastSwapsKey) return
+    loadedPastSwapsKeyRef.current = pastSwapsKey
+    setPastActualSwaps(readPastActualSwaps(leagueId, matchupStart))
+    setRecording(null)
+  }, [leagueId, matchupStart, pastSwapsKey])
   const matchupDaysKey = schedule.matchup.days.join()
 
   useEffect(() => {
@@ -781,6 +802,7 @@ export const StreamingPlansPanel = ({
     puntCategoryIds,
     statPairs,
     droppablePlayerIds,
+    pastActualSwaps,
   }
 
   const plan1Base = useMemo(
@@ -809,6 +831,7 @@ export const StreamingPlansPanel = ({
       puntCategoryIds,
       statPairs,
       droppableKey,
+      pastActualSwaps,
     ],
   )
 
@@ -837,6 +860,7 @@ export const StreamingPlansPanel = ({
       puntCategoryIds,
       statPairs,
       droppableKey,
+      pastActualSwaps,
     ],
   )
 
@@ -865,6 +889,7 @@ export const StreamingPlansPanel = ({
       puntCategoryIds,
       statPairs,
       droppableKey,
+      pastActualSwaps,
     ],
   )
 
@@ -1157,6 +1182,40 @@ export const StreamingPlansPanel = ({
     return true
   }
 
+  const storedPastSwap = (date: string, spotIndex: number) =>
+    pastActualSwaps.find(
+      (swap) => swap.date === date && swap.spotIndex === spotIndex,
+    )
+
+  const handlePastSwapChange = (
+    date: string,
+    spotIndex: number,
+    change: Partial<Pick<PastActualSwap, "addedPlayerId" | "drop">>,
+  ) => {
+    const stored = storedPastSwap(date, spotIndex)
+    const next: PastActualSwap = {
+      date,
+      spotIndex,
+      addedPlayerId: stored?.addedPlayerId ?? null,
+      drop: stored?.drop ?? "hold",
+      ...change,
+    }
+    const swaps =
+      next.addedPlayerId === null && next.drop === "hold"
+        ? clearPastActualSpot(pastActualSwaps, date, spotIndex)
+        : upsertPastActualSwap(pastActualSwaps, next)
+    setPastActualSwaps(swaps)
+    writePastActualSwaps(leagueId, matchupStart, swaps)
+  }
+
+  const handleToggleRecording = (spotCount: 1 | 2 | 3, date: string) => {
+    setRecording((current) =>
+      current?.spotCount === spotCount && current.date === date
+        ? null
+        : { spotCount, date },
+    )
+  }
+
   const handleResetToSuggested = () => {
     setAddLocksBySpotCount({})
     setForcedRosterDropsBySpotCount({})
@@ -1395,6 +1454,22 @@ export const StreamingPlansPanel = ({
                               }
                             >
                               {formatMatchupDayLabel(date)}
+                              {date < today ? (
+                                <button
+                                  aria-label="실제 교체"
+                                  aria-pressed={
+                                    recording?.spotCount === plan.spotCount &&
+                                    recording.date === date
+                                  }
+                                  className="mt-0.5 block w-full rounded border border-[var(--color-hairline)] px-1 py-0.5 text-[0.625rem] font-medium normal-case tracking-normal text-[var(--color-mute)] hover:text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                                  onClick={() =>
+                                    handleToggleRecording(plan.spotCount, date)
+                                  }
+                                  type="button"
+                                >
+                                  실제 교체
+                                </button>
+                              ) : null}
                             </th>
                           )
                         })}
@@ -1482,14 +1557,20 @@ export const StreamingPlansPanel = ({
                                       locks={spotLocks}
                                       selectEpoch={addSelectEpoch}
                                       spotIndex={spotIndex}
-                                      onAddSelect={(playerId) =>
-                                        handleAddSelect(
+                                      onAddSelect={(playerId) => {
+                                        if (date < today) {
+                                          handlePastSwapChange(date, spotIndex, {
+                                            addedPlayerId: playerId,
+                                          })
+                                          return true
+                                        }
+                                        return handleAddSelect(
                                           plan.spotCount,
                                           date,
                                           spotIndex,
                                           playerId,
                                         )
-                                      }
+                                      }}
                                       onHoldThrough={
                                         holdLockDate
                                           ? () =>
@@ -1505,6 +1586,11 @@ export const StreamingPlansPanel = ({
                                         oppName === "—" ? null : oppName
                                       }
                                       playersById={resolvedPlayers}
+                                      recordingPast={
+                                        recording?.spotCount ===
+                                          plan.spotCount &&
+                                        recording.date === date
+                                      }
                                       schedule={schedule}
                                       today={today}
                                     />
@@ -1535,23 +1621,41 @@ export const StreamingPlansPanel = ({
                                       cell={cell}
                                       date={date}
                                       forcedDropValue={
-                                        forcedRosterDropsBySpotCount[
-                                          plan.spotCount
-                                        ]?.[streamingAddDropKey(date, spotIndex)] ??
-                                        plannedDropValue(cell)
+                                        date < today
+                                          ? (storedPastSwap(date, spotIndex)
+                                              ?.drop ?? "hold")
+                                          : (forcedRosterDropsBySpotCount[
+                                              plan.spotCount
+                                            ]?.[
+                                              streamingAddDropKey(
+                                                date,
+                                                spotIndex,
+                                              )
+                                            ] ?? plannedDropValue(cell))
                                       }
-                                      onForcedRosterDropChange={(key, value) =>
+                                      onForcedRosterDropChange={(key, value) => {
+                                        if (date < today) {
+                                          handlePastSwapChange(date, spotIndex, {
+                                            drop: value,
+                                          })
+                                          return
+                                        }
                                         handleForcedRosterDropChange(
                                           plan.spotCount,
                                           key,
                                           value,
                                         )
-                                      }
+                                      }}
                                       onStaleIrReset={(key) =>
                                         handleStaleIrReset(plan.spotCount, key)
                                       }
                                       plan={plan}
                                       playersById={resolvedPlayers}
+                                      recordingPast={
+                                        recording?.spotCount ===
+                                          plan.spotCount &&
+                                        recording.date === date
+                                      }
                                       rosterEntries={rosterEntries}
                                       schedule={schedule}
                                       spotIndex={spotIndex}

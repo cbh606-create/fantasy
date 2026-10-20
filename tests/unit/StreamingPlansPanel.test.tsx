@@ -1013,7 +1013,7 @@ describe("StreamingPlansPanel", () => {
     )!
     const pastCell = dropRow.querySelectorAll("td")[0]!
     expect(pastCell.querySelector("select")).toBeNull()
-    expect(pastCell).toHaveTextContent("Open slot")
+    expect(pastCell).toHaveTextContent("—")
     expect(pastCell.querySelector("span")).toHaveClass("text-[var(--color-mute)]")
   })
 
@@ -1652,5 +1652,60 @@ describe("StreamingPlansPanel", () => {
     ).plans.find((plan) => plan.spotCount === 1)!
     expect(afterPlan.addsUsed).toBe(beforeAdds)
     expect(afterPlan.days[0]!.cells[0]!.playerId).toBe(beforePlayerId)
+  })
+
+  it("keeps a past day blank until the actual swap is recorded", async () => {
+    const storage = window.localStorage
+    storage.clear()
+    const past = "2025-11-03"
+    const today = "2025-11-04"
+    const twoDaySchedule: ScheduleResponse = {
+      ...dropSchedule,
+      matchup: {
+        ...dropSchedule.matchup,
+        startDate: past,
+        endDate: today,
+        days: [past, today],
+      },
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg-past"
+        playersById={{}}
+        schedule={twoDaySchedule}
+        state={dropState}
+        today={today}
+      />,
+    )
+
+    const pastDropName = new RegExp(
+      `roster drop ${formatMatchupDayLabel(past).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+      "i",
+    )
+    expect(screen.queryByRole("combobox", { name: pastDropName })).toBeNull()
+    fireEvent.click(screen.getAllByRole("button", { name: "실제 교체" })[0]!)
+
+    const drop = await screen.findByRole("combobox", { name: pastDropName })
+    fireEvent.change(drop, { target: { value: "you-idle" } })
+    fireEvent.click(screen.getAllByRole("button", { name: "실제 교체" })[0]!)
+    expect(screen.queryByRole("combobox", { name: pastDropName })).toBeNull()
+
+    cleanup()
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg-past"
+        playersById={{}}
+        schedule={twoDaySchedule}
+        state={dropState}
+        today={today}
+      />,
+    )
+    expect(screen.getAllByText("No Game Cut").length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset to suggested plan" }))
+    expect(screen.getAllByText("No Game Cut").length).toBeGreaterThan(0)
   })
 })
