@@ -14,6 +14,7 @@ import {
   isStreamAddEligibleOnDate,
 } from "./streamingAddEligibility"
 import {
+  extractActiveEntries,
   initDailyLineups,
   isDailyLineupFullForDate,
   type DailyLineups,
@@ -1008,12 +1009,32 @@ const isValidIrPark = (
   )
 }
 
-/** Drops the active seat a parked player vacated (IL seat stays). */
+type IrParkSeat = { date: string; seatIndex: number; seatSlot: SeasonSlot }
+
+/**
+ * Drops the active seat a parked player vacated (IL seat stays). On an off
+ * night the lineup builder already blanked the id, so fall back to the empty
+ * seat at the player's roster seat index.
+ */
 const removeParkedSeat = (
   entries: SeasonRosterEntry[],
   parkedId: string,
-): SeasonRosterEntry[] =>
-  entries.filter((entry) => entry.slot === "IL" || entry.playerId !== parkedId)
+  seat: IrParkSeat,
+): SeasonRosterEntry[] => {
+  const seatedAt = entries.findIndex(
+    (entry) => entry.slot !== "IL" && entry.playerId === parkedId,
+  )
+  const emptyHome = entries[seat.seatIndex]
+  const removeIndex =
+    seatedAt >= 0
+      ? seatedAt
+      : emptyHome?.slot === seat.seatSlot && emptyHome.playerId === null
+        ? seat.seatIndex
+        : -1
+  return removeIndex < 0
+    ? entries
+    : entries.filter((_, index) => index !== removeIndex)
+}
 
 const rosterGameCountForDate = (
   daily: DailyLineups,
@@ -1345,7 +1366,7 @@ export const buildStreamingPlan = ({
   const days: StreamingPlanDay[] = []
   const weekDroppedPlayers = new Set<string>()
   const irParkedPlayerIds = new Set<string>()
-  const irParkDateById = new Map<string, string>()
+  const irParkSeatById = new Map<string, IrParkSeat>()
   /** Cut-ineligible ids: waived this week or parked on IR (parking is not a waiver). */
   const noCutPlayerIds = () =>
     new Set([...weekDroppedPlayers, ...irParkedPlayerIds])
@@ -1626,8 +1647,8 @@ export const buildStreamingPlan = ({
           savedDay: daily?.[day],
           rosterSlots,
         })
-        for (const [parkedId, parkDate] of irParkDateById) {
-          if (day > parkDate) hole = removeParkedSeat(hole, parkedId)
+        for (const [parkedId, seat] of irParkSeatById) {
+          if (day > seat.date) hole = removeParkedSeat(hole, parkedId, seat)
         }
         return [day, hole]
       }),
@@ -1640,11 +1661,20 @@ export const buildStreamingPlan = ({
      * is closed (not a hole, no stats), matching the preview's blocked seat.
      */
     const clearParkedFromLaterDays = (parkedId: string) => {
-      irParkDateById.set(parkedId, date)
+      const homeSeats = extractActiveEntries(youTeam?.entries ?? [], rosterSlots)
+      const seatIndex = homeSeats.findIndex(
+        (entry) => entry.playerId === parkedId,
+      )
+      const seat: IrParkSeat = {
+        date,
+        seatIndex,
+        seatSlot: homeSeats[seatIndex]?.slot ?? "BE",
+      }
+      irParkSeatById.set(parkedId, seat)
       for (const day of schedule.matchup.days) {
         if (day <= date) continue
         for (const lineup of [workingDaily, holeByDate]) {
-          lineup[day] = removeParkedSeat(lineup[day] ?? [], parkedId)
+          lineup[day] = removeParkedSeat(lineup[day] ?? [], parkedId, seat)
         }
       }
     }
