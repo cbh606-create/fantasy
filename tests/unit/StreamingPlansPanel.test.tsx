@@ -606,6 +606,36 @@ describe("StreamingPlansPanel", () => {
     expect(firstSelect).toHaveValue("you-play")
   })
 
+  it("lists To IR for a no-game active player and stores ir:<id>", async () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={dropSchedule}
+        state={dropState}
+        today="2025-11-03"
+      />,
+    )
+
+    const oneSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop .* spot 1/i,
+    })[0]!
+    fireEvent.mouseDown(oneSpotSelect)
+    fireEvent.focus(oneSpotSelect)
+
+    await waitFor(() => {
+      const irOption = [...oneSpotSelect.querySelectorAll("option")].find(
+        (option) => option.textContent === "To IR · No Game Cut (after OUT)",
+      )
+      expect(irOption).toBeTruthy()
+      expect(irOption).toHaveProperty("value", "ir:you-idle")
+    })
+
+    fireEvent.change(oneSpotSelect, { target: { value: "ir:you-idle" } })
+    expect(oneSpotSelect).toHaveValue("ir:you-idle")
+  })
+
   it("shows drop selects on every matchup day when today is before the week", () => {
     render(
       <StreamingPlansPanel
