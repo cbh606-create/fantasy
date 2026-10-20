@@ -1008,6 +1008,13 @@ const isValidIrPark = (
   )
 }
 
+/** Drops the active seat a parked player vacated (IL seat stays). */
+const removeParkedSeat = (
+  entries: SeasonRosterEntry[],
+  parkedId: string,
+): SeasonRosterEntry[] =>
+  entries.filter((entry) => entry.slot === "IL" || entry.playerId !== parkedId)
+
 const rosterGameCountForDate = (
   daily: DailyLineups,
   date: string,
@@ -1338,6 +1345,7 @@ export const buildStreamingPlan = ({
   const days: StreamingPlanDay[] = []
   const weekDroppedPlayers = new Set<string>()
   const irParkedPlayerIds = new Set<string>()
+  const irParkDateById = new Map<string, string>()
   /** Cut-ineligible ids: waived this week or parked on IR (parking is not a waiver). */
   const noCutPlayerIds = () =>
     new Set([...weekDroppedPlayers, ...irParkedPlayerIds])
@@ -1608,30 +1616,35 @@ export const buildStreamingPlan = ({
       )
     }
     const holeByDate = Object.fromEntries(
-      schedule.matchup.days.map((day) => [
-        day,
-        buildHoleDayLineup({
+      schedule.matchup.days.map((day) => {
+        let hole = buildHoleDayLineup({
           day,
           teamEntries: youTeam?.entries ?? [],
           players: state.players,
           schedule,
-          cutPlayerIds: noCutPlayerIds(),
+          cutPlayerIds: weekDroppedPlayers,
           savedDay: daily?.[day],
           rosterSlots,
-        }),
-      ]),
+        })
+        for (const [parkedId, parkDate] of irParkDateById) {
+          if (day > parkDate) hole = removeParkedSeat(hole, parkedId)
+        }
+        return [day, hole]
+      }),
     )
     pickHoleDate = date
     pickHoleByDate = holeByDate
     const holeLineup = holeByDate[date] ?? []
-    /** Parked player stays on IL after the park date: off the seats and holes. */
+    /**
+     * Parked player stays on IL after the park date. Their vacated active seat
+     * is closed (not a hole, no stats), matching the preview's blocked seat.
+     */
     const clearParkedFromLaterDays = (parkedId: string) => {
+      irParkDateById.set(parkedId, date)
       for (const day of schedule.matchup.days) {
         if (day <= date) continue
         for (const lineup of [workingDaily, holeByDate]) {
-          lineup[day] = (lineup[day] ?? []).map((entry) =>
-            entry.playerId === parkedId ? { ...entry, playerId: null } : entry,
-          )
+          lineup[day] = removeParkedSeat(lineup[day] ?? [], parkedId)
         }
       }
     }

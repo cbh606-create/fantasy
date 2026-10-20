@@ -271,9 +271,11 @@ const DropCell = ({
           schedule,
         })
 
+  const earlierParkKey = earlierParkedIds.join(",")
+
   useEffect(() => {
     setLazyOptions(null)
-  }, [value, date, spotIndex])
+  }, [value, date, spotIndex, earlierParkKey])
 
   useEffect(() => {
     if (!canEditStreamingDate(date, today)) return

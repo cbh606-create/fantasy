@@ -687,6 +687,54 @@ describe("StreamingPlansPanel", () => {
     expect(dropSelect(dayTwo)).toHaveValue("you-play")
   })
 
+  it("refreshes cached later-day options after an earlier IR park", async () => {
+    const dayOne = "2025-11-03"
+    const dayTwo = "2025-11-04"
+    const twoDaySchedule: ScheduleResponse = {
+      ...dropSchedule,
+      matchup: {
+        ...dropSchedule.matchup,
+        endDate: dayTwo,
+        days: [dayOne, dayTwo],
+      },
+    }
+    const dropSelect = (date: string) =>
+      screen.getAllByRole("combobox", {
+        name: `Roster drop ${formatMatchupDayLabel(date)} spot 1`,
+      })[0]!
+    const optionValues = (select: HTMLElement) =>
+      [...select.querySelectorAll("option")].map((option) => option.value)
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={twoDaySchedule}
+        state={dropState}
+        today={dayOne}
+      />,
+    )
+
+    fireEvent.mouseDown(dropSelect(dayTwo))
+    fireEvent.focus(dropSelect(dayTwo))
+    await waitFor(() =>
+      expect(optionValues(dropSelect(dayTwo))).toContain("ir:you-idle"),
+    )
+
+    fireEvent.mouseDown(dropSelect(dayOne))
+    fireEvent.focus(dropSelect(dayOne))
+    fireEvent.change(dropSelect(dayOne), { target: { value: "ir:you-idle" } })
+
+    fireEvent.mouseDown(dropSelect(dayTwo))
+    fireEvent.focus(dropSelect(dayTwo))
+    await waitFor(() => {
+      const values = optionValues(dropSelect(dayTwo))
+      expect(values).not.toContain("ir:you-idle")
+      expect(values).not.toContain("you-idle")
+    })
+  })
+
   it("shows drop selects on every matchup day when today is before the week", () => {
     render(
       <StreamingPlansPanel
