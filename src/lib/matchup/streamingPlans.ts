@@ -2594,6 +2594,9 @@ export const buildStreamingPlan = ({
           schedule.matchup.days,
         )
       }
+      const dayCells = cells.map((cell) => cell!)
+      days.push({ date, cells: dayCells })
+      continue
     }
 
     // Prefer spots that have used fewer adds so churn stays even across spots.
