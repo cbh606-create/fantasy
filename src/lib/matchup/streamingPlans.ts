@@ -76,7 +76,6 @@ import {
 } from "./streamingStrategy"
 import { weeklyPlayerStats } from "./weekly"
 import { playerHasGameOnDate } from "./games"
-import { parkedPlayerIdFromDropValue } from "./streamingDropOptions"
 import { seatStreamerIfOpen } from "./streamerMove"
 import {
   isOnWaiverCooldown,
@@ -980,6 +979,9 @@ const isValidForcedPlayerDrop = (
   if (!player) return false
   return true
 }
+
+const parkedPlayerIdFromDropValue = (value: string): string | null =>
+  value.startsWith("ir:") && value.length > 3 ? value.slice(3) : null
 
 const isValidIrPark = (
   parkedId: string,
