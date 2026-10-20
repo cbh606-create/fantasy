@@ -34,6 +34,8 @@ export const CONTESTED_WIN_PROB_MAX = 0.72
 export const CLOSE_TO_WIN_MIN_WIN_PROB = 0.45
 /** Contested cats within this distance of 0.5 are "close to a flip". */
 export const CLOSE_TO_FLIP_MAX_ABS = 0.12
+/** Category wins that take a 9-cat matchup. In-range losses that complete this outrank a closer lead. */
+const CATEGORY_WINS_TO_TAKE_MATCHUP = 5
 
 export const isContestedCategoryRow = (row: MatchupCategoryRow): boolean => {
   if (row.winProb < CONTESTED_WIN_PROB_MIN) return false
@@ -71,7 +73,30 @@ const compareChaseRows = (
   return left.winProb - right.winProb
 }
 
-/** Chase cats used by ranking and pickBestStreamerMove. Close-to-win, then flip, then weak. */
+const winsOnBoard = (
+  board: MatchupBoard,
+  puntCategoryIds: ReadonlySet<CategoryId>,
+): number =>
+  board.categories.filter(
+    (row) => row.outcome === "W" && !puntCategoryIds.has(row.categoryId),
+  ).length
+
+/** Highest-winProb losses/ties still needed to reach 5. Empty once the board already has 5. */
+const pathToWinCategoryIds = (
+  candidates: readonly MatchupCategoryRow[],
+  flipsNeeded: number,
+): Set<CategoryId> => {
+  if (flipsNeeded <= 0) return new Set()
+  return new Set(
+    candidates
+      .filter((row) => row.outcome !== "W")
+      .sort((left, right) => right.winProb - left.winProb)
+      .slice(0, flipsNeeded)
+      .map((row) => row.categoryId),
+  )
+}
+
+/** Chase cats used by ranking and pickBestStreamerMove. Path to 5, then close-to-win, then flip, then weak. */
 export const chaseCategoryIds = (
   board: MatchupBoard,
   puntCategoryIds: ReadonlySet<CategoryId> = new Set(),
@@ -82,9 +107,20 @@ export const chaseCategoryIds = (
       row.winProb < RANK_WIN_PROB_CAP &&
       !puntCategoryIds.has(row.categoryId),
   )
+  const pathIds = pathToWinCategoryIds(
+    contested,
+    CATEGORY_WINS_TO_TAKE_MATCHUP - winsOnBoard(board, puntCategoryIds),
+  )
+  const chaseCap = pathIds.size >= 3 ? 3 : 2
   return [...contested]
-    .sort(compareChaseRows)
-    .slice(0, 2)
+    .sort((left, right) => {
+      const leftOnPath = pathIds.has(left.categoryId) ? 0 : 1
+      const rightOnPath = pathIds.has(right.categoryId) ? 0 : 1
+      if (leftOnPath !== rightOnPath) return leftOnPath - rightOnPath
+      if (leftOnPath === 0) return right.winProb - left.winProb
+      return compareChaseRows(left, right)
+    })
+    .slice(0, chaseCap)
     .map((row) => row.categoryId)
 }
 
