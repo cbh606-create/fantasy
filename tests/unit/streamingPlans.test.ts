@@ -843,6 +843,83 @@ describe("buildStreamingPlan", () => {
     // Proj-first / denser schedule: volume path wins over one-night spike.
     expect(["fa-spike", "fa-dense"]).toContain(plan.days[0]!.cells[0]!.playerId)
   })
+
+  it("parks a no-game active player on IR when the drop value says so", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const sit = player("sit", "BOS", { positions: ["SG"] })
+    const add = player("fa-add", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const state = tinyState([sit, add], ["fa-add"])
+    state.teams[0]!.entries = [
+      { slot: "SG", playerId: "sit" },
+      { slot: "IL", playerId: null },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "CHI" },
+      { date: "2026-10-21", homeAbbr: "BOS", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 2,
+      forcedRosterDrops: { "2026-10-20:0": "ir:sit" },
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      playerId: "fa-add",
+      droppedPlayerId: null,
+      rosterDropKind: "ir",
+      rosterDropPlayerId: "sit",
+    })
+    expect(plan.days[1]!.cells[0]!.playerId).toBeNull()
+  })
+
+  it("holds a later IR park when an earlier add already parked someone", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const sitFirst = player("sit-first", "BOS", { positions: ["SG"] })
+    const sitSecond = player("sit-second", "DAL", { positions: ["SG"] })
+    const add = player("fa-add", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const state = tinyState([sitFirst, sitSecond, add], ["fa-add"])
+    state.teams[0]!.entries = [
+      { slot: "SG", playerId: "sit-first" },
+      { slot: "SG", playerId: "sit-second" },
+      { slot: "IL", playerId: null },
+    ]
+    const schedule = tinySchedule(days, [
+      { date: "2026-10-20", homeAbbr: "NYK", awayAbbr: "DAL" },
+      { date: "2026-10-21", homeAbbr: "NYK", awayAbbr: "BOS" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 2,
+      forcedRosterDrops: {
+        "2026-10-20:0": "ir:sit-first",
+        "2026-10-21:0": "ir:sit-second",
+      },
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      action: "add",
+      rosterDropKind: "ir",
+      rosterDropPlayerId: "sit-first",
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      action: "hold",
+      rosterDropKind: "none",
+      rosterDropPlayerId: null,
+    })
+  })
 })
 
 describe("buildAllStreamingPlans", () => {

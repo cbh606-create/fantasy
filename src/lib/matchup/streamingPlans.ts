@@ -7,7 +7,7 @@ import type {
   SeasonSlot,
 } from "@/lib/season/types"
 import { buildMatchupBoard } from "./board"
-import { MATCHUP_CATEGORY_SIGMOID_SCALE, STREAMING_PROTECTED_ADP_MAX, SURPLUS_WIN_PROB } from "./constants"
+import { isActiveSlot, MATCHUP_CATEGORY_SIGMOID_SCALE, STREAMING_PROTECTED_ADP_MAX, SURPLUS_WIN_PROB } from "./constants"
 import { streamingAddLimitForSchedule } from "./games"
 import {
   filterStreamAddPool,
@@ -76,6 +76,7 @@ import {
 } from "./streamingStrategy"
 import { weeklyPlayerStats } from "./weekly"
 import { playerHasGameOnDate } from "./games"
+import { parkedPlayerIdFromDropValue } from "./streamingDropOptions"
 import { seatStreamerIfOpen } from "./streamerMove"
 import {
   isOnWaiverCooldown,
@@ -980,6 +981,31 @@ const isValidForcedPlayerDrop = (
   return true
 }
 
+const isValidIrPark = (
+  parkedId: string,
+  entries: SeasonRosterEntry[],
+  playersById: Map<string, SeasonPlayer>,
+  date: string,
+  schedule: ScheduleResponse,
+  alreadyDropped: Set<string>,
+  earlierParkedIds: Set<string>,
+): boolean => {
+  const parked = playersById.get(parkedId)
+  if (!parked) return false
+  if (alreadyDropped.has(parkedId) || earlierParkedIds.size > 0) return false
+  const irOccupied = entries.some(
+    (entry) => entry.slot === "IL" && entry.playerId != null,
+  )
+  const onActiveRoster = entries.some(
+    (entry) => isActiveSlot(entry.slot) && entry.playerId === parkedId,
+  )
+  return (
+    !irOccupied &&
+    onActiveRoster &&
+    !playerHasGameOnDate(parked, date, schedule)
+  )
+}
+
 const rosterGameCountForDate = (
   daily: DailyLineups,
   date: string,
@@ -1309,6 +1335,7 @@ export const buildStreamingPlan = ({
   const didProtectDrops = false
   const days: StreamingPlanDay[] = []
   const weekDroppedPlayers = new Set<string>()
+  const irParkedPlayerIds = new Set<string>()
   const releasedStreamerIds = new Set<string>()
   const youTeam = state.teams[state.perspectiveTeamIndex]
   const rosterSlots = rosterSlotsFor(state)
@@ -1709,7 +1736,29 @@ export const buildStreamingPlan = ({
         forcedRosterDrops?.[streamingAddDropKey(date, lock.spotIndex)]
       let drop: StreamerMoveDrop = { kind: "none", playerId: null }
       let rosterDropKind: StreamingPlanRosterDropKind = "none"
-      if (forcedDrop === "open_slot") {
+      const parkedId =
+        typeof forcedDrop === "string"
+          ? parkedPlayerIdFromDropValue(forcedDrop)
+          : null
+      if (parkedId) {
+        if (
+          !isValidIrPark(
+            parkedId,
+            youTeam?.entries ?? [],
+            playersById,
+            date,
+            schedule,
+            weekDroppedPlayers,
+            irParkedPlayerIds,
+          )
+        ) {
+          undoPlannedClear()
+          rejectedAddLocks.push(lock)
+          continue
+        }
+        drop = { kind: "none", playerId: null }
+        rosterDropKind = "ir"
+      } else if (forcedDrop === "open_slot") {
         if (!rosterOpen) {
           undoPlannedClear()
           rejectedAddLocks.push(lock)
@@ -1797,7 +1846,7 @@ export const buildStreamingPlan = ({
           { ...ourPickOptions(false), allowFlexSlots: true },
         )
       let moved = seatForced(drop)
-      if (!moved) {
+      if (!moved && rosterDropKind !== "ir") {
         const exceptId = drop.kind === "player" ? drop.playerId : null
         const eligibleSlots = new Set(
           (workingDaily[date] ?? [])
@@ -1850,6 +1899,7 @@ export const buildStreamingPlan = ({
         weekDroppedPlayers.add(drop.playerId)
         markDropped(drop.playerId, date)
       }
+      if (parkedId && rosterDropKind === "ir") irParkedPlayerIds.add(parkedId)
       const dropId = drop.kind === "player" ? drop.playerId : null
       const dropIsSeasonRoster = Boolean(
         dropId &&
@@ -1862,11 +1912,12 @@ export const buildStreamingPlan = ({
         playerId: lock.playerId,
         action: dropId && !dropIsSeasonRoster ? "drop_add" : "add",
         droppedPlayerId: dropId && !dropIsSeasonRoster ? dropId : null,
-        rosterDropPlayerId: dropIsSeasonRoster ? dropId : null,
+        rosterDropPlayerId:
+          rosterDropKind === "ir" ? parkedId : dropIsSeasonRoster ? dropId : null,
         rosterDropKind: dropIsSeasonRoster
           ? "player"
-          : rosterDropKind === "open_slot"
-            ? "open_slot"
+          : rosterDropKind === "open_slot" || rosterDropKind === "ir"
+            ? rosterDropKind
             : "none",
         addIndex: addsUsed,
         alternativePlayerIds: [],
@@ -2488,6 +2539,8 @@ export const buildStreamingPlan = ({
       let targetCategoryIds: CategoryId[] = []
       const forceFill = forceFillForSpot(spotIndex)
       const forced = forcedRosterDrops?.[streamingAddDropKey(date, spotIndex)]
+      const parkedId =
+        typeof forced === "string" ? parkedPlayerIdFromDropValue(forced) : null
 
       if (forced === "hold") {
         action = "hold"
@@ -2716,6 +2769,24 @@ export const buildStreamingPlan = ({
               )
               seatedToday.add(previousId)
             }
+          }
+        } else if (parkedId) {
+          if (
+            isValidIrPark(
+              parkedId,
+              youTeam?.entries ?? [],
+              playersById,
+              date,
+              schedule,
+              weekDroppedPlayers,
+              irParkedPlayerIds,
+            )
+          ) {
+            rosterDrop = { kind: "ir", playerId: parkedId, didProtect: false }
+            picked = tryMove({ kind: "none", playerId: null }, false)
+          } else {
+            action = "hold"
+            playerId = previousId
           }
         } else if (
           forced === "open_slot" &&
@@ -2969,6 +3040,9 @@ export const buildStreamingPlan = ({
             !droppedOnByPlayerId.has(droppedPlayerId)
           ) {
             markDropped(droppedPlayerId, date)
+          }
+          if (rosterDrop?.kind === "ir" && rosterDrop.playerId) {
+            irParkedPlayerIds.add(rosterDrop.playerId)
           }
           if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
             weekDroppedPlayers.add(rosterDrop.playerId)

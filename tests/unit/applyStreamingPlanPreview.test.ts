@@ -1430,4 +1430,66 @@ describe("applyStreamingPlanPreview", () => {
     expect(playerIdsOn(preview, DAYS[0])).not.toContain("cut-old")
     expect(playerIdsOn(preview, DAYS[0])).toContain("keeper")
   })
+
+  it("parks the IR player through the week and leaves the next day empty", () => {
+    const sit = player("sit", "NYK")
+    const add = player("fa-add", "BOS", { projections: { STL: 5, PTS: 20 } })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "MEM", awayAbbr: "NYK" },
+      ],
+    }
+    const lineup = (): SeasonRosterEntry[] => [
+      ...withStarter("sit"),
+      { slot: "IL", playerId: null },
+    ]
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: lineup(),
+      [DAYS[1]]: lineup(),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-add",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: "sit",
+            rosterDropKind: "ir",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      { date: DAYS[1], cells: [emptyCell(0)] },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { sit, "fa-add": add },
+      schedule,
+    )
+
+    const day0 = preview[DAYS[0]]!
+    const day1 = preview[DAYS[1]]!
+    expect(day0.find((entry) => entry.slot === "IL")?.playerId).toBe("sit")
+    expect(day0.some((entry) => entry.slot !== "IL" && entry.playerId === "fa-add")).toBe(true)
+    expect(day0.some((entry) => entry.slot !== "IL" && entry.playerId === "sit")).toBe(false)
+    expect(day1.find((entry) => entry.slot === "IL")?.playerId).toBe("sit")
+    expect(day1[0]?.playerId).toBeNull()
+    expect(day1.some((entry) => entry.slot !== "IL" && entry.playerId === "sit")).toBe(false)
+    expect(day1.some((entry) => entry.playerId === "fa-add")).toBe(false)
+  })
 })

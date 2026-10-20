@@ -128,6 +128,19 @@ export const applyStreamingPlanPreview = (
     }
   }
 
+  const irParkFromById: Record<string, string> = {}
+  for (const day of plan.days) {
+    for (const cell of day.cells) {
+      if (cell.rosterDropKind !== "ir" || !cell.rosterDropPlayerId) continue
+      const previous = irParkFromById[cell.rosterDropPlayerId]
+      if (!previous || day.date < previous) {
+        irParkFromById[cell.rosterDropPlayerId] = day.date
+      }
+    }
+  }
+  /** `${date}:${index}` — active seats an IR park vacated on a later date. */
+  const blockedActiveIndexes = new Set<string>()
+
   const planStreamerIds = new Set(
     plan.days.flatMap((planDay) =>
       planDay.cells
@@ -163,6 +176,23 @@ export const applyStreamingPlanPreview = (
     }
   }
 
+  const seatOnDate = (date: string, playerId: string) => {
+    const parkedFrom = irParkFromById[playerId]
+    if (parkedFrom && date >= parkedFrom) return
+    const entries = next[date]
+    if (!entries) return
+    const openIndexes = entries
+      .map((_, index) => index)
+      .filter((index) => !blockedActiveIndexes.has(`${date}:${index}`))
+    const seatable = openIndexes.map((index) => entries[index]!)
+    seatStreamerIfOpen(seatable, playerId, date, playersById, schedule, {
+      allowFlexSlots: true,
+    })
+    openIndexes.forEach((entryIndex, seatableIndex) => {
+      entries[entryIndex] = seatable[seatableIndex]!
+    })
+  }
+
   const seatPlayingRosterOnDate = (date: string) => {
     if (keepRosterSeats) {
       const keepPrefix = `${date}:`
@@ -177,9 +207,7 @@ export const applyStreamingPlanPreview = (
         const kept = resolvePlayer(playersById, playerId)
         if (!kept?.teamAbbr) continue
         if (!playerHasGameOnDate(kept, date, schedule)) continue
-        seatStreamerIfOpen(next[date], playerId, date, playersById, schedule, {
-          allowFlexSlots: true,
-        })
+        seatOnDate(date, playerId)
       }
     }
     for (const playerId of baseRosterIds) {
@@ -193,9 +221,7 @@ export const applyStreamingPlanPreview = (
       const rostered = resolvePlayer(playersById, playerId)
       if (!rostered?.teamAbbr) continue
       if (!playerHasGameOnDate(rostered, date, schedule)) continue
-      seatStreamerIfOpen(next[date], playerId, date, playersById, schedule, {
-        allowFlexSlots: true,
-      })
+      seatOnDate(date, playerId)
     }
   }
 
@@ -219,6 +245,38 @@ export const applyStreamingPlanPreview = (
     }
   }
 
+  for (const day of plan.days) {
+    for (const cell of day.cells) {
+      if (cell.rosterDropKind !== "ir" || !cell.rosterDropPlayerId) continue
+      const parkedId = cell.rosterDropPlayerId
+      for (const date of matchupDays) {
+        if (date < day.date) continue
+        const entries = next[date] ?? []
+        const parkedIlIndex = entries.findIndex(
+          (entry) => entry.slot === "IL" && entry.playerId === parkedId,
+        )
+        const ilIndex =
+          parkedIlIndex >= 0
+            ? parkedIlIndex
+            : entries.findIndex(
+                (entry) => entry.slot === "IL" && entry.playerId == null,
+              )
+        if (ilIndex < 0) continue
+        const vacatedIndex = entries.findIndex(
+          (entry) => entry.slot !== "IL" && entry.playerId === parkedId,
+        )
+        next[date] = entries.map((entry, index) => {
+          if (index === ilIndex) return { ...entry, playerId: parkedId }
+          if (index === vacatedIndex) return { ...entry, playerId: null }
+          return entry
+        })
+        if (date > day.date && vacatedIndex >= 0) {
+          blockedActiveIndexes.add(`${date}:${vacatedIndex}`)
+        }
+      }
+    }
+  }
+
   for (const date of matchupDays) {
     for (const key of omitRosterSeats ?? []) {
       const prefix = `${date}:`
@@ -237,9 +295,7 @@ export const applyStreamingPlanPreview = (
       const player = resolvePlayer(playersById, cell.playerId)
       if (!player?.teamAbbr) continue
       if (!playerHasGameOnDate(player, date, schedule)) continue
-      seatStreamerIfOpen(next[date], cell.playerId, date, playersById, schedule, {
-        allowFlexSlots: true,
-      })
+      seatOnDate(date, cell.playerId)
     }
   }
 
@@ -251,9 +307,7 @@ export const applyStreamingPlanPreview = (
       const player = resolvePlayer(playersById, playerId)
       if (!player?.teamAbbr) continue
       if (!playerHasGameOnDate(player, date, schedule)) continue
-      seatStreamerIfOpen(next[date], playerId, date, playersById, schedule, {
-        allowFlexSlots: true,
-      })
+      seatOnDate(date, playerId)
     }
   }
 
