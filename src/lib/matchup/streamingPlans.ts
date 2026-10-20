@@ -1615,7 +1615,7 @@ export const buildStreamingPlan = ({
           teamEntries: youTeam?.entries ?? [],
           players: state.players,
           schedule,
-          cutPlayerIds: weekDroppedPlayers,
+          cutPlayerIds: noCutPlayerIds(),
           savedDay: daily?.[day],
           rosterSlots,
         }),
@@ -1624,6 +1624,17 @@ export const buildStreamingPlan = ({
     pickHoleDate = date
     pickHoleByDate = holeByDate
     const holeLineup = holeByDate[date] ?? []
+    /** Parked player stays on IL after the park date: off the seats and holes. */
+    const clearParkedFromLaterDays = (parkedId: string) => {
+      for (const day of schedule.matchup.days) {
+        if (day <= date) continue
+        for (const lineup of [workingDaily, holeByDate]) {
+          lineup[day] = (lineup[day] ?? []).map((entry) =>
+            entry.playerId === parkedId ? { ...entry, playerId: null } : entry,
+          )
+        }
+      }
+    }
     const holeCount = countOpenActiveSlots(holeLineup)
     const remainingHoleDays = schedule.matchup.days
       .slice(dayIndex)
@@ -1905,7 +1916,10 @@ export const buildStreamingPlan = ({
         weekDroppedPlayers.add(drop.playerId)
         markDropped(drop.playerId, date)
       }
-      if (parkedId && rosterDropKind === "ir") irParkedPlayerIds.add(parkedId)
+      if (parkedId && rosterDropKind === "ir") {
+        irParkedPlayerIds.add(parkedId)
+        clearParkedFromLaterDays(parkedId)
+      }
       const dropId = drop.kind === "player" ? drop.playerId : null
       const dropIsSeasonRoster = Boolean(
         dropId &&
@@ -3060,6 +3074,7 @@ export const buildStreamingPlan = ({
           }
           if (rosterDrop?.kind === "ir" && rosterDrop.playerId) {
             irParkedPlayerIds.add(rosterDrop.playerId)
+            clearParkedFromLaterDays(rosterDrop.playerId)
           }
           if (rosterDrop?.kind === "player" && rosterDrop.playerId) {
             weekDroppedPlayers.add(rosterDrop.playerId)

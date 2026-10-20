@@ -636,6 +636,57 @@ describe("StreamingPlansPanel", () => {
     expect(oneSpotSelect).toHaveValue("ir:you-idle")
   })
 
+  it("resets a stale ir: value to Hold without clearing a later forced drop", async () => {
+    const dayOne = "2025-11-03"
+    const dayTwo = "2025-11-04"
+    const twoDaySchedule: ScheduleResponse = {
+      ...dropSchedule,
+      matchup: {
+        ...dropSchedule.matchup,
+        endDate: dayTwo,
+        days: [dayOne, dayTwo],
+      },
+    }
+    const idleNowPlays: ScheduleResponse = {
+      ...twoDaySchedule,
+      games: [
+        ...twoDaySchedule.games,
+        { date: dayOne, homeAbbr: "CHI", awayAbbr: "MIA" },
+      ],
+    }
+    const dropSelect = (date: string) =>
+      screen.getAllByRole("combobox", {
+        name: `Roster drop ${formatMatchupDayLabel(date)} spot 1`,
+      })[0]!
+    const renderPanel = (panelSchedule: ScheduleResponse) => (
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={panelSchedule}
+        state={dropState}
+        today={dayOne}
+      />
+    )
+
+    const { rerender } = render(renderPanel(twoDaySchedule))
+
+    fireEvent.mouseDown(dropSelect(dayOne))
+    fireEvent.focus(dropSelect(dayOne))
+    fireEvent.change(dropSelect(dayOne), { target: { value: "ir:you-idle" } })
+    expect(dropSelect(dayOne)).toHaveValue("ir:you-idle")
+
+    fireEvent.mouseDown(dropSelect(dayTwo))
+    fireEvent.focus(dropSelect(dayTwo))
+    fireEvent.change(dropSelect(dayTwo), { target: { value: "you-play" } })
+    expect(dropSelect(dayTwo)).toHaveValue("you-play")
+
+    rerender(renderPanel(idleNowPlays))
+
+    await waitFor(() => expect(dropSelect(dayOne)).toHaveValue("hold"))
+    expect(dropSelect(dayTwo)).toHaveValue("you-play")
+  })
+
   it("shows drop selects on every matchup day when today is before the week", () => {
     render(
       <StreamingPlansPanel

@@ -97,6 +97,31 @@ export const collectEarlierRosterDropIds = (
   return dropped
 }
 
+/** Players already parked on IR by an earlier cell in the plan. */
+export const collectEarlierIrParkIds = (
+  plan: StreamingPlan,
+  date: string,
+  spotIndex: number,
+): string[] => {
+  const targetKey = streamingAddDropKey(date, spotIndex)
+  const parked: string[] = []
+
+  for (const day of plan.days) {
+    const cells = [...day.cells].sort(
+      (left, right) => left.spotIndex - right.spotIndex,
+    )
+    for (const cell of cells) {
+      const key = streamingAddDropKey(day.date, cell.spotIndex)
+      if (key === targetKey) return parked
+      if (cell.rosterDropKind === "ir" && cell.rosterDropPlayerId) {
+        parked.push(cell.rosterDropPlayerId)
+      }
+    }
+  }
+
+  return parked
+}
+
 /**
  * Streamers still held on the plan before this add/drop cell.
  * Dropdown can cut these even though they are not on the season roster snapshot.

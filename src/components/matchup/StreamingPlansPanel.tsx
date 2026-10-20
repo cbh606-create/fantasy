@@ -45,6 +45,7 @@ import {
 } from "@/lib/matchup/streamingPlans"
 import {
   collectEarlierAddedStreamerIds,
+  collectEarlierIrParkIds,
   collectEarlierRosterDropIds,
   hasOpenNonIlRosterSlot,
   irParkDropOptions,
@@ -231,6 +232,7 @@ const DropCell = ({
   cell,
   date,
   onForcedRosterDropChange,
+  onStaleIrReset,
   plan,
   playersById,
   rosterEntries,
@@ -242,6 +244,8 @@ const DropCell = ({
   cell: StreamingPlanDayCell | undefined
   date: string
   onForcedRosterDropChange: (key: string, value: ForcedRosterDropValue) => void
+  /** Sets only this key to Hold; no lock, later-drop, or preview changes. */
+  onStaleIrReset: (key: string) => void
   plan: StreamingPlan
   playersById: Record<string, SeasonPlayer>
   rosterEntries: SeasonLeagueState["teams"][number]["entries"]
@@ -256,12 +260,16 @@ const DropCell = ({
 
   const key = streamingAddDropKey(date, spotIndex)
   const value = forcedDropValue
-  const irOptions = irParkDropOptions({
-    entries: rosterEntries,
-    playersById,
-    date,
-    schedule,
-  })
+  const earlierParkedIds = collectEarlierIrParkIds(plan, date, spotIndex)
+  const irOptions =
+    earlierParkedIds.length > 0
+      ? []
+      : irParkDropOptions({
+          entries: rosterEntries,
+          playersById,
+          date,
+          schedule,
+        })
 
   useEffect(() => {
     setLazyOptions(null)
@@ -270,8 +278,8 @@ const DropCell = ({
   useEffect(() => {
     if (!canEditStreamingDate(date, today)) return
     if (resolveStoredIrParkValue(value, irOptions) === value) return
-    onForcedRosterDropChange(key, "hold")
-  }, [date, irOptions, key, onForcedRosterDropChange, today, value])
+    onStaleIrReset(key)
+  }, [date, irOptions, key, onStaleIrReset, today, value])
 
   if (isPastStreamingDate(date, today)) {
     return (
@@ -301,11 +309,10 @@ const DropCell = ({
   const ensureOptions = () => {
     setLazyOptions((current) => {
       if (current) return current
-      const earlierDroppedIds = collectEarlierRosterDropIds(
-        plan,
-        date,
-        spotIndex,
-      )
+      const earlierDroppedIds = [
+        ...collectEarlierRosterDropIds(plan, date, spotIndex),
+        ...earlierParkedIds,
+      ]
       const earlierAddedStreamerIds = collectEarlierAddedStreamerIds(
         plan,
         date,
@@ -1013,6 +1020,13 @@ export const StreamingPlansPanel = ({
     setPreviewSpotCount(spotCount)
   }
 
+  const handleStaleIrReset = (spotCount: 1 | 2 | 3, key: string) => {
+    setForcedRosterDropsBySpotCount((prev) => ({
+      ...prev,
+      [spotCount]: { ...(prev[spotCount] ?? {}), [key]: "hold" },
+    }))
+  }
+
   const previewSpotRef = useRef(previewSpotCount)
   previewSpotRef.current = previewSpotCount
 
@@ -1530,6 +1544,9 @@ export const StreamingPlansPanel = ({
                                           key,
                                           value,
                                         )
+                                      }
+                                      onStaleIrReset={(key) =>
+                                        handleStaleIrReset(plan.spotCount, key)
                                       }
                                       plan={plan}
                                       playersById={resolvedPlayers}
