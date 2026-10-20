@@ -3,11 +3,14 @@ import {
   collectEarlierAddedStreamerIds,
   compareStreamingAddDropKeys,
   eligibleRosterDropPlayerIds,
+  irParkDropOptions,
+  irParkDropValue,
   isAfterStreamingAddDropKey,
+  resolveStoredIrParkValue,
   rosterDropSelectOptions,
   rosterDropSelectPlayerIds,
 } from "@/lib/matchup/streamingDropOptions"
-import type { SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
+import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
 const player = (id: string, name: string): SeasonPlayer => ({
   id,
@@ -170,6 +173,101 @@ describe("rosterDropSelectPlayerIds", () => {
     expect(ids).toEqual(["bench", "star", "fa-a"].sort((a, b) =>
       playersById[a]!.name.localeCompare(playersById[b]!.name),
     ))
+  })
+})
+
+const schedule = {
+  source: "fixture",
+  matchup: {
+    scoringPeriodId: 1,
+    startDate: "2026-10-20",
+    endDate: "2026-10-21",
+    days: ["2026-10-20", "2026-10-21"],
+  },
+  games: [{ date: "2026-10-21", homeAbbr: "BOS", awayAbbr: "NYK" }],
+} satisfies ScheduleResponse
+
+describe("irParkDropOptions", () => {
+  it("lists a no-game active player and marks a non-OUT sitter", () => {
+    const options = irParkDropOptions({
+      entries: [
+        { slot: "SG", playerId: "b" },
+        { slot: "IL", playerId: null },
+      ],
+      playersById: {
+        b: { ...player("b", "Beta"), teamAbbr: "NYK" },
+      },
+      date: "2026-10-20",
+      schedule,
+    })
+
+    expect(options).toEqual([
+      { value: "ir:b", label: "To IR · Beta (after OUT)" },
+    ])
+    expect(irParkDropValue("b")).toBe("ir:b")
+  })
+
+  it("omits the parenthetical when the sitter is already OUT", () => {
+    const options = irParkDropOptions({
+      entries: [
+        { slot: "SG", playerId: "c" },
+        { slot: "IL", playerId: null },
+      ],
+      playersById: {
+        c: { ...player("c", "Gamma"), teamAbbr: "NYK", injuryStatus: "out" },
+      },
+      date: "2026-10-20",
+      schedule,
+    })
+
+    expect(options).toEqual([{ value: "ir:c", label: "To IR · Gamma" }])
+  })
+
+  it("hides a bench player, a player with a game, and every option when IR is occupied", () => {
+    const playersById = {
+      a: player("a", "Alpha"),
+      b: { ...player("b", "Beta"), teamAbbr: "NYK" },
+      bench: { ...player("bench", "Bench"), teamAbbr: "NYK" },
+    }
+    expect(
+      irParkDropOptions({
+        entries: [
+          { slot: "BE", playerId: "bench" },
+          { slot: "IL", playerId: null },
+        ],
+        playersById,
+        date: "2026-10-20",
+        schedule,
+      }),
+    ).toEqual([])
+    expect(
+      irParkDropOptions({
+        entries: [
+          { slot: "SG", playerId: "b" },
+          { slot: "IL", playerId: "kept" },
+        ],
+        playersById,
+        date: "2026-10-20",
+        schedule,
+      }),
+    ).toEqual([])
+    expect(
+      irParkDropOptions({
+        entries: [
+          { slot: "SG", playerId: "a" },
+          { slot: "IL", playerId: null },
+        ],
+        playersById,
+        date: "2026-10-21",
+        schedule,
+      }),
+    ).toEqual([])
+  })
+
+  it("reverts a stale IR choice to Hold", () => {
+    expect(resolveStoredIrParkValue("ir:b", [{ value: "ir:b", label: "To IR · Beta" }])).toBe("ir:b")
+    expect(resolveStoredIrParkValue("ir:b", [])).toBe("hold")
+    expect(resolveStoredIrParkValue("hold", [])).toBe("hold")
   })
 })
 

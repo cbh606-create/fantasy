@@ -73,7 +73,7 @@ export type OppSpotChoice = 0 | 1 | 2 | 3
 
 export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
 
-export type StreamingPlanRosterDropKind = "player" | "open_slot" | "none"
+export type StreamingPlanRosterDropKind = "player" | "open_slot" | "ir" | "none"
 
 export type StreamingPlanDayCell = {
   spotIndex: number

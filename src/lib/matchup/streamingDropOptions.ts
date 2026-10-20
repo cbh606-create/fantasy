@@ -1,4 +1,7 @@
+import { isActiveSlot } from "@/lib/matchup/constants"
+import { playerHasGameOnDate } from "@/lib/matchup/games"
 import type {
+  ScheduleResponse,
   SeasonLeagueState,
   SeasonPlayer,
   SeasonRosterEntry,
@@ -201,3 +204,42 @@ export const rosterDropSelectOptions = (input: {
 
 export const perspectiveRosterEntries = (state: SeasonLeagueState) =>
   state.teams[state.perspectiveTeamIndex]!.entries
+
+export const irParkDropValue = (playerId: string): string => `ir:${playerId}`
+
+export const parkedPlayerIdFromDropValue = (value: string): string | null =>
+  value.startsWith("ir:") && value.length > 3 ? value.slice(3) : null
+
+export const irParkDropOptions = (input: {
+  entries: SeasonRosterEntry[]
+  playersById: Record<string, SeasonPlayer>
+  date: string
+  schedule: ScheduleResponse
+}): { value: string; label: string }[] => {
+  const irOccupied = input.entries.some(
+    (entry) => entry.slot === "IL" && entry.playerId != null,
+  )
+  if (irOccupied) return []
+
+  const options: { value: string; label: string }[] = []
+  for (const entry of input.entries) {
+    if (!isActiveSlot(entry.slot) || !entry.playerId) continue
+    const player = input.playersById[entry.playerId]
+    if (!player) continue
+    if (playerHasGameOnDate(player, input.date, input.schedule)) continue
+    const note = player.injuryStatus === "out" ? "" : " (after OUT)"
+    options.push({
+      value: irParkDropValue(entry.playerId),
+      label: `To IR · ${player.name}${note}`,
+    })
+  }
+  return options.sort((left, right) => left.label.localeCompare(right.label))
+}
+
+export const resolveStoredIrParkValue = (
+  value: string,
+  options: readonly { value: string }[],
+): string => {
+  if (!parkedPlayerIdFromDropValue(value)) return value
+  return options.some((option) => option.value === value) ? value : "hold"
+}
