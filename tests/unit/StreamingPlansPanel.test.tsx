@@ -6,6 +6,7 @@ import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import type { MatchupBoard, StreamingPlan } from "@/lib/matchup/types"
+import { writePastActualSwaps } from "@/lib/matchup/pastActualSwaps"
 import { formatMatchupDayLabel } from "@/lib/matchup/weekCalendarLayout"
 import type {
   ScheduleResponse,
@@ -1707,5 +1708,59 @@ describe("StreamingPlansPanel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reset to suggested plan" }))
     expect(screen.getAllByText("No Game Cut").length).toBeGreaterThan(0)
+  })
+
+  it("keeps a later past day blank when an earlier add is recorded", () => {
+    window.localStorage.clear()
+    const recorded = "2025-11-03"
+    const later = "2025-11-04"
+    const today = "2025-11-05"
+    const recordedAdd: SeasonPlayer = {
+      ...streamerA,
+      id: "past-recorded",
+      name: "Recorded Past Add",
+    }
+    writePastActualSwaps("lg-later-past", recorded, [
+      {
+        date: recorded,
+        spotIndex: 0,
+        addedPlayerId: recordedAdd.id,
+        drop: "hold",
+      },
+    ])
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg-later-past"
+        playersById={{ [recordedAdd.id]: recordedAdd }}
+        schedule={{
+          ...schedule,
+          matchup: {
+            ...schedule.matchup,
+            startDate: recorded,
+            endDate: today,
+            days: [recorded, later, today],
+          },
+        }}
+        state={state}
+        today={today}
+      />,
+    )
+
+    for (const spotCount of [1, 2, 3]) {
+      const planRoot = screen
+        .getByRole("heading", { name: new RegExp(`^${spotCount}-spot$`, "i") })
+        .closest("div")!
+      const addRow = within(planRoot)
+        .getByRole("rowheader", {
+          name: spotCount === 1 ? /^Add$/i : /^Spot 1 Add$/i,
+        })
+        .closest("tr")!
+      const [recordedCell, laterCell] = addRow.querySelectorAll("td")
+      expect(recordedCell).toHaveTextContent(recordedAdd.name)
+      expect(laterCell).not.toHaveTextContent(recordedAdd.name)
+      expect(laterCell).toHaveTextContent("—")
+    }
   })
 })

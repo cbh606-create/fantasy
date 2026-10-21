@@ -437,7 +437,9 @@ const AddCell = ({
   recordingPast: boolean
 }) => {
   const selectValue = cell?.playerId ?? ""
-  const shownPlayerId = cell?.playerId ?? displayPlayerId
+  const shownPlayerId = isPastStreamingDate(date, today)
+    ? (cell?.playerId ?? null)
+    : (cell?.playerId ?? displayPlayerId)
   const seated = shownPlayerId ? playersById[shownPlayerId] : undefined
   const hasGame = playerPlaysOn(seated, date, schedule)
   const shownName = shownPlayerId
