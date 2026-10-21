@@ -492,6 +492,11 @@ describe("buildStreamingPlan", () => {
       rosterDropPlayerId: "sit",
       rosterDropKind: "player",
     })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      playerId: "fa-add",
+      action: "add",
+      rosterDropKind: "open_slot",
+    })
     expect(plan.days[1]!.cells[0]!.rosterDropPlayerId).not.toBe("sit")
   })
 

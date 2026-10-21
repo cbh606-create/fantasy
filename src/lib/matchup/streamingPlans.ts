@@ -1376,6 +1376,8 @@ export const buildStreamingPlan = ({
   const didProtectDrops = false
   const days: StreamingPlanDay[] = []
   const weekDroppedPlayers = new Set<string>()
+  /** Recorded past drops only. Planner cuts must not open this slot later. */
+  const pastDroppedPlayerIds = new Set<string>()
   const irParkedPlayerIds = new Set<string>()
   const irParkSeatById = new Map<string, IrParkSeat>()
   /** Cut-ineligible ids: waived this week or parked on IR (parking is not a waiver). */
@@ -1702,6 +1704,7 @@ export const buildStreamingPlan = ({
         clearParkedFromLaterDays(parkedId)
       } else if (swap.drop !== "hold" && swap.drop !== "open_slot") {
         weekDroppedPlayers.add(swap.drop)
+        pastDroppedPlayerIds.add(swap.drop)
         markDropped(swap.drop, date)
       }
       if (swap.addedPlayerId) rosteredStreamerIds.add(swap.addedPlayerId)
@@ -2937,7 +2940,11 @@ export const buildStreamingPlan = ({
         } else if (pendingDropId) {
           rosterDrop = { kind: "player", playerId: pendingDropId, didProtect: false }
           picked = tryMove({ kind: "player", playerId: pendingDropId }, true)
-        } else if (hasOpenNonIlSlot(youTeam?.entries ?? [])) {
+        } else if (
+          hasOpenNonIlSlot(
+            entriesWithDroppedOpen(youTeam?.entries ?? [], pastDroppedPlayerIds),
+          )
+        ) {
           rosterDrop = { kind: "open_slot", playerId: null, didProtect: false }
           picked = tryMove({ kind: "none", playerId: null }, false)
         } else {
