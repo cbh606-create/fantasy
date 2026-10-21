@@ -543,6 +543,68 @@ describe("buildStreamingPlan", () => {
     })
   })
 
+  it("does not drop a player added on one spot from another spot", () => {
+    const days = ["2026-10-21", "2026-10-22"]
+    const roster = packedRosterPlayers()
+    const added = player("added", "SAC", {
+      projections: { ...baseProjections(), STL: 1 },
+    })
+    const stream = player("stream", "POR", {
+      projections: { ...baseProjections(), STL: 400 },
+    })
+    const kept = roster.slice(0, packedActiveSlots.length - 1)
+    const state = tinyState([...kept, added, stream], ["stream"])
+    state.teams[0]!.entries = packedActiveSlots.map((slot, index) => ({
+      slot,
+      playerId: index < kept.length ? kept[index]!.id : added.id,
+    }))
+    const schedule = tinySchedule(days, [
+      ...kept.map((rostered) => ({
+        date: "2026-10-21",
+        homeAbbr: rostered.teamAbbr,
+        awayAbbr: "POR",
+      })),
+      ...kept.map((rostered) => ({
+        date: "2026-10-22",
+        homeAbbr: rostered.teamAbbr,
+        awayAbbr: "CHI",
+      })),
+      { date: "2026-10-21", homeAbbr: "POR", awayAbbr: "CHI" },
+      { date: "2026-10-21", homeAbbr: "SAC", awayAbbr: "CHI" },
+      { date: "2026-10-22", homeAbbr: "POR", awayAbbr: "DET" },
+    ])
+
+    for (const spotCount of [2, 3] as const) {
+      const plan = buildStreamingPlan({
+        spotCount,
+        state,
+        schedule,
+        board: emptyBoardLosingStl(),
+        addLimit: 4,
+        today: "2026-10-21",
+        pastActualSwaps: [
+          {
+            date: "2026-10-21",
+            spotIndex: 0,
+            addedPlayerId: "added",
+            drop: "gone",
+          },
+        ],
+      })
+
+      expect(plan.days[0]!.cells[0]).toMatchObject({
+        playerId: "added",
+      })
+      for (const day of plan.days) {
+        for (const cell of day.cells) {
+          if (cell.spotIndex === 0) continue
+          expect(cell.rosterDropPlayerId).not.toBe("added")
+          expect(cell.droppedPlayerId).not.toBe("added")
+        }
+      }
+    }
+  })
+
   it("records a higher-spot swap on a full 1-spot night", () => {
     const days = ["2026-10-21"]
     const roster = packedRosterPlayers()

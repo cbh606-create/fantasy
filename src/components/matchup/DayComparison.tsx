@@ -17,9 +17,6 @@ type DayComparisonProps = {
 const gamesLabel = (games: number | undefined): string =>
   games == null ? "—" : String(games)
 
-const lineSize = (emphasized: boolean): string =>
-  emphasized ? "text-xs" : "text-[0.6875rem]"
-
 const deltaToneClass = (categoryId: CategoryId, delta: number): string => {
   if (delta === 0) return "text-[var(--color-mute)]"
   const better = categoryId === "TO" ? delta < 0 : delta > 0
@@ -33,94 +30,13 @@ const advantageTone = (value: number): string => {
   return "text-[var(--color-sale)]"
 }
 
-const GamesCell = ({
-  emphasized,
-  games,
-  showDelta,
-}: {
-  emphasized: boolean
-  games: number | undefined
-  showDelta: boolean
-}) => (
-  <td className="whitespace-nowrap px-1 py-0.5 text-center align-middle">
-    <p
-      aria-hidden="true"
-      className={`leading-tight text-transparent tabular-nums ${lineSize(emphasized)}`}
-    >
-      0
-    </p>
-    <p className="leading-tight tabular-nums text-[var(--color-ink)]">
-      {gamesLabel(games)}
-    </p>
-    {showDelta ? (
-      <p
-        aria-hidden="true"
-        className={`leading-tight text-transparent tabular-nums ${lineSize(emphasized)}`}
-      >
-        0
-      </p>
-    ) : null}
-  </td>
-)
-
-const cellValue = (
-  categoryId: CategoryId,
-  totals: CategoryTotals | null | undefined,
-): string => {
-  if (!totals) return "—"
-  return formatCategoryStat(categoryId, totals[categoryId])
-}
-
-const StatCell = ({
-  actual,
-  categoryId,
-  delta,
-  emphasized,
-  projection,
-  showDelta,
-}: {
-  actual: CategoryTotals | null | undefined
-  categoryId: CategoryId
-  delta?: number
-  emphasized: boolean
-  projection: CategoryTotals | undefined
-  showDelta: boolean
-}) => (
-  <td className="whitespace-nowrap px-1 py-0.5 text-center align-middle">
-    <p
-      className={`leading-tight text-[var(--color-mute)] tabular-nums ${lineSize(emphasized)}`}
-    >
-      {cellValue(categoryId, projection)}
-    </p>
-    <p className="leading-tight tabular-nums text-[var(--color-ink)]">
-      {cellValue(categoryId, actual)}
-    </p>
-    {showDelta ? (
-      typeof delta === "number" && Number.isFinite(delta) ? (
-        <p
-          aria-label="Actual minus projection"
-          className={`leading-tight tabular-nums ${lineSize(emphasized)} ${deltaToneClass(categoryId, delta)}`}
-        >
-          {formatCategoryStatDelta(categoryId, delta)}
-        </p>
-      ) : (
-        <p
-          className={`leading-tight tabular-nums text-[var(--color-mute)] ${lineSize(emphasized)}`}
-        >
-          —
-        </p>
-      )
-    ) : null}
-  </td>
-)
-
 export const DayComparison = ({ days, rows, week }: DayComparisonProps) => {
   if (days.length === 0) return null
   const rowByDate = new Map(rows.map((row) => [row.date, row]))
 
   return (
     <div className="flex flex-col items-start gap-3 xl:flex-row">
-      <div className="min-w-0 w-full max-w-3xl space-y-1.5">
+      <div className="min-w-0 w-full space-y-1.5 xl:w-[52rem]">
         {days.map((date) => (
           <ComparisonTable
             key={date}
@@ -327,10 +243,8 @@ const ComparisonTable = ({
 }) => (
   <section
     aria-label={`Day comparison ${label}`}
-    className={`overflow-x-auto rounded-2xl ${
-      emphasized
-        ? "bg-[#e4e6ea] px-4 py-3"
-        : "bg-[var(--color-soft-cloud)] px-3 py-1.5"
+    className={`overflow-x-auto rounded-2xl bg-[#e4e6ea] ${
+      emphasized ? "px-4 py-3" : "px-3 py-1.5"
     }`}
   >
     <h2
@@ -340,98 +254,6 @@ const ComparisonTable = ({
     >
       {label}
     </h2>
-    {emphasized ? (
-      <WeekTable row={row} />
-    ) : (
-    <table className="mt-0.5 w-full min-w-[40rem] table-fixed border-collapse text-[0.8125rem]">
-      <colgroup>
-        <col className="w-10" />
-        <col className="w-8" />
-        {ALL_CATEGORY_IDS.map((categoryId) => (
-          <col key={categoryId} />
-        ))}
-      </colgroup>
-      <thead>
-        <tr
-          className={`tracking-[0.06em] text-[var(--color-mute)] uppercase ${
-            emphasized ? "text-sm" : "text-xs"
-          }`}
-        >
-          <th className="px-1 py-0.5 text-left font-medium" scope="col">
-            <span className="sr-only">Team</span>
-          </th>
-          <th
-            className="whitespace-nowrap px-1 py-0.5 text-center font-medium"
-            scope="col"
-          >
-            GP
-          </th>
-          {ALL_CATEGORY_IDS.map((categoryId) => (
-            <th
-              className="whitespace-nowrap px-0.5 py-0.5 text-center font-medium"
-              key={categoryId}
-              scope="col"
-            >
-              {CATEGORY_SHORT_LABELS[categoryId]}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th
-            className={`whitespace-nowrap px-1 py-0.5 text-left font-medium text-[var(--color-mute)] uppercase ${
-              emphasized ? "text-sm" : "text-xs"
-            }`}
-            scope="row"
-          >
-            You
-          </th>
-          <GamesCell
-            emphasized={emphasized}
-            games={row?.youGames}
-            showDelta={row?.youDelta != null}
-          />
-          {ALL_CATEGORY_IDS.map((categoryId) => (
-            <StatCell
-              actual={row?.youActual}
-              categoryId={categoryId}
-              delta={row?.youDelta?.[categoryId]}
-              emphasized={emphasized}
-              key={categoryId}
-              projection={row?.youProjection}
-              showDelta={row?.youDelta != null}
-            />
-          ))}
-        </tr>
-        <tr>
-          <th
-            className={`whitespace-nowrap px-1 py-0.5 text-left font-medium text-[var(--color-mute)] uppercase ${
-              emphasized ? "text-sm" : "text-xs"
-            }`}
-            scope="row"
-          >
-            Opp
-          </th>
-          <GamesCell
-            emphasized={emphasized}
-            games={row?.oppGames}
-            showDelta={row?.oppDelta != null}
-          />
-          {ALL_CATEGORY_IDS.map((categoryId) => (
-            <StatCell
-              actual={row?.oppActual}
-              categoryId={categoryId}
-              delta={row?.oppDelta?.[categoryId]}
-              emphasized={emphasized}
-              key={categoryId}
-              projection={row?.oppProjection}
-              showDelta={row?.oppDelta != null}
-            />
-          ))}
-        </tr>
-      </tbody>
-    </table>
-    )}
+    <WeekTable row={row} />
   </section>
 )
