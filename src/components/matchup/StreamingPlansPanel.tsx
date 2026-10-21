@@ -522,6 +522,15 @@ const AddCell = ({
           value={value}
           valueLabel={closedLabel}
         />
+        {recordingPast ? (
+          <button
+            aria-label="비우기"
+            onClick={() => onAddSelect("")}
+            type="button"
+          >
+            비우기
+          </button>
+        ) : null}
         {shownPlayerId ? gameNightLabel(hasGame) : null}
         {cell?.addIndex != null ? (
           <span
@@ -1560,10 +1569,12 @@ export const StreamingPlansPanel = ({
                                       onAddSelect={(playerId) => {
                                         if (date < today) {
                                           handlePastSwapChange(date, spotIndex, {
-                                            addedPlayerId: playerId,
+                                            addedPlayerId:
+                                              playerId === "" ? null : playerId,
                                           })
                                           return true
                                         }
+                                        if (playerId === "") return false
                                         return handleAddSelect(
                                           plan.spotCount,
                                           date,
