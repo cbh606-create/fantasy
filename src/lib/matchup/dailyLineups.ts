@@ -719,6 +719,16 @@ const seatPlayedIds = (
   return next
 }
 
+/** A day with no recorded player ids is not an actual lineup. Leave those seats alone. */
+export const lineupPlayedIds = (
+  playedIdsByDate: Record<string, readonly string[] | undefined>,
+): Record<string, string[]> =>
+  Object.fromEntries(
+    Object.entries(playedIdsByDate).flatMap(([date, ids]) =>
+      ids && ids.length > 0 ? [[date, [...ids]] as const] : [],
+    ),
+  )
+
 /** Closed dates keep the players who recorded actuals. Later dates stay on the current roster. */
 export const applyPlayedDayLineups = (
   daily: DailyLineups,

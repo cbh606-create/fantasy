@@ -140,6 +140,10 @@ const FETCH_TIMEOUT_MS = 15_000
 type EspnLeagueStatus = {
   status?: {
     currentScoringPeriod?: number
+    /** Open fantasy day. Present when `currentScoringPeriod` is omitted. */
+    transactionScoringPeriod?: number
+    /** Last period ESPN has scored. */
+    latestScoringPeriod?: number
     currentMatchupPeriod?: number
   }
   settings?: {
@@ -147,6 +151,22 @@ type EspnLeagueStatus = {
       matchupPeriods?: Record<string, number[]>
     }
   }
+}
+
+/** ESPN no longer always sends `currentScoringPeriod`. The transaction day is the open one. */
+export const resolveCurrentScoringPeriod = (
+  status: EspnLeagueStatus["status"],
+): number | null => {
+  if (typeof status?.currentScoringPeriod === "number") {
+    return status.currentScoringPeriod
+  }
+  if (typeof status?.transactionScoringPeriod === "number") {
+    return status.transactionScoringPeriod
+  }
+  if (typeof status?.latestScoringPeriod === "number") {
+    return status.latestScoringPeriod + 1
+  }
+  return null
 }
 
 export const matchupPeriodIdForScoringPeriod = (
@@ -268,7 +288,7 @@ export const fetchEspnDayActuals = async (params: {
     params.cookies,
     fetchImpl,
   )) as EspnLeagueStatus
-  const currentScoringPeriod = settings.status?.currentScoringPeriod
+  const currentScoringPeriod = resolveCurrentScoringPeriod(settings.status)
   const currentMatchupPeriod = settings.status?.currentMatchupPeriod
   if (currentScoringPeriod == null || currentMatchupPeriod == null) {
     throw new Error("espn_status_missing")

@@ -101,18 +101,23 @@ export const POST = async (
       return NextResponse.json({ conflict: true, incomingState })
     }
 
+    const syncedAt = new Date()
+    const stateToStore: SeasonLeagueState = {
+      ...incomingState,
+      lastSyncedAt: syncedAt.toISOString(),
+    }
     const updatedLeague = await db.seasonLeague.update({
       where: { id: league.id },
       data: {
         name: incomingState.name,
         season: incomingState.season,
-        stateJson: JSON.stringify(incomingState),
+        stateJson: JSON.stringify(stateToStore),
         localLineupJson: null,
         ...(incomingState.season !== league.season
           ? { morningCheckJson: null }
           : {}),
         source: "espn",
-        lastSyncedAt: new Date(),
+        lastSyncedAt: syncedAt,
       },
     })
 

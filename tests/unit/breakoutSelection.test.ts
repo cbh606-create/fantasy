@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   formatBreakoutEvidence,
+  formatBreakoutLast7,
   selectBreakouts,
   type BreakoutPlayer,
 } from "@/lib/injuries/breakout"
@@ -124,19 +125,33 @@ describe("selectBreakouts rates", () => {
     ])
   })
 
-  it("passes a team change when minutes are higher than last year", () => {
+  it("passes a team change when minutes rise by three", () => {
     const moved = player({
       id: "moved",
+      teamAbbr: "ATL",
+      seasonGames: 8,
+      season: line(8, 23, 8),
+      prior: { teamAbbr: "NOP", line: line(70, 20, 14) },
+    })
+    const shortOfThree = player({
+      id: "short-of-three",
       teamAbbr: "ATL",
       seasonGames: 8,
       season: line(8, 22, 8),
       prior: { teamAbbr: "NOP", line: line(70, 20, 14) },
     })
+    const smallBump = player({
+      id: "small-bump",
+      teamAbbr: "PHI",
+      seasonGames: 1,
+      season: line(1, 25, 8),
+      prior: { teamAbbr: "BOS", line: line(70, 24.9, 14) },
+    })
     const sameTeam = player({
       id: "same",
       teamAbbr: "PHX",
       seasonGames: 8,
-      season: line(8, 22, 8),
+      season: line(8, 25, 8),
       prior: { teamAbbr: "PHO", line: line(70, 20, 14) },
     })
     const fewerMinutes = player({
@@ -147,7 +162,7 @@ describe("selectBreakouts rates", () => {
       prior: { teamAbbr: "NOP", line: line(70, 20, 10) },
     })
 
-    const picks = select([moved, sameTeam, fewerMinutes])
+    const picks = select([moved, shortOfThree, smallBump, sameTeam, fewerMinutes])
 
     expect(picks.map((pick) => pick.playerId)).toEqual(["moved"])
   })
@@ -241,6 +256,27 @@ describe("selectBreakouts rates", () => {
     )
     expect(select([foil, short])).toEqual([])
     expect(select([foil, settled])).toEqual([])
+  })
+
+  it("formats the last seven games as the breakout record", () => {
+    expect(
+      formatBreakoutLast7({
+        games: 3,
+        minutesPerGame: 32.4,
+        rates: {
+          FG_PCT: 0.48,
+          FT_PCT: 0.8,
+          TPM: 2.1,
+          REB: 4.2,
+          AST: 3.5,
+          STL: 1.1,
+          BLK: 0.4,
+          TO: 1.6,
+          PTS: 18.2,
+        },
+      }),
+    ).toBe("18.2 PTS · 4.2 REB · 3.5 AST · 2.1 3PM")
+    expect(formatBreakoutLast7(null)).toBe("No last 7 games")
   })
 
   it("catches a one-game team change when minutes rise and attempts do not", () => {

@@ -53,6 +53,19 @@ const responseMessage = async (response: Response, fallback: string) => {
   return body.message ?? body.errorCode ?? fallback
 }
 
+const rosterUpdatedLabel = (lastSyncedAt: string | undefined): string => {
+  if (!lastSyncedAt) return "Full roster"
+  const updatedAt = new Date(lastSyncedAt)
+  if (Number.isNaN(updatedAt.getTime())) return "Full roster"
+  return `Updated ${updatedAt.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })}`
+}
+
 export const SeasonRosterWorkspace = ({
   leagueId,
 }: SeasonRosterWorkspaceProps) => {
@@ -399,7 +412,6 @@ export const SeasonRosterWorkspace = ({
           <div>
             <p className="text-sm text-[var(--color-mute)]">
               {data.state.season} season · YOU · {data.state.source}
-              {data.state.lastSyncedAt ? ` · synced ${new Date(data.state.lastSyncedAt).toLocaleDateString()}` : ""}
             </p>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h1 className="font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
@@ -507,6 +519,7 @@ export const SeasonRosterWorkspace = ({
             isEditing={isEditing}
             onPlayerChange={handlePlayerChange}
             players={rosteredPlayers}
+            subtitle={rosterUpdatedLabel(data.state.lastSyncedAt)}
           />
           <CompactCategoryProfile levels={userLevels} />
           <LeagueRankMatrix

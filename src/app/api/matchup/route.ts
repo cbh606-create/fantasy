@@ -5,10 +5,14 @@ import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import { getUserEspnCookies } from "@/lib/espn/credentials"
 import { fetchEspnDayActuals } from "@/lib/espn/dayBoxScore"
 import { fetchEspnFantasyMatchupWindow } from "@/lib/espn/fantasyMatchupSchedule"
-import { loadWinnerStreamRecipes } from "@/lib/espn/winnerStreamHistory"
+import { loadMatchupActivitySwaps } from "@/lib/espn/matchupActivity"
+import { activityIsoDate } from "@/lib/matchup/activitySwaps"
 import { readEnvEspnCookies } from "@/lib/espn/cookies"
 import { adviseMatchup } from "@/lib/matchup/advise"
-import { applyPoolInjuryStatus } from "@/lib/players/applyPoolProjections"
+import {
+  applyPoolInjuryStatus,
+  type PoolProjectionPlayer,
+} from "@/lib/players/applyPoolProjections"
 import { loadProjPoolPlayers } from "@/lib/players/loadProjPool"
 import { loadStatPairs } from "@/lib/players/loadStatPairs"
 import type { StatPairRow } from "@/lib/players/statPairCorrelation"
@@ -21,7 +25,6 @@ import {
   actualsFromClosedDays,
   morningCheckForOpponent,
   parseMorningCheck,
-  savedClosedCoversEspnDates,
 } from "@/lib/matchup/morningCheckStore"
 import { getMatchupSchedule } from "@/lib/matchup/scheduleLive"
 import {
@@ -29,11 +32,58 @@ import {
   type MatchupAdvice,
   type WinnerStreamRecipe,
 } from "@/lib/matchup/types"
-import type { ScheduleResponse, SeasonLeagueState } from "@/lib/season/types"
+import type { PastActualSwap } from "@/lib/matchup/pastActualSwaps"
+import type {
+  ScheduleResponse,
+  SeasonLeagueState,
+  SeasonPlayer,
+} from "@/lib/season/types"
 import {
   loadOwnedSeasonLeague,
   type LoadedSeasonLeague,
 } from "@/lib/waivers/loadSeasonLeague"
+
+const dayAfterIso = (isoDate: string): string => {
+  const date = new Date(`${isoDate}T12:00:00.000Z`)
+  date.setUTCDate(date.getUTCDate() + 1)
+  return date.toISOString().slice(0, 10)
+}
+
+const swapPlayerId = (value: string | null | undefined): string | null => {
+  if (!value || value === "hold" || value === "open_slot") return null
+  if (value.startsWith("ir:")) {
+    const id = value.slice(3)
+    return id.length > 0 ? id : null
+  }
+  return value
+}
+
+const idsFromSwaps = (swaps: PastActualSwap[] | undefined): string[] => {
+  const ids: string[] = []
+  for (const swap of swaps ?? []) {
+    if (swap.addedPlayerId) ids.push(swap.addedPlayerId)
+    const dropped = swapPlayerId(swap.drop)
+    if (dropped) ids.push(dropped)
+  }
+  return ids
+}
+
+const seasonPlayerFromPool = (
+  id: string,
+  poolPlayer: PoolProjectionPlayer,
+): SeasonPlayer => ({
+  id,
+  name: poolPlayer.name,
+  teamAbbr: poolPlayer.teamAbbr,
+  availability: "fa",
+  projections: poolPlayer.projections,
+  projectedGames: poolPlayer.projectedGames,
+  injuryStatus:
+    poolPlayer.status === "out" || poolPlayer.status === "gtd"
+      ? poolPlayer.status
+      : undefined,
+  shooting: poolPlayer.shooting ?? { FGM: 0, FGA: 0, FTM: 0, FTA: 0 },
+})
 
 const parseOpponentTeamIndex = (value: string | null): number | null => {
   if (value === null || value.trim() === "") return null
@@ -271,9 +321,10 @@ export const GET = async (request: Request): Promise<Response> => {
     }
   }
 
+  let poolPlayers: PoolProjectionPlayer[] = []
   let state = loaded.state
   try {
-    const poolPlayers = await loadProjPoolPlayers()
+    poolPlayers = await loadProjPoolPlayers()
     state = {
       ...loaded.state,
       players: applyPoolInjuryStatus(loaded.state.players, poolPlayers),
@@ -341,13 +392,6 @@ export const GET = async (request: Request): Promise<Response> => {
       return { ...fallback, morningStale: true }
     }
 
-    if (savedClosedCoversEspnDates(previous, actualsByDate.keys())) {
-      return adviseMatchup(state, schedule, opponentTeamIndex, {
-        ...baseOptions,
-        morning: morningFor(actualsFromClosedDays(previous!.closedDays)),
-      })
-    }
-
     const blended = adviseMatchup(state, schedule, opponentTeamIndex, {
       ...baseOptions,
       morning: morningFor(actualsByDate),
@@ -382,11 +426,6 @@ export const GET = async (request: Request): Promise<Response> => {
   }
 
   const referencedPlayerIds = collectReferencedPlayerIds(state, advice)
-  const playersById = Object.fromEntries(
-    state.players.flatMap((player) =>
-      referencedPlayerIds.has(player.id) ? [[player.id, player] as const] : [],
-    ),
-  )
   const teams = loaded.state.teams.map((team) => ({
     teamIndex: team.teamIndex,
     name: team.name,
@@ -399,6 +438,83 @@ export const GET = async (request: Request): Promise<Response> => {
     matchupDates: schedule.matchup.days,
     scoringPeriodIds: schedule.matchup.scoringPeriodIds,
   })
+  const activityToday =
+    typeof advice.frontierDate === "string"
+      ? advice.frontierDate
+      : advice.frontierDate === null && schedule.matchup.days.length > 0
+        ? dayAfterIso(schedule.matchup.days[schedule.matchup.days.length - 1]!)
+        : null
+  const periodIds = schedule.matchup.scoringPeriodIds
+  const oppEspnTeamId = state.teams.find(
+    (team) => team.teamIndex === opponentTeamIndex,
+  )?.espnTeamId
+  let activitySwaps: {
+    pastActualSwaps: PastActualSwap[]
+    opponentPastActualSwaps: PastActualSwap[]
+  } | null = null
+  if (
+    loaded.state.source === "espn" &&
+    loaded.espnLeagueId &&
+    activityToday &&
+    loaded.state.espnTeamId != null &&
+    oppEspnTeamId != null &&
+    periodIds &&
+    periodIds.length === schedule.matchup.days.length
+  ) {
+    try {
+      const cookies = await getUserEspnCookies(userId)
+      if (cookies) {
+        const wallToday = activityIsoDate(Date.now())
+        const activityCutoff =
+          wallToday && wallToday > activityToday ? wallToday : activityToday
+        activitySwaps = await loadMatchupActivitySwaps({
+          leagueId: loaded.espnLeagueId,
+          season: loaded.state.season,
+          cookies,
+          youTeamId: loaded.state.espnTeamId,
+          oppTeamId: oppEspnTeamId,
+          periodDates: new Map(
+            periodIds.map((id, index) => [id, schedule.matchup.days[index]!]),
+          ),
+          today: activityCutoff,
+        })
+      }
+    } catch {
+      activitySwaps = null
+    }
+  }
+  if (activitySwaps) {
+    for (const id of [
+      ...idsFromSwaps(activitySwaps.pastActualSwaps),
+      ...idsFromSwaps(activitySwaps.opponentPastActualSwaps),
+    ]) {
+      referencedPlayerIds.add(id)
+    }
+  }
+  const playersById: Record<string, SeasonPlayer> = Object.fromEntries(
+    state.players.flatMap((player) =>
+      referencedPlayerIds.has(player.id) ? [[player.id, player] as const] : [],
+    ),
+  )
+  const missingIds = [...referencedPlayerIds].filter((id) => !playersById[id])
+  if (missingIds.length > 0 && poolPlayers.length > 0) {
+    const poolById = new Map<string, PoolProjectionPlayer>()
+    for (const poolPlayer of poolPlayers) {
+      if (!poolById.has(poolPlayer.id)) poolById.set(poolPlayer.id, poolPlayer)
+      if (poolPlayer.espnId && !poolById.has(poolPlayer.espnId)) {
+        poolById.set(poolPlayer.espnId, poolPlayer)
+      }
+      if (poolPlayer.id.startsWith("espn-")) {
+        const numeric = poolPlayer.id.slice(5)
+        if (!poolById.has(numeric)) poolById.set(numeric, poolPlayer)
+      }
+    }
+    for (const id of missingIds) {
+      const poolPlayer = poolById.get(id) ?? poolById.get(`espn-${id}`)
+      if (!poolPlayer) continue
+      playersById[id] = seasonPlayerFromPool(id, poolPlayer)
+    }
+  }
   const responseAdvice = advice.dayComparison
     ? {
         ...advice,
@@ -411,6 +527,7 @@ export const GET = async (request: Request): Promise<Response> => {
     playersById,
     teams,
     statPairs,
+    ...(activitySwaps ?? {}),
     ...(includeState ? { state } : {}),
   })
 }

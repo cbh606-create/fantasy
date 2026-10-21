@@ -1,5 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
+import { capnightPlayerZ } from "@/lib/players/capnightZ"
 import type {
   SeasonLeagueState,
   SeasonPlayer,

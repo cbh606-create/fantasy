@@ -171,6 +171,9 @@ type EspnTeam = {
 export type EspnLeaguePayload = {
   id?: number
   seasonId?: number
+  status?: {
+    currentScoringPeriod?: number
+  }
   settings?: {
     name?: string
     rosterSettings?: {

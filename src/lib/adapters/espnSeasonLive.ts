@@ -77,6 +77,30 @@ const parseEspnJson = async <Payload>(response: Response): Promise<Payload> => {
   }
 }
 
+const currentScoringPeriod = (payload: EspnLeaguePayload): number | null => {
+  const period = payload.status?.currentScoringPeriod
+  if (typeof period !== "number" || !Number.isInteger(period) || period <= 0) {
+    return null
+  }
+  return period
+}
+
+const leagueRosterUrl = (
+  params: { leagueId: string; season: number },
+  scoringPeriodId?: number,
+): URL => {
+  const url = new URL(
+    `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
+  )
+  url.searchParams.append("view", "mTeam")
+  url.searchParams.append("view", "mRoster")
+  url.searchParams.append("view", "mSettings")
+  if (scoringPeriodId != null) {
+    url.searchParams.set("scoringPeriodId", String(scoringPeriodId))
+  }
+  return url
+}
+
 const fetchEspnFreeAgents = async (
   params: {
     leagueId: string
@@ -123,6 +147,46 @@ const fetchEspnFreeAgents = async (
   }
 }
 
+const readLeagueResponse = async (
+  response: Response,
+): Promise<EspnLeaguePayload> => {
+  if (
+    response.status === 301 ||
+    response.status === 302 ||
+    response.status === 303 ||
+    response.status === 307 ||
+    response.status === 308
+  ) {
+    const location = response.headers.get("location") ?? ""
+    let locationHost = "login"
+    try {
+      locationHost = new URL(location, "https://fantasy.espn.com").host
+    } catch {
+      // keep default
+    }
+    throw new EspnAdapterError(
+      "ESPN_AUTH",
+      `ESPN redirected (${response.status} → ${locationHost}) — not logged in for this private league`,
+    )
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    throw new EspnAdapterError(
+      "ESPN_AUTH",
+      `HTTP ${response.status} — check espn_s2/SWID for this ESPN account`,
+    )
+  }
+
+  if (!response.ok) {
+    throw new EspnAdapterError(
+      "ESPN_UNAVAILABLE",
+      `HTTP ${response.status} from ESPN league API`,
+    )
+  }
+
+  return parseEspnJson<EspnLeaguePayload>(response)
+}
+
 export const fetchEspnSeasonLeague = async (params: {
   leagueId: string
   season: number
@@ -130,99 +194,69 @@ export const fetchEspnSeasonLeague = async (params: {
   cookies?: EspnCookies
 }): Promise<SeasonLeagueState> => {
   const cookies = resolveCookies(params.cookies)
-  const url = new URL(
-    `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${params.season}/segments/0/leagues/${params.leagueId}`,
-  )
-  url.searchParams.append("view", "mTeam")
-  url.searchParams.append("view", "mRoster")
-  url.searchParams.append("view", "mSettings")
 
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
-
-  try {
-    const response = await fetch(url, {
-      headers: espnHeaders(cookies),
-      redirect: "manual",
-      signal: controller.signal,
-    })
-
-    if (
-      response.status === 301 ||
-      response.status === 302 ||
-      response.status === 303 ||
-      response.status === 307 ||
-      response.status === 308
-    ) {
-      const location = response.headers.get("location") ?? ""
-      let locationHost = "login"
-      try {
-        locationHost = new URL(location, "https://fantasy.espn.com").host
-      } catch {
-        // keep default
-      }
-      throw new EspnAdapterError(
-        "ESPN_AUTH",
-        `ESPN redirected (${response.status} → ${locationHost}) — not logged in for this private league`,
-      )
-    }
-
-    if (response.status === 401 || response.status === 403) {
-      throw new EspnAdapterError(
-        "ESPN_AUTH",
-        `HTTP ${response.status} — check espn_s2/SWID for this ESPN account`,
-      )
-    }
-
-    if (!response.ok) {
-      throw new EspnAdapterError(
-        "ESPN_UNAVAILABLE",
-        `HTTP ${response.status} from ESPN league API`,
-      )
-    }
-
-    const payload = await parseEspnJson<EspnLeaguePayload>(response)
-    let state = mapEspnLeagueToSeasonState(payload, params)
+  const readLeaguePayload = async (
+    scoringPeriodId?: number,
+  ): Promise<EspnLeaguePayload> => {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
 
     try {
-      const faPlayers = await fetchEspnFreeAgents(params, cookies)
-      if (faPlayers.length > 0) {
-        state = mergeAvailablePlayers(state, faPlayers, "espn_fa")
-        return overlayPoolProjections(state)
-      }
+      const response = await fetch(leagueRosterUrl(params, scoringPeriodId), {
+        headers: espnHeaders(cookies),
+        redirect: "manual",
+        signal: controller.signal,
+      })
+      return await readLeagueResponse(response)
     } catch (error) {
-      const message = error instanceof Error ? error.message : "unknown error"
-      console.warn(
-        `ESPN free-agent fetch failed; using ownership-based availability: ${message}`,
+      if (error instanceof EspnAdapterError) throw error
+
+      if (
+        (error instanceof DOMException || error instanceof Error) &&
+        error.name === "AbortError"
+      ) {
+        throw new EspnAdapterError("ESPN_TIMEOUT")
+      }
+
+      throw new EspnAdapterError(
+        "ESPN_UNAVAILABLE",
+        error instanceof Error ? error.message : "unknown fetch error",
       )
+    } finally {
+      clearTimeout(timeout)
     }
-
-    const ownershipIds = deriveAvailableFromOwnership(state)
-    if (ownershipIds.length === 0) {
-      return overlayPoolProjections({ ...state, availablePlayerIds: [] })
-    }
-
-    const ownershipPlayers = state.players.filter((player) =>
-      ownershipIds.includes(player.id),
-    )
-    return overlayPoolProjections(
-      mergeAvailablePlayers(state, ownershipPlayers, "ownership"),
-    )  } catch (error) {
-    if (error instanceof EspnAdapterError) throw error
-
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new EspnAdapterError("ESPN_TIMEOUT")
-    }
-
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new EspnAdapterError("ESPN_TIMEOUT")
-    }
-
-    throw new EspnAdapterError(
-      "ESPN_UNAVAILABLE",
-      error instanceof Error ? error.message : "unknown fetch error",
-    )
-  } finally {
-    clearTimeout(timeout)
   }
+
+  let payload = await readLeaguePayload()
+  const period = currentScoringPeriod(payload)
+  if (period != null) {
+    payload = await readLeaguePayload(period)
+  }
+
+  let state = mapEspnLeagueToSeasonState(payload, params)
+
+  try {
+    const faPlayers = await fetchEspnFreeAgents(params, cookies)
+    if (faPlayers.length > 0) {
+      state = mergeAvailablePlayers(state, faPlayers, "espn_fa")
+      return overlayPoolProjections(state)
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error"
+    console.warn(
+      `ESPN free-agent fetch failed; using ownership-based availability: ${message}`,
+    )
+  }
+
+  const ownershipIds = deriveAvailableFromOwnership(state)
+  if (ownershipIds.length === 0) {
+    return overlayPoolProjections({ ...state, availablePlayerIds: [] })
+  }
+
+  const ownershipPlayers = state.players.filter((player) =>
+    ownershipIds.includes(player.id),
+  )
+  return overlayPoolProjections(
+    mergeAvailablePlayers(state, ownershipPlayers, "ownership"),
+  )
 }

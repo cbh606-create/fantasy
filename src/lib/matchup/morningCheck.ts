@@ -61,6 +61,9 @@ export type DayComparisonRow = {
   oppPlayedIds?: string[]
   youActualShooting?: DayShootingTotals | null
   oppActualShooting?: DayShootingTotals | null
+  /** Actual minus that day's projection. Absent when the side has no box. */
+  youDelta?: CategoryTotals | null
+  oppDelta?: CategoryTotals | null
 }
 
 const emptyShooting = (): DayShootingTotals => ({
@@ -155,6 +158,7 @@ const buildClosedDayRecord = (input: {
   schedule: ScheduleResponse
 }): ClosedDayRecord => {
   const { date, previous, actuals } = input
+  const fresh = actuals && dayActualsHaveStats(actuals) ? actuals : undefined
   return {
     date,
     youStartableIds:
@@ -173,14 +177,14 @@ const buildClosedDayRecord = (input: {
         date,
         input.schedule,
       ),
-    youActual: actuals?.you ?? previous?.youActual ?? emptyCategoryTotals(),
-    oppActual: actuals?.opp ?? previous?.oppActual ?? emptyCategoryTotals(),
-    youPlayedIds: actuals?.youPlayedIds ?? previous?.youPlayedIds ?? [],
-    oppPlayedIds: actuals?.oppPlayedIds ?? previous?.oppPlayedIds ?? [],
+    youActual: fresh?.you ?? previous?.youActual ?? emptyCategoryTotals(),
+    oppActual: fresh?.opp ?? previous?.oppActual ?? emptyCategoryTotals(),
+    youPlayedIds: fresh?.youPlayedIds ?? previous?.youPlayedIds ?? [],
+    oppPlayedIds: fresh?.oppPlayedIds ?? previous?.oppPlayedIds ?? [],
     youShooting:
-      actuals?.youShooting ?? previous?.youShooting ?? emptyShooting(),
+      fresh?.youShooting ?? previous?.youShooting ?? emptyShooting(),
     oppShooting:
-      actuals?.oppShooting ?? previous?.oppShooting ?? emptyShooting(),
+      fresh?.oppShooting ?? previous?.oppShooting ?? emptyShooting(),
   }
 }
 

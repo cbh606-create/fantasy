@@ -20,7 +20,8 @@
     "players:fantasypros-adp": "node scripts/refresh-fantasypros-adp.mjs",
     "players:adp-merge": "node scripts/merge-adp-sources.mjs",
     "players:adp-refresh": "node scripts/refresh-all-adp.mjs",
-    "players:enrich-identity": "node scripts/enrich-player-identity.mjs"
+    "players:enrich-identity": "node scripts/enrich-player-identity.mjs",
+    "projections:season": "tsx scripts/project-2026-27.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.2",

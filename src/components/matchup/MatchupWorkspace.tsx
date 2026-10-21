@@ -26,10 +26,12 @@ import {
   type DayComparisonRow,
   type MorningSummary as MorningSummaryData,
 } from "@/lib/matchup/morningCheck"
+import { actualMinusProjection } from "@/lib/matchup/projectionDelta"
 import { isActiveSlot } from "@/lib/matchup/constants"
 import {
   applyOpponentSeatOverrides,
   applyPlayedDayLineups,
+  lineupPlayedIds,
   clearNoGameActiveSlots,
   dailyLineupsMatchDays,
   dailyLineupsMatchRoster,
@@ -77,6 +79,7 @@ import type {
   StreamingPlan,
 } from "@/lib/matchup/types"
 import { isStatWindow } from "@/lib/matchup/types"
+import type { PastActualSwap } from "@/lib/matchup/pastActualSwaps"
 import type { StatPairRow } from "@/lib/players/statPairCorrelation"
 import type {
   ScheduleResponse,
@@ -105,6 +108,8 @@ type MatchupResponse = MatchupAdvice & {
   dayComparison?: DayComparisonRow[]
   morningStale?: boolean
   statPairs?: StatPairRow[]
+  pastActualSwaps?: PastActualSwap[]
+  opponentPastActualSwaps?: PastActualSwap[]
   /** First still-open matchup day after settled closes. */
   frontierDate?: string | null
 }
@@ -1298,8 +1303,10 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     if (row.youPlayedIds) youPlayedByDate[row.date] = row.youPlayedIds
     if (row.oppPlayedIds) oppPlayedByDate[row.date] = row.oppPlayedIds
   }
-  const closedDateSet = new Set(Object.keys(youPlayedByDate))
-  const recordedPlayerIds = new Set(Object.values(youPlayedByDate).flat())
+  const youLineupPlayedByDate = lineupPlayedIds(youPlayedByDate)
+  const oppLineupPlayedByDate = lineupPlayedIds(oppPlayedByDate)
+  const closedDateSet = new Set(Object.keys(youLineupPlayedByDate))
+  const recordedPlayerIds = new Set(Object.values(youLineupPlayedByDate).flat())
   const previewIds = previewStreamerIds(previewPlan)
 
   const rosterPrunedDaily = displayDaily
@@ -1352,7 +1359,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const recordedDaily = rosterPrunedDaily
     ? applyPlayedDayLineups(
         rosterPrunedDaily,
-        youPlayedByDate,
+        youLineupPlayedByDate,
         playersForTotals,
         rosterSlots,
         satRosterSeats,
@@ -1376,7 +1383,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       entry.slot !== "IL" && entry.playerId ? [entry.playerId] : [],
     ) ?? [],
   )
-  const oppClosedDateSet = new Set(Object.keys(oppPlayedByDate))
+  const oppClosedDateSet = new Set(Object.keys(oppLineupPlayedByDate))
   const oppPreviewIds = previewOpponentStreamerIds(displayOppPlan)
   const prunedOpponentBase = opponentBase
     ? pruneDailyToRoster(
@@ -1389,7 +1396,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const opponentLineupBase = prunedOpponentBase
     ? applyPlayedDayLineups(
         prunedOpponentBase,
-        oppPlayedByDate,
+        oppLineupPlayedByDate,
         playersForTotals,
         rosterSlots,
       )
@@ -1513,7 +1520,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     )
     const baselineRecordedDaily = applyPlayedDayLineups(
       baselineDaily,
-      youPlayedByDate,
+      youLineupPlayedByDate,
       baselinePlayers,
       rosterSlots,
       satRosterSeats,
@@ -1546,7 +1553,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
   const opponentDailyReady = Boolean(
     recordedOpponentDaily && Object.keys(recordedOpponentDaily).length > 0,
   )
-  const lineupComparison = matchupData.schedule.matchup.days.map((date) => {
+  const comparisonDays = matchupData.schedule.matchup.days.map((date) => {
     const saved = savedComparison.get(date)
     const youDay = projectLineupDay(
       recordedDaily[date],
@@ -1571,18 +1578,36 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       matchupData.schedule,
       statWindow,
     )
-    return {
-      date,
-      youProjection: youDay.totals,
-      youActual: saved?.youActual ?? null,
-      youActualShooting: saved?.youActualShooting ?? null,
-      youGames: youDay.games,
-      oppProjection: oppDay?.totals ?? saved?.oppProjection ?? emptyDay.totals,
-      oppActual: saved?.oppActual ?? null,
-      oppActualShooting: saved?.oppActualShooting ?? null,
-      oppGames: oppDay ? oppDay.games : undefined,
+    const you = {
+      projection: youDay.totals,
+      projectionShooting: youDay.shooting,
+      actual: saved?.youActual ?? null,
+      actualShooting: saved?.youActualShooting ?? null,
+      playedIds: saved?.youPlayedIds,
     }
+    const opp = {
+      projection: oppDay?.totals ?? saved?.oppProjection ?? emptyDay.totals,
+      projectionShooting: oppDay?.shooting ?? null,
+      actual: saved?.oppActual ?? null,
+      actualShooting: saved?.oppActualShooting ?? null,
+      playedIds: saved?.oppPlayedIds,
+    }
+    const row: DayComparisonRow = {
+      date,
+      youProjection: you.projection,
+      youActual: you.actual,
+      youActualShooting: you.actualShooting,
+      youGames: youDay.games,
+      youDelta: actualMinusProjection([you]),
+      oppProjection: opp.projection,
+      oppActual: opp.actual,
+      oppActualShooting: opp.actualShooting,
+      oppGames: oppDay ? oppDay.games : undefined,
+      oppDelta: actualMinusProjection([opp]),
+    }
+    return { you, opp, row }
   })
+  const lineupComparison = comparisonDays.map((day) => day.row)
 
   const totalsFromBoard = (side: "you" | "opp") => {
     const totals = emptyCategoryTotals()
@@ -1613,6 +1638,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
     oppGames: lineupComparison.some((row) => row.oppGames != null)
       ? summedGames(lineupComparison.map((row) => row.oppGames))
       : undefined,
+    youDelta: actualMinusProjection(comparisonDays.map((day) => day.you)),
+    oppDelta: actualMinusProjection(comparisonDays.map((day) => day.opp)),
   }
 
   const ratioSits =
@@ -1740,7 +1767,7 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
         <div className="mt-6 grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)] xl:gap-3">
           <div className="min-w-0">
             <DailyLineupPanel
-              closedDates={Object.keys(youPlayedByDate)}
+              closedDates={Object.keys(youLineupPlayedByDate)}
               daily={recordedDaily}
               days={matchupData.schedule.matchup.days}
               droppedFromDateByPlayerId={previewDroppedFromDateByPlayerId(
@@ -1796,6 +1823,8 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
             state={state}
             statWindow={statWindow}
             statPairs={matchupData.statPairs ?? EMPTY_STAT_PAIRS}
+            activityPastSwaps={matchupData.pastActualSwaps}
+            activityOpponentPastSwaps={matchupData.opponentPastActualSwaps}
             winnerStreamRecipes={matchupData.winnerStreamRecipes}
             {...(streamingPlanToday ? { today: streamingPlanToday } : {})}
           />

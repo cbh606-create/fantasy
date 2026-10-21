@@ -18,6 +18,11 @@ export const pastActualStorageKey = (
   matchupStart: string,
 ): string => `matchup-past-swaps:${leagueId}:${matchupStart}`
 
+export const opponentPastActualStorageKey = (
+  leagueId: string,
+  matchupStart: string,
+): string => `${pastActualStorageKey(leagueId, matchupStart)}:opponent`
+
 export const parsePastActualSwaps = (raw: string | null): PastActualSwap[] => {
   if (!raw) return []
   try {
@@ -40,6 +45,17 @@ export const readPastActualSwaps = (
   )
 }
 
+export const readOpponentPastActualSwaps = (
+  leagueId: string,
+  matchupStart: string,
+  storage?: Pick<Storage, "getItem" | "setItem">,
+): PastActualSwap[] => {
+  const store = storage ?? localStorage
+  return parsePastActualSwaps(
+    store.getItem(opponentPastActualStorageKey(leagueId, matchupStart)),
+  )
+}
+
 export const writePastActualSwaps = (
   leagueId: string,
   matchupStart: string,
@@ -49,6 +65,19 @@ export const writePastActualSwaps = (
   const store = storage ?? localStorage
   store.setItem(
     pastActualStorageKey(leagueId, matchupStart),
+    JSON.stringify(swaps),
+  )
+}
+
+export const writeOpponentPastActualSwaps = (
+  leagueId: string,
+  matchupStart: string,
+  swaps: readonly PastActualSwap[],
+  storage?: Pick<Storage, "getItem" | "setItem">,
+): void => {
+  const store = storage ?? localStorage
+  store.setItem(
+    opponentPastActualStorageKey(leagueId, matchupStart),
     JSON.stringify(swaps),
   )
 }

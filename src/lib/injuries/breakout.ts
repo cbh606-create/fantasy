@@ -1,9 +1,12 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
+import type { CategoryId } from "@/lib/domain/types"
+import { CATEGORY_SHORT_LABELS, formatCategoryStat } from "@/lib/season/formatCategoryStat"
 import { canonicalTeam } from "./crosswalk"
 import type { BreakoutStatLines, RateLine } from "./breakoutStats"
 import type { ConfirmedLineup, DepthChart, InjuryUpdate } from "./selection"
 
 export const PRIOR_ROLE_MINUTES_GAP = 8
+export const TEAM_CHANGE_MINUTES_GAP = 3
 export const PROJECTION_MINUTES_GAP = 5
 export const VACATED_FGA_GAP = 4
 export const VACATED_MINUTES = 28
@@ -52,10 +55,17 @@ export type BreakoutSelectionInputs = {
   now: Date
 }
 
+export type BreakoutLast7 = {
+  games: number
+  minutesPerGame: number | null
+  rates: Record<CategoryId, number> | null
+}
+
 export type BreakoutPick = {
   playerId: string
   reasons: BreakoutReason[]
   evidence: BreakoutEvidence
+  last7: BreakoutLast7 | null
 }
 
 const emptyEvidence = (): BreakoutEvidence => ({
@@ -168,7 +178,7 @@ const windowQualifies = (
   const zOk = () => zHeldForWindow(player, line, recentKey, players)
 
   if (priorMinutes != null) {
-    if (changedTeam(player) && minutes > priorMinutes) return true
+    if (changedTeam(player) && minutes - priorMinutes >= TEAM_CHANGE_MINUTES_GAP) return true
     if (!changedTeam(player) && minutes - priorMinutes >= PRIOR_ROLE_MINUTES_GAP && (early || zOk())) {
       return true
     }
@@ -285,6 +295,24 @@ const evidenceFor = (
   }
 }
 
+const last7Line = (line: RateLine | null | undefined): BreakoutLast7 | null => {
+  if (!line || !(line.gamesPlayed > 0)) return null
+  return {
+    games: line.gamesPlayed,
+    minutesPerGame: line.minutesPerGame,
+    rates: line.rates,
+  }
+}
+
+const LAST7_MAIN_STATS = ["PTS", "REB", "AST", "TPM"] as const satisfies readonly CategoryId[]
+
+export const formatBreakoutLast7 = (line: BreakoutLast7 | null): string => {
+  if (!line?.rates) return "No last 7 games"
+  return LAST7_MAIN_STATS.map(
+    (categoryId) => `${formatCategoryStat(categoryId, line.rates?.[categoryId] ?? 0)} ${CATEGORY_SHORT_LABELS[categoryId]}`,
+  ).join(" · ")
+}
+
 export const formatBreakoutEvidence = (evidence: BreakoutEvidence): string => {
   if (evidence.seasonMinutes == null) return ""
   const minutes =
@@ -377,5 +405,6 @@ export const selectBreakouts = (inputs: BreakoutSelectionInputs): BreakoutPick[]
     playerId,
     reasons: rowReasons,
     evidence: evidenceFor(byId.get(playerId), inputs.players),
+    last7: last7Line(byId.get(playerId)?.last7),
   }))
 }

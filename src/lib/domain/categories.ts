@@ -1,5 +1,7 @@
 import type { CategoryId, CategorySetting } from "./types"
 
+export type { CategoryId }
+
 export const ALL_CATEGORY_IDS: CategoryId[] = [
   "FG_PCT",
   "FT_PCT",

@@ -250,6 +250,7 @@ describe("GET /api/season-leagues/:id", () => {
         source: state.source,
         stateJson: JSON.stringify(state),
         localLineupJson: JSON.stringify(localLineup),
+        lastSyncedAt: new Date("2026-10-21T06:22:00.000Z"),
       },
     })
 
@@ -261,6 +262,7 @@ describe("GET /api/season-leagues/:id", () => {
 
     expect(response.status).toBe(200)
     expect(payload.state.teams[2].entries[0].playerId).toBe("t3p2")
+    expect(payload.state.lastSyncedAt).toBe("2026-10-21T06:22:00.000Z")
     expect(payload.analysis.byTeam).toHaveLength(12)
   })
 })
@@ -582,6 +584,7 @@ describe("POST /api/season-leagues/:id/refresh", () => {
     expect(response.status).toBe(200)
     expect(storedLeague?.name).toBe("Renamed League")
     expect(storedState.name).toBe("Renamed League")
+    expect(storedState.lastSyncedAt).toBe(storedLeague?.lastSyncedAt?.toISOString())
   })
 
   it("does not overwrite state when ESPN credentials are missing", async () => {
@@ -666,9 +669,14 @@ describe("POST /api/season-leagues/:id/resolve-conflict", () => {
       where: { id: league.id },
     })
 
+    const storedState = JSON.parse(
+      storedLeague?.stateJson ?? "{}",
+    ) as SeasonLeagueState
+
     expect(response.status).toBe(200)
+    expect(storedState.lastSyncedAt).toBe(storedLeague?.lastSyncedAt?.toISOString())
+    expect(storedState.source).toBe("espn")
     expect(storedLeague).toMatchObject({
-      stateJson: JSON.stringify(incomingState),
       localLineupJson: null,
       source: "espn",
     })
@@ -711,9 +719,14 @@ describe("POST /api/season-leagues/:id/resolve-conflict", () => {
       where: { id: league.id },
     })
 
+    const storedState = JSON.parse(
+      storedLeague?.stateJson ?? "{}",
+    ) as SeasonLeagueState
+
     expect(response.status).toBe(200)
+    expect(storedState.lastSyncedAt).toBe(storedLeague?.lastSyncedAt?.toISOString())
+    expect(storedState.source).toBe("espn")
     expect(storedLeague).toMatchObject({
-      stateJson: JSON.stringify(incomingState),
       localLineupJson: JSON.stringify(localLineup),
       source: "mixed",
     })

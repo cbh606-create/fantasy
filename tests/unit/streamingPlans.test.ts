@@ -455,6 +455,135 @@ describe("buildStreamingPlan", () => {
     expect(recorded.addsUsed).toBeGreaterThanOrEqual(1)
   })
 
+  it("shows an executed swap on today instead of a suggested add", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const sit = player("sit", "BOS", { positions: ["SG"] })
+    const add = player("fa-add", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const state = tinyState([sit, add], ["fa-add"])
+    state.teams[0]!.entries = [{ slot: "SG", playerId: "sit" }]
+    const schedule = tinySchedule(days, [
+      { date: "2026-10-21", homeAbbr: "NYK", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      today: "2026-10-21",
+      pastActualSwaps: [
+        {
+          date: "2026-10-21",
+          spotIndex: 0,
+          addedPlayerId: "fa-out",
+          drop: "sit",
+        },
+      ],
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      playerId: null,
+      action: "empty",
+    })
+    expect(plan.days[1]!.cells[0]).toMatchObject({
+      playerId: "fa-out",
+      action: "drop_add",
+      rosterDropPlayerId: "sit",
+    })
+  })
+
+  it("keeps a recorded swap on a full 1-spot night", () => {
+    const days = ["2026-10-21"]
+    const roster = packedRosterPlayers()
+    const actual = player("actual", "SAC", {
+      projections: { ...baseProjections(), STL: 40 },
+    })
+    const suggested = player("suggested", "POR", {
+      projections: { ...baseProjections(), STL: 400 },
+    })
+    const state = tinyState([...roster, actual, suggested], ["suggested"])
+    state.teams[0]!.entries = packedActiveSlots.map((slot, index) => ({
+      slot,
+      playerId: roster[index]!.id,
+    }))
+    const schedule = tinySchedule(days, [
+      ...packedTeamAbbrs.map((abbr) => ({
+        date: "2026-10-21",
+        homeAbbr: abbr,
+        awayAbbr: "POR",
+      })),
+      { date: "2026-10-21", homeAbbr: "SAC", awayAbbr: "CHI" },
+    ])
+    const pastActualSwaps = [
+      {
+        date: "2026-10-21",
+        spotIndex: 0,
+        addedPlayerId: "actual",
+        drop: "r0",
+      },
+    ]
+    const input = {
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      today: "2026-10-21",
+      pastActualSwaps,
+    }
+    const plan1 = buildStreamingPlan({ ...input, spotCount: 1 })
+    const plan2 = buildStreamingPlan({ ...input, spotCount: 2 })
+
+    expect(plan2.days[0]!.cells[0]!.playerId).toBe("actual")
+    expect(plan1.days[0]!.cells[0]).toMatchObject({
+      playerId: "actual",
+      rosterDropPlayerId: "r0",
+    })
+  })
+
+  it("records a higher-spot swap on a full 1-spot night", () => {
+    const days = ["2026-10-21"]
+    const roster = packedRosterPlayers()
+    const suggested = player("suggested", "POR", {
+      projections: { ...baseProjections(), STL: 400 },
+    })
+    const state = tinyState([...roster, suggested], ["suggested"])
+    state.teams[0]!.entries = packedActiveSlots.map((slot, index) => ({
+      slot,
+      playerId: roster[index]!.id,
+    }))
+    const schedule = tinySchedule(days, [
+      ...packedTeamAbbrs.map((abbr) => ({
+        date: "2026-10-21",
+        homeAbbr: abbr,
+        awayAbbr: "POR",
+      })),
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      today: "2026-10-21",
+      pastActualSwaps: [
+        {
+          date: "2026-10-21",
+          spotIndex: 1,
+          addedPlayerId: "suggested",
+          drop: "r0",
+        },
+      ],
+    })
+
+    expect(plan.addsUsed).toBeGreaterThanOrEqual(1)
+    expect(plan.days[0]!.cells[0]!.playerId).not.toBe("suggested")
+    expect(plan.days[0]!.cells[0]!.rosterDropPlayerId).not.toBe("r0")
+    expect(plan.days[0]!.cells[0]!.droppedPlayerId).not.toBe("r0")
+  })
+
   it("keeps a recorded past drop from being cut again", () => {
     const days = ["2026-10-20", "2026-10-21"]
     const sit = player("sit", "BOS", { positions: ["SG"] })

@@ -6,6 +6,7 @@ import {
   autofillOpenSlotsFromRoster,
   buildDayLineupFromRoster,
   buildLineupDisplayRows,
+  lineupPlayedIds,
   dailyLineupsMatchDays,
   effectiveGamesByPlayerId,
   initDailyLineups,
@@ -1701,6 +1702,32 @@ describe("applyPlayedDayLineups", () => {
     expect(pinned["2025-11-03"]?.every((entry) => entry.playerId === null)).toBe(
       true,
     )
+  })
+
+  it("does not blank the roster when a day has no played ids", () => {
+    const date = "2025-11-04"
+    const locked = lineupPlayedIds({ [date]: [] })
+    expect(locked[date]).toBeUndefined()
+
+    const roster = [
+      { slot: "PG" as const, playerId: "played" },
+      { slot: "SG" as const, playerId: "added" },
+    ]
+    const rows = buildLineupDisplayRows(roster, [], [], {
+      focusDay: date,
+      restrictToDaily: Object.prototype.hasOwnProperty.call(locked, date),
+      schedule,
+      playersById: { played, added },
+      daily: {
+        [date]: [
+          { slot: "PG", playerId: null },
+          { slot: "SG", playerId: null },
+        ],
+      },
+    })
+
+    expect(rows.find((row) => row.slot === "PG")?.playerId).toBe("played")
+    expect(rows.find((row) => row.slot === "SG")?.playerId).toBe("added")
   })
 
   it("does not put the refreshed roster into a closed day's seats", () => {

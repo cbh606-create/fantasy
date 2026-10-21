@@ -131,6 +131,8 @@ export type BuildStreamingPlanInput = {
    * only these records. Omitted = past days keep planner output.
    */
   pastActualSwaps?: readonly PastActualSwap[]
+  /** Same records for the opponent's own plan. Omitted keeps invented past days. */
+  opponentPastActualSwaps?: readonly PastActualSwap[]
   opponentTeamIndex?: number
   /** Skip you adds/holds so opponent streaming uses the same planner on the full FA pool. */
   youIdle?: boolean
@@ -1151,6 +1153,7 @@ const buildOpponentSelfPlan = ({
   waiverPeriodDays,
   winnerStreamRecipes,
   today,
+  pastActualSwaps,
   statWindow,
   statPairs,
   playersById,
@@ -1168,6 +1171,7 @@ const buildOpponentSelfPlan = ({
   waiverPeriodDays?: number;
   winnerStreamRecipes?: WinnerStreamRecipe[];
   today?: string;
+  pastActualSwaps?: readonly PastActualSwap[];
   statWindow?: StatWindow;
   statPairs?: readonly StatPairRow[];
   playersById: Map<string, SeasonPlayer>;
@@ -1212,6 +1216,7 @@ const buildOpponentSelfPlan = ({
       waiverPeriodDays,
       winnerStreamRecipes,
       today: forceDate,
+      pastActualSwaps,
       opponentTeamIndex: state.perspectiveTeamIndex,
       statWindow,
       statPairs,
@@ -1272,6 +1277,7 @@ export const buildStreamingPlan = ({
   waiverPeriodDays: waiverPeriodDaysInput,
   winnerStreamRecipes = [],
   pastActualSwaps,
+  opponentPastActualSwaps,
   today,
   oppSpotCount,
   opponentTeamIndex,
@@ -1408,6 +1414,7 @@ export const buildStreamingPlan = ({
       waiverPeriodDays,
       winnerStreamRecipes,
       today,
+      pastActualSwaps: opponentPastActualSwaps,
       statWindow: inputStatWindow,
       statPairs,
       playersById,
@@ -1715,6 +1722,33 @@ export const buildStreamingPlan = ({
       .filter((day) => countOpenActiveSlots(holeByDate[day] ?? []) > 0)
       .length
     const streamerCap = Math.min(spotCount, holeCount)
+    const recordedSwapFor = (spotIndex: number) =>
+      pastActualSwaps?.find(
+        (item) => item.date === date && item.spotIndex === spotIndex,
+      )
+    const applyRecordedSwap = (
+      spotIndex: number,
+      swap: PastActualSwap | undefined,
+    ) => {
+      const cell = pastActualCell(swap, spotIndex, addsUsed)
+      if (swap?.addedPlayerId) {
+        addsUsed += 1
+        addsBySpot[spotIndex]! += 1
+      }
+      if (swap) recordPastSwap(swap)
+      occupants[spotIndex] = null
+      cells[spotIndex] = cell
+    }
+    const spotHasRecordedSwap = (spotIndex: number) =>
+      Boolean(recordedSwapFor(spotIndex))
+    const recordHigherSpotSwaps = () => {
+      if (!pastActualSwaps) return
+      for (const swap of pastActualSwaps) {
+        if (swap.date !== date || swap.spotIndex < spotCount) continue
+        if (swap.addedPlayerId) addsUsed += 1
+        recordPastSwap(swap)
+      }
+    }
     const rankAllYouCandidates = (
       candidateIds: string[],
       targetWeakCats = weakCats,
@@ -2048,6 +2082,11 @@ export const buildStreamingPlan = ({
       )
     ) {
       for (let spotIndex = 0; spotIndex < spotCount; spotIndex += 1) {
+        const recordedSwap = recordedSwapFor(spotIndex)
+        if (recordedSwap || (pastActualSwaps && today && date < today)) {
+          applyRecordedSwap(spotIndex, recordedSwap)
+          continue
+        }
         if (forcedToday.has(spotIndex)) continue
         const lock = lockForSpotOnDate(spotIndex, date)
         if (lock && date > lock.date && date <= lock.holdUntil) {
@@ -2102,6 +2141,7 @@ export const buildStreamingPlan = ({
           targetCategoryIds: [],
         }
       }
+      recordHigherSpotSwaps()
     } else {
     // Pass 1: keep a 2-in-3 / 3-in-4 add through its off night, then drop
     // when the window is over so the next dense block can start.
@@ -2419,18 +2459,9 @@ export const buildStreamingPlan = ({
       return true
     }
     for (let spotIndex = 0; spotIndex < spotCount; spotIndex++) {
-      if (pastActualSwaps && today && date < today) {
-        const swap = pastActualSwaps.find(
-          (item) => item.date === date && item.spotIndex === spotIndex,
-        )
-        const cell = pastActualCell(swap, spotIndex, addsUsed)
-        if (swap?.addedPlayerId) {
-          addsUsed += 1
-          addsBySpot[spotIndex]! += 1
-        }
-        if (swap) recordPastSwap(swap)
-        occupants[spotIndex] = null
-        cells[spotIndex] = cell
+      const recordedSwap = recordedSwapFor(spotIndex)
+      if (recordedSwap || (pastActualSwaps && today && date < today)) {
+        applyRecordedSwap(spotIndex, recordedSwap)
         continue
       }
       if (forcedToday.has(spotIndex)) continue
@@ -2459,6 +2490,68 @@ export const buildStreamingPlan = ({
       const heldPlaysToday = Boolean(
         held && playsOn(held, date, schedule),
       )
+      if (
+        heldId &&
+        !forceFillForSpot(spotIndex) &&
+        dropProtected(heldId)
+      ) {
+        if (releaseLongWeekEndHold(spotIndex, heldId)) continue
+        if (held && heldPlaysToday) {
+          seatStreamerIfOpen(
+            holeLineup,
+            heldId,
+            date,
+            playersById,
+            schedule,
+          )
+        }
+        occupants[spotIndex] = heldId
+        seatedToday.add(heldId)
+        cells[spotIndex] = {
+          spotIndex,
+          playerId: heldId,
+          action: "hold",
+          droppedPlayerId: null,
+          rosterDropPlayerId: null,
+          rosterDropKind: "none",
+          addIndex: null,
+          alternativePlayerIds: [],
+          targetCategoryIds: [],
+        }
+        continue
+      }
+      if (
+        heldId &&
+        holdUntilBySpot[spotIndex] &&
+        date <= holdUntilBySpot[spotIndex] &&
+        !forceFillForSpot(spotIndex)
+      ) {
+        if (openMultiDayHold(spotIndex, heldId)) continue
+        if (releaseLongWeekEndHold(spotIndex, heldId)) continue
+        if (held && heldPlaysToday) {
+          seatStreamerIfOpen(
+            holeLineup,
+            heldId,
+            date,
+            playersById,
+            schedule,
+          )
+        }
+        occupants[spotIndex] = heldId
+        seatedToday.add(heldId)
+        cells[spotIndex] = {
+          spotIndex,
+          playerId: heldId,
+          action: "hold",
+          droppedPlayerId: null,
+          rosterDropPlayerId: null,
+          rosterDropKind: "none",
+          addIndex: null,
+          alternativePlayerIds: [],
+          targetCategoryIds: [],
+        }
+        continue
+      }
       if (
         heldId &&
         !forceFillForSpot(spotIndex) &&
@@ -2597,15 +2690,13 @@ export const buildStreamingPlan = ({
     }
 
     if (pastActualSwaps && today && date < today) {
-      for (const swap of pastActualSwaps) {
-        if (swap.date !== date || swap.spotIndex < spotCount) continue
-        if (swap.addedPlayerId) addsUsed += 1
-        recordPastSwap(swap)
-      }
+      recordHigherSpotSwaps()
       const dayCells = cells.map((cell) => cell!)
       days.push({ date, cells: dayCells })
       continue
     }
+
+    recordHigherSpotSwaps()
 
     // Prefer spots that have used fewer adds so churn stays even across spots.
     needFill.sort((left, right) => {
@@ -3820,6 +3911,7 @@ export const buildStreamingPlan = ({
             (_, index) => index,
           )
             .filter((spotIndex) => {
+              if (spotHasRecordedSwap(spotIndex)) return false
               if (lockForSpotOnDate(spotIndex, date)) return false
               if (forcedToday.has(spotIndex)) return false
               if (
@@ -3950,6 +4042,7 @@ export const buildStreamingPlan = ({
         waiverPeriodDays,
         winnerStreamRecipes,
         today,
+        pastActualSwaps: opponentPastActualSwaps,
         statWindow: inputStatWindow,
         statPairs,
         playersById,

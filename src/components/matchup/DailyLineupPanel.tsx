@@ -121,6 +121,9 @@ export const DailyLineupPanel = ({
         return onRoster || previewIds.has(entry.playerId) ? [] : [entry.playerId]
       })
     : []
+  const focusDayHasSeat = (daily[activeFocusDay] ?? []).some((entry) =>
+    Boolean(entry.playerId),
+  )
   const slotRows = buildLineupDisplayRows(
     rosterEntries,
     [...previewIds, ...recordedExtraIds],
@@ -130,7 +133,7 @@ export const DailyLineupPanel = ({
       schedule,
       playersById: Object.fromEntries(playersById),
       daily,
-      restrictToDaily: closedDateSet.has(activeFocusDay),
+      restrictToDaily: closedDateSet.has(activeFocusDay) && focusDayHasSeat,
     },
   )
   const dayColClassName = (day: string, extras: string) =>

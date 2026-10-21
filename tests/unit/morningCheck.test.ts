@@ -196,6 +196,47 @@ describe("closeFinishedDays", () => {
     expect(rows[1]?.youPlayedIds).toEqual([])
   })
 
+  it("keeps a saved line when a later box has no stats", () => {
+    const closed = closeFinishedDays({
+      matchupDays: ["2026-10-20"],
+      previousClosed: [
+        {
+          date: "2026-10-20",
+          youStartableIds: ["a"],
+          oppStartableIds: ["c"],
+          youActual: { ...zero, PTS: 18 },
+          oppActual: { ...zero, PTS: 12 },
+          youPlayedIds: ["a"],
+          oppPlayedIds: ["c"],
+          youShooting: { FGM: 7, FGA: 14, FTM: 2, FTA: 2 },
+          oppShooting: { FGM: 4, FGA: 10, FTM: 2, FTA: 2 },
+        },
+      ],
+      actualsByDate: new Map([
+        [
+          "2026-10-20",
+          {
+            date: "2026-10-20",
+            you: zero,
+            opp: zero,
+            youPlayedIds: [],
+            oppPlayedIds: [],
+            youShooting: { FGM: 0, FGA: 0, FTM: 0, FTA: 0 },
+            oppShooting: { FGM: 0, FGA: 0, FTM: 0, FTA: 0 },
+          },
+        ],
+      ]),
+      schedule: schedule(),
+      youEntries,
+      oppEntries,
+      playersById,
+    })
+    expect(closed.closedDays[0]?.youStartableIds).toEqual(["a"])
+    expect(closed.closedDays[0]?.youActual.PTS).toBe(18)
+    expect(closed.closedDays[0]?.youPlayedIds).toEqual(["a"])
+    expect(closed.closedDays[0]?.youShooting.FGM).toBe(7)
+  })
+
   it("fills projections for days that have not closed", () => {
     const openSchedule = schedule()
     openSchedule.games.push({

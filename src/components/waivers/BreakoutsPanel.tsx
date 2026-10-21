@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { PlayerAvatar } from "@/components/draft/PlayerAvatar"
 import {
-  formatBreakoutEvidence,
-  type BreakoutEvidence,
-  type BreakoutReason,
+  formatBreakoutLast7,
+  type BreakoutLast7,
 } from "@/lib/injuries/breakout"
 import type { SeasonPlayer } from "@/lib/season/types"
 
@@ -15,15 +15,18 @@ type BreakoutsPanelProps = {
   onSelectAdd: (playerId: string) => void
 }
 
+type BreakoutRow = {
+  playerId: string
+  last7?: BreakoutLast7 | null
+}
+
 export const BreakoutsPanel = ({
   leagueId,
   playersById,
   selectedAddId,
   onSelectAdd,
 }: BreakoutsPanelProps) => {
-  const [rows, setRows] = useState<
-    Array<{ playerId: string; reasons: BreakoutReason[]; evidence?: BreakoutEvidence }>
-  >([])
+  const [rows, setRows] = useState<BreakoutRow[]>([])
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -41,11 +44,7 @@ export const BreakoutsPanel = ({
         )
         if (!response.ok) throw new Error("Unable to load breakouts")
         const payload = (await response.json()) as {
-          recommendations?: Array<{
-            playerId: string
-            reasons: BreakoutReason[]
-            evidence?: BreakoutEvidence
-          }>
+          recommendations?: BreakoutRow[]
         }
         setRows(payload.recommendations ?? [])
       } catch (requestError) {
@@ -67,6 +66,10 @@ export const BreakoutsPanel = ({
     return [{ ...row, name: player.name }]
   })
 
+  const handleSelectAdd = (playerId: string) => {
+    onSelectAdd(playerId)
+  }
+
   return (
     <section className="rounded-3xl bg-[var(--color-soft-cloud)] p-5">
       <p className="text-xs tracking-[0.14em] text-[var(--color-mute)] uppercase">Role</p>
@@ -86,24 +89,25 @@ export const BreakoutsPanel = ({
         <ul aria-label="Breakouts" className="mt-4 divide-y divide-[var(--color-hairline)] border-y border-[var(--color-hairline)]">
           {visible.map((row) => {
             const isSelected = selectedAddId === row.playerId
-            const evidence = row.evidence ? formatBreakoutEvidence(row.evidence) : ""
-            const label = evidence
-              ? `Add ${row.name}, ${row.reasons.join(", ")}, ${evidence}`
-              : `Add ${row.name}, ${row.reasons.join(", ")}`
+            const record = formatBreakoutLast7(row.last7 ?? null)
             return (
               <li key={row.playerId}>
                 <button
-                  aria-label={label}
+                  aria-label={`${row.name}, ${record}`}
                   aria-pressed={isSelected}
-                  className={`w-full px-3 py-3 text-left text-[0.8125rem] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${isSelected ? "bg-white" : "hover:bg-white"}`}
-                  onClick={() => onSelectAdd(row.playerId)}
+                  className={`flex w-full flex-col px-3 py-3 text-left text-[0.8125rem] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${isSelected ? "bg-white" : "hover:bg-white"}`}
+                  onClick={() => handleSelectAdd(row.playerId)}
                   type="button"
                 >
-                  <span className="font-semibold">{row.name}</span>
-                  <span className="mt-1 block text-xs text-[var(--color-info)]">{row.reasons.join(", ")}</span>
-                  {evidence ? (
-                    <span className="mt-1 block text-xs text-[var(--color-mute)]">{evidence}</span>
-                  ) : null}
+                  <span className="flex items-center gap-3">
+                    <PlayerAvatar
+                      nameShown
+                      player={{ id: row.playerId, name: row.name }}
+                      size="md"
+                    />
+                    <span className="truncate font-semibold">{row.name}</span>
+                  </span>
+                  <span className="mt-1 block whitespace-nowrap text-xs tabular-nums text-[var(--color-mute)]">{record}</span>
                 </button>
               </li>
             )

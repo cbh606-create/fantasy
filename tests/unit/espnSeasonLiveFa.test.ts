@@ -125,4 +125,36 @@ describe("fetchEspnSeasonLeague free agents", () => {
       expect.stringContaining("FA unavailable"),
     )
   })
+
+  it("refetches the roster for the current scoring period", async () => {
+    const opening = structuredClone(rosterSample)
+    const current = structuredClone(rosterSample)
+    current.status = { currentScoringPeriod: 18 }
+    opening.status = { currentScoringPeriod: 18 }
+    const guard = current.teams[0]?.roster?.entries?.[0]?.playerPoolEntry?.player
+    if (!guard) throw new Error("fixture roster entry missing")
+    guard.fullName = "Current Guard"
+    guard.id = 777
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(opening))
+      .mockResolvedValueOnce(jsonResponse(current))
+      .mockResolvedValueOnce(jsonResponse({ players: [] }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    const state = await fetchEspnSeasonLeague(params)
+
+    const [firstUrl] = fetchMock.mock.calls[0] as [URL]
+    const [secondUrl] = fetchMock.mock.calls[1] as [URL]
+    expect(firstUrl.searchParams.get("scoringPeriodId")).toBeNull()
+    expect(secondUrl.searchParams.get("scoringPeriodId")).toBe("18")
+    expect(secondUrl.searchParams.getAll("view")).toEqual([
+      "mTeam",
+      "mRoster",
+      "mSettings",
+    ])
+    expect(state.players.map((player) => player.name)).toContain("Current Guard")
+    expect(state.players.map((player) => player.name)).not.toContain("Opp Guard")
+  })
 })

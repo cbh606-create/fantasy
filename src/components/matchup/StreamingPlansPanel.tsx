@@ -60,8 +60,11 @@ import {
 import { isAdpProtected } from "@/lib/matchup/streamingDropPolicy"
 import {
   clearPastActualSpot,
+  pastActualCell,
+  readOpponentPastActualSwaps,
   readPastActualSwaps,
   upsertPastActualSwap,
+  writeOpponentPastActualSwaps,
   writePastActualSwaps,
   type PastActualSwap,
 } from "@/lib/matchup/pastActualSwaps"
@@ -136,6 +139,8 @@ type StreamingPlansPanelProps = {
   daily?: DailyLineups
   winnerStreamRecipes?: WinnerStreamRecipe[]
   today?: string
+  activityPastSwaps?: PastActualSwap[]
+  activityOpponentPastSwaps?: PastActualSwap[]
   statWindow?: StatWindow
   statPairs?: StatPairRow[]
   puntSeedReady?: boolean
@@ -250,6 +255,7 @@ const DropCell = ({
   today,
   forcedDropValue,
   recordingPast,
+  spotLocked = false,
 }: {
   cell: StreamingPlanDayCell | undefined
   date: string
@@ -264,6 +270,7 @@ const DropCell = ({
   today: string
   forcedDropValue: ForcedRosterDropValue
   recordingPast: boolean
+  spotLocked?: boolean
 }) => {
   const [lazyOptions, setLazyOptions] = useState<
     { value: string; label: string }[] | null
@@ -294,7 +301,7 @@ const DropCell = ({
     onStaleIrReset(key)
   }, [date, irOptions, key, onStaleIrReset, today, value])
 
-  if (isPastStreamingDate(date, today) && !recordingPast) {
+  if (spotLocked || (isPastStreamingDate(date, today) && !recordingPast)) {
     return (
       <span className="text-[var(--color-mute)]">
         {dropPlanLabel(cell, playersById)}
@@ -418,6 +425,7 @@ const AddCell = ({
   onHoldThrough,
   selectEpoch = 0,
   recordingPast,
+  spotLocked = false,
 }: {
   cell: StreamingPlanDayCell | undefined
   date: string
@@ -435,11 +443,13 @@ const AddCell = ({
   onHoldThrough?: () => void
   selectEpoch?: number
   recordingPast: boolean
+  spotLocked?: boolean
 }) => {
   const selectValue = cell?.playerId ?? ""
-  const shownPlayerId = isPastStreamingDate(date, today)
-    ? (cell?.playerId ?? null)
-    : (cell?.playerId ?? displayPlayerId)
+  const shownPlayerId =
+    spotLocked || isPastStreamingDate(date, today)
+      ? (cell?.playerId ?? null)
+      : (cell?.playerId ?? displayPlayerId)
   const seated = shownPlayerId ? playersById[shownPlayerId] : undefined
   const hasGame = playerPlaysOn(seated, date, schedule)
   const shownName = shownPlayerId
@@ -464,7 +474,7 @@ const AddCell = ({
     </span>
   ) : null
 
-  if (isPastStreamingDate(date, today) && !recordingPast) {
+  if (spotLocked || (isPastStreamingDate(date, today) && !recordingPast)) {
     if (!shownPlayerId) {
       return (
         <>
@@ -648,6 +658,8 @@ export const StreamingPlansPanel = ({
   daily,
   winnerStreamRecipes = EMPTY_WINNER_STREAM_RECIPES,
   today = localIsoDate(),
+  activityPastSwaps,
+  activityOpponentPastSwaps,
   statWindow,
   statPairs = EMPTY_STAT_PAIRS,
   puntSeedReady = true,
@@ -721,15 +733,40 @@ export const StreamingPlansPanel = ({
   const [pastActualSwaps, setPastActualSwaps] = useState<PastActualSwap[]>(
     () => readPastActualSwaps(leagueId, matchupStart),
   )
+  const [opponentPastActualSwaps, setOpponentPastActualSwaps] = useState<
+    PastActualSwap[]
+  >(() => readOpponentPastActualSwaps(leagueId, matchupStart))
   const [recording, setRecording] = useState<RecordingPast>(null)
   const pastSwapsKey = `${leagueId}:${matchupStart}`
   const loadedPastSwapsKeyRef = useRef(pastSwapsKey)
+  const appliedActivityKeyRef = useRef<string | null>(null)
   useEffect(() => {
     if (loadedPastSwapsKeyRef.current === pastSwapsKey) return
     loadedPastSwapsKeyRef.current = pastSwapsKey
+    appliedActivityKeyRef.current = null
     setPastActualSwaps(readPastActualSwaps(leagueId, matchupStart))
+    setOpponentPastActualSwaps(readOpponentPastActualSwaps(leagueId, matchupStart))
     setRecording(null)
   }, [leagueId, matchupStart, pastSwapsKey])
+  useEffect(() => {
+    if (!activityPastSwaps || !activityOpponentPastSwaps) return
+    const key = JSON.stringify([activityPastSwaps, activityOpponentPastSwaps])
+    if (appliedActivityKeyRef.current === key) return
+    appliedActivityKeyRef.current = key
+    setPastActualSwaps(activityPastSwaps)
+    setOpponentPastActualSwaps(activityOpponentPastSwaps)
+    writePastActualSwaps(leagueId, matchupStart, activityPastSwaps)
+    writeOpponentPastActualSwaps(
+      leagueId,
+      matchupStart,
+      activityOpponentPastSwaps,
+    )
+  }, [
+    activityOpponentPastSwaps,
+    activityPastSwaps,
+    leagueId,
+    matchupStart,
+  ])
   const matchupDaysKey = schedule.matchup.days.join()
 
   useEffect(() => {
@@ -814,6 +851,7 @@ export const StreamingPlansPanel = ({
     statPairs,
     droppablePlayerIds,
     pastActualSwaps,
+    opponentPastActualSwaps,
   }
 
   const plan1Base = useMemo(
@@ -843,6 +881,7 @@ export const StreamingPlansPanel = ({
       statPairs,
       droppableKey,
       pastActualSwaps,
+      opponentPastActualSwaps,
     ],
   )
 
@@ -872,6 +911,7 @@ export const StreamingPlansPanel = ({
       statPairs,
       droppableKey,
       pastActualSwaps,
+      opponentPastActualSwaps,
     ],
   )
 
@@ -901,6 +941,7 @@ export const StreamingPlansPanel = ({
       statPairs,
       droppableKey,
       pastActualSwaps,
+      opponentPastActualSwaps,
     ],
   )
 
@@ -1512,6 +1553,10 @@ export const StreamingPlansPanel = ({
                                   ? playerName(streamerPlayerId, resolvedPlayers)
                                   : null
                                 const cell = cellFor(plan, date, spotIndex)
+                                const recordedSwap = storedPastSwap(date, spotIndex)
+                                const shownCell = recordedSwap
+                                  ? pastActualCell(recordedSwap, spotIndex, 0)
+                                  : cell
                                 const displayPlayerId = carryForwardStreamerId(
                                   plan.days,
                                   date,
@@ -1561,7 +1606,7 @@ export const StreamingPlansPanel = ({
                                     <AddCell
                                       allPlayers={state.players}
                                       availableIds={availableIds}
-                                      cell={cell}
+                                      cell={shownCell}
                                       chaseNote={plan.chaseNote}
                                       date={date}
                                       displayPlayerId={displayPlayerId}
@@ -1605,6 +1650,7 @@ export const StreamingPlansPanel = ({
                                         recording.date === date
                                       }
                                       schedule={schedule}
+                                      spotLocked={recordedSwap !== undefined}
                                       today={today}
                                     />
                                   </td>
@@ -1624,6 +1670,13 @@ export const StreamingPlansPanel = ({
                               </th>
                               {dates.map((date) => {
                                 const cell = cellFor(plan, date, spotIndex)
+                                const recordedSwap = storedPastSwap(
+                                  date,
+                                  spotIndex,
+                                )
+                                const shownCell = recordedSwap
+                                  ? pastActualCell(recordedSwap, spotIndex, 0)
+                                  : cell
 
                                 return (
                                   <td
@@ -1631,7 +1684,7 @@ export const StreamingPlansPanel = ({
                                     key={`${date}-drop-${spotIndex}`}
                                   >
                                     <DropCell
-                                      cell={cell}
+                                      cell={shownCell}
                                       date={date}
                                       forcedDropValue={
                                         date < today
@@ -1670,6 +1723,7 @@ export const StreamingPlansPanel = ({
                                         recording.date === date
                                       }
                                       rosterEntries={rosterEntries}
+                                      spotLocked={recordedSwap !== undefined}
                                       schedule={schedule}
                                       spotIndex={spotIndex}
                                       today={today}

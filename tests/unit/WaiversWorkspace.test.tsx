@@ -193,13 +193,20 @@ describe("WaiversWorkspace", () => {
               {
                 playerId: "fa-1",
                 reasons: ["rates", "lineup"],
-                evidence: {
+                last7: {
                   games: 3,
-                  baselineMinutes: 28,
-                  seasonMinutes: 36,
-                  baseline: "prior",
-                  zHeld: false,
-                  attempts: "down",
+                  minutesPerGame: 32.4,
+                  rates: {
+                    FG_PCT: 0.48,
+                    FT_PCT: 0.8,
+                    TPM: 2.1,
+                    REB: 4.2,
+                    AST: 3.5,
+                    STL: 1.1,
+                    BLK: 0.4,
+                    TO: 1.6,
+                    PTS: 18.2,
+                  },
                 },
               },
             ],
@@ -407,9 +414,11 @@ describe("WaiversWorkspace", () => {
     expect(screen.getAllByRole("heading", { name: "Season needs" })).toHaveLength(1)
 
     const button = screen.getByRole("button", {
-      name: "Add Free Agent Guard, rates, lineup, 28.0 → 36.0 mpg · 3 GP · z down · FGA down",
+      name: "Free Agent Guard, 18.2 PTS · 4.2 REB · 3.5 AST · 2.1 3PM",
     })
-    expect(screen.getByText("28.0 → 36.0 mpg · 3 GP · z down · FGA down")).toBeInTheDocument()
+    expect(screen.getByText("FG", { selector: "span" })).toBeInTheDocument()
+    expect(screen.queryByText("rates, lineup")).not.toBeInTheDocument()
+    expect(screen.queryByText(/mpg/)).not.toBeInTheDocument()
     fireEvent.click(button)
     expect(button).toHaveAttribute("aria-pressed", "true")
     expect(screen.getByRole("button", { name: "Add Free Agent Guard" })).toBeInTheDocument()

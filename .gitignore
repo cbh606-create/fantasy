@@ -54,3 +54,6 @@ next-env.d.ts
 /playwright-report/
 
 .logs/
+
+token code.txt
+API Keys.txt

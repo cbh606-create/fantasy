@@ -53,9 +53,12 @@ export const GET = async (
   const effectiveState = await overlaySeasonProjections(
     applyLocalLineup(state, localLineup),
   )
+  const lastSyncedAt = league.lastSyncedAt?.toISOString()
 
   return NextResponse.json({
-    state: effectiveState,
+    state: lastSyncedAt
+      ? { ...effectiveState, lastSyncedAt }
+      : effectiveState,
     analysis: analyzeSeasonLeague(effectiveState),
   })
 }
