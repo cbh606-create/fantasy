@@ -1689,6 +1689,23 @@ export const buildStreamingPlan = ({
         }
       }
     }
+    const recordPastSwap = (swap: PastActualSwap) => {
+      workingDaily = applyPastSwapToDaily(
+        workingDaily,
+        swap,
+        date,
+        schedule.matchup.days,
+      )
+      const parkedId = parkedPlayerIdFromDropValue(swap.drop)
+      if (parkedId) {
+        irParkedPlayerIds.add(parkedId)
+        clearParkedFromLaterDays(parkedId)
+      } else if (swap.drop !== "hold" && swap.drop !== "open_slot") {
+        weekDroppedPlayers.add(swap.drop)
+        markDropped(swap.drop, date)
+      }
+      if (swap.addedPlayerId) rosteredStreamerIds.add(swap.addedPlayerId)
+    }
     const holeCount = countOpenActiveSlots(holeLineup)
     const remainingHoleDays = schedule.matchup.days
       .slice(dayIndex)
@@ -2408,14 +2425,7 @@ export const buildStreamingPlan = ({
           addsUsed += 1
           addsBySpot[spotIndex]! += 1
         }
-        if (swap) {
-          workingDaily = applyPastSwapToDaily(
-            workingDaily,
-            swap,
-            date,
-            schedule.matchup.days,
-          )
-        }
+        if (swap) recordPastSwap(swap)
         occupants[spotIndex] = null
         cells[spotIndex] = cell
         continue
@@ -2587,12 +2597,7 @@ export const buildStreamingPlan = ({
       for (const swap of pastActualSwaps) {
         if (swap.date !== date || swap.spotIndex < spotCount) continue
         if (swap.addedPlayerId) addsUsed += 1
-        workingDaily = applyPastSwapToDaily(
-          workingDaily,
-          swap,
-          date,
-          schedule.matchup.days,
-        )
+        recordPastSwap(swap)
       }
       const dayCells = cells.map((cell) => cell!)
       days.push({ date, cells: dayCells })

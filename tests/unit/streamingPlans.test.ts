@@ -455,6 +455,46 @@ describe("buildStreamingPlan", () => {
     expect(recorded.addsUsed).toBeGreaterThanOrEqual(1)
   })
 
+  it("keeps a recorded past drop from being cut again", () => {
+    const days = ["2026-10-20", "2026-10-21"]
+    const sit = player("sit", "BOS", { positions: ["SG"] })
+    const add = player("fa-add", "NYK", {
+      positions: ["SG"],
+      projections: { ...baseProjections(), STL: 200 },
+    })
+    const state = tinyState([sit, add], ["fa-add"])
+    state.teams[0]!.entries = [{ slot: "SG", playerId: "sit" }]
+    const schedule = tinySchedule(days, [
+      { date: "2026-10-20", homeAbbr: "BOS", awayAbbr: "CHI" },
+      { date: "2026-10-21", homeAbbr: "NYK", awayAbbr: "CHI" },
+    ])
+    const plan = buildStreamingPlan({
+      spotCount: 1,
+      state,
+      schedule,
+      board: emptyBoardLosingStl(),
+      addLimit: 4,
+      today: "2026-10-21",
+      pastActualSwaps: [
+        {
+          date: "2026-10-20",
+          spotIndex: 0,
+          addedPlayerId: null,
+          drop: "sit",
+        },
+      ],
+    })
+
+    expect(plan.days[0]!.cells[0]).toMatchObject({
+      playerId: null,
+      action: "empty",
+      droppedPlayerId: "sit",
+      rosterDropPlayerId: "sit",
+      rosterDropKind: "player",
+    })
+    expect(plan.days[1]!.cells[0]!.rosterDropPlayerId).not.toBe("sit")
+  })
+
   it("counts a past swap stored on a higher spot", () => {
     const days = ["2026-10-20", "2026-10-21"]
     const sit = player("sit", "BOS", { positions: ["SG"] })
