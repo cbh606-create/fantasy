@@ -255,6 +255,26 @@ describe("initDailyLineups", () => {
 })
 
 describe("effectiveGamesByPlayerId", () => {
+  it("does not count a player parked on IL", () => {
+    const daily: DailyLineups = {
+      "2025-11-03": [
+        { slot: "UTIL", playerId: null },
+        { slot: "IL", playerId: "star" },
+      ],
+    }
+    const games = effectiveGamesByPlayerId(daily, [star], schedule)
+    const projected = projectLineupDay(
+      daily["2025-11-03"],
+      [star],
+      "2025-11-03",
+      schedule,
+    )
+
+    expect(games.get("star") ?? 0).toBe(0)
+    expect(projected.games).toBe(0)
+    expect(projected.totals.PTS).toBe(0)
+  })
+
   it("counts only days the player starts and has a game", () => {
     let daily = initDailyLineups(schedule.matchup.days, activeEntries)
     // Sit star on first BOS game day

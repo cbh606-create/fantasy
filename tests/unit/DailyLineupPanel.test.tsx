@@ -355,6 +355,48 @@ describe("DailyLineupPanel preview overlay", () => {
   })
 })
 
+describe("DailyLineupPanel IR hold", () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it("disables game days from the hold date and leaves them out of the games count", () => {
+    const onTogglePlayerDay = vi.fn()
+    render(
+      <DailyLineupPanel
+        daily={daily}
+        days={days}
+        irHeldFromByPlayerId={{ "you-1": "2025-11-04" }}
+        onReset={vi.fn()}
+        onTogglePlayerDay={onTogglePlayerDay}
+        rosterEntries={[{ slot: "PG", playerId: "you-1" }]}
+        rosterPlayers={[rostered]}
+        schedule={schedule}
+      />,
+    )
+
+    const held = screen.getByLabelText(
+      `Roster Cut IR hold ${formatMatchupDayLabel("2025-11-04")}`,
+    )
+    expect(held).toBeDisabled()
+    expect(held).toHaveTextContent("v MIA")
+    expect(held.className).toMatch(/opacity-80/)
+    fireEvent.click(held)
+    expect(onTogglePlayerDay).not.toHaveBeenCalled()
+    expect(
+      screen.queryByLabelText(
+        `Roster Cut IR hold ${formatMatchupDayLabel("2025-11-03")}`,
+      ),
+    ).toBeNull()
+    expect(
+      screen.getByLabelText(`1 games ${formatMatchupDayLabel("2025-11-03")}`),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByLabelText(`0 games ${formatMatchupDayLabel("2025-11-04")}`),
+    ).toBeInTheDocument()
+  })
+})
+
 describe("DailyLineupPanel IL game cells", () => {
   afterEach(() => {
     cleanup()

@@ -7,7 +7,7 @@ import type {
   SeasonSlot,
 } from "@/lib/season/types"
 import { buildMatchupBoard } from "./board"
-import { isActiveSlot, MATCHUP_CATEGORY_SIGMOID_SCALE, STREAMING_PROTECTED_ADP_MAX, SURPLUS_WIN_PROB } from "./constants"
+import { MATCHUP_CATEGORY_SIGMOID_SCALE, STREAMING_PROTECTED_ADP_MAX, SURPLUS_WIN_PROB } from "./constants"
 import { streamingAddLimitForSchedule } from "./games"
 import {
   filterStreamAddPool,
@@ -93,7 +93,10 @@ import {
   holeWindowTier,
   nextHoleStartDate,
 } from "./streamingHoleCalendar"
-import { applyStreamingPlanPreview } from "./applyStreamingPlanPreview"
+import {
+  applyStreamingPlanPreview,
+  samePlayerId,
+} from "./applyStreamingPlanPreview"
 import {
   applyPastSwapToDaily,
   pastActualCell,
@@ -1005,20 +1008,33 @@ const isValidIrPark = (
   alreadyDropped: Set<string>,
   earlierParkedIds: Set<string>,
 ): boolean => {
+  void date
+  void schedule
   const parked = playersById.get(parkedId)
   if (!parked) return false
   if (alreadyDropped.has(parkedId) || earlierParkedIds.size > 0) return false
   const irOccupied = entries.some(
     (entry) => entry.slot === "IL" && entry.playerId != null,
   )
-  const onActiveRoster = entries.some(
-    (entry) => isActiveSlot(entry.slot) && entry.playerId === parkedId,
+  const onParkableRoster = entries.some(
+    (entry) => entry.slot !== "IL" && entry.playerId === parkedId,
   )
-  return (
-    !irOccupied &&
-    onActiveRoster &&
-    !playerHasGameOnDate(parked, date, schedule)
-  )
+  return !irOccupied && onParkableRoster
+}
+
+const dailyWithoutParkedPlayer = (
+  daily: DailyLineups,
+  date: string,
+  parkedId: string,
+): DailyLineups => {
+  const entries = daily[date]
+  if (!entries?.some((entry) => entry.playerId === parkedId)) return daily
+  return {
+    ...daily,
+    [date]: entries.map((entry) =>
+      entry.playerId === parkedId ? { ...entry, playerId: null } : entry,
+    ),
+  }
 }
 
 type IrParkSeat = { date: string; seatIndex: number; seatSlot: SeasonSlot }
@@ -1221,6 +1237,18 @@ const buildOpponentSelfPlan = ({
       statWindow,
       statPairs,
     })
+    if (pastActualSwaps) {
+      for (const swap of pastActualSwaps) {
+        if (swap.spotIndex < spots) continue
+        const day = inner.days.find((item) => item.date === swap.date)
+        if (!day) continue
+        if (day.cells.some((cell) => cell.spotIndex === swap.spotIndex)) continue
+        day.cells.push(pastActualCell(swap, swap.spotIndex, 0))
+      }
+      for (const day of inner.days) {
+        day.cells.sort((left, right) => left.spotIndex - right.spotIndex)
+      }
+    }
     const daily = applyStreamingPlanPreview(
       initDailyLineups(
         schedule.matchup.days,
@@ -1261,6 +1289,42 @@ const buildOpponentSelfPlan = ({
     }
   }
   return { days, daily }
+}
+
+/**
+ * When a spot adds someone new, name the previous add as the drop.
+ * Pass roster ids to do this only for a previous add who is still on the
+ * roster. Free-agent holds keep their own drop cell.
+ */
+export const labelSpotReplacements = (
+  days: StreamingPlanDay[],
+  rosterPlayerIds?: ReadonlySet<string>,
+): void => {
+  const onRoster = (playerId: string) =>
+    !rosterPlayerIds ||
+    [...rosterPlayerIds].some((id) => samePlayerId(id, playerId))
+  const previousAddBySpot: (string | null)[] = []
+  for (const day of days) {
+    for (const cell of day.cells) {
+      const added =
+        cell.playerId &&
+        (cell.action === "add" || cell.action === "drop_add")
+          ? cell.playerId
+          : null
+      if (!added) continue
+      const previous = previousAddBySpot[cell.spotIndex] ?? null
+      if (
+        previous &&
+        onRoster(previous) &&
+        !cell.droppedPlayerId &&
+        !samePlayerId(previous, added)
+      ) {
+        cell.droppedPlayerId = previous
+        cell.action = "drop_add"
+      }
+      previousAddBySpot[cell.spotIndex] = added
+    }
+  }
 }
 
 export const buildStreamingPlan = ({
@@ -2000,10 +2064,13 @@ export const buildStreamingPlan = ({
           rosterDropKind = "player"
         }
       }
-      const seatForced = (nextDrop: StreamerMoveDrop) =>
+      const seatForced = (
+        nextDrop: StreamerMoveDrop,
+        daily: DailyLineups = workingDaily,
+      ) =>
         pickBestStreamerMove(
           [lock.playerId],
-          workingDaily,
+          daily,
           date,
           nextDrop,
           state.players,
@@ -2012,7 +2079,12 @@ export const buildStreamingPlan = ({
           isCompatibleAlternative,
           { ...ourPickOptions(false), allowFlexSlots: true },
         )
-      let moved = seatForced(drop)
+      let moved = seatForced(
+        drop,
+        parkedId && rosterDropKind === "ir"
+          ? dailyWithoutParkedPlayer(workingDaily, date, parkedId)
+          : workingDaily,
+      )
       if (!moved && rosterDropKind !== "ir") {
         const exceptId = drop.kind === "player" ? drop.playerId : null
         const eligibleSlots = new Set(
@@ -2923,14 +2995,15 @@ export const buildStreamingPlan = ({
         const tryMove = (
           drop: StreamerMoveDrop,
           requirePositiveDelta: boolean,
+          daily: DailyLineups = workingDaily,
         ) => {
           const skipBecauseFull =
             drop.kind === "none" &&
-            isDailyLineupFullForDate(workingDaily, date, playersById, schedule)
+            isDailyLineupFullForDate(daily, date, playersById, schedule)
           if (addableIds.length === 0 || skipBecauseFull) return null
           return pickBestStreamerMove(
             addableIds,
-            workingDaily,
+            daily,
             date,
             drop,
             state.players,
@@ -3054,7 +3127,11 @@ export const buildStreamingPlan = ({
             )
           ) {
             rosterDrop = { kind: "ir", playerId: parkedId, didProtect: false }
-            picked = tryMove({ kind: "none", playerId: null }, false)
+            picked = tryMove(
+              { kind: "none", playerId: null },
+              false,
+              dailyWithoutParkedPlayer(workingDaily, date, parkedId),
+            )
             if (!picked) {
               action = "hold"
               playerId = previousId
@@ -4091,6 +4168,13 @@ export const buildStreamingPlan = ({
 
     days.push({ date, cells: dayCells })
   }
+
+    const rosteredIds = new Set(
+      (youTeam?.entries ?? []).flatMap((entry) =>
+        entry.slot !== "IL" && entry.playerId ? [entry.playerId] : [],
+      ),
+    )
+    labelSpotReplacements(days, rosteredIds)
 
   if (oppSpotCount && oppTeam) {
     const takenByYou = new Set(

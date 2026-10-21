@@ -54,6 +54,7 @@ import {
 import { planningMatchupBoard } from "@/lib/matchup/streamerMove"
 import {
   applyStreamingPlanPreview,
+  clearStreamDropsFromDaily,
   previewOpponentStreamerIds,
   previewSeatKey,
   streamerActiveDatesByPlayerId,
@@ -299,6 +300,26 @@ const previewDroppedFromDateByPlayerId = (
       }
     }
   }
+  return fromById
+}
+
+/** Earliest plan date a roster player is held on IR. */
+const previewIrHeldFromDateByPlayerId = (
+  plan: StreamingPlan | null,
+): Record<string, string> => {
+  const fromById: Record<string, string> = {}
+  if (!plan) return fromById
+
+  for (const day of plan.days) {
+    for (const cell of day.cells) {
+      if (cell.rosterDropKind !== "ir" || !cell.rosterDropPlayerId) continue
+      const previous = fromById[cell.rosterDropPlayerId]
+      if (!previous || day.date < previous) {
+        fromById[cell.rosterDropPlayerId] = day.date
+      }
+    }
+  }
+
   return fromById
 }
 
@@ -1402,13 +1423,16 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
       )
     : null
   const recordedOpponentDaily = opponentLineupBase
-    ? applyOpponentSeatOverrides(
-        opponentLineupBase,
-        oppSeatOverrides,
-        playersMap,
-        rosterSlots,
-        matchupData.schedule,
-        oppClosedDateSet,
+    ? clearStreamDropsFromDaily(
+        applyOpponentSeatOverrides(
+          opponentLineupBase,
+          oppSeatOverrides,
+          playersMap,
+          rosterSlots,
+          matchupData.schedule,
+          oppClosedDateSet,
+        ),
+        displayOppPlan?.opponentDays ?? [],
       )
     : null
 
@@ -1771,6 +1795,9 @@ export const MatchupWorkspace = ({ leagueId }: MatchupWorkspaceProps) => {
               daily={recordedDaily}
               days={matchupData.schedule.matchup.days}
               droppedFromDateByPlayerId={previewDroppedFromDateByPlayerId(
+                previewPlan,
+              )}
+              irHeldFromByPlayerId={previewIrHeldFromDateByPlayerId(
                 previewPlan,
               )}
               extraPlayers={extraPlayers}

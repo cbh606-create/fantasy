@@ -209,6 +209,68 @@ describe("weeklyPlayerStats", () => {
     expect(weekly.projections.FG_PCT).toBeCloseTo(7 / 15)
   })
 
+  it("uses season-to-date per-game actuals for Season", () => {
+    const player: SeasonPlayer = {
+      id: "a",
+      name: "A",
+      projections: {
+        FG_PCT: 0.5,
+        FT_PCT: 0.8,
+        TPM: 82,
+        REB: 0,
+        AST: 0,
+        STL: 0,
+        BLK: 0,
+        TO: 0,
+        PTS: 1640,
+      },
+      shooting: { FGM: 820, FGA: 1640, FTM: 164, FTA: 205 },
+      seasonRates: {
+        gamesPlayed: 4,
+        projections: {
+          FG_PCT: 0.48,
+          FT_PCT: 0.9,
+          TPM: 2,
+          REB: 6,
+          AST: 3,
+          STL: 1,
+          BLK: 0.5,
+          TO: 2,
+          PTS: 22,
+        },
+        shooting: { FGM: 8, FGA: 16, FTM: 4, FTA: 5 },
+      },
+    }
+    const season = weeklyPlayerStats(player, 2, "season")
+    const projection = weeklyPlayerStats(player, 2, "projection")
+    expect(season.projections.PTS).toBeCloseTo(44)
+    expect(season.projections.REB).toBeCloseTo(12)
+    expect(season.projections.FG_PCT).toBeCloseTo(8 / 16)
+    expect(projection.projections.PTS).toBeCloseTo((1640 / ASSUMED_SEASON_GAMES) * 2)
+  })
+
+  it("uses stored projections when Season actuals are missing", () => {
+    const player: SeasonPlayer = {
+      id: "a",
+      name: "A",
+      projections: {
+        FG_PCT: 0.5,
+        FT_PCT: 0.8,
+        TPM: 82,
+        REB: 0,
+        AST: 0,
+        STL: 0,
+        BLK: 0,
+        TO: 0,
+        PTS: 1640,
+      },
+      shooting: { FGM: 820, FGA: 1640, FTM: 164, FTA: 205 },
+    }
+    expect(weeklyPlayerStats(player, 2, "season")).toEqual(
+      weeklyPlayerStats(player, 2, "projection"),
+    )
+  })
+
   it("uses last-7 per-game rates times games", () => {
     const player: SeasonPlayer = {
       id: "a",
@@ -246,6 +308,62 @@ describe("weeklyPlayerStats", () => {
     expect(weekly.projections.PTS).toBeCloseTo(60)
     expect(weekly.projections.TPM).toBeCloseTo(6)
     expect(weekly.projections.FG_PCT).toBeCloseTo(10 / 25)
+  })
+
+  it("falls back to Season actuals when last-7 counting stats are empty", () => {
+    const player: SeasonPlayer = {
+      id: "a",
+      name: "A",
+      projections: {
+        FG_PCT: 0.5,
+        FT_PCT: 0.8,
+        TPM: 82,
+        REB: 0,
+        AST: 0,
+        STL: 0,
+        BLK: 0,
+        TO: 0,
+        PTS: 1640,
+      },
+      shooting: { FGM: 820, FGA: 1640, FTM: 164, FTA: 205 },
+      seasonRates: {
+        gamesPlayed: 4,
+        projections: {
+          FG_PCT: 0.48,
+          FT_PCT: 0.9,
+          TPM: 2,
+          REB: 6,
+          AST: 3,
+          STL: 1,
+          BLK: 0.5,
+          TO: 2,
+          PTS: 22,
+        },
+        shooting: { FGM: 8, FGA: 16, FTM: 4, FTA: 5 },
+      },
+      recentRates: {
+        l7: {
+          projections: {
+            FG_PCT: 0,
+            FT_PCT: 0,
+            TPM: 0,
+            REB: 0,
+            AST: 0,
+            STL: 0,
+            BLK: 0,
+            TO: 0,
+            PTS: 0,
+          },
+          shooting: { FGM: 0, FGA: 0, FTM: 0, FTA: 0 },
+        },
+      },
+    }
+    const season = weeklyPlayerStats(player, 2, "season")
+    const l7 = weeklyPlayerStats(player, 2, "l7")
+    const projection = weeklyPlayerStats(player, 2, "projection")
+    expect(l7.projections.PTS).toBeCloseTo(season.projections.PTS)
+    expect(l7.projections.PTS).toBeCloseTo(44)
+    expect(projection.projections.PTS).toBeCloseTo((1640 / ASSUMED_SEASON_GAMES) * 2)
   })
 
   it("falls back to Season when last-7 counting stats are empty", () => {

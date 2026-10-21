@@ -99,11 +99,16 @@ export const weeklyPlayerStats = (
   games: number,
   window: StatWindow = "season",
 ): WeeklyPlayerStats => {
+  if (window === "projection") return scaleSeasonOrPerGamePlayer(player, games)
   if (window !== "season") {
     const recent = player.recentRates?.[window]
     if (recent && countingRatesLive(recent.projections)) {
       return scalePerGameRates(recent, games)
     }
+  }
+  const season = player.seasonRates
+  if (season && countingRatesLive(season.projections)) {
+    return scalePerGameRates(season, games)
   }
   return scaleSeasonOrPerGamePlayer(player, games)
 }

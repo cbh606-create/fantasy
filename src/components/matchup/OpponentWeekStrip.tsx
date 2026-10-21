@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { samePlayerId } from "@/lib/matchup/applyStreamingPlanPreview"
 import {
   buildLineupDisplayRows,
   dayOpponentLabel,
@@ -67,9 +68,7 @@ const formatOppMove = (
   const addName = streamerLabel(cell.playerId, playersById)
   const dropName = streamerLabel(cell.droppedPlayerId, playersById)
   if (cell.action === "hold" && cell.playerId) return addName
-  if (cell.action === "empty" || (!cell.playerId && !cell.droppedPlayerId)) {
-    return "—"
-  }
+  if (!cell.playerId && !cell.droppedPlayerId) return "—"
   if (dropName === "—" && addName !== "—") return `— → ${addName}`
   if (addName === "—") return dropName
   return `${dropName} → ${addName}`
@@ -126,6 +125,14 @@ export const opponentRosteredDatesByPlayerId = (
     for (const cell of cellsForDay(day)) {
       if (cell.playerId) involved.add(cell.playerId)
       if (cell.droppedPlayerId) involved.add(cell.droppedPlayerId)
+      for (const rosterId of rosterIds) {
+        if (
+          samePlayerId(cell.playerId, rosterId) ||
+          samePlayerId(cell.droppedPlayerId, rosterId)
+        ) {
+          involved.add(rosterId)
+        }
+      }
     }
   }
 
@@ -134,12 +141,15 @@ export const opponentRosteredDatesByPlayerId = (
       const cells = cellsForDay(dayByDate.get(date))
       const added = cells.some(
         (cell) =>
-          cell.playerId === playerId &&
+          samePlayerId(cell.playerId, playerId) &&
           (cell.action === "add" || cell.action === "drop_add"),
       )
-      const dropped = cells.some((cell) => cell.droppedPlayerId === playerId)
+      const dropped = cells.some((cell) =>
+        samePlayerId(cell.droppedPlayerId, playerId),
+      )
       const listed = cells.some(
-        (cell) => cell.playerId === playerId && cell.action !== "empty",
+        (cell) =>
+          samePlayerId(cell.playerId, playerId) && cell.action !== "empty",
       )
       if (!added && !dropped && !listed) continue
       return added && !dropped
@@ -153,9 +163,12 @@ export const opponentRosteredDatesByPlayerId = (
     for (const date of sortedDays) {
       const cells = cellsForDay(dayByDate.get(date))
       const listed = cells.some(
-        (cell) => cell.playerId === playerId && cell.action !== "empty",
+        (cell) =>
+          samePlayerId(cell.playerId, playerId) && cell.action !== "empty",
       )
-      const dropped = cells.some((cell) => cell.droppedPlayerId === playerId)
+      const dropped = cells.some((cell) =>
+        samePlayerId(cell.droppedPlayerId, playerId),
+      )
       if (listed) active = true
       if (dropped && !listed) active = false
       if (active) owned.add(date)

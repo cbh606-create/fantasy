@@ -47,6 +47,8 @@ type DailyLineupPanelProps = {
   previewPlayerIds?: Set<string> | string[]
   /** Player id → ISO date from which plan drop locks their cells. */
   droppedFromDateByPlayerId?: Record<string, string>
+  /** Player id → ISO date from which an IR hold disables their game days. */
+  irHeldFromByPlayerId?: Record<string, string>
   /** Preview streamer id → dates they occupy a plan spot (lock other game days). */
   streamerOwnedDatesByPlayerId?: Record<string, ReadonlySet<string> | string[]>
   extraPlayers?: SeasonPlayer[]
@@ -88,6 +90,7 @@ export const DailyLineupPanel = ({
   previewSpotCount,
   previewPlayerIds,
   droppedFromDateByPlayerId = {},
+  irHeldFromByPlayerId = {},
   streamerOwnedDatesByPlayerId = {},
   extraPlayers,
   sitStartBadgesByPlayerDay = {},
@@ -146,7 +149,9 @@ export const DailyLineupPanel = ({
     let count = 0
 
     for (const entry of entries) {
-      if (!entry.playerId) continue
+      if (!entry.playerId || entry.slot === "IL") continue
+      const heldFrom = irHeldFromByPlayerId[entry.playerId]
+      if (heldFrom && day >= heldFrom) continue
       const player = playersById.get(entry.playerId)
       const teamAbbr = player?.teamAbbr
       if (!teamAbbr) continue
@@ -210,11 +215,16 @@ export const DailyLineupPanel = ({
       !isPreview && droppedFrom && day >= droppedFrom,
     )
     const isClosedDay = closedDateSet.has(day)
+    const heldFrom = irHeldFromByPlayerId[player.id]
+    const irHeldOnDay = Boolean(heldFrom && day >= heldFrom)
+
     const teamAbbr = player.teamAbbr ?? ""
     const startedIndex = findPlayerSlotIndex(daily, day, player.id)
     const started = startedIndex >= 0
     const isLocked =
-      isOutsideStreamerWindow || (isPlanDroppedOnDay && !started)
+      irHeldOnDay ||
+      isOutsideStreamerWindow ||
+      (isPlanDroppedOnDay && !started)
     const hasGame =
       (isClosedDay && started) ||
       (teamAbbr ? teamHasGameOnDate(teamAbbr, day, schedule) : false)
@@ -231,6 +241,7 @@ export const DailyLineupPanel = ({
     const ariaLabel = startedSlot
       ? `${action} ${player.name} on ${formatMatchupDayLabel(day)} (${slotDisplayLabel(startedSlot)})`
       : `${action} ${player.name} on ${formatMatchupDayLabel(day)}`
+    const irHoldAriaLabel = `${player.name} IR hold ${formatMatchupDayLabel(day)}`
     const irAriaLabel = `${player.name} on IR ${formatMatchupDayLabel(day)}`
     const lockedAriaLabel = isClosedDay
       ? `${player.name} recorded on ${formatMatchupDayLabel(day)}`
@@ -256,17 +267,19 @@ export const DailyLineupPanel = ({
         <div className="inline-flex flex-col items-center gap-0.5">
           <button
             aria-label={
-              onIl
-                ? irAriaLabel
-                : isLocked
-                  ? lockedAriaLabel
-                  : sitStartHint
-                    ? `${ariaLabel}. ${sitStartHint}`
-                    : ariaLabel
+              irHeldOnDay
+                ? irHoldAriaLabel
+                : onIl
+                  ? irAriaLabel
+                  : isLocked
+                    ? lockedAriaLabel
+                    : sitStartHint
+                      ? `${ariaLabel}. ${sitStartHint}`
+                      : ariaLabel
             }
             aria-pressed={isLocked || onIl ? undefined : started}
             className={`inline-flex h-8 min-w-[3.5rem] items-center justify-center whitespace-nowrap rounded-md px-1 text-[0.625rem] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] disabled:cursor-not-allowed ${
-              onIl
+              irHeldOnDay || onIl
                 ? "border border-[var(--color-hairline)] bg-[var(--color-soft-cloud)] text-[var(--color-mute)] opacity-80"
                 : isClosedDay && started
                   ? "bg-[var(--color-ink)] text-white"
@@ -280,7 +293,7 @@ export const DailyLineupPanel = ({
             onClick={() => handleToggle(player, day, hasGame, isLocked, onIl)}
             type="button"
           >
-            {onIl ? (
+            {irHeldOnDay || onIl ? (
               <span className="mr-1 font-semibold tracking-wide">IR</span>
             ) : started && startedSlot && weeklyHome && startedSlot !== weeklyHome ? (
               <span className="mr-1 font-semibold tracking-wide">
@@ -297,7 +310,7 @@ export const DailyLineupPanel = ({
               </span>
             ) : null}
           </button>
-          {sitStartHint && !onIl ? (
+          {sitStartHint && !onIl && !irHeldOnDay ? (
             <span
               className="max-w-[4.75rem] text-center text-[0.5625rem] leading-tight font-medium text-[var(--color-ink)]"
               title={sitStartHint}

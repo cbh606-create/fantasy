@@ -31,6 +31,117 @@ const clearPlayerFromDay = (
   }
 }
 
+/** ESPN roster ids are numeric. The projection pool uses `espn-` plus that id. */
+export const playerIdAliases = (playerId: string): string[] => {
+  if (playerId.startsWith("espn-")) {
+    const numeric = playerId.slice(5)
+    return numeric.length > 0 ? [playerId, numeric] : [playerId]
+  }
+  return [playerId, `espn-${playerId}`]
+}
+
+export const samePlayerId = (
+  left: string | null | undefined,
+  right: string,
+): boolean => Boolean(left && playerIdAliases(left).includes(right))
+
+type StreamDropCell = {
+  spotIndex?: number
+  playerId?: string | null
+  action?: string
+  droppedPlayerId?: string | null
+  rosterDropPlayerId?: string | null
+  rosterDropKind?: string
+}
+
+type StreamDropDay = {
+  date: string
+  cells?: readonly StreamDropCell[]
+}
+
+const markStreamDrop = (
+  droppedFrom: Map<string, string>,
+  playerId: string,
+  date: string,
+) => {
+  for (const alias of playerIdAliases(playerId)) {
+    const previous = droppedFrom.get(alias)
+    if (!previous || date < previous) droppedFrom.set(alias, date)
+  }
+}
+
+const isSpotAdd = (
+  cell: StreamDropCell,
+): cell is StreamDropCell & { playerId: string } =>
+  Boolean(cell.playerId && (cell.action === "add" || cell.action === "drop_add"))
+
+/**
+ * Dropped players, including espn-/numeric aliases, leave from the drop date on.
+ * A later add on the same spot also drops a roster id that is only an alias of
+ * the previous streamer. A streamer who is not that roster alias stays.
+ */
+export const clearStreamDropsFromDaily = (
+  daily: DailyLineups,
+  days: readonly StreamDropDay[],
+): DailyLineups => {
+  const seatedIds = new Set<string>()
+  for (const entries of Object.values(daily)) {
+    for (const entry of entries) {
+      if (entry.playerId) seatedIds.add(entry.playerId)
+    }
+  }
+  const droppedFrom = new Map<string, string>()
+  for (const day of days) {
+    for (const cell of day.cells ?? []) {
+      const ids: string[] = []
+      if (cell.droppedPlayerId) ids.push(cell.droppedPlayerId)
+      if (cell.rosterDropKind === "player" && cell.rosterDropPlayerId) {
+        ids.push(cell.rosterDropPlayerId)
+      }
+      for (const id of ids) markStreamDrop(droppedFrom, id, day.date)
+    }
+  }
+
+  const sortedDays = [...days].sort((left, right) =>
+    left.date < right.date ? -1 : left.date > right.date ? 1 : 0,
+  )
+  const spotIndexes = new Set<number>()
+  for (const day of sortedDays) {
+    for (const cell of day.cells ?? []) {
+      if (typeof cell.spotIndex === "number") spotIndexes.add(cell.spotIndex)
+    }
+  }
+  for (const spotIndex of spotIndexes) {
+    let current: string | null = null
+    for (const day of sortedDays) {
+      const cell = (day.cells ?? []).find((item) => item.spotIndex === spotIndex)
+      if (!cell || !isSpotAdd(cell)) continue
+      const added = cell.playerId
+      if (current && !samePlayerId(current, added)) {
+        const rosterAlias = playerIdAliases(current).some(
+          (alias) => alias !== current && seatedIds.has(alias),
+        )
+        if (rosterAlias) {
+          for (const alias of playerIdAliases(current)) {
+            markStreamDrop(droppedFrom, alias, day.date)
+          }
+        }
+      }
+      current = added
+    }
+  }
+
+  if (droppedFrom.size === 0) return daily
+  const next = cloneDaily(daily)
+  for (const [playerId, fromDate] of droppedFrom) {
+    for (const date of Object.keys(next)) {
+      if (date < fromDate) continue
+      clearPlayerFromDay(next[date], playerId)
+    }
+  }
+  return next
+}
+
 export type ApplyStreamingPlanPreviewOptions = {
   /** `${date}:${playerId}` — skip seating these streamers (user sat them in preview). */
   omitSeats?: ReadonlySet<string>
@@ -84,10 +195,14 @@ export const streamerActiveDatesByPlayerId = (
     const dates = new Set<string>()
     for (const day of days) {
       const droppedToday = day.cells.some(
-        (cell) => cell.droppedPlayerId === playerId,
+        (cell) =>
+          samePlayerId(cell.droppedPlayerId, playerId) ||
+          (cell.rosterDropKind === "player" &&
+            samePlayerId(cell.rosterDropPlayerId, playerId)),
       )
       const listedToday = day.cells.some(
-        (cell) => cell.playerId === playerId && cell.action !== "empty",
+        (cell) =>
+          samePlayerId(cell.playerId, playerId) && cell.action !== "empty",
       )
       if (droppedToday && !listedToday) active = false
       else if (listedToday) active = true
@@ -115,11 +230,7 @@ export const applyStreamingPlanPreview = (
   const rosterDropFromById: Record<string, string> = {}
   for (const day of plan.days) {
     for (const cell of day.cells) {
-      if (
-        (cell.action === "add" || cell.action === "drop_add") &&
-        cell.rosterDropKind === "player" &&
-        cell.rosterDropPlayerId
-      ) {
+      if (cell.rosterDropKind === "player" && cell.rosterDropPlayerId) {
         const previous = rosterDropFromById[cell.rosterDropPlayerId]
         if (!previous || day.date < previous) {
           rosterDropFromById[cell.rosterDropPlayerId] = day.date
@@ -228,11 +339,7 @@ export const applyStreamingPlanPreview = (
   for (const day of plan.days) {
     const date = day.date
     for (const cell of day.cells) {
-      if (
-        (cell.action === "add" || cell.action === "drop_add") &&
-        cell.rosterDropKind === "player" &&
-        cell.rosterDropPlayerId
-      ) {
+      if (cell.rosterDropKind === "player" && cell.rosterDropPlayerId) {
         for (const laterDay of matchupDays.filter((dayKey) => dayKey >= date)) {
           clearPlayerFromDay(next[laterDay], cell.rosterDropPlayerId)
         }
@@ -326,5 +433,5 @@ export const applyStreamingPlanPreview = (
     }
   }
 
-  return next
+  return clearStreamDropsFromDaily(next, plan.days)
 }

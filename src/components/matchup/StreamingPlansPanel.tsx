@@ -47,11 +47,13 @@ import {
   collectEarlierAddedStreamerIds,
   collectEarlierIrParkIds,
   collectEarlierRosterDropIds,
+  clampFixedMenuBox,
+  clearLaterDropsOnSameSpot,
   hasOpenNonIlRosterSlot,
   irParkDropOptions,
-  isAfterStreamingAddDropKey,
   parkedPlayerIdFromDropValue,
   parseStreamingAddDropKey,
+  retainOtherSpotMoves,
   perspectiveRosterEntries,
   resolveStoredIrParkValue,
   rosterDropSelectOptions,
@@ -220,7 +222,7 @@ const dropPlanLabel = (
   if (cell.rosterDropKind === "ir" && cell.rosterDropPlayerId) {
     const player = playersById[cell.rosterDropPlayerId]
     const note = player?.injuryStatus === "out" ? "" : " (after OUT)"
-    return `To IR · ${playerName(cell.rosterDropPlayerId, playersById)}${note}`
+    return `IR Hold · ${playerName(cell.rosterDropPlayerId, playersById)}${note}`
   }
   if (cell.rosterDropPlayerId) {
     return playerName(cell.rosterDropPlayerId, playersById)
@@ -275,6 +277,20 @@ const DropCell = ({
   const [lazyOptions, setLazyOptions] = useState<
     { value: string; label: string }[] | null
   >(null)
+  const dropRootRef = useRef<HTMLDivElement>(null)
+  const dropTriggerRef = useRef<HTMLButtonElement>(null)
+  const irAnchorRef = useRef<HTMLButtonElement>(null)
+  const irCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [dropMenuOpen, setDropMenuOpen] = useState(false)
+  const [dropMenuPos, setDropMenuPos] = useState<{
+    top: number
+    left: number
+    width: number
+  } | null>(null)
+  const [irMenuOpen, setIrMenuOpen] = useState(false)
+  const [irMenuPos, setIrMenuPos] = useState<{ top: number; left: number } | null>(
+    null,
+  )
 
   const key = streamingAddDropKey(date, spotIndex)
   const value = forcedDropValue
@@ -290,16 +306,30 @@ const DropCell = ({
         })
 
   const earlierParkKey = earlierParkedIds.join(",")
+  const irOptionKey = irOptions.map((option) => option.value).join("\0")
 
   useEffect(() => {
     setLazyOptions(null)
-  }, [value, date, spotIndex, earlierParkKey])
+  }, [value, date, spotIndex, earlierParkKey, irOptionKey])
 
   useEffect(() => {
     if (!canEditStreamingDate(date, today)) return
     if (resolveStoredIrParkValue(value, irOptions) === value) return
     onStaleIrReset(key)
   }, [date, irOptions, key, onStaleIrReset, today, value])
+
+  useEffect(() => {
+    if (!dropMenuOpen) return
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (dropRootRef.current?.contains(target)) return
+      setDropMenuOpen(false)
+      setIrMenuOpen(false)
+    }
+    document.addEventListener("mousedown", handlePointerDown)
+    return () => document.removeEventListener("mousedown", handlePointerDown)
+  }, [dropMenuOpen])
 
   if (spotLocked || (isPastStreamingDate(date, today) && !recordingPast)) {
     return (
@@ -309,9 +339,11 @@ const DropCell = ({
     )
   }
 
-  const closedLabel = parkedPlayerIdFromDropValue(value)
-    ? (irOptions.find((option) => option.value === value)?.label ??
-      `To IR · ${playerName(parkedPlayerIdFromDropValue(value) ?? "", playersById)}`)
+  const parkedId = parkedPlayerIdFromDropValue(value)
+  const parkedPlayer = parkedId ? playersById[parkedId] : undefined
+  const parkedNote = parkedPlayer?.injuryStatus === "out" ? "" : " (after OUT)"
+  const closedLabel = parkedId
+    ? `IR Hold · ${playerName(parkedId, playersById)}${parkedNote}`
     : value === "hold"
       ? "Hold"
       : value === "open_slot"
@@ -334,16 +366,13 @@ const DropCell = ({
       earlierDroppedIds,
       earlierAddedStreamerIds,
     )
-    return [
-      ...rosterDropSelectOptions({
-        eligiblePlayerIds: selectPlayerIds,
-        earlierDroppedIds,
-        allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
-        includeHold: true,
-        playersById,
-      }),
-      ...irOptions,
-    ]
+    return rosterDropSelectOptions({
+      eligiblePlayerIds: selectPlayerIds,
+      earlierDroppedIds,
+      allowOpenSlot: hasOpenNonIlRosterSlot(rosterEntries),
+      includeHold: true,
+      playersById,
+    })
   }
 
   const ensureOptions = () => {
@@ -363,25 +392,165 @@ const DropCell = ({
     onForcedRosterDropChange(key, next)
   }
 
-  const options =
+  const rosterOptions =
     lazyOptions ??
     (recordingPast ? buildOptions() : [{ value, label: closedLabel }])
+  const options =
+    parkedId && !rosterOptions.some((option) => option.value === value)
+      ? [...rosterOptions, { value, label: closedLabel }]
+      : rosterOptions
+
+  const openDropMenu = () => {
+    ensureOptions()
+    const rect = dropTriggerRef.current?.getBoundingClientRect()
+    if (rect) {
+      const width = Math.max(rect.width, 144)
+      const box = clampFixedMenuBox(
+        rect,
+        width,
+        192,
+        window.innerWidth,
+        window.innerHeight,
+      )
+      setDropMenuPos({ ...box, width })
+    }
+    setDropMenuOpen(true)
+  }
+
+  const openIrMenu = () => {
+    if (irCloseTimer.current != null) clearTimeout(irCloseTimer.current)
+    const rect = irAnchorRef.current?.getBoundingClientRect()
+    if (rect) {
+      setIrMenuPos(
+        clampFixedMenuBox(
+          rect,
+          176,
+          192,
+          window.innerWidth,
+          window.innerHeight,
+        ),
+      )
+    }
+    setIrMenuOpen(true)
+  }
+
+  const scheduleCloseIrMenu = () => {
+    if (irCloseTimer.current != null) clearTimeout(irCloseTimer.current)
+    irCloseTimer.current = setTimeout(() => setIrMenuOpen(false), 150)
+  }
+
+  const handleIrPick = (next: string) => {
+    onForcedRosterDropChange(key, next)
+    setIrMenuOpen(false)
+    setDropMenuOpen(false)
+  }
+
+  const handleOptionPick = (next: string) => {
+    onForcedRosterDropChange(key, next)
+    setIrMenuOpen(false)
+    setDropMenuOpen(false)
+  }
+
+  const dropLabel = `Roster drop ${formatMatchupDayLabel(date)} spot ${spotIndex + 1}`
 
   return (
-    <select
-      aria-label={`Roster drop ${formatMatchupDayLabel(date)} spot ${spotIndex + 1}`}
-      className="w-full max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-0.5 text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
-      onChange={handleChange}
-      onFocus={ensureOptions}
-      onMouseDown={ensureOptions}
-      value={value}
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+    <div className="relative min-w-0" ref={dropRootRef}>
+      <select
+        aria-label={dropLabel}
+        className="sr-only w-full max-w-full"
+        onChange={handleChange}
+        onFocus={ensureOptions}
+        onMouseDown={ensureOptions}
+        tabIndex={-1}
+        value={value}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <button
+        aria-expanded={dropMenuOpen}
+        aria-haspopup="listbox"
+        aria-label={`Open ${dropLabel}`}
+        className="w-full max-w-full rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] px-1 py-0.5 text-left text-[0.75rem] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+        onClick={openDropMenu}
+        ref={dropTriggerRef}
+        type="button"
+      >
+        {closedLabel}
+      </button>
+      {dropMenuOpen && dropMenuPos ? (
+        <ul
+          aria-label={dropLabel}
+          className="fixed z-40 max-h-48 overflow-y-scroll rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-1 shadow-md"
+          role="listbox"
+          style={{
+            top: dropMenuPos.top,
+            left: dropMenuPos.left,
+            width: dropMenuPos.width,
+          }}
+        >
+          {options.map((option) => (
+            <li key={option.value}>
+              <button
+                aria-selected={value === option.value}
+                className="block w-full px-2 py-1 text-left text-[0.75rem] text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                onClick={() => handleOptionPick(option.value)}
+                role="option"
+                type="button"
+              >
+                {option.label}
+              </button>
+            </li>
+          ))}
+          {irOptions.length > 0 ? (
+            <li>
+              <button
+                aria-expanded={irMenuOpen}
+                aria-haspopup="listbox"
+                aria-label="IR Hold"
+                className="block w-full px-2 py-1 text-left text-[0.75rem] text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                onBlur={scheduleCloseIrMenu}
+                onFocus={openIrMenu}
+                onMouseEnter={openIrMenu}
+                onMouseLeave={scheduleCloseIrMenu}
+                ref={irAnchorRef}
+                type="button"
+              >
+                IR Hold
+              </button>
+            </li>
+          ) : null}
+        </ul>
+      ) : null}
+      {dropMenuOpen && irMenuOpen && irMenuPos && irOptions.length > 0 ? (
+        <ul
+          aria-label="IR Hold players"
+          className="fixed z-50 max-h-48 w-44 overflow-y-scroll rounded border border-[var(--color-hairline)] bg-[var(--color-canvas)] py-1 shadow-md"
+          onMouseEnter={openIrMenu}
+          onMouseLeave={scheduleCloseIrMenu}
+          role="listbox"
+          style={{ top: irMenuPos.top, left: irMenuPos.left }}
+        >
+          {irOptions.map((option) => (
+            <li key={option.value}>
+              <button
+                aria-selected={value === option.value}
+                className="block w-full px-2 py-1 text-left text-[0.75rem] text-[var(--color-ink)] hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
+                onClick={() => handleIrPick(option.value)}
+                onMouseDown={(event) => event.preventDefault()}
+                role="option"
+                type="button"
+              >
+                {option.label.replace(/^To IR · /, "")}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   )
 }
 
@@ -1069,31 +1238,44 @@ export const StreamingPlansPanel = ({
 
   const streamHint = winnerStreamHint(board, winnerStreamRecipes)
 
+  const preservedMoves = (spotCount: 1 | 2 | 3, editedSpotIndex: number) =>
+    retainOtherSpotMoves({
+      plan: displayPlans.find((plan) => plan.spotCount === spotCount) ?? null,
+      editedSpotIndex,
+      drops: forcedRosterDropsBySpotCount[spotCount] ?? {},
+      locks: addLocksBySpotCount[spotCount] ?? [],
+    })
+
   const handleForcedRosterDropChange = (
     spotCount: 1 | 2 | 3,
     key: string,
     value: ForcedRosterDropValue,
   ) => {
     setStreamingMoveError(null)
+    const editedSpotIndex = parseStreamingAddDropKey(key).spotIndex
+    const preserved = preservedMoves(spotCount, editedSpotIndex)
     if (value === "hold") {
       const { date, spotIndex } = parseStreamingAddDropKey(key)
       setAddLocksBySpotCount((prev) => {
-        const current = prev[spotCount] ?? []
+        const current = preserved.locks.length > 0 ? preserved.locks : (prev[spotCount] ?? [])
         const next = current.filter(
           (lock) =>
             !(lock.date === date && lock.spotIndex === spotIndex),
         )
-        if (next.length === current.length) return prev
+        if (next.length === current.length && next === current) return prev
         return { ...prev, [spotCount]: next }
       })
+    } else if (preserved.locks.length > 0) {
+      setAddLocksBySpotCount((prev) => ({
+        ...prev,
+        [spotCount]: preserved.locks,
+      }))
     }
     setForcedRosterDropsBySpotCount((prev) => {
-      const nextForSpot = { ...(prev[spotCount] ?? {}), [key]: value }
-      for (const forcedKey of Object.keys(nextForSpot)) {
-        if (isAfterStreamingAddDropKey(forcedKey, key)) {
-          delete nextForSpot[forcedKey]
-        }
-      }
+      const nextForSpot = clearLaterDropsOnSameSpot(
+        { ...preserved.drops, ...(prev[spotCount] ?? {}), [key]: value },
+        key,
+      )
       return { ...prev, [spotCount]: nextForSpot }
     })
     setPreviewSpotCount(spotCount)
@@ -1143,8 +1325,13 @@ export const StreamingPlansPanel = ({
     spotIndex: number,
     holdUntil: string,
   ) => {
+    const preserved = preservedMoves(spotCount, spotIndex)
+    setForcedRosterDropsBySpotCount((prev) => ({
+      ...prev,
+      [spotCount]: { ...preserved.drops, ...(prev[spotCount] ?? {}) },
+    }))
     setAddLocksBySpotCount((prev) => {
-      const current = prev[spotCount] ?? []
+      const current = preserved.locks.length > 0 ? preserved.locks : (prev[spotCount] ?? [])
       return {
         ...prev,
         [spotCount]: current.map((lock) =>
@@ -1182,20 +1369,20 @@ export const StreamingPlansPanel = ({
     }
 
     const plannedDrop = plannedDropValue(cell)
-    if (
+    const preserved = preservedMoves(spotCount, spotIndex)
+    const pinThisDrop =
       explicitDrop == null &&
       plannedDrop !== "hold" &&
       playerId !== (cell?.playerId ?? null)
-    ) {
-      setForcedRosterDropsBySpotCount((prev) => {
-        const current = prev[spotCount] ?? {}
-        if (current[dropKey] === plannedDrop) return prev
-        return {
-          ...prev,
-          [spotCount]: { ...current, [dropKey]: plannedDrop },
-        }
-      })
-    }
+    setForcedRosterDropsBySpotCount((prev) => {
+      const next = { ...preserved.drops, ...(prev[spotCount] ?? {}) }
+      if (pinThisDrop && next[dropKey] !== plannedDrop) next[dropKey] = plannedDrop
+      const unchanged =
+        !pinThisDrop &&
+        Object.keys(next).length === Object.keys(prev[spotCount] ?? {}).length
+      if (unchanged) return prev
+      return { ...prev, [spotCount]: next }
+    })
 
     setStreamingMoveError(null)
     const baseline = plans.find((item) => item.spotCount === spotCount)
@@ -1203,7 +1390,7 @@ export const StreamingPlansPanel = ({
       ? (cellFor(baseline, date, spotIndex)?.playerId ?? null)
       : null
     setAddLocksBySpotCount((prev) => {
-      const current = prev[spotCount] ?? []
+      const current = preserved.locks.length > 0 ? preserved.locks : (prev[spotCount] ?? [])
       const existing = current.find(
         (lock) => lock.date === date && lock.spotIndex === spotIndex,
       )

@@ -607,7 +607,7 @@ describe("StreamingPlansPanel", () => {
     expect(firstSelect).toHaveValue("you-play")
   })
 
-  it("lists To IR for a no-game active player and stores ir:<id>", async () => {
+  it("lists IR Hold players on hover and stores ir:<id>", async () => {
     render(
       <StreamingPlansPanel
         board={board}
@@ -622,19 +622,77 @@ describe("StreamingPlansPanel", () => {
     const oneSpotSelect = screen.getAllByRole("combobox", {
       name: /roster drop .* spot 1/i,
     })[0]!
-    fireEvent.mouseDown(oneSpotSelect)
-    fireEvent.focus(oneSpotSelect)
+    fireEvent.click(
+      within(oneSpotSelect.parentElement as HTMLElement).getByRole("button", {
+        name: /Open roster drop/i,
+      }),
+    )
+    fireEvent.mouseEnter(screen.getByRole("button", { name: "IR Hold" }))
 
-    await waitFor(() => {
-      const irOption = [...oneSpotSelect.querySelectorAll("option")].find(
-        (option) => option.textContent === "To IR · No Game Cut (after OUT)",
-      )
-      expect(irOption).toBeTruthy()
-      expect(irOption).toHaveProperty("value", "ir:you-idle")
+    const idle = await screen.findByRole("option", {
+      name: "No Game Cut (after OUT)",
     })
+    expect(
+      screen.getByRole("option", { name: "Plays Cut (after OUT)" }),
+    ).toBeInTheDocument()
+    expect(
+      [...oneSpotSelect.querySelectorAll("option")].some((option) =>
+        (option.textContent ?? "").startsWith("To IR"),
+      ),
+    ).toBe(false)
 
-    fireEvent.change(oneSpotSelect, { target: { value: "ir:you-idle" } })
+    fireEvent.click(idle)
     expect(oneSpotSelect).toHaveValue("ir:you-idle")
+  })
+
+  it("omits To IR and IR hold once an IL player is already rostered", async () => {
+    const irFilled: SeasonLeagueState = {
+      ...dropState,
+      teams: dropState.teams.map((team, index) =>
+        index === 0
+          ? {
+              ...team,
+              entries: [
+                ...team.entries,
+                { slot: "IL", playerId: "already-il" },
+              ],
+            }
+          : team,
+      ),
+    }
+    const hasIrHold = () =>
+      screen.queryAllByRole("button", { name: "IR Hold" }).length > 0
+    const openDrop = () => {
+      const select = screen.getAllByRole("combobox", {
+        name: /roster drop .* spot 1/i,
+      })[0]!
+      fireEvent.click(
+        within(select.parentElement as HTMLElement).getByRole("button", {
+          name: /Open roster drop/i,
+        }),
+      )
+    }
+    const renderPanel = (panelState: SeasonLeagueState) => (
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={dropSchedule}
+        state={panelState}
+        today="2025-11-03"
+      />
+    )
+
+    const { rerender } = render(renderPanel(dropState))
+
+    openDrop()
+    expect(hasIrHold()).toBe(true)
+
+    rerender(renderPanel(irFilled))
+    openDrop()
+
+    await waitFor(() => expect(hasIrHold()).toBe(false))
+    expect(hasIrHold()).toBe(false)
   })
 
   it("resets a stale ir: value to Hold without clearing a later forced drop", async () => {
@@ -648,33 +706,48 @@ describe("StreamingPlansPanel", () => {
         days: [dayOne, dayTwo],
       },
     }
-    const idleNowPlays: ScheduleResponse = {
-      ...twoDaySchedule,
-      games: [
-        ...twoDaySchedule.games,
-        { date: dayOne, homeAbbr: "CHI", awayAbbr: "MIA" },
-      ],
+    const irFilled: SeasonLeagueState = {
+      ...dropState,
+      teams: dropState.teams.map((team, index) =>
+        index === 0
+          ? {
+              ...team,
+              entries: [
+                ...team.entries,
+                { slot: "IL", playerId: "already-il" },
+              ],
+            }
+          : team,
+      ),
     }
     const dropSelect = (date: string) =>
       screen.getAllByRole("combobox", {
         name: `Roster drop ${formatMatchupDayLabel(date)} spot 1`,
       })[0]!
-    const renderPanel = (panelSchedule: ScheduleResponse) => (
+    const renderPanel = (
+      panelSchedule: ScheduleResponse,
+      panelState: SeasonLeagueState = dropState,
+    ) => (
       <StreamingPlansPanel
         board={board}
         leagueId="lg1"
         playersById={{}}
         schedule={panelSchedule}
-        state={dropState}
+        state={panelState}
         today={dayOne}
       />
     )
 
     const { rerender } = render(renderPanel(twoDaySchedule))
 
-    fireEvent.mouseDown(dropSelect(dayOne))
-    fireEvent.focus(dropSelect(dayOne))
-    fireEvent.change(dropSelect(dayOne), { target: { value: "ir:you-idle" } })
+    const dayOneCell = dropSelect(dayOne).parentElement as HTMLElement
+    fireEvent.click(
+      within(dayOneCell).getByRole("button", { name: /Open roster drop/i }),
+    )
+    fireEvent.mouseEnter(within(dayOneCell).getByRole("button", { name: "IR Hold" }))
+    fireEvent.click(
+      await screen.findByRole("option", { name: "No Game Cut (after OUT)" }),
+    )
     expect(dropSelect(dayOne)).toHaveValue("ir:you-idle")
 
     fireEvent.mouseDown(dropSelect(dayTwo))
@@ -682,7 +755,7 @@ describe("StreamingPlansPanel", () => {
     fireEvent.change(dropSelect(dayTwo), { target: { value: "you-play" } })
     expect(dropSelect(dayTwo)).toHaveValue("you-play")
 
-    rerender(renderPanel(idleNowPlays))
+    rerender(renderPanel(twoDaySchedule, irFilled))
 
     await waitFor(() => expect(dropSelect(dayOne)).toHaveValue("hold"))
     expect(dropSelect(dayTwo)).toHaveValue("you-play")
@@ -717,15 +790,25 @@ describe("StreamingPlansPanel", () => {
       />,
     )
 
-    fireEvent.mouseDown(dropSelect(dayTwo))
-    fireEvent.focus(dropSelect(dayTwo))
-    await waitFor(() =>
-      expect(optionValues(dropSelect(dayTwo))).toContain("ir:you-idle"),
+    const dayTwoCell = dropSelect(dayTwo).parentElement as HTMLElement
+    fireEvent.click(
+      within(dayTwoCell).getByRole("button", { name: /Open roster drop/i }),
     )
+    fireEvent.mouseEnter(within(dayTwoCell).getByRole("button", { name: "IR Hold" }))
+    expect(
+      await screen.findByRole("option", { name: "No Game Cut (after OUT)" }),
+    ).toBeInTheDocument()
 
-    fireEvent.mouseDown(dropSelect(dayOne))
-    fireEvent.focus(dropSelect(dayOne))
-    fireEvent.change(dropSelect(dayOne), { target: { value: "ir:you-idle" } })
+    const dayOneCell = dropSelect(dayOne).parentElement as HTMLElement
+    fireEvent.click(
+      within(dayOneCell).getByRole("button", { name: /Open roster drop/i }),
+    )
+    fireEvent.mouseEnter(
+      within(dayOneCell).getByRole("button", { name: "IR Hold" }),
+    )
+    fireEvent.click(
+      within(dayOneCell).getByRole("option", { name: "No Game Cut (after OUT)" }),
+    )
 
     fireEvent.mouseDown(dropSelect(dayTwo))
     fireEvent.focus(dropSelect(dayTwo))

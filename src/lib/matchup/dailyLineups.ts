@@ -415,7 +415,7 @@ export const effectiveGamesByPlayerId = (
 
   for (const [day, entries] of Object.entries(daily)) {
     for (const entry of entries) {
-      if (!entry.playerId) continue
+      if (!entry.playerId || entry.slot === "IL") continue
 
       const player = playersById.get(entry.playerId)
       if (!player) continue

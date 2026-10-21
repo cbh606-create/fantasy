@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
+  clampFixedMenuBox,
+  clearLaterDropsOnSameSpot,
   collectEarlierAddedStreamerIds,
   compareStreamingAddDropKeys,
   eligibleRosterDropPlayerIds,
@@ -7,9 +9,11 @@ import {
   irParkDropValue,
   isAfterStreamingAddDropKey,
   resolveStoredIrParkValue,
+  retainOtherSpotMoves,
   rosterDropSelectOptions,
   rosterDropSelectPlayerIds,
 } from "@/lib/matchup/streamingDropOptions"
+import type { StreamingPlan, StreamingPlanDayCell } from "@/lib/matchup/types"
 import type { ScheduleResponse, SeasonPlayer, SeasonRosterEntry } from "@/lib/season/types"
 
 const player = (id: string, name: string): SeasonPlayer => ({
@@ -42,6 +46,94 @@ describe("streamingAddDropKey ordering", () => {
     expect(isAfterStreamingAddDropKey("2025-11-04:0", "2025-11-03:1")).toBe(
       true,
     )
+  })
+
+  it("clears later drops on the edited spot and keeps the other spot", () => {
+    const next = clearLaterDropsOnSameSpot(
+      {
+        "2025-11-03:0": "a",
+        "2025-11-03:1": "b",
+        "2025-11-04:0": "c",
+        "2025-11-04:1": "d",
+      },
+      "2025-11-03:0",
+    )
+    expect(next).toEqual({
+      "2025-11-03:0": "a",
+      "2025-11-03:1": "b",
+      "2025-11-04:1": "d",
+    })
+  })
+})
+
+const planCell = (
+  spotIndex: number,
+  playerId: string | null,
+  action: StreamingPlanDayCell["action"],
+  rosterDropPlayerId: string | null,
+): StreamingPlanDayCell => ({
+  spotIndex,
+  playerId,
+  action,
+  droppedPlayerId: action === "drop_add" ? rosterDropPlayerId : null,
+  rosterDropPlayerId,
+  rosterDropKind: rosterDropPlayerId ? "player" : "none",
+  addIndex: playerId ? 1 : null,
+  alternativePlayerIds: [],
+  targetCategoryIds: [],
+})
+
+describe("retainOtherSpotMoves", () => {
+  it("pins the other edited spot's add and drop when this spot changes", () => {
+    const plan = {
+      spotCount: 2,
+      days: [
+        {
+          date: "2025-11-03",
+          cells: [
+            planCell(0, "fa-a", "add", "cut-a"),
+            planCell(1, null, "empty", null),
+          ],
+        },
+        {
+          date: "2025-11-04",
+          cells: [
+            planCell(0, "fa-a", "hold", null),
+            planCell(1, null, "empty", null),
+          ],
+        },
+      ],
+    } as StreamingPlan
+    const retained = retainOtherSpotMoves({
+      plan,
+      editedSpotIndex: 1,
+      drops: { "2025-11-03:0": "cut-a" },
+      locks: [],
+    })
+    expect(retained.drops["2025-11-03:0"]).toBe("cut-a")
+    expect(retained.drops["2025-11-04:1"]).toBeUndefined()
+    expect(retained.locks).toEqual([
+      {
+        date: "2025-11-03",
+        spotIndex: 0,
+        playerId: "fa-a",
+        holdUntil: "2025-11-04",
+      },
+    ])
+  })
+})
+
+describe("clampFixedMenuBox", () => {
+  it("shifts a Sunday menu left so its scrollbar stays on screen", () => {
+    expect(
+      clampFixedMenuBox(
+        { left: 1400, top: 200, bottom: 228 },
+        176,
+        192,
+        1440,
+        900,
+      ),
+    ).toEqual({ top: 232, left: 1256 })
   })
 })
 
@@ -223,12 +315,32 @@ describe("irParkDropOptions", () => {
     expect(options).toEqual([{ value: "ir:c", label: "To IR · Gamma" }])
   })
 
-  it("hides a bench player, a player with a game, and every option when IR is occupied", () => {
+  it("lists bench players and players with a game, and still skips empty, IL, and a filled IR slot", () => {
     const playersById = {
       a: player("a", "Alpha"),
       b: { ...player("b", "Beta"), teamAbbr: "NYK" },
-      bench: { ...player("bench", "Bench"), teamAbbr: "NYK" },
+      bench: { ...player("bench", "Bench"), teamAbbr: "DAL" },
+      "out-bench": {
+        ...player("out-bench", "Out Bench"),
+        teamAbbr: "DAL",
+        injuryStatus: "out" as const,
+      },
+      kept: { ...player("kept", "Kept"), teamAbbr: "NYK" },
     }
+    expect(
+      irParkDropOptions({
+        entries: [
+          { slot: "SG", playerId: "a" },
+          { slot: "BE", playerId: "bench" },
+          { slot: "BE", playerId: "out-bench" },
+          { slot: "PG", playerId: null },
+          { slot: "IL", playerId: null },
+        ],
+        playersById,
+        date: "2026-10-21",
+        schedule,
+      }).map((option) => option.value),
+    ).toEqual(["ir:a", "ir:bench", "ir:out-bench"])
     expect(
       irParkDropOptions({
         entries: [
@@ -239,7 +351,7 @@ describe("irParkDropOptions", () => {
         date: "2026-10-20",
         schedule,
       }),
-    ).toEqual([])
+    ).toEqual([{ value: "ir:bench", label: "To IR · Bench (after OUT)" }])
     expect(
       irParkDropOptions({
         entries: [
@@ -261,6 +373,33 @@ describe("irParkDropOptions", () => {
         date: "2026-10-21",
         schedule,
       }),
+    ).toEqual([{ value: "ir:a", label: "To IR · Alpha (after OUT)" }])
+  })
+
+  it("omits To IR and IR hold when an IL slot already has a player", () => {
+    const options = irParkDropOptions({
+      entries: [
+        { slot: "SG", playerId: "b" },
+        { slot: "BE", playerId: "bench" },
+        { slot: "IL", playerId: "kept" },
+        { slot: "IL", playerId: null },
+      ],
+      playersById: {
+        b: { ...player("b", "Beta"), teamAbbr: "NYK" },
+        bench: { ...player("bench", "Bench"), teamAbbr: "DAL" },
+        kept: { ...player("kept", "Kept"), teamAbbr: "NYK", injuryStatus: "out" },
+      },
+      date: "2026-10-20",
+      schedule,
+    })
+
+    expect(
+      options.filter(
+        (option) =>
+          option.value.startsWith("ir:") ||
+          option.label.startsWith("To IR") ||
+          /IR hold/i.test(option.label),
+      ),
     ).toEqual([])
   })
 
