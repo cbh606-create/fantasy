@@ -6,6 +6,7 @@ import { StreamingPlansPanel } from "@/components/matchup/StreamingPlansPanel"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { DailyLineups } from "@/lib/matchup/dailyLineups"
 import type { MatchupBoard, StreamingPlan } from "@/lib/matchup/types"
+import { writePastActualSwaps } from "@/lib/matchup/pastActualSwaps"
 import { formatMatchupDayLabel } from "@/lib/matchup/weekCalendarLayout"
 import type {
   ScheduleResponse,
@@ -606,6 +607,218 @@ describe("StreamingPlansPanel", () => {
     expect(firstSelect).toHaveValue("you-play")
   })
 
+  it("lists IR Hold players on hover and stores ir:<id>", async () => {
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={dropSchedule}
+        state={dropState}
+        today="2025-11-03"
+      />,
+    )
+
+    const oneSpotSelect = screen.getAllByRole("combobox", {
+      name: /roster drop .* spot 1/i,
+    })[0]!
+    fireEvent.click(
+      within(oneSpotSelect.parentElement as HTMLElement).getByRole("button", {
+        name: /Open roster drop/i,
+      }),
+    )
+    fireEvent.mouseEnter(screen.getByRole("button", { name: "IR Hold" }))
+
+    const idle = await screen.findByRole("option", {
+      name: "No Game Cut (after OUT)",
+    })
+    expect(
+      screen.getByRole("option", { name: "Plays Cut (after OUT)" }),
+    ).toBeInTheDocument()
+    expect(
+      [...oneSpotSelect.querySelectorAll("option")].some((option) =>
+        (option.textContent ?? "").startsWith("To IR"),
+      ),
+    ).toBe(false)
+
+    fireEvent.click(idle)
+    expect(oneSpotSelect).toHaveValue("ir:you-idle")
+  })
+
+  it("omits To IR and IR hold once an IL player is already rostered", async () => {
+    const irFilled: SeasonLeagueState = {
+      ...dropState,
+      teams: dropState.teams.map((team, index) =>
+        index === 0
+          ? {
+              ...team,
+              entries: [
+                ...team.entries,
+                { slot: "IL", playerId: "already-il" },
+              ],
+            }
+          : team,
+      ),
+    }
+    const hasIrHold = () =>
+      screen.queryAllByRole("button", { name: "IR Hold" }).length > 0
+    const openDrop = () => {
+      const select = screen.getAllByRole("combobox", {
+        name: /roster drop .* spot 1/i,
+      })[0]!
+      fireEvent.click(
+        within(select.parentElement as HTMLElement).getByRole("button", {
+          name: /Open roster drop/i,
+        }),
+      )
+    }
+    const renderPanel = (panelState: SeasonLeagueState) => (
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={dropSchedule}
+        state={panelState}
+        today="2025-11-03"
+      />
+    )
+
+    const { rerender } = render(renderPanel(dropState))
+
+    openDrop()
+    expect(hasIrHold()).toBe(true)
+
+    rerender(renderPanel(irFilled))
+    openDrop()
+
+    await waitFor(() => expect(hasIrHold()).toBe(false))
+    expect(hasIrHold()).toBe(false)
+  })
+
+  it("resets a stale ir: value to Hold without clearing a later forced drop", async () => {
+    const dayOne = "2025-11-03"
+    const dayTwo = "2025-11-04"
+    const twoDaySchedule: ScheduleResponse = {
+      ...dropSchedule,
+      matchup: {
+        ...dropSchedule.matchup,
+        endDate: dayTwo,
+        days: [dayOne, dayTwo],
+      },
+    }
+    const irFilled: SeasonLeagueState = {
+      ...dropState,
+      teams: dropState.teams.map((team, index) =>
+        index === 0
+          ? {
+              ...team,
+              entries: [
+                ...team.entries,
+                { slot: "IL", playerId: "already-il" },
+              ],
+            }
+          : team,
+      ),
+    }
+    const dropSelect = (date: string) =>
+      screen.getAllByRole("combobox", {
+        name: `Roster drop ${formatMatchupDayLabel(date)} spot 1`,
+      })[0]!
+    const renderPanel = (
+      panelSchedule: ScheduleResponse,
+      panelState: SeasonLeagueState = dropState,
+    ) => (
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={panelSchedule}
+        state={panelState}
+        today={dayOne}
+      />
+    )
+
+    const { rerender } = render(renderPanel(twoDaySchedule))
+
+    const dayOneCell = dropSelect(dayOne).parentElement as HTMLElement
+    fireEvent.click(
+      within(dayOneCell).getByRole("button", { name: /Open roster drop/i }),
+    )
+    fireEvent.mouseEnter(within(dayOneCell).getByRole("button", { name: "IR Hold" }))
+    fireEvent.click(
+      await screen.findByRole("option", { name: "No Game Cut (after OUT)" }),
+    )
+    expect(dropSelect(dayOne)).toHaveValue("ir:you-idle")
+
+    fireEvent.mouseDown(dropSelect(dayTwo))
+    fireEvent.focus(dropSelect(dayTwo))
+    fireEvent.change(dropSelect(dayTwo), { target: { value: "you-play" } })
+    expect(dropSelect(dayTwo)).toHaveValue("you-play")
+
+    rerender(renderPanel(twoDaySchedule, irFilled))
+
+    await waitFor(() => expect(dropSelect(dayOne)).toHaveValue("hold"))
+    expect(dropSelect(dayTwo)).toHaveValue("you-play")
+  })
+
+  it("refreshes cached later-day options after an earlier IR park", async () => {
+    const dayOne = "2025-11-03"
+    const dayTwo = "2025-11-04"
+    const twoDaySchedule: ScheduleResponse = {
+      ...dropSchedule,
+      matchup: {
+        ...dropSchedule.matchup,
+        endDate: dayTwo,
+        days: [dayOne, dayTwo],
+      },
+    }
+    const dropSelect = (date: string) =>
+      screen.getAllByRole("combobox", {
+        name: `Roster drop ${formatMatchupDayLabel(date)} spot 1`,
+      })[0]!
+    const optionValues = (select: HTMLElement) =>
+      [...select.querySelectorAll("option")].map((option) => option.value)
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg1"
+        playersById={{}}
+        schedule={twoDaySchedule}
+        state={dropState}
+        today={dayOne}
+      />,
+    )
+
+    const dayTwoCell = dropSelect(dayTwo).parentElement as HTMLElement
+    fireEvent.click(
+      within(dayTwoCell).getByRole("button", { name: /Open roster drop/i }),
+    )
+    fireEvent.mouseEnter(within(dayTwoCell).getByRole("button", { name: "IR Hold" }))
+    expect(
+      await screen.findByRole("option", { name: "No Game Cut (after OUT)" }),
+    ).toBeInTheDocument()
+
+    const dayOneCell = dropSelect(dayOne).parentElement as HTMLElement
+    fireEvent.click(
+      within(dayOneCell).getByRole("button", { name: /Open roster drop/i }),
+    )
+    fireEvent.mouseEnter(
+      within(dayOneCell).getByRole("button", { name: "IR Hold" }),
+    )
+    fireEvent.click(
+      within(dayOneCell).getByRole("option", { name: "No Game Cut (after OUT)" }),
+    )
+
+    fireEvent.mouseDown(dropSelect(dayTwo))
+    fireEvent.focus(dropSelect(dayTwo))
+    await waitFor(() => {
+      const values = optionValues(dropSelect(dayTwo))
+      expect(values).not.toContain("ir:you-idle")
+      expect(values).not.toContain("you-idle")
+    })
+  })
+
   it("shows drop selects on every matchup day when today is before the week", () => {
     render(
       <StreamingPlansPanel
@@ -884,7 +1097,7 @@ describe("StreamingPlansPanel", () => {
     )!
     const pastCell = dropRow.querySelectorAll("td")[0]!
     expect(pastCell.querySelector("select")).toBeNull()
-    expect(pastCell).toHaveTextContent("Open slot")
+    expect(pastCell).toHaveTextContent("—")
     expect(pastCell.querySelector("span")).toHaveClass("text-[var(--color-mute)]")
   })
 
@@ -1024,7 +1237,7 @@ describe("StreamingPlansPanel", () => {
     expect(dropSelect).not.toHaveDisplayValue("Hold")
   })
 
-  it("seeds punts under 0.4 only for most categories", () => {
+  it("seeds punts under 0.38 only for most categories", () => {
     const { rerender } = render(
       <StreamingPlansPanel
         board={board}
@@ -1523,5 +1736,114 @@ describe("StreamingPlansPanel", () => {
     ).plans.find((plan) => plan.spotCount === 1)!
     expect(afterPlan.addsUsed).toBe(beforeAdds)
     expect(afterPlan.days[0]!.cells[0]!.playerId).toBe(beforePlayerId)
+  })
+
+  it("keeps a past day blank until the actual swap is recorded", async () => {
+    const storage = window.localStorage
+    storage.clear()
+    const past = "2025-11-03"
+    const today = "2025-11-04"
+    const twoDaySchedule: ScheduleResponse = {
+      ...dropSchedule,
+      matchup: {
+        ...dropSchedule.matchup,
+        startDate: past,
+        endDate: today,
+        days: [past, today],
+      },
+    }
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg-past"
+        playersById={{}}
+        schedule={twoDaySchedule}
+        state={dropState}
+        today={today}
+      />,
+    )
+
+    const pastDropName = new RegExp(
+      `roster drop ${formatMatchupDayLabel(past).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+      "i",
+    )
+    expect(screen.queryByRole("combobox", { name: pastDropName })).toBeNull()
+    fireEvent.click(screen.getAllByRole("button", { name: "실제 교체" })[0]!)
+
+    const drop = await screen.findByRole("combobox", { name: pastDropName })
+    fireEvent.change(drop, { target: { value: "you-idle" } })
+    fireEvent.click(screen.getAllByRole("button", { name: "실제 교체" })[0]!)
+    expect(screen.queryByRole("combobox", { name: pastDropName })).toBeNull()
+
+    cleanup()
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg-past"
+        playersById={{}}
+        schedule={twoDaySchedule}
+        state={dropState}
+        today={today}
+      />,
+    )
+    expect(screen.getAllByText("No Game Cut").length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset to suggested plan" }))
+    expect(screen.getAllByText("No Game Cut").length).toBeGreaterThan(0)
+  })
+
+  it("keeps a later past day blank when an earlier add is recorded", () => {
+    window.localStorage.clear()
+    const recorded = "2025-11-03"
+    const later = "2025-11-04"
+    const today = "2025-11-05"
+    const recordedAdd: SeasonPlayer = {
+      ...streamerA,
+      id: "past-recorded",
+      name: "Recorded Past Add",
+    }
+    writePastActualSwaps("lg-later-past", recorded, [
+      {
+        date: recorded,
+        spotIndex: 0,
+        addedPlayerId: recordedAdd.id,
+        drop: "hold",
+      },
+    ])
+
+    render(
+      <StreamingPlansPanel
+        board={board}
+        leagueId="lg-later-past"
+        playersById={{ [recordedAdd.id]: recordedAdd }}
+        schedule={{
+          ...schedule,
+          matchup: {
+            ...schedule.matchup,
+            startDate: recorded,
+            endDate: today,
+            days: [recorded, later, today],
+          },
+        }}
+        state={state}
+        today={today}
+      />,
+    )
+
+    for (const spotCount of [1, 2, 3]) {
+      const planRoot = screen
+        .getByRole("heading", { name: new RegExp(`^${spotCount}-spot$`, "i") })
+        .closest("div")!
+      const addRow = within(planRoot)
+        .getByRole("rowheader", {
+          name: spotCount === 1 ? /^Add$/i : /^Spot 1 Add$/i,
+        })
+        .closest("tr")!
+      const [recordedCell, laterCell] = addRow.querySelectorAll("td")
+      expect(recordedCell).toHaveTextContent(recordedAdd.name)
+      expect(laterCell).not.toHaveTextContent(recordedAdd.name)
+      expect(laterCell).toHaveTextContent("—")
+    }
   })
 })

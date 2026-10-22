@@ -140,6 +140,10 @@ const FETCH_TIMEOUT_MS = 15_000
 type EspnLeagueStatus = {
   status?: {
     currentScoringPeriod?: number
+    /** Open fantasy day. Present when `currentScoringPeriod` is omitted. */
+    transactionScoringPeriod?: number
+    /** Last period ESPN has scored. */
+    latestScoringPeriod?: number
     currentMatchupPeriod?: number
   }
   settings?: {
@@ -147,6 +151,22 @@ type EspnLeagueStatus = {
       matchupPeriods?: Record<string, number[]>
     }
   }
+}
+
+/** ESPN no longer always sends `currentScoringPeriod`. The transaction day is the open one. */
+export const resolveCurrentScoringPeriod = (
+  status: EspnLeagueStatus["status"],
+): number | null => {
+  if (typeof status?.currentScoringPeriod === "number") {
+    return status.currentScoringPeriod
+  }
+  if (typeof status?.transactionScoringPeriod === "number") {
+    return status.transactionScoringPeriod
+  }
+  if (typeof status?.latestScoringPeriod === "number") {
+    return status.latestScoringPeriod + 1
+  }
+  return null
 }
 
 export const matchupPeriodIdForScoringPeriod = (
@@ -180,6 +200,31 @@ export const pairClosedScoringPeriods = (input: {
     const scoringPeriodId = input.matchupPeriodDays[index]
     if (typeof scoringPeriodId !== "number") continue
     if (scoringPeriodId >= input.currentScoringPeriod) continue
+    paired.set(date, scoringPeriodId)
+  }
+  return paired
+}
+
+/** The fantasy day ESPN still has open. Its box score moves during games. */
+export const pairCurrentScoringPeriod = (input: {
+  dates: string[]
+  matchupDates: string[]
+  matchupPeriodDays: number[]
+  currentScoringPeriod: number
+}): Map<string, number> => {
+  if (
+    input.matchupPeriodDays.length > 0 &&
+    input.matchupDates.length !== input.matchupPeriodDays.length
+  ) {
+    throw new Error("espn_matchup_period_length_mismatch")
+  }
+  const paired = new Map<string, number>()
+  for (const date of input.dates) {
+    const index = input.matchupDates.indexOf(date)
+    if (index < 0) continue
+    const scoringPeriodId = input.matchupPeriodDays[index]
+    if (typeof scoringPeriodId !== "number") continue
+    if (scoringPeriodId !== input.currentScoringPeriod) continue
     paired.set(date, scoringPeriodId)
   }
   return paired
@@ -229,6 +274,7 @@ export const fetchEspnDayActuals = async (params: {
   scoringPeriodIds?: number[]
   youTeamId: number
   oppTeamId: number
+  period?: "closed" | "current"
   fetchImpl?: typeof fetch
 }): Promise<Map<string, DayActuals>> => {
   const fetchImpl = params.fetchImpl ?? fetch
@@ -242,7 +288,7 @@ export const fetchEspnDayActuals = async (params: {
     params.cookies,
     fetchImpl,
   )) as EspnLeagueStatus
-  const currentScoringPeriod = settings.status?.currentScoringPeriod
+  const currentScoringPeriod = resolveCurrentScoringPeriod(settings.status)
   const currentMatchupPeriod = settings.status?.currentMatchupPeriod
   if (currentScoringPeriod == null || currentMatchupPeriod == null) {
     throw new Error("espn_status_missing")
@@ -256,12 +302,16 @@ export const fetchEspnDayActuals = async (params: {
       ? params.scoringPeriodIds
       : (matchupPeriods[String(currentMatchupPeriod)] ?? [])
 
-  const scoringPeriodByDate = pairClosedScoringPeriods({
+  const periodInput = {
     dates: params.dates,
     matchupDates: params.matchupDates,
     matchupPeriodDays,
     currentScoringPeriod,
-  })
+  }
+  const scoringPeriodByDate =
+    params.period === "current"
+      ? pairCurrentScoringPeriod(periodInput)
+      : pairClosedScoringPeriods(periodInput)
 
   const payloads = await Promise.all(
     [...scoringPeriodByDate].map(async ([date, scoringPeriodId]) => {

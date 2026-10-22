@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest"
 import { defaultCategorySettings } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import { analyzeSeasonLeague } from "@/lib/season/analysis"
+import { createTradeAnalysisContext } from "@/lib/trade/simulate"
 import { buildEmptyTeamEntries } from "@/lib/season/slots"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { MAX_RECOMMENDATIONS } from "@/lib/waivers/constants"
 import { previewAddDrop } from "@/lib/waivers/preview"
 import { youWaiverRank } from "@/lib/waivers/rank"
+import { teamStanding } from "@/lib/waivers/standing"
 import { recommendPickups } from "@/lib/waivers/recommend"
 import { teamNeedsAndSurplus } from "@/lib/trade/needs"
 
@@ -117,6 +119,73 @@ describe("youWaiverRank", () => {
   })
 })
 
+describe("teamStanding", () => {
+  it("matches the roster matrix and the trade standing", () => {
+    const state = createLeagueState()
+    const standing = teamStanding(state)
+    const roster = analyzeSeasonLeague(state)
+    const trade = createTradeAnalysisContext(state).before
+    const you = state.perspectiveTeamIndex
+    const rosterOverall = roster.overall.rows.find((row) => row.teamIndex === you)
+    const tradeOverall = trade.overall.rows.find((row) => row.teamIndex === you)
+
+    expect(standing.overallRank).toBe(rosterOverall?.rank)
+    expect(standing.rankSum).toBe(rosterOverall?.rankSum)
+    expect(standing.overallRank).toBe(tradeOverall?.rank)
+    expect(standing.rankSum).toBe(tradeOverall?.rankSum)
+    expect(standing.overallRank).not.toBe(youWaiverRank(state))
+
+    for (const category of standing.categories) {
+      const rosterRank = roster.byCategory
+        .find((entry) => entry.categoryId === category.categoryId)
+        ?.rows.find((row) => row.teamIndex === you)?.rank
+      const tradeRank = trade.byCategory
+        .find((entry) => entry.categoryId === category.categoryId)
+        ?.rows.find((row) => row.teamIndex === you)?.rank
+
+      expect(category.rank).toBe(rosterRank)
+      expect(category.rank).toBe(tradeRank)
+    }
+  })
+
+  it("moves the category rank when ESPN projection totals change", () => {
+    const state = createLeagueState()
+    const before = teamStanding(state).categories.find(
+      (category) => category.categoryId === "PTS",
+    )?.rank
+    const next = {
+      ...state,
+      players: state.players.map((player) =>
+        player.id === "you-scrub"
+          ? {
+              ...player,
+              projections: { ...player.projections, PTS: 4000 },
+            }
+          : player,
+      ),
+    }
+    const after = teamStanding(next).categories.find(
+      (category) => category.categoryId === "PTS",
+    )?.rank
+
+    expect(before).toBeGreaterThan(after ?? 0)
+  })
+
+  it("uses that same rank as the add/drop preview baseline", () => {
+    const state = createLeagueState()
+    const preview = previewAddDrop(state, {
+      addPlayerId: "fa-specialist",
+      dropPlayerId: "you-scrub",
+    })
+
+    expect(preview).not.toHaveProperty("error")
+    if ("error" in preview) return
+
+    expect(preview.overall.rankBefore).toBe(teamStanding(state).overallRank)
+    expect(preview.overall.rankSumBefore).toBe(teamStanding(state).rankSum)
+  })
+})
+
 describe("recommendPickups", () => {
   it("ranks a need-category specialist above a scrub", () => {
     const state = createLeagueState()
@@ -158,8 +227,12 @@ describe("previewAddDrop", () => {
     )
 
     expect(result.before.needsScore).toBeLessThan(result.after.needsScore)
+    expect(result.overall.rankBefore).toBeGreaterThan(0)
+    expect(result.overall.rankSumBefore).toBeGreaterThan(0)
     expect(astDelta!.rankAfter).toBeLessThan(astDelta!.rankBefore)
+    expect(astDelta!.afterTotal).toBeGreaterThan(astDelta!.beforeTotal)
     expect(rebDelta!.rankAfter).toBeLessThan(rebDelta!.rankBefore)
+    expect(rebDelta!.afterTotal).toBeGreaterThan(rebDelta!.beforeTotal)
     expect(result.requiresAssumeSuccess).toBe(false)
   })
 

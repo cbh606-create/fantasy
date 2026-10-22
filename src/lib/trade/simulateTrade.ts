@@ -5,6 +5,7 @@ import {
   type SeasonAnalysis,
   type TeamCategoryTotals,
 } from "@/lib/season/analysis"
+import type { StatBasis } from "@/lib/season/analysis"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { assessSide } from "./accept"
 import { classifyTeam, leagueMeans, matchedWeaks, teamsMatch } from "./classify"
@@ -28,6 +29,7 @@ export type SimulateTradeInput = {
   youPlayerIds: string[]
   themPlayerIds: string[]
   yourDropPlayerId?: string
+  basis?: StatBasis
 }
 
 export type CategoryRankMove = {
@@ -61,6 +63,7 @@ export type TradeSimulationResult =
     yourDroppedPlayerId?: string
     theirDroppedPlayerId?: string
     replacementPlayerId?: string
+    replacementTeamIndex?: number
     ruleSentence?: string
   }
 
@@ -115,8 +118,9 @@ const reportForTeam = (
 export const standingReports = (
   state: SeasonLeagueState,
   counterpartyTeamIndex: number,
+  basis: StatBasis = "total",
 ): { you: SideRankReport, them: SideRankReport } | null => {
-  const context = createTradeAnalysisContext(state)
+  const context = createTradeAnalysisContext(state, basis)
   const places = overallPlaces(context.totalsByTeam.map((team) => ({
     teamIndex: team.teamIndex,
     ranks: ranksFor(context.before, team.teamIndex),
@@ -303,18 +307,23 @@ export const simulateTrade = (
     }
   }
 
-  const context = createTradeAnalysisContext(state)
+  const context = createTradeAnalysisContext(state, input.basis ?? "total")
   const beforeTotals = context.totalsByTeam
   const values = buildPlayerValueMap(state)
-  const youSendOneMore = youCount === themCount + 1
-  const replacement = application.yourDroppedPlayerId || youSendOneMore
-    ? topAvailablePlayer(state, values)
-    : null
+  const openSlotTeamIndex = youCount === themCount + 1
+    ? state.perspectiveTeamIndex
+    : themCount === youCount + 1
+      ? input.counterpartyTeamIndex
+      : null
+  const replacement = openSlotTeamIndex === null
+    ? null
+    : topAvailablePlayer(state, values)
   const afterTotals = totalsAfterTrade(
     application.state,
     tradePackage,
     context,
     replacement,
+    openSlotTeamIndex ?? undefined,
   )
   const before = context.before
   const after = analyzeTeamTotals(afterTotals)
@@ -367,7 +376,9 @@ export const simulateTrade = (
     ...(application.theirDroppedPlayerId
       ? { theirDroppedPlayerId: application.theirDroppedPlayerId }
       : {}),
-    ...(replacement ? { replacementPlayerId: replacement.id } : {}),
+    ...(replacement && openSlotTeamIndex !== null
+      ? { replacementPlayerId: replacement.id, replacementTeamIndex: openSlotTeamIndex }
+      : {}),
     ...ruleFields(state, tradePackage, beforeTotals, afterTotals, values, shapeCheck),
   }
 }

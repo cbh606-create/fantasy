@@ -54,6 +54,36 @@ describe("applyStreamerMoveToDaily", () => {
     expect(entries.every((entry) => entry.playerId === null)).toBe(true)
   })
 
+  it("slides a starter into the open hole so a flex add can use their slot", () => {
+    const center = player("fa-c", "BOS", ["C"])
+    const forward = player("util-pf", "MIA", ["PF"])
+    const entries: SeasonRosterEntry[] = [
+      { slot: "PF", playerId: null },
+      { slot: "UTIL", playerId: "util-pf" },
+    ]
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: { scoringPeriodId: 1, startDate: DAY, endDate: DAY, days: [DAY] },
+      games: [
+        { date: DAY, homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAY, homeAbbr: "MIA", awayAbbr: "NYK" },
+      ],
+    }
+    const seated = seatStreamerIfOpen(
+      entries,
+      "fa-c",
+      DAY,
+      { "fa-c": center, "util-pf": forward },
+      schedule,
+      { allowFlexSlots: true },
+    )
+    expect(seated).toBe(true)
+    expect(entries).toEqual([
+      { slot: "PF", playerId: "util-pf" },
+      { slot: "UTIL", playerId: "fa-c" },
+    ])
+  })
+
   it("still seats later game days when fromDate has no eligible slot", () => {
     const fa = player("fa-c", "BOS", ["C"])
     const filler = (id: string, team: string, positions: SeasonPlayer["positions"]) =>

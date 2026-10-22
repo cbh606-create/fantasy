@@ -181,6 +181,263 @@ describe("applyStreamingPlanPreview", () => {
     expect(previewStl).toBeGreaterThan(baseStl)
   })
 
+  it("stops a waiver add from playing after a later roster drop", () => {
+    const missi = player("missi", "NOP")
+    const whitmore = player("whitmore", "WAS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[2],
+        days: [...DAYS],
+      },
+      games: DAYS.flatMap((date) => [
+        { date, homeAbbr: "NOP", awayAbbr: "CHI" },
+        { date, homeAbbr: "WAS", awayAbbr: "MIA" },
+      ]),
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter("missi"),
+      [DAYS[1]]: withStarter("missi"),
+      [DAYS[2]]: withStarter("missi"),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "missi",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "whitmore",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: "missi",
+            rosterDropKind: "player",
+            addIndex: 2,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[2],
+        cells: [emptyCell(0)],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { missi, whitmore },
+      schedule,
+      { rosterPlayerIds: ["missi"] },
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain("missi")
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain("missi")
+    expect(playerIdsOn(preview, DAYS[1])).toContain("whitmore")
+    expect(playerIdsOn(preview, DAYS[2])).not.toContain("missi")
+  })
+
+  it("clears the roster id when a later add replaces the espn- alias without naming the drop", () => {
+    const rosterId = "100"
+    const streamId = "espn-100"
+    const rostered = player(rosterId, "NOP")
+    const streamRostered = player(streamId, "NOP")
+    const nextAdd = player("next-add", "WAS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[2],
+        days: [...DAYS],
+      },
+      games: DAYS.flatMap((date) => [
+        { date, homeAbbr: "NOP", awayAbbr: "CHI" },
+        { date, homeAbbr: "WAS", awayAbbr: "MIA" },
+      ]),
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter(rosterId),
+      [DAYS[1]]: withStarter(rosterId),
+      [DAYS[2]]: withStarter(rosterId),
+    }
+    const addCell = (
+      datePlayerId: string,
+      action: "add" | "drop_add",
+    ): StreamingPlanDayCell => ({
+      spotIndex: 0,
+      playerId: datePlayerId,
+      action,
+      droppedPlayerId: null,
+      rosterDropPlayerId: null,
+      rosterDropKind: "none",
+      addIndex: 1,
+      alternativePlayerIds: [],
+      targetCategoryIds: [],
+    })
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      plan(1, [
+        { date: DAYS[0], cells: [addCell(streamId, "add")] },
+        { date: DAYS[1], cells: [addCell("next-add", "add")] },
+        { date: DAYS[2], cells: [emptyCell(0)] },
+      ]),
+      { [rosterId]: rostered, [streamId]: streamRostered, "next-add": nextAdd },
+      schedule,
+      { rosterPlayerIds: [rosterId] },
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain(rosterId)
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain(rosterId)
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain(streamId)
+    expect(playerIdsOn(preview, DAYS[2])).not.toContain(rosterId)
+  })
+
+  it("keeps a replaced streamer who is still listed on another spot", () => {
+    const kept = player("kept", "NOP")
+    const other = player("other", "WAS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [DAYS[0], DAYS[1]].flatMap((date) => [
+        { date, homeAbbr: "NOP", awayAbbr: "CHI" },
+        { date, homeAbbr: "WAS", awayAbbr: "MIA" },
+      ]),
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter("kept"),
+      [DAYS[1]]: withStarter("kept"),
+    }
+    const cell = (
+      spotIndex: number,
+      playerId: string,
+      action: "add" | "hold",
+    ): StreamingPlanDayCell => ({
+      ...emptyCell(spotIndex),
+      playerId,
+      action,
+    })
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      plan(2, [
+        {
+          date: DAYS[0],
+          cells: [cell(0, "kept", "add"), cell(1, "other", "add")],
+        },
+        {
+          date: DAYS[1],
+          cells: [cell(0, "other", "add"), cell(1, "kept", "hold")],
+        },
+      ]),
+      { kept, other },
+      schedule,
+      { rosterPlayerIds: ["kept"] },
+    )
+
+    expect(playerIdsOn(preview, DAYS[1])).toContain("kept")
+  })
+
+  it("clears the roster id when a stream drops the espn- alias", () => {
+    const rosterId = "100"
+    const streamId = "espn-100"
+    const rostered = player(rosterId, "NOP")
+    const streamed = player(streamId, "NOP")
+    const whitmore = player("whitmore", "WAS")
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[2],
+        days: [...DAYS],
+      },
+      games: DAYS.flatMap((date) => [
+        { date, homeAbbr: "NOP", awayAbbr: "CHI" },
+        { date, homeAbbr: "WAS", awayAbbr: "MIA" },
+      ]),
+    }
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: withStarter(rosterId),
+      [DAYS[1]]: withStarter(rosterId),
+      [DAYS[2]]: withStarter(rosterId),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: streamId,
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[1],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "whitmore",
+            action: "drop_add",
+            droppedPlayerId: streamId,
+            rosterDropPlayerId: null,
+            rosterDropKind: "none",
+            addIndex: 2,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      {
+        date: DAYS[2],
+        cells: [emptyCell(0)],
+      },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { [rosterId]: rostered, [streamId]: streamed, whitmore },
+      schedule,
+      { rosterPlayerIds: [rosterId] },
+    )
+
+    expect(playerIdsOn(preview, DAYS[0])).toContain(rosterId)
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain(rosterId)
+    expect(playerIdsOn(preview, DAYS[1])).not.toContain(streamId)
+    expect(playerIdsOn(preview, DAYS[2])).not.toContain(rosterId)
+    expect(playerIdsOn(preview, DAYS[2])).not.toContain(streamId)
+  })
+
   it("does not reseat a plan-dropped roster player even if keepRosterSeats asks", () => {
     const jjj = player("jjj", "MEM")
     const streamer = player("fa-stl", "BOS")
@@ -1429,5 +1686,67 @@ describe("applyStreamingPlanPreview", () => {
 
     expect(playerIdsOn(preview, DAYS[0])).not.toContain("cut-old")
     expect(playerIdsOn(preview, DAYS[0])).toContain("keeper")
+  })
+
+  it("parks the IR player through the week and leaves the next day empty", () => {
+    const sit = player("sit", "NYK")
+    const add = player("fa-add", "BOS", { projections: { STL: 5, PTS: 20 } })
+    const schedule: ScheduleResponse = {
+      source: "fixture",
+      matchup: {
+        scoringPeriodId: 1,
+        startDate: DAYS[0],
+        endDate: DAYS[1],
+        days: [DAYS[0], DAYS[1]],
+      },
+      games: [
+        { date: DAYS[0], homeAbbr: "BOS", awayAbbr: "CHI" },
+        { date: DAYS[1], homeAbbr: "MEM", awayAbbr: "NYK" },
+      ],
+    }
+    const lineup = (): SeasonRosterEntry[] => [
+      ...withStarter("sit"),
+      { slot: "IL", playerId: null },
+    ]
+    const baseDaily: DailyLineups = {
+      [DAYS[0]]: lineup(),
+      [DAYS[1]]: lineup(),
+    }
+    const previewPlan = plan(1, [
+      {
+        date: DAYS[0],
+        cells: [
+          {
+            spotIndex: 0,
+            playerId: "fa-add",
+            action: "add",
+            droppedPlayerId: null,
+            rosterDropPlayerId: "sit",
+            rosterDropKind: "ir",
+            addIndex: 1,
+            alternativePlayerIds: [],
+            targetCategoryIds: [],
+          },
+        ],
+      },
+      { date: DAYS[1], cells: [emptyCell(0)] },
+    ])
+
+    const preview = applyStreamingPlanPreview(
+      baseDaily,
+      previewPlan,
+      { sit, "fa-add": add },
+      schedule,
+    )
+
+    const day0 = preview[DAYS[0]]!
+    const day1 = preview[DAYS[1]]!
+    expect(day0.find((entry) => entry.slot === "IL")?.playerId).toBe("sit")
+    expect(day0.some((entry) => entry.slot !== "IL" && entry.playerId === "fa-add")).toBe(true)
+    expect(day0.some((entry) => entry.slot !== "IL" && entry.playerId === "sit")).toBe(false)
+    expect(day1.find((entry) => entry.slot === "IL")?.playerId).toBe("sit")
+    expect(day1[0]?.playerId).toBeNull()
+    expect(day1.some((entry) => entry.slot !== "IL" && entry.playerId === "sit")).toBe(false)
+    expect(day1.some((entry) => entry.playerId === "fa-add")).toBe(false)
   })
 })

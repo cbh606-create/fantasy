@@ -415,7 +415,7 @@ export const effectiveGamesByPlayerId = (
 
   for (const [day, entries] of Object.entries(daily)) {
     for (const entry of entries) {
-      if (!entry.playerId) continue
+      if (!entry.playerId || entry.slot === "IL") continue
 
       const player = playersById.get(entry.playerId)
       if (!player) continue
@@ -718,6 +718,16 @@ const seatPlayedIds = (
 
   return next
 }
+
+/** A day with no recorded player ids is not an actual lineup. Leave those seats alone. */
+export const lineupPlayedIds = (
+  playedIdsByDate: Record<string, readonly string[] | undefined>,
+): Record<string, string[]> =>
+  Object.fromEntries(
+    Object.entries(playedIdsByDate).flatMap(([date, ids]) =>
+      ids && ids.length > 0 ? [[date, [...ids]] as const] : [],
+    ),
+  )
 
 /** Closed dates keep the players who recorded actuals. Later dates stay on the current roster. */
 export const applyPlayedDayLineups = (

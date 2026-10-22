@@ -61,6 +61,9 @@ export type DayComparisonRow = {
   oppPlayedIds?: string[]
   youActualShooting?: DayShootingTotals | null
   oppActualShooting?: DayShootingTotals | null
+  /** Actual minus that day's projection. Absent when the side has no box. */
+  youDelta?: CategoryTotals | null
+  oppDelta?: CategoryTotals | null
 }
 
 const emptyShooting = (): DayShootingTotals => ({
@@ -155,6 +158,7 @@ const buildClosedDayRecord = (input: {
   schedule: ScheduleResponse
 }): ClosedDayRecord => {
   const { date, previous, actuals } = input
+  const fresh = actuals && dayActualsHaveStats(actuals) ? actuals : undefined
   return {
     date,
     youStartableIds:
@@ -173,14 +177,14 @@ const buildClosedDayRecord = (input: {
         date,
         input.schedule,
       ),
-    youActual: actuals?.you ?? previous?.youActual ?? emptyCategoryTotals(),
-    oppActual: actuals?.opp ?? previous?.oppActual ?? emptyCategoryTotals(),
-    youPlayedIds: actuals?.youPlayedIds ?? previous?.youPlayedIds ?? [],
-    oppPlayedIds: actuals?.oppPlayedIds ?? previous?.oppPlayedIds ?? [],
+    youActual: fresh?.you ?? previous?.youActual ?? emptyCategoryTotals(),
+    oppActual: fresh?.opp ?? previous?.oppActual ?? emptyCategoryTotals(),
+    youPlayedIds: fresh?.youPlayedIds ?? previous?.youPlayedIds ?? [],
+    oppPlayedIds: fresh?.oppPlayedIds ?? previous?.oppPlayedIds ?? [],
     youShooting:
-      actuals?.youShooting ?? previous?.youShooting ?? emptyShooting(),
+      fresh?.youShooting ?? previous?.youShooting ?? emptyShooting(),
     oppShooting:
-      actuals?.oppShooting ?? previous?.oppShooting ?? emptyShooting(),
+      fresh?.oppShooting ?? previous?.oppShooting ?? emptyShooting(),
   }
 }
 
@@ -262,6 +266,41 @@ export const closeFinishedDays = (input: {
     actualsPending: false,
     frontierDate,
   }
+}
+
+export const dayActualsHaveStats = (actuals: DayActuals): boolean => {
+  if (actuals.youPlayedIds.length > 0 || actuals.oppPlayedIds.length > 0) {
+    return true
+  }
+  const counting = ["PTS", "REB", "AST", "STL", "BLK", "TO", "TPM"] as const
+  return counting.some((id) => actuals.you[id] > 0 || actuals.opp[id] > 0)
+}
+
+/**
+ * Paint a live box onto the comparison row. Played ids stay off so an
+ * in-progress day does not lock the lineup.
+ */
+export const overlayLiveActuals = (
+  rows: DayComparisonRow[],
+  live: Iterable<DayActuals>,
+): DayComparisonRow[] => {
+  const byDate = new Map<string, DayActuals>()
+  for (const actuals of live) {
+    if (!dayActualsHaveStats(actuals)) continue
+    byDate.set(actuals.date, actuals)
+  }
+  if (byDate.size === 0) return rows
+  return rows.map((row) => {
+    const actuals = byDate.get(row.date)
+    if (!actuals) return row
+    return {
+      ...row,
+      youActual: actuals.you,
+      oppActual: actuals.opp,
+      youActualShooting: actuals.youShooting,
+      oppActualShooting: actuals.oppShooting,
+    }
+  })
 }
 
 export const dayComparisonRows = (

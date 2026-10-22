@@ -2,7 +2,10 @@
 import "@testing-library/jest-dom/vitest"
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { OpponentWeekStrip } from "@/components/matchup/OpponentWeekStrip"
+import {
+  OpponentWeekStrip,
+  opponentRosteredDatesByPlayerId,
+} from "@/components/matchup/OpponentWeekStrip"
 import type { ScheduleResponse } from "@/lib/season/types"
 
 const projections = {
@@ -101,6 +104,43 @@ describe("OpponentWeekStrip", () => {
       "min-w-20",
       "max-w-20",
     )
+  })
+
+  it("shows a drop-only waiver move instead of a dash", () => {
+    render(
+      <OpponentWeekStrip
+        days={["2025-11-03"]}
+        opponentName="Them"
+        opponentDays={[
+          {
+            date: "2025-11-03",
+            streamerPlayerId: null,
+            droppedPlayerId: "opp-cut",
+            rosterGameCount: 1,
+            cells: [
+              {
+                spotIndex: 0,
+                playerId: null,
+                droppedPlayerId: "opp-cut",
+                action: "empty",
+                addIndex: null,
+              },
+            ],
+          },
+        ]}
+        playersById={{
+          "opp-cut": {
+            id: "opp-cut",
+            name: "Opp Cut",
+            positions: ["C"],
+            projections,
+            shooting,
+          },
+        }}
+      />,
+    )
+
+    expect(screen.getByLabelText(/Opp .* spot 1: Opp Cut/i)).toBeInTheDocument()
   })
 
   it("renders a read-only mini daily lineup without avatars", () => {
@@ -317,5 +357,47 @@ describe("OpponentWeekStrip", () => {
     expect(
       screen.getByRole("button", { name: /Sit Victor Wembanyama/i }),
     ).toBeEnabled()
+  })
+
+  it("drops a roster player when the stream uses the espn- alias", () => {
+    const days = ["2026-10-21", "2026-10-23"]
+    const dates = opponentRosteredDatesByPlayerId(
+      days,
+      [{ slot: "C", playerId: "5061589" }],
+      [
+        {
+          date: "2026-10-21",
+          streamerPlayerId: "espn-5061589",
+          droppedPlayerId: null,
+          rosterGameCount: 1,
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "espn-5061589",
+              droppedPlayerId: null,
+              action: "add",
+              addIndex: 1,
+            },
+          ],
+        },
+        {
+          date: "2026-10-23",
+          streamerPlayerId: "whitmore",
+          droppedPlayerId: "espn-5061589",
+          rosterGameCount: 1,
+          cells: [
+            {
+              spotIndex: 0,
+              playerId: "whitmore",
+              droppedPlayerId: "espn-5061589",
+              action: "drop_add",
+              addIndex: 2,
+            },
+          ],
+        },
+      ],
+    )
+    expect(dates.get("5061589")?.has("2026-10-21")).toBe(true)
+    expect(dates.get("5061589")?.has("2026-10-23")).toBe(false)
   })
 })

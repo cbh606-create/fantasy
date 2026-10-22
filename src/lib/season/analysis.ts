@@ -46,6 +46,20 @@ export type SeasonAnalysis = {
   }
 }
 
+export type StatBasis = "total" | "perGame"
+export type FormWindow = "season" | "l7" | "l15" | "l30"
+
+const FORM_WINDOW_GAMES: Record<Exclude<FormWindow, "season">, number> = {
+  l7: 7,
+  l15: 15,
+  l30: 30,
+}
+
+type PlayerLine = {
+  projections: SeasonPlayer["projections"]
+  shooting: SeasonPlayer["shooting"]
+}
+
 const COUNTING_CATEGORY_IDS = ALL_CATEGORY_IDS.filter(
   (categoryId) => categoryId !== "FG_PCT" && categoryId !== "FT_PCT",
 )
@@ -115,6 +129,59 @@ export const teamTotals = (players: SeasonPlayer[]): CategoryTotals => {
   return totals
 }
 
+const aggregateLines = (lines: PlayerLine[]): CategoryTotals => {
+  const totals = emptyTotals()
+
+  for (const line of lines) {
+    for (const categoryId of COUNTING_CATEGORY_IDS) {
+      totals[categoryId] += line.projections[categoryId]
+    }
+  }
+
+  const rate = (
+    makesKey: "FGM" | "FTM",
+    attemptsKey: "FGA" | "FTA",
+    categoryId: "FG_PCT" | "FT_PCT",
+  ) => {
+    if (lines.length === 0) return 0
+    if (lines.every((line) => line.shooting[attemptsKey] > 0)) {
+      const makes = lines.reduce((sum, line) => sum + line.shooting[makesKey], 0)
+      const attempts = lines.reduce(
+        (sum, line) => sum + line.shooting[attemptsKey],
+        0,
+      )
+      return makes / attempts
+    }
+
+    return (
+      lines.reduce((sum, line) => sum + line.projections[categoryId], 0) /
+      lines.length
+    )
+  }
+
+  totals.FG_PCT = rate("FGM", "FGA", "FG_PCT")
+  totals.FT_PCT = rate("FTM", "FTA", "FT_PCT")
+
+  return totals
+}
+
+export const teamTotalsForBasis = (
+  players: SeasonPlayer[],
+  basis: StatBasis,
+  window: FormWindow = "season",
+): CategoryTotals => {
+  const lines = players.map((player) => playerLineForBasis(player, basis, window))
+  const totals = aggregateLines(lines)
+  if (basis !== "perGame") return totals
+
+  const rateLines = aggregateLines(
+    players.map((player) => playerLineForBasis(player, "total", window)),
+  )
+  totals.FG_PCT = rateLines.FG_PCT
+  totals.FT_PCT = rateLines.FT_PCT
+  return totals
+}
+
 const standardDeviation = (values: number[], mean: number) =>
   Math.sqrt(
     values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length,
@@ -145,66 +212,150 @@ const gamesForPerGameRate = (player: SeasonPlayer): number => {
   return ASSUMED_SEASON_GAMES
 }
 
-export const seasonTeamTotals = (
+const seasonGameCount = (player: SeasonPlayer): number => {
+  if (typeof player.projectedGames === "number" && player.projectedGames > 0) {
+    return player.projectedGames
+  }
+
+  return ASSUMED_SEASON_GAMES
+}
+
+const scaleLine = (line: PlayerLine, factor: number): PlayerLine => {
+  const projections = { ...line.projections }
+  const shooting = {
+    FGM: line.shooting.FGM * factor,
+    FGA: line.shooting.FGA * factor,
+    FTM: line.shooting.FTM * factor,
+    FTA: line.shooting.FTA * factor,
+  }
+
+  for (const categoryId of COUNTING_CATEGORY_IDS) {
+    projections[categoryId] = line.projections[categoryId] * factor
+  }
+
+  projections.FG_PCT = shooting.FGA > 0
+    ? shooting.FGM / shooting.FGA
+    : line.projections.FG_PCT
+  projections.FT_PCT = shooting.FTA > 0
+    ? shooting.FTM / shooting.FTA
+    : line.projections.FT_PCT
+
+  return { projections, shooting }
+}
+
+const storedProjectionPerGame = (player: SeasonPlayer): PlayerLine =>
+  scaleLine(
+    { projections: player.projections, shooting: player.shooting },
+    1 / gamesForPerGameRate(player),
+  )
+
+const blendedSeasonTotal = (player: SeasonPlayer): PlayerLine => {
+  const played = player.seasonRates?.gamesPlayed ?? 0
+
+  if (!player.seasonRates || played <= 0) {
+    return { projections: player.projections, shooting: player.shooting }
+  }
+
+  const seasonGames = seasonGameCount(player)
+  const projected = storedProjectionPerGame(player)
+  const remaining = Math.max(0, seasonGames - played)
+  const actual = player.seasonRates
+  const projections = { ...projected.projections }
+  const shooting = {
+    FGM: actual.shooting.FGM * played + projected.shooting.FGM * remaining,
+    FGA: actual.shooting.FGA * played + projected.shooting.FGA * remaining,
+    FTM: actual.shooting.FTM * played + projected.shooting.FTM * remaining,
+    FTA: actual.shooting.FTA * played + projected.shooting.FTA * remaining,
+  }
+
+  for (const categoryId of COUNTING_CATEGORY_IDS) {
+    projections[categoryId] =
+      actual.projections[categoryId] * played +
+      projected.projections[categoryId] * remaining
+  }
+
+  projections.FG_PCT = shooting.FGA > 0
+    ? shooting.FGM / shooting.FGA
+    : actual.projections.FG_PCT
+  projections.FT_PCT = shooting.FTA > 0
+    ? shooting.FTM / shooting.FTA
+    : actual.projections.FT_PCT
+
+  return { projections, shooting }
+}
+
+const seasonPerGame = (player: SeasonPlayer): PlayerLine => {
+  const played = player.seasonRates?.gamesPlayed ?? 0
+  const divisor = !player.seasonRates || played <= 0
+    ? gamesForPerGameRate(player)
+    : seasonGameCount(player)
+
+  return scaleLine(blendedSeasonTotal(player), 1 / divisor)
+}
+
+const recentPerGame = (
+  player: SeasonPlayer,
+  window: Exclude<FormWindow, "season">,
+): PlayerLine => {
+  const rates = player.recentRates?.[window]
+  if (!rates) {
+    return seasonPerGame(player)
+  }
+
+  return {
+    projections: { ...rates.projections },
+    shooting: { ...rates.shooting },
+  }
+}
+
+export const playerLineForBasis = (
+  player: SeasonPlayer,
+  basis: StatBasis,
+  window: FormWindow = "season",
+): PlayerLine => {
+  if (window === "season") {
+    if (basis === "total") return blendedSeasonTotal(player)
+    return seasonPerGame(player)
+  }
+
+  const perGame = recentPerGame(player, window)
+  if (basis === "perGame") return perGame
+  return scaleLine(perGame, FORM_WINDOW_GAMES[window])
+}
+
+export const formTeamTotals = (
   state: SeasonLeagueState,
+  window: FormWindow,
+  basis: StatBasis,
 ): TeamCategoryTotals[] => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
 
   return state.teams.map((team) => ({
     teamIndex: team.teamIndex,
-    totals: teamTotals(rosterPlayers(team, playersById)),
+    totals: teamTotalsForBasis(rosterPlayers(team, playersById), basis, window),
   }))
 }
 
-export const playerLineForBasis = (
-  player: SeasonPlayer,
-  basis: "total" | "perGame",
-): { projections: SeasonPlayer["projections"]; shooting: SeasonPlayer["shooting"] } => {
-  if (basis === "total") {
-    return { projections: player.projections, shooting: player.shooting }
-  }
-
-  const games = gamesForPerGameRate(player)
-  const projections = { ...player.projections }
-
-  for (const categoryId of COUNTING_CATEGORY_IDS) {
-    projections[categoryId] = player.projections[categoryId] / games
-  }
-
-  return {
-    projections,
-    shooting: {
-      FGM: player.shooting.FGM / games,
-      FGA: player.shooting.FGA / games,
-      FTM: player.shooting.FTM / games,
-      FTA: player.shooting.FTA / games,
-    },
-  }
-}
+export const seasonTeamTotals = (
+  state: SeasonLeagueState,
+): TeamCategoryTotals[] => formTeamTotals(state, "season", "total")
 
 export const perGameTeamTotals = (
   state: SeasonLeagueState,
 ): TeamCategoryTotals[] => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
 
-  return state.teams.map((team) => {
-    const players = rosterPlayers(team, playersById)
-    const totals = emptyTotals()
-
-    for (const player of players) {
-      const games = gamesForPerGameRate(player)
-
-      for (const categoryId of COUNTING_CATEGORY_IDS) {
-        totals[categoryId] += player.projections[categoryId] / games
-      }
-    }
-
-    totals.FG_PCT = percentageTotal(players, "FG_PCT")
-    totals.FT_PCT = percentageTotal(players, "FT_PCT")
-
-    return { teamIndex: team.teamIndex, totals }
-  })
+  return state.teams.map((team) => ({
+    teamIndex: team.teamIndex,
+    totals: teamTotalsForBasis(rosterPlayers(team, playersById), "perGame"),
+  }))
 }
+
+export const leagueTotalsForBasis = (
+  state: SeasonLeagueState,
+  basis: StatBasis,
+): TeamCategoryTotals[] =>
+  basis === "perGame" ? perGameTeamTotals(state) : seasonTeamTotals(state)
 
 export const analyzeTeamTotals = (
   totalsByTeam: TeamCategoryTotals[],
@@ -277,68 +428,12 @@ export const analyzePerGameLeague = (
   state: SeasonLeagueState,
 ): SeasonAnalysis => analyzeTeamTotals(perGameTeamTotals(state))
 
+export const analyzeFormLeague = (
+  state: SeasonLeagueState,
+  window: FormWindow,
+  basis: StatBasis,
+): SeasonAnalysis => analyzeTeamTotals(formTeamTotals(state, window, basis))
+
 export const analyzeSeasonLeague = (
   state: SeasonLeagueState,
-): SeasonAnalysis => {
-  const analysis = analyzeTeamTotals(seasonTeamTotals(state))
-  const playersById = new Map(state.players.map((player) => [player.id, player]))
-  const zByTeam = new Map<number, Record<CategoryId, number>>()
-
-  for (const team of state.teams) {
-    const totals = Object.fromEntries(
-      ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0]),
-    ) as Record<CategoryId, number>
-
-    for (const player of rosterPlayers(team, playersById)) {
-      const categories = capnightPlayerZ(player.name).z
-      for (const categoryId of ALL_CATEGORY_IDS) {
-        totals[categoryId] += categories[categoryId]
-      }
-    }
-
-    zByTeam.set(team.teamIndex, totals)
-  }
-
-  const leagueZByCategory = new Map(
-    ALL_CATEGORY_IDS.map((categoryId) => {
-      const values = state.teams.map(
-        (team) => zByTeam.get(team.teamIndex)?.[categoryId] ?? 0,
-      )
-      const mean = values.reduce((sum, value) => sum + value, 0) / values.length
-      const deviation = standardDeviation(values, mean)
-
-      return [
-        categoryId,
-        new Map(
-          state.teams.map((team, index) => {
-            const value = values[index] ?? 0
-            const z = deviation === 0 ? 0 : (value - mean) / deviation
-            return [team.teamIndex, z]
-          }),
-        ),
-      ] as const
-    }),
-  )
-  const zFor = (teamIndex: number, categoryId: CategoryId) =>
-    leagueZByCategory.get(categoryId)?.get(teamIndex) ?? 0
-
-  return {
-    byTeam: analysis.byTeam.map((team) => ({
-      ...team,
-      levels: team.levels.map((level) => {
-        const z = zFor(team.teamIndex, level.categoryId)
-        const kind = z > 0 ? "positive" : z < 0 ? "negative" : "neutral"
-
-        return { ...level, z, intensity: Math.abs(z), kind }
-      }),
-    })),
-    byCategory: analysis.byCategory.map((category) => ({
-      ...category,
-      rows: category.rows.map((row) => ({
-        ...row,
-        z: zFor(row.teamIndex, category.categoryId),
-      })),
-    })),
-    overall: analysis.overall,
-  }
-}
+): SeasonAnalysis => analyzeFormLeague(state, "season", "total")

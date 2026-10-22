@@ -1,9 +1,11 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
 import type { CategoryTotals, DayComparisonRow } from "@/lib/matchup/morningCheck"
+import { weekAdvantage } from "@/lib/matchup/projectionDelta"
 import {
   CATEGORY_SHORT_LABELS,
   formatCategoryStat,
+  formatCategoryStatDelta,
 } from "@/lib/season/formatCategoryStat"
 
 type DayComparisonProps = {
@@ -15,60 +17,18 @@ type DayComparisonProps = {
 const gamesLabel = (games: number | undefined): string =>
   games == null ? "—" : String(games)
 
-const GamesCell = ({
-  emphasized,
-  games,
-}: {
-  emphasized: boolean
-  games: number | undefined
-}) => (
-  <td className="whitespace-nowrap px-1 py-0.5 text-center align-middle">
-    <p
-      aria-hidden="true"
-      className={`leading-tight text-transparent tabular-nums ${
-        emphasized ? "text-xs" : "text-[0.6875rem]"
-      }`}
-    >
-      0
-    </p>
-    <p className="leading-tight tabular-nums text-[var(--color-ink)]">
-      {gamesLabel(games)}
-    </p>
-  </td>
-)
-
-const cellValue = (
-  categoryId: CategoryId,
-  totals: CategoryTotals | null | undefined,
-): string => {
-  if (!totals) return "—"
-  return formatCategoryStat(categoryId, totals[categoryId])
+const deltaToneClass = (categoryId: CategoryId, delta: number): string => {
+  if (delta === 0) return "text-[var(--color-mute)]"
+  const better = categoryId === "TO" ? delta < 0 : delta > 0
+  if (better) return "text-[var(--color-success)]"
+  return "text-[var(--color-sale)]"
 }
 
-const StatCell = ({
-  categoryId,
-  emphasized,
-  projection,
-  actual,
-}: {
-  categoryId: CategoryId
-  emphasized: boolean
-  projection: CategoryTotals | undefined
-  actual: CategoryTotals | null | undefined
-}) => (
-  <td className="whitespace-nowrap px-1 py-0.5 text-center align-middle">
-    <p
-      className={`leading-tight text-[var(--color-mute)] tabular-nums ${
-        emphasized ? "text-xs" : "text-[0.6875rem]"
-      }`}
-    >
-      {cellValue(categoryId, projection)}
-    </p>
-    <p className="leading-tight tabular-nums text-[var(--color-ink)]">
-      {cellValue(categoryId, actual)}
-    </p>
-  </td>
-)
+const advantageTone = (value: number): string => {
+  if (value === 0) return "text-[var(--color-mute)]"
+  if (value > 0) return "text-[var(--color-success)]"
+  return "text-[var(--color-sale)]"
+}
 
 export const DayComparison = ({ days, rows, week }: DayComparisonProps) => {
   if (days.length === 0) return null
@@ -76,7 +36,7 @@ export const DayComparison = ({ days, rows, week }: DayComparisonProps) => {
 
   return (
     <div className="flex flex-col items-start gap-3 xl:flex-row">
-      <div className="min-w-0 w-full max-w-3xl space-y-1.5">
+      <div className="min-w-0 w-full space-y-1.5 xl:w-[52rem]">
         {days.map((date) => (
           <ComparisonTable
             key={date}
@@ -92,52 +52,114 @@ export const DayComparison = ({ days, rows, week }: DayComparisonProps) => {
   )
 }
 
-const ComparisonTable = ({
-  emphasized = false,
-  label,
-  row,
+const finiteStat = (value: number | null | undefined): value is number =>
+  typeof value === "number" && Number.isFinite(value)
+
+const WeekCategoryCell = ({
+  categoryId,
+  kind,
+  value,
 }: {
-  emphasized?: boolean
-  label: string
-  row: DayComparisonRow | undefined
+  categoryId: CategoryId
+  kind: "total" | "delta" | "advantage"
+  value: number | null | undefined
+}) => {
+  const finite = finiteStat(value)
+  const text = !finite
+    ? "—"
+    : kind === "total"
+      ? formatCategoryStat(categoryId, value)
+      : formatCategoryStatDelta(categoryId, value)
+  const tone = !finite
+    ? "text-[var(--color-mute)]"
+    : kind === "advantage"
+      ? advantageTone(value)
+      : kind === "delta"
+        ? deltaToneClass(categoryId, value)
+        : "text-[var(--color-ink)]"
+
+  return (
+    <td
+      aria-label={
+        kind === "advantage" && finite
+          ? `Category advantage ${CATEGORY_SHORT_LABELS[categoryId]}`
+          : undefined
+      }
+      className={`whitespace-nowrap px-1 py-0.5 text-center align-middle tabular-nums ${tone}`}
+    >
+      {text}
+    </td>
+  )
+}
+
+const WeekStatRow = ({
+  games,
+  kind,
+  shade,
+  showGames = false,
+  team,
+  title,
+  totals,
+}: {
+  games?: number
+  kind: "total" | "delta" | "advantage"
+  shade: string
+  showGames?: boolean
+  team?: string
+  title: string
+  totals: CategoryTotals | null | undefined
 }) => (
-  <section
-    aria-label={`Day comparison ${label}`}
-    className={`overflow-x-auto rounded-2xl ${
-      emphasized
-        ? "bg-[#e4e6ea] px-4 py-3"
-        : "bg-[var(--color-soft-cloud)] px-3 py-1.5"
-    }`}
-  >
-    <h2
-      className={`font-medium text-[var(--color-ink)] ${
-        emphasized ? "text-base" : "text-[0.8125rem]"
-      }`}
+  <tr className={shade}>
+    {team ? (
+      <th
+        className="whitespace-nowrap px-1 py-0.5 text-left align-middle text-sm font-medium text-[var(--color-mute)] uppercase"
+        rowSpan={3}
+        scope="row"
+      >
+        {team}
+      </th>
+    ) : null}
+    {kind === "advantage" ? <td className="px-1 py-0.5" /> : null}
+    <th
+      className="whitespace-nowrap px-1 py-0.5 text-left text-sm font-medium text-[var(--color-mute)]"
+      scope="row"
     >
-      {label}
-    </h2>
-    <table
-      className={`mt-0.5 w-full table-fixed border-collapse ${
-        emphasized
-          ? "min-w-[48rem] text-base"
-          : "min-w-[40rem] text-[0.8125rem]"
-      }`}
-    >
+      {title}
+    </th>
+    <td className="whitespace-nowrap px-1 py-0.5 text-center align-middle tabular-nums text-[var(--color-ink)]">
+      {showGames ? gamesLabel(games) : ""}
+    </td>
+    {ALL_CATEGORY_IDS.map((categoryId) => (
+      <WeekCategoryCell
+        categoryId={categoryId}
+        key={categoryId}
+        kind={kind}
+        value={totals?.[categoryId]}
+      />
+    ))}
+  </tr>
+)
+
+const WeekTable = ({ row }: { row: DayComparisonRow | undefined }) => {
+  const advantage = weekAdvantage(row?.youDelta, row?.oppDelta)
+
+  return (
+    <table className="mt-0.5 w-full min-w-[48rem] table-fixed border-collapse text-base">
       <colgroup>
         <col className="w-10" />
+        <col className="w-12" />
         <col className="w-8" />
         {ALL_CATEGORY_IDS.map((categoryId) => (
           <col key={categoryId} />
         ))}
       </colgroup>
       <thead>
-        <tr
-          className={`tracking-[0.06em] text-[var(--color-mute)] uppercase ${
-            emphasized ? "text-sm" : "text-xs"
-          }`}
-        >
+        <tr className="text-sm tracking-[0.06em] text-[var(--color-mute)] uppercase">
           <th className="px-1 py-0.5 text-left font-medium" scope="col">
             <span className="sr-only">Team</span>
+          </th>
+          <th className="px-1 py-0.5 text-left font-medium" scope="col">
+            <span className="sr-only">Row</span>
           </th>
           <th
             className="whitespace-nowrap px-1 py-0.5 text-center font-medium"
@@ -157,47 +179,81 @@ const ComparisonTable = ({
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <th
-            className={`whitespace-nowrap px-1 py-0.5 text-left font-medium text-[var(--color-mute)] uppercase ${
-              emphasized ? "text-sm" : "text-xs"
-            }`}
-            scope="row"
-          >
-            You
-          </th>
-          <GamesCell emphasized={emphasized} games={row?.youGames} />
-          {ALL_CATEGORY_IDS.map((categoryId) => (
-            <StatCell
-              actual={row?.youActual}
-              categoryId={categoryId}
-              emphasized={emphasized}
-              key={categoryId}
-              projection={row?.youProjection}
-            />
-          ))}
-        </tr>
-        <tr>
-          <th
-            className={`whitespace-nowrap px-1 py-0.5 text-left font-medium text-[var(--color-mute)] uppercase ${
-              emphasized ? "text-sm" : "text-xs"
-            }`}
-            scope="row"
-          >
-            Opp
-          </th>
-          <GamesCell emphasized={emphasized} games={row?.oppGames} />
-          {ALL_CATEGORY_IDS.map((categoryId) => (
-            <StatCell
-              actual={row?.oppActual}
-              categoryId={categoryId}
-              emphasized={emphasized}
-              key={categoryId}
-              projection={row?.oppProjection}
-            />
-          ))}
-        </tr>
+        <WeekStatRow
+          games={row?.youGames}
+          kind="total"
+          shade="bg-white"
+          showGames
+          team="You"
+          title="합계"
+          totals={row?.youProjection}
+        />
+        <WeekStatRow
+          kind="total"
+          shade="bg-white"
+          title="실제"
+          totals={row?.youActual}
+        />
+        <WeekStatRow
+          kind="delta"
+          shade="bg-white"
+          title="차이"
+          totals={row?.youDelta}
+        />
+        <WeekStatRow
+          games={row?.oppGames}
+          kind="total"
+          shade="bg-[var(--color-soft-cloud)]"
+          showGames
+          team="Opp"
+          title="합계"
+          totals={row?.oppProjection}
+        />
+        <WeekStatRow
+          kind="total"
+          shade="bg-[var(--color-soft-cloud)]"
+          title="실제"
+          totals={row?.oppActual}
+        />
+        <WeekStatRow
+          kind="delta"
+          shade="bg-[var(--color-soft-cloud)]"
+          title="차이"
+          totals={row?.oppDelta}
+        />
+        <WeekStatRow
+          kind="advantage"
+          shade="bg-[color-mix(in_srgb,var(--color-success)_14%,white)]"
+          title="+/-"
+          totals={advantage}
+        />
       </tbody>
     </table>
+  )
+}
+
+const ComparisonTable = ({
+  emphasized = false,
+  label,
+  row,
+}: {
+  emphasized?: boolean
+  label: string
+  row: DayComparisonRow | undefined
+}) => (
+  <section
+    aria-label={`Day comparison ${label}`}
+    className={`overflow-x-auto rounded-2xl bg-[#e4e6ea] ${
+      emphasized ? "px-4 py-3" : "px-3 py-1.5"
+    }`}
+  >
+    <h2
+      className={`font-medium text-[var(--color-ink)] ${
+        emphasized ? "text-base" : "text-[0.8125rem]"
+      }`}
+    >
+      {label}
+    </h2>
+    <WeekTable row={row} />
   </section>
 )

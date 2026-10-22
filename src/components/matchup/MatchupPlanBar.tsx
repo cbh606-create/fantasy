@@ -182,6 +182,7 @@ export const MatchupPlanBar = ({
           value={statWindow}
         >
           <option value="season">Season</option>
+          <option value="projection">Projection</option>
           <option value="l7">Last 7 days</option>
           <option value="l15">Last 15 days</option>
           <option value="l30">Last 30 days</option>

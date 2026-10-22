@@ -36,7 +36,7 @@ export const streamingChaseNote = (
   chaseIds: readonly CategoryId[],
   pairs: readonly StatPairRow[] = [],
 ): StreamingChaseNote => {
-  if (chaseIds.length < 2) {
+  if (chaseIds.length !== 2) {
     return { categoryIds: [...chaseIds], r: null, penalty: 0 }
   }
   const pair = findStatPair(pairs, chaseIds[0]!, chaseIds[1]!)

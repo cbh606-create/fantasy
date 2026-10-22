@@ -2,10 +2,14 @@ import type { DailyLineups } from "./dailyLineups"
 import type { CategoryId } from "@/lib/domain/types"
 import type { StreamingAddLock } from "./streamingAddOverride"
 
-export type StatWindow = "season" | "l7" | "l15" | "l30"
+export type StatWindow = "season" | "projection" | "l7" | "l15" | "l30"
 
 export const isStatWindow = (value: unknown): value is StatWindow =>
-  value === "season" || value === "l7" || value === "l15" || value === "l30"
+  value === "season" ||
+  value === "projection" ||
+  value === "l7" ||
+  value === "l15" ||
+  value === "l30"
 
 export type CategoryOutcome = "W" | "L" | "T"
 
@@ -73,7 +77,7 @@ export type OppSpotChoice = 0 | 1 | 2 | 3
 
 export type StreamingPlanAction = "hold" | "add" | "drop_add" | "empty"
 
-export type StreamingPlanRosterDropKind = "player" | "open_slot" | "none"
+export type StreamingPlanRosterDropKind = "player" | "open_slot" | "ir" | "none"
 
 export type StreamingPlanDayCell = {
   spotIndex: number

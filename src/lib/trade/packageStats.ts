@@ -1,6 +1,6 @@
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import { rosterPlayers, teamTotals } from "@/lib/season/analysis"
+import { rosterPlayers, teamTotalsForBasis, type StatBasis } from "@/lib/season/analysis"
 import type { SeasonLeagueState, SeasonPlayer } from "@/lib/season/types"
 import { buildPlayerValueMap } from "@/lib/trade/value"
 export type TradeStatSide = "you" | "them"
@@ -26,9 +26,12 @@ export type TradeStatInput = {
 const emptyLine = (): Record<CategoryId, number> =>
   Object.fromEntries(ALL_CATEGORY_IDS.map((categoryId) => [categoryId, 0])) as Record<CategoryId, number>
 
-const lineFromPlayers = (players: SeasonPlayer[]): Record<CategoryId, number> => {
+const lineFromPlayers = (
+  players: SeasonPlayer[],
+  basis: StatBasis,
+): Record<CategoryId, number> => {
   if (!players.length) return emptyLine()
-  return teamTotals(players)
+  return teamTotalsForBasis(players, basis)
 }
 
 const subtractLine = (
@@ -58,6 +61,7 @@ const playersFor = (ids: string[], playersById: Map<string, SeasonPlayer>) =>
 export const tradeStatRows = (
   state: SeasonLeagueState,
   suggestion: TradeStatInput,
+  basis: StatBasis = "total",
 ): TradeStatRow[] => {
   const playersById = new Map(state.players.map((player) => [player.id, player]))
   const playerValues = buildPlayerValueMap(state)
@@ -93,7 +97,7 @@ export const tradeStatRows = (
       emphasis: false,
       signed: false,
       value: playerValues.get(player.id) ?? 0,
-      values: lineFromPlayers([player]),
+      values: lineFromPlayers([player], basis),
     })),
     ...getPlayers.map((player) => ({
       id: `receive-${player.id}`,
@@ -102,7 +106,7 @@ export const tradeStatRows = (
       emphasis: false,
       signed: false,
       value: playerValues.get(player.id) ?? 0,
-      values: lineFromPlayers([player]),
+      values: lineFromPlayers([player], basis),
     })),
     {
       id: "send-total",
@@ -111,7 +115,7 @@ export const tradeStatRows = (
       emphasis: true,
       signed: false,
       value: packageValue(givePlayers),
-      values: lineFromPlayers(givePlayers),
+      values: lineFromPlayers(givePlayers, basis),
     },
     {
       id: "receive-total",
@@ -120,7 +124,7 @@ export const tradeStatRows = (
       emphasis: true,
       signed: false,
       value: packageValue(getPlayers),
-      values: lineFromPlayers(getPlayers),
+      values: lineFromPlayers(getPlayers, basis),
     },
     {
       id: "you-delta",
@@ -129,7 +133,7 @@ export const tradeStatRows = (
       emphasis: true,
       signed: true,
       value: packageValue(getPlayers) - packageValue(givePlayers),
-      values: subtractLine(lineFromPlayers(yourAfter), lineFromPlayers(yourRoster)),
+      values: subtractLine(lineFromPlayers(yourAfter, basis), lineFromPlayers(yourRoster, basis)),
     },
   ]
 }

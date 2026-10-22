@@ -5,12 +5,14 @@ import {
   formatCategoryStat,
   formatCategoryStatDelta,
 } from "@/lib/season/formatCategoryStat"
+import type { StatBasis } from "@/lib/season/analysis"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import { tradeStatRows, type TradeStatInput, type TradeStatSide } from "@/lib/trade/packageStats"
 
 type TradePackageStatsProps = {
   state: SeasonLeagueState
   suggestion: TradeStatInput
+  basis?: StatBasis
   className?: string
 }
 
@@ -29,9 +31,10 @@ const formatNetValue = (value: number) => {
 export const TradePackageStats = ({
   state,
   suggestion,
+  basis = "total",
   className = "mt-8",
 }: TradePackageStatsProps) => {
-  const rows = tradeStatRows(state, suggestion)
+  const rows = tradeStatRows(state, suggestion, basis)
 
   return (
     <section aria-label="Stats traded" className={className}>

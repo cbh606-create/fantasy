@@ -3,6 +3,7 @@ import {
   mapEspnDayBoxScore,
   matchupPeriodIdForScoringPeriod,
   pairClosedScoringPeriods,
+  pairCurrentScoringPeriod,
 } from "@/lib/espn/dayBoxScore"
 
 describe("pairClosedScoringPeriods", () => {

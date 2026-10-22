@@ -227,7 +227,7 @@ describe("MatchupPlanBar", () => {
     expect(onForcedOpponentRosterDropChange).toHaveBeenCalledWith(0, "r0")
   })
 
-  it("lists Season Last 7 Last 15 and Last 30 options", () => {
+  it("lists Season Projection Last 7 Last 15 and Last 30 options", () => {
     render(
       <MatchupPlanBar
         {...youBarProps}

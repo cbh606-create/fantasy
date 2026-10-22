@@ -1,6 +1,7 @@
 import { SideRankColumn } from "@/components/trade/SideRankColumn"
 import { PlayerValueNames } from "@/components/trade/PlayerValueNames"
 import type { CategoryId } from "@/lib/domain/types"
+import type { StatBasis } from "@/lib/season/analysis"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import type { SeasonLeagueState } from "@/lib/season/types"
 import type { CategoryTotalMove } from "@/lib/trade/accept"
@@ -13,6 +14,7 @@ type DealDetailProps = {
   suggestion: TradeSuggestion
   state: SeasonLeagueState
   requestedCategoryIds: CategoryId[]
+  basis?: StatBasis
 }
 
 const playerNames = (playerIds: string[], state: SeasonLeagueState) =>
@@ -78,6 +80,7 @@ export const DealDetail = ({
   suggestion,
   state,
   requestedCategoryIds,
+  basis = "total",
 }: DealDetailProps) => {
   const getNames = playerNames(suggestion.getPlayerIds, state)
   const counterparty = state.teams.find(
@@ -113,6 +116,7 @@ export const DealDetail = ({
     counterpartyTeamIndex: suggestion.counterpartyTeamIndex,
     youPlayerIds: suggestion.givePlayerIds,
     themPlayerIds: suggestion.getPlayerIds,
+    basis,
     ...(yourDropPlayerId ? { yourDropPlayerId } : {}),
   })
 

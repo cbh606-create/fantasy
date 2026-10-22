@@ -93,6 +93,44 @@ export const seatStreamerIfOpen = (
               slotIsOpen(entry) && eligibleForSlot(player, entry.slot),
           )
         : -1
+  if (flexIndex < 0 && options?.allowFlexSlots) {
+    const openSlots = entries
+      .map((entry, openIndex) => ({ entry, openIndex }))
+      .filter(({ entry }) => slotIsOpen(entry))
+      .sort((left, right) => {
+        const leftNull = left.entry.playerId === null ? 0 : 1
+        const rightNull = right.entry.playerId === null ? 0 : 1
+        return leftNull - rightNull
+      })
+    const donorIndex = entries.findIndex((entry, donorAt) => {
+      if (!entry.playerId || entry.playerId === playerId) return false
+      if (slotIsOpen(entry)) return false
+      if (!eligibleForSlot(player, entry.slot)) return false
+      const donor = resolvePlayer(playersById, entry.playerId)
+      if (!donor) return false
+      return openSlots.some(
+        (open) =>
+          open.openIndex !== donorAt &&
+          eligibleForSlot(donor, open.entry.slot),
+      )
+    })
+    const donorEntry = donorIndex >= 0 ? entries[donorIndex] : undefined
+    const donorId = donorEntry?.playerId
+    const donor = donorId ? resolvePlayer(playersById, donorId) : undefined
+    const open = donor
+      ? openSlots.find(
+          (slot) =>
+            slot.openIndex !== donorIndex &&
+            eligibleForSlot(donor, slot.entry.slot),
+        )
+      : undefined
+    if (donorEntry && donorId && open) {
+      entries[open.openIndex] = { ...open.entry, playerId: donorId }
+      entries[donorIndex] = { ...donorEntry, playerId }
+      return true
+    }
+    return false
+  }
   if (flexIndex < 0) return false
   const slot = entries[flexIndex]
   if (!slot) return false
@@ -120,6 +158,7 @@ export const applyStreamerMoveToDaily = (
   drop: StreamerMoveDrop,
   playersById: Map<string, SeasonPlayer> | Record<string, SeasonPlayer>,
   schedule: ScheduleResponse,
+  options?: { allowFlexSlots?: boolean },
 ): { daily: DailyLineups; seatedGameDays: number } => {
   const days = Object.keys(daily).sort().filter((day) => day >= fromDate)
   const addPlayer = resolvePlayer(playersById, addPlayerId)
@@ -137,7 +176,16 @@ export const applyStreamerMoveToDaily = (
   for (const day of days) {
     if (!teamHasGameOnDate(addPlayer.teamAbbr, day, schedule)) continue
     if (isDailyLineupFullForDate(draft, day, playersById, schedule)) continue
-    if (seatStreamerIfOpen(draft[day], addPlayerId, day, playersById, schedule)) {
+    if (
+      seatStreamerIfOpen(
+        draft[day],
+        addPlayerId,
+        day,
+        playersById,
+        schedule,
+        options,
+      )
+    ) {
       seatedGameDays += 1
     }
   }
@@ -281,6 +329,7 @@ const scoreStreamerMoveWithBefore = (
   oppDaily?: DailyLineups,
   statWindow?: StatWindow,
   chaseIds?: CategoryId[],
+  allowFlexSlots = false,
 ): {
   delta: number
   contestedDelta: number
@@ -296,6 +345,7 @@ const scoreStreamerMoveWithBefore = (
     drop,
     playersById,
     schedule,
+    { allowFlexSlots },
   )
   if (applied.seatedGameDays === 0) return null
   const afterBoard = matchupBoardFromDaily(
@@ -380,6 +430,7 @@ export const pickBestStreamerMove = (
     startsFor?: (playerId: string) => number
     statPairs?: readonly StatPairRow[]
     leakCategoryIds?: ReadonlySet<CategoryId>
+    allowFlexSlots?: boolean
   },
 ): {
   playerId: string
@@ -437,6 +488,7 @@ export const pickBestStreamerMove = (
       options?.oppDaily,
       options?.statWindow,
       chaseIds,
+      options?.allowFlexSlots ?? false,
     )
     if (!result) return []
     return [{ playerId, index, ...result }]

@@ -12,8 +12,10 @@ import { SeasonToolShell } from "@/components/season/SeasonToolShell"
 import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
 import { useSyncActiveSeasonLeague } from "@/components/season/useSyncActiveSeasonLeague"
 import {
+  analyzeFormLeague,
   analyzePerGameLeague,
   analyzeSeasonLeague,
+  type FormWindow,
   type SeasonAnalysis,
 } from "@/lib/season/analysis"
 import { eligibleForSlot } from "@/lib/matchup/eligibility"
@@ -49,6 +51,19 @@ const responseMessage = async (response: Response, fallback: string) => {
   if (response.status === 401) return "unauthorized"
   const body = (await response.json().catch(() => ({}))) as RefreshResponse
   return body.message ?? body.errorCode ?? fallback
+}
+
+const rosterUpdatedLabel = (lastSyncedAt: string | undefined): string => {
+  if (!lastSyncedAt) return "Full roster"
+  const updatedAt = new Date(lastSyncedAt)
+  if (Number.isNaN(updatedAt.getTime())) return "Full roster"
+  return `Updated ${updatedAt.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })}`
 }
 
 export const SeasonRosterWorkspace = ({
@@ -176,6 +191,20 @@ export const SeasonRosterWorkspace = ({
     () => (effectiveState ? analyzePerGameLeague(effectiveState) : null),
     [effectiveState],
   )
+  const formAnalyses = useMemo(() => {
+    if (!effectiveState) return null
+    const windows = ["l7", "l15", "l30"] as const satisfies readonly Exclude<FormWindow, "season">[]
+
+    return Object.fromEntries(
+      windows.map((window) => [
+        window,
+        {
+          total: analyzeFormLeague(effectiveState, window, "total"),
+          perGame: analyzeFormLeague(effectiveState, window, "perGame"),
+        },
+      ]),
+    ) as Record<Exclude<FormWindow, "season">, { total: SeasonAnalysis, perGame: SeasonAnalysis }>
+  }, [effectiveState])
   const perspectiveTeamIndex = data?.state.perspectiveTeamIndex
   const userLevels = effectiveAnalysis?.byTeam.find(
     (team) => team.teamIndex === perspectiveTeamIndex,
@@ -383,7 +412,6 @@ export const SeasonRosterWorkspace = ({
           <div>
             <p className="text-sm text-[var(--color-mute)]">
               {data.state.season} season · YOU · {data.state.source}
-              {data.state.lastSyncedAt ? ` · synced ${new Date(data.state.lastSyncedAt).toLocaleDateString()}` : ""}
             </p>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h1 className="font-[family-name:var(--font-bebas-neue)] text-5xl tracking-tight uppercase sm:text-7xl">
@@ -491,10 +519,12 @@ export const SeasonRosterWorkspace = ({
             isEditing={isEditing}
             onPlayerChange={handlePlayerChange}
             players={rosteredPlayers}
+            subtitle={rosterUpdatedLabel(data.state.lastSyncedAt)}
           />
           <CompactCategoryProfile levels={userLevels} />
           <LeagueRankMatrix
             analysis={effectiveAnalysis!}
+            formAnalyses={formAnalyses ?? undefined}
             perGameAnalysis={perGameAnalysis}
             perspectiveTeamIndex={data.state.perspectiveTeamIndex}
             teams={data.state.teams}

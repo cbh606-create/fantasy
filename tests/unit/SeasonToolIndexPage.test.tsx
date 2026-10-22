@@ -7,6 +7,7 @@ import { SeasonToolIndexPage } from "@/components/season/SeasonToolIndexPage"
 import { useActiveSeasonLeague } from "@/components/season/ActiveSeasonLeagueProvider"
 import { useRouter } from "next/navigation"
 import RosterListPage from "@/app/roster/page"
+import WaiversListPage from "@/app/waivers/page"
 
 vi.mock("@/components/season/ActiveSeasonLeagueProvider", () => ({
   useActiveSeasonLeague: vi.fn(),
@@ -87,6 +88,32 @@ describe("SeasonToolIndexPage", () => {
       "href",
       "/trade/league-1",
     )
+  })
+})
+
+describe("WaiversListPage", () => {
+  it("names breakouts, injury replacements, and season needs", () => {
+    vi.mocked(useRouter).mockReturnValue({ replace } as never)
+    vi.mocked(useActiveSeasonLeague).mockReturnValue({
+      activeId: "missing-league",
+      leagues: [
+        {
+          id: "league-1",
+          name: "Downtown Hoops",
+          season: 2026,
+          source: "espn",
+        },
+      ],
+      isLoading: false,
+      error: "",
+      setActiveId: vi.fn(),
+      updateLeague: vi.fn(),
+      removeLeague: vi.fn(),
+    })
+
+    render(<WaiversListPage />)
+
+    expect(screen.getByText(/breakouts, injury replacements, and season needs/)).toBeInTheDocument()
   })
 })
 

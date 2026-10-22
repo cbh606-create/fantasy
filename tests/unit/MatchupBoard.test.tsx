@@ -49,6 +49,11 @@ describe("MatchupBoard", () => {
     render(<MatchupBoard board={board} />)
 
     expect(screen.getByRole("rowheader", { name: "Diff" })).toBeInTheDocument()
+    const winLabel = screen.getByRole("rowheader", { name: "Win%" })
+    expect(winLabel).toBeInTheDocument()
+    expect(winLabel.className).toContain("color-mix")
+    expect(screen.getByText("70.0%")).toBeInTheDocument()
+    expect(screen.getByText("35.0%")).toBeInTheDocument()
     expect(screen.getByText("+10.0")).toBeInTheDocument()
     expect(screen.getByText("+2.0")).toBeInTheDocument()
     expect(screen.getByText("-4.0")).toBeInTheDocument()

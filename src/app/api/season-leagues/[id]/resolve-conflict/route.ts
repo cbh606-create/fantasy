@@ -68,15 +68,21 @@ export const POST = async (
 
   if (!league) return notFoundResponse()
 
+  const syncedAt = new Date()
+  const stateToStore: SeasonLeagueState = {
+    ...body.incomingState,
+    name: body.incomingState.name.trim() || league.name,
+    lastSyncedAt: syncedAt.toISOString(),
+  }
   const updatedLeague = await db.seasonLeague.update({
     where: { id: league.id },
     data: {
-      name: body.incomingState.name.trim() || league.name,
-      stateJson: JSON.stringify(body.incomingState),
+      name: stateToStore.name,
+      stateJson: JSON.stringify(stateToStore),
       localLineupJson:
         body.resolution === "apply_espn" ? null : league.localLineupJson,
       source: body.resolution === "apply_espn" ? "espn" : "mixed",
-      lastSyncedAt: new Date(),
+      lastSyncedAt: syncedAt,
     },
   })
 

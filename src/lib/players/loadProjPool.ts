@@ -1,6 +1,10 @@
 import { readFile, stat } from "node:fs/promises"
 import path from "node:path"
-import type { PoolProjectionPlayer } from "@/lib/players/applyPoolProjections"
+import {
+  applyPoolProjectionStats,
+  type PoolProjectionPlayer,
+  type SeasonProjectionTarget,
+} from "@/lib/players/applyPoolProjections"
 
 type PoolFile = {
   players: PoolProjectionPlayer[]
@@ -28,4 +32,20 @@ export const loadProjPoolPlayers = async (
 
   cached = { mtimeMs, players: parsed.players }
   return parsed.players
+}
+
+export const overlaySeasonProjections = async <
+  T extends { players: SeasonProjectionTarget[] },
+>(
+  state: T,
+): Promise<T> => {
+  try {
+    const poolPlayers = await loadProjPoolPlayers()
+    return {
+      ...state,
+      players: applyPoolProjectionStats(state.players, poolPlayers),
+    }
+  } catch {
+    return state
+  }
 }

@@ -73,7 +73,7 @@ describe("PlayerRosterTable stat basis", () => {
     expect(screen.getAllByText("20.0")).toHaveLength(2)
     expect(screen.getByText("10.0/20.0")).toBeInTheDocument()
     expect(screen.getByText("2.0")).toBeInTheDocument()
-    expect(screen.getByText("50.0%")).toBeInTheDocument()
+    expect(screen.getAllByText("50.0%").length).toBeGreaterThan(0)
     expect(screen.getByText("8.0")).toBeInTheDocument()
   })
 })

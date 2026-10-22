@@ -1,4 +1,5 @@
 import type { CategoryId } from "@/lib/domain/types"
+import type { StatBasis } from "@/lib/season/analysis"
 import type { CategoryTotalMove } from "./accept"
 
 export type TradeShape = "1:1" | "1:2" | "2:1" | "2:2" | "2:3" | "3:2" | "3:3"
@@ -39,6 +40,7 @@ export type SuggestTradesOptions = {
   targetCategoryIds?: readonly CategoryId[]
   excludedPlayerIds?: readonly string[]
   shapes?: readonly TradeShape[]
+  basis?: StatBasis
 }
 
 export type TradePackage = {

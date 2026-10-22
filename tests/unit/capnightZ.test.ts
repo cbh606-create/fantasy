@@ -32,7 +32,7 @@ describe("capnightPlayerZ", () => {
     expect(capnightPlayerZ("Not A Real Player").z.PTS).toBe(0)
   })
 
-  it("places the roster z sum on a league scale", () => {
+  it("keeps season z on the stat line when two rosters project the same points", () => {
     const jokic = player("jokic", "Nikola Jokic")
     const missing = player("missing", "Not A Real Player")
     const state: SeasonLeagueState = {
@@ -54,12 +54,12 @@ describe("capnightPlayerZ", () => {
     const jokicPts = analysis.byCategory
       .find((category) => category.categoryId === "PTS")
       ?.rows.find((row) => row.teamIndex === 0)
-
-    expect(jokicPts?.z).toBeCloseTo(1, 5)
     const missingPts = analysis.byTeam[1]?.levels.find(
       (level) => level.categoryId === "PTS",
     )
-    expect(missingPts?.z).toBeCloseTo(-1, 5)
-    expect(missingPts?.kind).toBe("negative")
+
+    expect(jokicPts?.z).toBe(0)
+    expect(missingPts?.z).toBe(0)
+    expect(missingPts?.kind).toBe("neutral")
   })
 })

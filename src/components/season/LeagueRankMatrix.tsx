@@ -4,25 +4,33 @@ import { useRef, useState } from "react"
 import { CategoryZDialog } from "@/components/season/CategoryZDialog"
 import {
   CategoryZScale,
+  formatSignedZ,
   type CategoryZDot,
 } from "@/components/season/CategoryZScale"
 import { ALL_CATEGORY_IDS } from "@/lib/domain/categories"
 import type { CategoryId } from "@/lib/domain/types"
-import type { SeasonAnalysis } from "@/lib/season/analysis"
+import type { FormWindow, SeasonAnalysis } from "@/lib/season/analysis"
 import { CATEGORY_SHORT_LABELS } from "@/lib/season/formatCategoryStat"
 import { sortTeamsByCategoryRank, type SortDirection } from "@/lib/season/matrixSort"
 import type { SeasonTeamRoster } from "@/lib/season/types"
 
 type RankBasis = "total" | "perGame"
+type ScoreMode = "rank" | "z"
+
+type FormAnalysis = {
+  total: SeasonAnalysis
+  perGame?: SeasonAnalysis | null
+}
 
 type LeagueRankMatrixProps = {
   analysis: SeasonAnalysis
   perGameAnalysis?: SeasonAnalysis | null
+  formAnalyses?: Partial<Record<Exclude<FormWindow, "season">, FormAnalysis>>
   perspectiveTeamIndex: number
   teams: SeasonTeamRoster[]
 }
 
-type SortKey = CategoryId | "overall"
+type SortKey = CategoryId | "overall" | "rankSum"
 
 const categoryLabels: Record<CategoryId, string> = {
   FG_PCT: "FG%",
@@ -36,21 +44,41 @@ const categoryLabels: Record<CategoryId, string> = {
   PTS: "PTS",
 }
 
-const sortKeyLabel = (key: SortKey) =>
-  key === "overall" ? "Overall" : categoryLabels[key]
+const sortKeyLabel = (key: SortKey, scoreMode: ScoreMode) => {
+  if (key === "overall") return "Overall"
+  if (key === "rankSum") return scoreMode === "z" ? "Z sum" : "Rank sum"
+  return categoryLabels[key]
+}
+
+const isSummaryKey = (key: SortKey) => key === "overall" || key === "rankSum"
+
+const FORM_WINDOWS = [
+  ["season", "Season"],
+  ["l7", "7"],
+  ["l15", "15"],
+  ["l30", "30"],
+] as const
 
 export const LeagueRankMatrix = ({
   analysis,
   perGameAnalysis,
+  formAnalyses,
   perspectiveTeamIndex,
   teams,
 }: LeagueRankMatrixProps) => {
+  const [formWindow, setFormWindow] = useState<FormWindow>("season")
   const [basis, setBasis] = useState<RankBasis>("total")
+  const [scoreMode, setScoreMode] = useState<ScoreMode>("rank")
   const [activeSortKey, setActiveSortKey] = useState<SortKey | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const [openCategoryId, setOpenCategoryId] = useState<CategoryId | null>(null)
+  const windowAnalysis = formWindow === "season"
+    ? { total: analysis, perGame: perGameAnalysis }
+    : formAnalyses?.[formWindow] ?? { total: analysis, perGame: perGameAnalysis }
   const shownAnalysis =
-    basis === "perGame" && perGameAnalysis ? perGameAnalysis : analysis
+    basis === "perGame" && windowAnalysis.perGame
+      ? windowAnalysis.perGame
+      : windowAnalysis.total
   const triggerRefs = useRef<Partial<Record<CategoryId, HTMLButtonElement | null>>>({})
   const ranksByCategory = new Map(
     shownAnalysis.byCategory.map((category) => [
@@ -64,14 +92,52 @@ export const LeagueRankMatrix = ({
   const rankSumByTeam = Object.fromEntries(
     shownAnalysis.overall.rows.map((row) => [row.teamIndex, row.rankSum]),
   )
+  const zByCategory = new Map(
+    shownAnalysis.byCategory.map((category) => [
+      category.categoryId,
+      Object.fromEntries(category.rows.map((row) => [row.teamIndex, row.z])),
+    ]),
+  )
   const teamIndexes = teams.map((team) => team.teamIndex)
+  const zSumByTeam = Object.fromEntries(
+    teamIndexes.map((teamIndex) => [
+      teamIndex,
+      ALL_CATEGORY_IDS.reduce(
+        (sum, categoryId) => sum + (zByCategory.get(categoryId)?.[teamIndex] ?? 0),
+        0,
+      ),
+    ]),
+  )
+  const zOverallByTeam = Object.fromEntries(
+    sortTeamsByCategoryRank({
+      teamIndexes,
+      ranksByTeam: Object.fromEntries(
+        teamIndexes.map((teamIndex) => [teamIndex, -(zSumByTeam[teamIndex] ?? 0)]),
+      ),
+      direction: "asc",
+    }).map((teamIndex, index) => [teamIndex, index + 1]),
+  )
+  const placeByTeam = scoreMode === "z" ? zOverallByTeam : overallByTeam
   const sortedTeamIndexes = activeSortKey
     ? sortTeamsByCategoryRank({
         teamIndexes,
         ranksByTeam:
           activeSortKey === "overall"
-            ? overallByTeam
-            : ranksByCategory.get(activeSortKey) ?? {},
+            ? placeByTeam
+            : activeSortKey === "rankSum"
+              ? scoreMode === "z"
+                ? Object.fromEntries(
+                    teamIndexes.map((teamIndex) => [teamIndex, -(zSumByTeam[teamIndex] ?? 0)]),
+                  )
+                : rankSumByTeam
+              : scoreMode === "z"
+                ? Object.fromEntries(
+                    teamIndexes.map((teamIndex) => [
+                      teamIndex,
+                      -(zByCategory.get(activeSortKey)?.[teamIndex] ?? 0),
+                    ]),
+                  )
+                : ranksByCategory.get(activeSortKey) ?? {},
         direction: sortDirection,
       })
     : teamIndexes
@@ -121,7 +187,7 @@ export const LeagueRankMatrix = ({
   const renderRankCell = (
     rank: number | undefined,
     isYou: boolean,
-    opts?: { title?: string; tone?: "category" | "overall" },
+    opts?: { label?: string; title?: string; tone?: "category" | "overall" },
   ) => {
     const tone = opts?.tone ?? "category"
     const heat = rank
@@ -152,7 +218,7 @@ export const LeagueRankMatrix = ({
         style={isYou ? undefined : { backgroundColor: softHeatColor }}
         title={opts?.title}
       >
-        #{rank ?? "—"}
+        {opts?.label ?? `#${rank ?? "—"}`}
       </span>
     )
   }
@@ -169,6 +235,32 @@ export const LeagueRankMatrix = ({
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <div
+            aria-label="Rank window"
+            className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
+            role="radiogroup"
+          >
+            {FORM_WINDOWS.map(([value, label]) => {
+              const selected = formWindow === value
+
+              return (
+                <button
+                  aria-checked={selected}
+                  className={`rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                    selected
+                      ? "bg-[var(--color-ink)] text-white"
+                      : "text-[var(--color-mute)] hover:text-[var(--color-ink)]"
+                  }`}
+                  key={value}
+                  onClick={() => setFormWindow(value)}
+                  role="radio"
+                  type="button"
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
           <div
             aria-label="Rank basis"
             className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
@@ -198,6 +290,35 @@ export const LeagueRankMatrix = ({
               )
             })}
           </div>
+          <div
+            aria-label="Score"
+            className="flex rounded-full bg-[var(--color-soft-cloud)] p-1"
+            role="radiogroup"
+          >
+            {([
+              ["rank", "Rank"],
+              ["z", "Z"],
+            ] as const).map(([value, label]) => {
+              const selected = scoreMode === value
+
+              return (
+                <button
+                  aria-checked={selected}
+                  className={`rounded-full px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)] ${
+                    selected
+                      ? "bg-[var(--color-ink)] text-white"
+                      : "text-[var(--color-mute)] hover:text-[var(--color-ink)]"
+                  }`}
+                  key={value}
+                  onClick={() => setScoreMode(value)}
+                  role="radio"
+                  type="button"
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
           <button
             className="rounded-full border border-[var(--color-hairline)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-soft-cloud)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-ink)]"
             onClick={handleReset}
@@ -217,8 +338,9 @@ export const LeagueRankMatrix = ({
               >
                 Team
               </th>
-              {(["overall", ...ALL_CATEGORY_IDS] as SortKey[]).map((key) => {
+              {(["overall", "rankSum", ...ALL_CATEGORY_IDS] as SortKey[]).map((key) => {
                 const isActive = activeSortKey === key
+                const summary = isSummaryKey(key)
                 const directionLabel = isActive
                   ? sortDirection === "asc"
                     ? "best first"
@@ -228,7 +350,7 @@ export const LeagueRankMatrix = ({
                 return (
                   <th
                     className={`px-1 py-2 text-center ${
-                      key === "overall"
+                      key === "rankSum"
                         ? "border-r border-[var(--color-hairline)]"
                         : ""
                     }`}
@@ -236,20 +358,20 @@ export const LeagueRankMatrix = ({
                     scope="col"
                   >
                     <button
-                      aria-label={`Sort by ${sortKeyLabel(key)}, ${directionLabel}`}
+                      aria-label={`Sort by ${sortKeyLabel(key, scoreMode)}, ${directionLabel}`}
                       className={`rounded px-2 py-1 text-xs font-medium ${
                         isActive
-                          ? key === "overall"
+                          ? summary
                             ? "bg-sky-800 text-white"
                             : "bg-[var(--color-ink)] text-white"
-                          : key === "overall"
+                          : summary
                             ? "text-sky-900 hover:bg-sky-50"
                             : "hover:bg-white"
                       }`}
                       onClick={() => handleSort(key)}
                       type="button"
                     >
-                      {sortKeyLabel(key)}
+                      {sortKeyLabel(key, scoreMode)}
                       {isActive
                         ? sortDirection === "asc"
                           ? " ↑"
@@ -265,8 +387,9 @@ export const LeagueRankMatrix = ({
             {sortedTeamIndexes.map((teamIndex) => {
               const isYou = teamIndex === perspectiveTeamIndex
               const team = teamsByIndex.get(teamIndex)
-              const overallRank = overallByTeam[teamIndex]
+              const overallRank = placeByTeam[teamIndex]
               const rankSum = rankSumByTeam[teamIndex]
+              const zSum = zSumByTeam[teamIndex]
 
               return (
                 <tr
@@ -283,24 +406,35 @@ export const LeagueRankMatrix = ({
                   >
                     {isYou ? "YOU" : team?.name ?? `Team ${teamIndex + 1}`}
                   </th>
-                  <td className="border-r border-[var(--color-hairline)] px-1 py-2 text-center tabular-nums font-semibold">
-                    {renderRankCell(overallRank, isYou, {
-                      tone: "overall",
-                      title:
-                        rankSum != null
+                  <td className="px-1 py-2 text-center tabular-nums font-semibold">
+                    {renderRankCell(overallRank, isYou, { tone: "overall" })}
+                  </td>
+                  <td
+                    className="border-r border-[var(--color-hairline)] px-1 py-2 text-center tabular-nums font-semibold"
+                    title={
+                      scoreMode === "z"
+                        ? `Z sum ${formatSignedZ(zSum ?? 0)} (higher is better)`
+                        : rankSum != null
                           ? `Rank sum ${rankSum} (lower is better)`
-                          : undefined,
-                    })}
+                          : undefined
+                    }
+                  >
+                    {scoreMode === "z" ? formatSignedZ(zSum ?? 0) : rankSum ?? "—"}
                   </td>
                   {ALL_CATEGORY_IDS.map((categoryId) => {
                     const rank = ranksByCategory.get(categoryId)?.[teamIndex]
+                    const z = zByCategory.get(categoryId)?.[teamIndex]
 
                     return (
                       <td
                         className="px-1 py-2 text-center tabular-nums"
                         key={categoryId}
                       >
-                        {renderRankCell(rank, isYou)}
+                        {scoreMode === "z"
+                          ? renderRankCell(rank, isYou, {
+                              label: z == null ? "—" : formatSignedZ(z),
+                            })
+                          : renderRankCell(rank, isYou)}
                       </td>
                     )
                   })}
@@ -316,6 +450,9 @@ export const LeagueRankMatrix = ({
               >
                 Z
               </th>
+              <td className="px-1 py-2 text-center text-[var(--color-mute)]">
+                —
+              </td>
               <td className="border-r border-[var(--color-hairline)] px-1 py-2 text-center text-[var(--color-mute)]">
                 —
               </td>

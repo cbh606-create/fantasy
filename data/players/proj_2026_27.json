@@ -10949,18 +10949,28 @@
       "id": "espn-3907387",
       "name": "Ben Simmons",
       "positions": [
-        "SF"
+        "PG"
       ],
       "projections": {
-        "FG_PCT": 0,
-        "FT_PCT": 0,
+        "FG_PCT": 0.5283018867924528,
+        "FT_PCT": 0.6538461538461539,
         "TPM": 0,
-        "REB": 0,
-        "AST": 0,
-        "STL": 0,
-        "BLK": 0,
-        "TO": 0,
-        "PTS": 0
+        "REB": 185,
+        "AST": 196,
+        "STL": 26,
+        "BLK": 19,
+        "TO": 70,
+        "PTS": 185
+      },
+      "projectedGames": 37,
+      "statsSeasonId": 2027,
+      "statsKind": "projection",
+      "statsRowId": "102027",
+      "shooting": {
+        "FGM": 84,
+        "FGA": 159,
+        "FTM": 17,
+        "FTA": 26
       },
       "adp": 478,
       "adpBySource": {

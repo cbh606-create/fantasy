@@ -39,6 +39,12 @@ const deltaClass = (outcome: CategoryOutcome): string => {
   return "tabular-nums text-[var(--color-mute)]"
 }
 
+const formatWinProb = (winProb: number): string =>
+  `${(winProb * 100).toFixed(1)}%`
+
+const winShadeClass =
+  "bg-[color-mix(in_srgb,var(--color-ink)_12%,var(--color-soft-cloud))]"
+
 export const MatchupBoard = ({ board, categoryDeltas }: MatchupBoardProps) => {
   const headline = `${board.wins}–${board.losses}–${board.ties}`
 
@@ -131,6 +137,22 @@ export const MatchupBoard = ({ board, categoryDeltas }: MatchupBoardProps) => {
                     row.categoryId,
                     categoryStatLead(row.categoryId, row.you, row.opp),
                   )}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th
+                className={`whitespace-nowrap px-1.5 py-1 text-left text-[0.8125rem] font-medium tracking-wide text-[var(--color-mute)] uppercase ${winShadeClass}`}
+                scope="row"
+              >
+                Win%
+              </th>
+              {board.categories.map((row) => (
+                <td
+                  className={`px-1.5 py-1 text-center text-[0.8125rem] ${winShadeClass} ${deltaClass(row.outcome)}`}
+                  key={`win-${row.categoryId}`}
+                >
+                  {formatWinProb(row.winProb)}
                 </td>
               ))}
             </tr>

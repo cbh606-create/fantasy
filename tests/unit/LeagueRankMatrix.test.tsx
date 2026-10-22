@@ -70,6 +70,7 @@ describe("LeagueRankMatrix z row", () => {
     const cells = within(zRow).getAllByRole("cell")
 
     expect(cells[0]).toHaveTextContent("—")
+    expect(cells[1]).toHaveTextContent("—")
     expect(within(zRow).getAllByRole("button", { name: /league z$/ })).toHaveLength(9)
     expect(screen.getByRole("button", { name: "Show REB league z" })).toBeInTheDocument()
   })
@@ -214,7 +215,7 @@ describe("LeagueRankMatrix overall column", () => {
     )
   })
 
-  it("shows rank sum in the overall cell title", () => {
+  it("shows rank sum beside overall", () => {
     render(
       <LeagueRankMatrix
         analysis={analysisOverallFixture()}
@@ -223,9 +224,120 @@ describe("LeagueRankMatrix overall column", () => {
       />,
     )
 
-    expect(
-      screen.getByTitle("Rank sum 20 (lower is better)"),
-    ).toBeInTheDocument()
+    const headers = screen.getAllByRole("columnheader")
+    expect(headers[1]).toHaveTextContent("Overall")
+    expect(headers[2]).toHaveTextContent("Rank sum")
+
+    const leader = screen.getByRole("rowheader", { name: "Leader" }).closest("tr")
+    if (!leader) throw new Error("missing leader row")
+    const cells = within(leader).getAllByRole("cell")
+    expect(cells[0]).toHaveTextContent("#1")
+    expect(cells[1]).toHaveTextContent("20")
+    expect(cells[1]).toHaveAttribute("title", "Rank sum 20 (lower is better)")
+  })
+})
+
+describe("LeagueRankMatrix rank basis", () => {
+  afterEach(() => {
+    document.body.style.overflow = ""
+    cleanup()
+  })
+
+  it("switches ranks, sort totals, and the z row to per game", () => {
+    const perGame = analysisWith(true)
+    const pts = perGame.byCategory.find((category) => category.categoryId === "PTS")
+    if (!pts) throw new Error("missing PTS")
+    pts.rows = [
+      { teamIndex: 1, rank: 1, z: 1.5, raw: 30 },
+      { teamIndex: 2, rank: 2, z: 0, raw: 20 },
+      { teamIndex: 0, rank: 3, z: -1.5, raw: 10 },
+    ]
+    perGame.overall = {
+      rows: [
+        { teamIndex: 1, rank: 1, rankSum: 12 },
+        { teamIndex: 2, rank: 2, rankSum: 18 },
+        { teamIndex: 0, rank: 3, rankSum: 24 },
+      ],
+    }
+
+    render(
+      <LeagueRankMatrix
+        analysis={analysisWith(true)}
+        perGameAnalysis={perGame}
+        perspectiveTeamIndex={0}
+        teams={teams}
+      />,
+    )
+
+    const youPts = () => {
+      const row = screen.getByRole("rowheader", { name: "YOU" }).closest("tr")
+      if (!row) throw new Error("missing you row")
+      return within(row).getAllByRole("cell").at(-1)
+    }
+
+    expect(youPts()).toHaveTextContent("#1")
+    fireEvent.click(screen.getByRole("radio", { name: "Per game" }))
+    expect(youPts()).toHaveTextContent("#3")
+    expect(screen.getByTitle("Rank sum 24 (lower is better)")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("radio", { name: "Total" }))
+    expect(youPts()).toHaveTextContent("#1")
+
+    fireEvent.click(screen.getByRole("radio", { name: "Per game" }))
+    fireEvent.click(screen.getByRole("button", { name: "Show PTS league z" }))
+    expect(screen.getByText("YOU · 10.0 · -1.50")).toBeInTheDocument()
+  })
+
+  it("switches the matrix to a recent-form ranking", () => {
+    const recent = analysisWith(true)
+    const pts = recent.byCategory.find((category) => category.categoryId === "PTS")
+    if (!pts) throw new Error("missing PTS")
+    pts.rows = [
+      { teamIndex: 1, rank: 1, z: 1, raw: 40 },
+      { teamIndex: 2, rank: 2, z: 0, raw: 20 },
+      { teamIndex: 0, rank: 3, z: -1, raw: 5 },
+    ]
+
+    render(
+      <LeagueRankMatrix
+        analysis={analysisWith(true)}
+        formAnalyses={{ l7: { total: recent, perGame: recent } }}
+        perspectiveTeamIndex={0}
+        teams={teams}
+      />,
+    )
+
+    const youPts = () => {
+      const row = screen.getByRole("rowheader", { name: "YOU" }).closest("tr")
+      if (!row) throw new Error("missing you row")
+      return within(row).getAllByRole("cell").at(-1)
+    }
+
+    expect(youPts()).toHaveTextContent("#1")
+    fireEvent.click(screen.getByRole("radio", { name: "7" }))
+    expect(youPts()).toHaveTextContent("#3")
+    fireEvent.click(screen.getByRole("radio", { name: "Season" }))
+    expect(youPts()).toHaveTextContent("#1")
+  })
+
+  it("switches category cells and the summary to z-scores", () => {
+    renderMatrix(true)
+
+    const youCells = () => {
+      const row = screen.getByRole("rowheader", { name: "YOU" }).closest("tr")
+      if (!row) throw new Error("missing you row")
+      return within(row).getAllByRole("cell")
+    }
+
+    expect(youCells()[0]).toHaveTextContent("#1")
+    expect(youCells()[1]).toHaveTextContent("20")
+    fireEvent.click(screen.getByRole("radio", { name: "Z" }))
+    expect(screen.getByRole("button", { name: "Sort by Z sum, best first" })).toBeInTheDocument()
+    expect(youCells()[0]).toHaveTextContent("#2")
+    expect(youCells()[1]).toHaveTextContent("+2.75")
+    expect(youCells().at(-1)).toHaveTextContent("+0.20")
+    expect(youCells()[1]).toHaveAttribute("title", "Z sum +2.75 (higher is better)")
+    fireEvent.click(screen.getByRole("radio", { name: "Rank" }))
+    expect(youCells()[0]).toHaveTextContent("#1")
   })
 })
 

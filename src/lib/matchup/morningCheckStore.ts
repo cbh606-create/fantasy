@@ -67,15 +67,3 @@ export const actualsFromClosedDays = (
     ]),
   )
 
-/** True when every ESPN-closed date already has a saved closed-day record. */
-export const savedClosedCoversEspnDates = (
-  previous: MorningCheckRecord | null,
-  espnClosedDates: Iterable<string>,
-): boolean => {
-  if (!previous || previous.actualsPending) return false
-  const saved = new Set(previous.closedDays.map((day) => day.date))
-  for (const date of espnClosedDates) {
-    if (!saved.has(date)) return false
-  }
-  return true
-}
